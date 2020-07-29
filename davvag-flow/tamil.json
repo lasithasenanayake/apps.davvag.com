@@ -1,0 +1,116 @@
+{
+    "name":"Workflow -1",
+    "start_up_node":"reg-step-1",
+    "reg-step-1":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"நீங்கள் தமிழ் மொழியை தெரிவு செய்துள்ளீர்கள். எங்களது சேவைகளை பெற்றுக்கொள்ள பதிவு செய்து கொள்ள விரும்புகின்றீர்களா..?","buttons":[
+                    {"type":"postback","title":"ஆம்","payload":"tamil:reg-step-addtag:@workflowid"},{"type":"postback","title":"இல்லை","payload":"tamil:reg-step-cancelled:@workflowid"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"reg-step-addtag":{
+        "urntype":"class",
+        "file":"tags.php",
+        "class":"tags",
+        "method":{
+            "name":"addTag",
+            "params":[{"inputData":"davvagid"},"tamil"],
+            "return":true,
+            "returnobj":"tag"
+        },
+        "success":"reg-step-done",
+        "fail":"nodefail"
+    },"reg-step-done":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"நன்றி @first_name. அனைத்து செய்தி புதுப்பிப்புகளுக்கும் வெற்றிகரமாக பதிவு செய்துள்ளீர்கள்.\nநீங்கள் எங்களுடைய ஹிரு மெசேஞ்சர் செய்திகளை மு.ப 8.30 மற்றும்  இரவு 8.30 தினசரி செய்திகளை பெற்று கொள்ள பதிவு செய்துள்ளீர்கள்."}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"reg-step-cancelled":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"உங்கள் கருத்துக்களில் மாற்றங்கள் காணப்படுமாயின் குறுந்தகவல் வாயிலாக அறியத்தாருங்கள். செய்திகளை பதிவேற்றம் செய்ய நீங்களும் பங்களிப்பு செய்யுங்கள்."}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node2":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"getMessage",
+            "params":[{"inputData":"message"}],
+            "return":true,
+            "returnobj":"replymessage"
+        },
+        "fail":"nodefail"
+    },"node3":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"yolo node3"}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node4":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Hi @first_name Welcome to HIRU news. Please choose your language.\n\n ආයුබෝවන් @first_name,හිරු ප්‍රවෘත්ති වෙත සාදරයෙන් පිළිගනිමු. කරුණාකර ඔබේ භාෂාව තෝරා ගන්න\n\n வணக்கம் @first_name ஹிரு மெசேஞ்சர் செய்திகளுக்கு உங்களை அன்புடன் வரவேற்கின்றோம். தயவுசெய்து உங்களின் மொழியை தேர்ந்தெடுங்கள்","buttons":[
+                    {"type":"postback","title":"English","payload":"english:node1"},{"type":"postback","title":"සිංහල","payload":"sinhala:node1"},{"type":"postback","title":"தமிழ்","payload":"tamil:node1"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node5":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Ho Node 5 button","buttons":[
+                    {"type":"postback","title":"Node 3","payload":"1:node3"},{"type":"postback","title":"Node 4","payload":"1:node4"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"nodefail":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"fail",
+            "params":[{"inputData":"name"}],
+            "return":true,
+            "returnobj":"failed"
+        }
+    }
+}

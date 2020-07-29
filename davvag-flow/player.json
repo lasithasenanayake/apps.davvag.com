@@ -1,0 +1,47 @@
+{
+    "name":"Workflow -1",
+    "start_up_node":"reg-step-1",
+    "reg-step-1":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"open_graph",
+                "elements":[
+                   {
+                    "url":"http://www.davvag.com/components/davvag-cms-generalapps/cms-gapp-handler/service/Artical/?q=3",
+                    "buttons":[
+                      {
+                        "type":"web_url",
+                        "url":"http://www.davvag.com/components/davvag-cms-generalapps/cms-gapp-handler/service/Artical/?q=3",
+                        "title":"Learn More"
+                      }              
+                    ]      
+                  }]}}}],
+            "return":true,
+            "returnobj":"fbresp"
+        }
+    },
+    "reg-step-2":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type": "media",
+                "elements": [
+                {
+                        "media_type": "video",
+                        "attachment_id": "2721107611335451"
+                }
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    }
+}

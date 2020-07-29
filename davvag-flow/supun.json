@@ -1,0 +1,16 @@
+{
+    "name":"lasitha",
+    "start_up_node":"node3",
+    "node3":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"supun is a stupid programmer. Dont talk about him."}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "variables":{
+        "MAIN_STORE_DOMAIN":"ardemo.davvag.com",
+        "MAPS_APIKEY":"AIzaSyCKsfJwJG7pfmMPXYXZyex8gtj_dw2mqro",
+        "FBLAPP_ID":"1495359210619523",
+        "FBLAPP_S":"58222a1cf78f04e2073173f480a5b40b",
+        "FBCAPP_DOMAIN":"ardemo.davvag.com/",
+        "APPURL":"http://localhost/sossgrid.js/#/app",
+        "GOOGLE_ID":"710449121989-cb774b5nvehh0hhv9vnbmsfvb26e61q6.apps.googleusercontent.com",
+        "GOOGLE_S":"A9GI3hdGg0iVNAacHA5Jgihd",
+        "FB_CHALLENGE":"Lasitha",
+        "FB_MSG_APP_S":"EAADLGyJrZBTcBABlO3DAWER1o1g050LwQgc5Wz6di08zQoYPetBvGgTOnRGS3023PGD7a5lMZCwOgmNL43gjZBlxQXkvZBFRsZBak0k9kHmrMwuTtLVIl4yXxa3h0GmpSRzO7UaubO5PPZC4Bicd6UrDtteT6kVUgsU6bVe1xRDgZDZD"
+    }
+}

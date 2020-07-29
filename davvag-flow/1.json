@@ -1,0 +1,79 @@
+{
+    "name":"Workflow -1",
+    "start_up_node":"node1",
+    "node1":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"gohome",
+            "params":[{"inputData":"id"},{"inputData":"pageid"}],
+            "return":true,
+            "returnobj":"gohome"
+        },
+        "success":"node4",
+        "fail":"nodefail"
+    },"node2":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"getMessage",
+            "params":[{"inputData":"message"}],
+            "return":true,
+            "returnobj":"replymessage"
+        },
+        "fail":"nodefail"
+    },"node3":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"yolo node3"}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node4":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Hi @first_name Welcome to HIRU news. Please choose your language.\n\n ආයුබෝවන් @first_name,හිරු ප්‍රවෘත්ති වෙත සාදරයෙන් පිළිගනිමු. කරුණාකර ඔබේ භාෂාව තෝරා ගන්න\n\n வணக்கம் @first_name ஹிரு மெசேஞ்சர் செய்திகளுக்கு உங்களை அன்புடன் வரவேற்கின்றோம். தயவுசெய்து உங்களின் மொழியை தேர்ந்தெடுங்கள்","buttons":[
+                    {"type":"postback","title":"English","payload":"english:reg-step-1:@workflowid"},{"type":"postback","title":"සිංහල","payload":"sinhala:reg-step-1:@workflowid"},{"type":"postback","title":"தமிழ்","payload":"tamil:reg-step-1:@workflowid"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node5":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Ho Node 5 button","buttons":[
+                    {"type":"postback","title":"Node 3","payload":"1:node3:@workflowid"},{"type":"postback","title":"Node 4","payload":"1:node4:@workflowid"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"nodefail":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"fail",
+            "params":[{"inputData":"name"}],
+            "return":true,
+            "returnobj":"failed"
+        }
+    }
+}

@@ -1,0 +1,116 @@
+{
+    "name":"Workflow -1",
+    "start_up_node":"reg-step-1",
+    "reg-step-1":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"You have selected English. Do you wish to Register for news updates.","buttons":[
+                    {"type":"postback","title":"YES","payload":"english:reg-step-addtag:@workflowid"},{"type":"postback","title":"NO","payload":"english:reg-step-cancelled:@workflowid"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"reg-step-addtag":{
+        "urntype":"class",
+        "file":"tags.php",
+        "class":"tags",
+        "method":{
+            "name":"addTag",
+            "params":[{"inputData":"davvagid"},"english"],
+            "return":true,
+            "returnobj":"tag"
+        },
+        "success":"reg-step-done",
+        "fail":"nodefail"
+    },"reg-step-done":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"Thank you @first_name. You have successfully registered for the English Messenger news updates.\nYou will receive the daily Hiru Messenger News at 8.30 am in the morning and 8.30 pm at night."}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"reg-step-cancelled":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"If you changed your mind you can send us a message and subscribe to our daily news updates."}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node2":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"getMessage",
+            "params":[{"inputData":"message"}],
+            "return":true,
+            "returnobj":"replymessage"
+        },
+        "fail":"nodefail"
+    },"node3":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"text":"yolo node3"}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node4":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Hi @first_name Welcome to HIRU news. Please choose your language.\n\n ආයුබෝවන් @first_name,හිරු ප්‍රවෘත්ති වෙත සාදරයෙන් පිළිගනිමු. කරුණාකර ඔබේ භාෂාව තෝරා ගන්න\n\n வணக்கம் @first_name ஹிரு மெசேஞ்சர் செய்திகளுக்கு உங்களை அன்புடன் வரவேற்கின்றோம். தயவுசெய்து உங்களின் மொழியை தேர்ந்தெடுங்கள்","buttons":[
+                    {"type":"postback","title":"English","payload":"english:node1"},{"type":"postback","title":"සිංහල","payload":"sinhala:node1"},{"type":"postback","title":"தமிழ்","payload":"tamil:node1"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"node5":{
+        "urntype":"class",
+        "file":"facebook.php",
+        "class":"facebook",
+        "method":{
+            "name":"sendMessage",
+            "params":["RESPONSE",{"inputData":""},{"attachment":{"type":"template","payload":{
+                "template_type":"button","text":"Ho Node 5 button","buttons":[
+                    {"type":"postback","title":"Node 3","payload":"1:node3"},{"type":"postback","title":"Node 4","payload":"1:node4"}
+                ]
+            }}}],
+            "return":true,
+            "returnobj":"fbresp"
+        },
+        "fail":"nodefail"
+    },"nodefail":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"fail",
+            "params":[{"inputData":"name"}],
+            "return":true,
+            "returnobj":"failed"
+        }
+    }
+}
