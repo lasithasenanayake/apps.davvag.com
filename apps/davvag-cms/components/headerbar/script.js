@@ -18,7 +18,8 @@ WEBDOCK.component().register(function(exports){
         youtube:"",
         gpluse:undefined,
         twitter:undefined,
-        instergram:undefined
+        instergram:undefined,
+        url:"#/home"
     };
     var vueData = {
         data:bindData,
@@ -50,7 +51,7 @@ WEBDOCK.component().register(function(exports){
         bindData.TopButtons=[];
         menuhandler.services.q(query)
                     .then(function(r){
-                        console.log(JSON.stringify(r));
+                        //console.log(JSON.stringify(r));
                         if(r.success){
                             //bindData.TopButtons=r.result.d_cms_buttons_v1;
                             //tmpmenu=r.result.d_cms_buttons_v1;
@@ -94,6 +95,7 @@ WEBDOCK.component().register(function(exports){
                         console.log(JSON.stringify(r));
                         if(r.success){
                             bindData.name= r.result.name;
+                            bindData.url=r.result.buttonuri;
                             document.title=r.result.name;
                             sessionStorage.blogheader=JSON.stringify(r.result)
                         }
