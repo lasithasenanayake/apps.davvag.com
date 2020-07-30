@@ -9,7 +9,7 @@ h3.h3{text-align:center;margin:1em;text-transform:capitalize;font-size:1.7em;}
 	margin-bottom: 50px;
     height: 80px;
     width: 80px;
-    background-color: #002366;
+    background-color:var(--backcolor);
     border-radius: 40px 40px 40px 40px;
     -moz-border-radius: 40px 40px 40px 40px;
     -webkit-border-radius: 40px 40px 40px 40px;

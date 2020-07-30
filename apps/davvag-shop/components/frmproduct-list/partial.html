@@ -83,7 +83,7 @@
                                                     <td>{{ product.currencycode }}  {{ product.price }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Weinpool Price:</th>
+                                                    <th>Selling Price:</th>
                                                     <td>{{ product.currencycode }}  {{ product.price-(product.price*(product.discountper/100)) }}</td>
                                                 </tr>
                                                 <tr>
@@ -112,7 +112,7 @@
                                             <tbody>
                                               <tr>
                                                   <td>Donna R. Folse</td>
-                                                  <td>{{ product.currencycode }}.{{ product.price }}</td>
+                                                  <td>{{ product.currencycode }}.{{ product.price-(product.price*(product.discountper/100)) }}</td>
                                                   <td>{{ product.uom }}</td>
                                                   <td> <input type="number" min="0" step="1" value="1" style="width: 50px"/></td>                                       
                                               </tr>                                  
