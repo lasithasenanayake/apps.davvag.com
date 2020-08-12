@@ -2,7 +2,7 @@
     "rawquery" : {
         "type":"procedure",
         "parameters" : ["page","size","lan","lon","rad","search","cat"],
-        "query": "call getnearproducts($lan,$lon,$cat,$page,$size,'$search',$rad);"
+        "query": "call getnearproducts($lan,$lon,'$cat',$page,$size,'$search',$rad);"
     },
     "fields" : [
         {

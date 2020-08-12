@@ -37,7 +37,7 @@ WEBDOCK.component().register(function(exports){
             
             try{
                 bindData.loading=true;
-                menuhandler.services.allProducts({page:page.toString(), size:size.toString(),cat:routeData.cat==null?"0":routeData.cat ,q:bindData.q})
+                menuhandler.services.allProducts({page:page.toString(), size:size.toString(),cat:routeData.cat==null?"":routeData.cat ,q:bindData.q})
                         .then(function(r){
                             console.log(JSON.stringify(r));
                             if(r.success){

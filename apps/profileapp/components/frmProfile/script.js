@@ -87,7 +87,7 @@ WEBDOCK.component().register(function(exports){
         validator.map ("i_profile.contactno",true, "contact no is incorrect");
         validator.map ("i_profile.id_number",true, "ID no is incorrect");
         //validator.map ("i_profile.dateofbirth","date", "date of birth is incorrect");
-        validator.map ("i_profile.catogory",true, "You should select a product category");
+        validator.map ("i_profile.catogory",true, "You should select a Profile Category");
         //validator.map ("p_image",true, "You should upload an image");
     }
 
@@ -167,13 +167,14 @@ WEBDOCK.component().register(function(exports){
                     $.notify("Profile Has been saved", "success");
                     addProfileToTmp(bindData.i_profile);
                     uploadFile(bindData.i_profile.id, function(){
-                        //pInstance.appNavigate("..");
+                        handler1 = exports.getShellComponent("soss-routes");
+                        handler1.appNavigate("..");
                     });
                     WEBDOCK.freezeUiComponent("soss-routes",false); 
                     
                 }else{
                     $.notify("ERROR! Saving Profile", "error");
-                    console.log(JSON.stringify(response));
+                    //console.log(JSON.stringify(response));
                     WEBDOCK.freezeUiComponent("soss-routes",false); 
                     //alert (response.result.error);
                 }

@@ -40,7 +40,7 @@
     "description":{
         "title": "Student Market Place",
         "author":"Davvag",
-        "version":"0.9",
+        "version":"0.10",
         "icon":"appicon.png"
     },
     "tags":["showindock"],

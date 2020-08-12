@@ -12,7 +12,8 @@ WEBDOCK.component().register(function(exports){
         p_image:[],
         categories:[],
         uoms: [],
-        submitErrors: undefined
+        submitErrors: undefined,
+        p_removed:[]
     };
 
     var vueData = {
@@ -118,6 +119,19 @@ WEBDOCK.component().register(function(exports){
 
     function removeImage(e) {
         bindData.image = '';
+    }
+
+    function removeImage(e) {
+        //const index = array.indexOf(e);
+        if (e > -1) {
+            if(bindData.p_image[e].id!=0){
+                bindData.p_removed.push({id:bindData.p_image[e].id,name:bindData.p_image[e].name,
+                    caption:bindData.p_image[e].caption,default_img:bindData.p_image[e].default_img});
+            }
+            bindData.p_image.splice(e, 1);
+            newfiles.splice(e,1);
+        }
+
     }
 
     function createImage(file) {
@@ -245,7 +259,7 @@ WEBDOCK.component().register(function(exports){
                 bindData.product.Images.push({id:bindData.p_image[i].id,name:bindData.p_image[i].name,
                     caption:bindData.p_image[i].caption,default_img:bindData.p_image[i].default_img});
             }
-            
+            bindData.product.RemoveImages=bindData.p_removed;
             var promiseObj = producthandler.services.Save(bindData.product);
            
             

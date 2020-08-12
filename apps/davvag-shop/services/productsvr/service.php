@@ -16,7 +16,7 @@ class ProductServices {
             $mainObj->parameters->rad = '0';
             $mainObj->parameters->lon = '0';
             $mainObj->parameters->lan = '0';
-            $mainObj->parameters->cat = isset($_GET["cat"])?$_GET["cat"]:'0';
+            $mainObj->parameters->cat = isset($_GET["cat"]) ? $_GET["cat"] : "";
 
             $resultObj = SOSSData::ExecuteRaw("nearproducts", $mainObj);
             return $resultObj->result;

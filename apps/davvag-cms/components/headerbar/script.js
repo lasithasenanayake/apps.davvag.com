@@ -19,7 +19,8 @@ WEBDOCK.component().register(function(exports){
         gpluse:undefined,
         twitter:undefined,
         instergram:undefined,
-        url:"#/home"
+        url:"#/home",
+        headerdata:{}
     };
     var vueData = {
         data:bindData,
@@ -88,6 +89,7 @@ WEBDOCK.component().register(function(exports){
         if(sessionStorage.blogheader){
             document.title=JSON.parse(sessionStorage.blogheader).name;
             bindData.name=JSON.parse(sessionStorage.blogheader).name;
+            bindData.headerdata=JSON.parse(sessionStorage.blogheader);
         }else{
             var data={name:"cms-global"}
             menuhandler.services.Settings(data)
@@ -97,6 +99,11 @@ WEBDOCK.component().register(function(exports){
                             bindData.name= r.result.name;
                             bindData.url=r.result.buttonuri;
                             document.title=r.result.name;
+                            //JSON.parse(sessionStorage.blogheader)
+                            bindData.headerdata=r.result;
+                            if(r.result.icon){
+                                bindData.icon=r.result.icon;
+                            }
                             sessionStorage.blogheader=JSON.stringify(r.result)
                         }
                     })

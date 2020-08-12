@@ -44,6 +44,11 @@ class ArticalService{
         }
         CacheData::clearObjects("d_cms_artical_v1");
         CacheData::clearObjects("d_all_summery");
+        CacheData::clearObjects("d_cms_artical_v1_pod_bycat_paging");
+        CacheData::clearObjects("d_cms_artical_v1_pod_paging");
+        if(count($Artical->RemovedImages)>0){
+            $Artical->removedStatus=SOSSData::Delete("d_cms_artical_imagev1",$Artical->RemovedImages);
+        }
         foreach($Artical->Images as $key=>$value){
             $Artical->Images[$key]->articalid=$Artical->id;
             if($Artical->Images[$key]->id==0){
@@ -117,7 +122,7 @@ class ArticalService{
     }
 
     function postsaveSettings($req,$res){
-        $path = MEDIA_FOLDER."/".HOST_NAME."/global-setting/";
+        $path = MEDIA_FOLDER."/".DATASTORE_DOMAIN."/global-setting/";
         $saveObj=$req->Body(true);
         if (!file_exists($path))
               mkdir($path, 0777, true);
@@ -131,7 +136,7 @@ class ArticalService{
     }
 
     function postSettings($req){
-        $path = MEDIA_FOLDER."/".HOST_NAME."/global-setting/";
+        $path = MEDIA_FOLDER."/".DATASTORE_DOMAIN."/global-setting/";
         $saveObj=$req->Body(true);
         if (!file_exists($path))
               mkdir($path, 0777, true);
