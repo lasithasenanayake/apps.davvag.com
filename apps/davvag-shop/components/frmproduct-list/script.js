@@ -82,11 +82,12 @@ WEBDOCK.component().register(function(exports){
         
         selectStore: function(p){
             bindData.product=p;
+            bindData.product.url="http://"+window.location.hostname+"/components/davvag-shop/productsvr/service/Product/?q="+bindData.product.itemid.toString();
             $('#modalImagePopup').modal('show');
         }, 
         navcheckout: function(){
             window.location="#/app/davvag-shop/checkout";
-        }
+        }   
         ,selectStoreClose: function(){
             //bindData.product=p;
             $('#modalImagePopup').modal('toggle');

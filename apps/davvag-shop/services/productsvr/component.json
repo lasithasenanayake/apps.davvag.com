@@ -19,6 +19,10 @@
             "allProducts" : {
                 "method" : "GET",
                 "parameters": ["page","size","cat","q"]
+            },
+            "Product":{
+                "method":"GET",
+                "parameters":["q"]
             }
             
         }

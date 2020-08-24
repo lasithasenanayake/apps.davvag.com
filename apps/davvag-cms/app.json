@@ -75,7 +75,7 @@
             "type":"partial",
             "location":"partials"
         },
-        "qti-home":{
+        "partial-album-view":{
             "type":"partial",
             "location":"partials"
         }
@@ -99,9 +99,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "qti-home",
+                    "/" : "partial-album-view",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "qti-home",
+                    "/home" : "partial-album-view",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

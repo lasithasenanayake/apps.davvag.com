@@ -119,6 +119,44 @@
                                             </tbody>
                                           </table>
                                 </div>
+                                <div class="row" >
+                                    <div class="col-social">
+                                        <a  :href="'https://facebook.com/sharer/sharer.php?u='+escape(product.url)" target="_blank" aria-label="Share on Facebook">
+                                            <i class="fa fa-facebook-square fa-2x"> </i> 
+                                        </a>
+                                    </div>
+                                    <div class="col-social">
+                                    <a  :href="'https://twitter.com/intent/tweet/?text='+product.caption+'&url='+escape(product.url)" target="_blank" aria-label="Share on Twitter">
+                                        <i class="fa fa-twitter-square fa-2x"></i>
+                                    </a>
+                                    </div>
+                                    <div class="col-social">
+                                        <a  :href="'whatsapp://send?text='+product.caption+' '+product.url" target="_blank" aria-label="Share on WhatsApp">                
+                                                <i class="fa fa-whatsapp fa-2x"></i>
+                                            </a>
+                                    </div>
+                                    <div class="col-social">
+                                        <a  :href="'https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title='+product.name+'&amp;caption='+product.caption+'&amp;content='+escape(product.url)+'&amp;canonicalUrl='+escape(product.url)+'&amp;shareSource=tumblr_share_button'" target="_blank" aria-label="Share on Tumblr">                                
+                                                    <i class="fa fa-tumblr-square fa-2x"></i>
+                                                </a>
+                                    </div>
+                                    <div class="col-social">
+                                        <a  :href="'https://www.linkedin.com/shareArticle?mini=true&amp;url='+escape(product.url)+'&amp;title='+product.name+'&amp;summary='+product.caption+'&amp;source='+escape(product.url)" target="_blank" aria-label="Share on LinkedIn">
+                                                            
+                                                    <i class="fa fa-linkedin-square fa-2x"></i>
+                                                </a>
+                                    </div>
+                                    <div class="col-social">
+                                        <a  :href="'mailto:?subject='+product.name+'&amp;body='+escape(product.url)" target="_self" aria-label="Share by E-Mail">                      
+                                                        <i class="fa fa-envelope fa-2x"></i>
+                                                    </a>
+                                        </div>
+                                    <div class="col-social">
+                                        <a  :href="'https://pinterest.com/pin/create/button/?url='+escape(product.url)+'&amp;media='+product.url+'&amp;description='+product.caption" target="_blank" aria-label="Share on Pinterest">                                      
+                                                                <i class="fa fa-pinterest fa-2x"></i>
+                                                            </a>
+                                    </div>
+                                </div>
                     </div> 
                 </div>
             <div class="modal-footer">
