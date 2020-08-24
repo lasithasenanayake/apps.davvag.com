@@ -702,7 +702,7 @@ strong {
 .mainpanel {
     margin-left: 240px;
     background: #e4e7ea;
-    max-height: 800px;
+    /* max-height: 800px; */
 }
 
 .pageheader {

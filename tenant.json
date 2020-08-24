@@ -78,6 +78,9 @@
         },
         "com_qti_students":{
             "version":"latest"
+        },
+        "davvag-album":{
+            "version":"latest"
         }
     },
     "webdock":{
