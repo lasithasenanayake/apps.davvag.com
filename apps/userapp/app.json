@@ -31,7 +31,7 @@
         "version":"0.5",
         "icon":"appicon.png"
     },
-    "tags":["showindock"],
+    "tags":["showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "login-switcher",

@@ -23,6 +23,8 @@
             "Product":{
                 "method":"GET",
                 "parameters":["q"]
+            },"Checkout":{
+                "method":"POST"
             }
             
         }

@@ -1,5 +1,5 @@
 {
-    "name" : "cms-gapp-handler",
+    "name" : "cms-album-handler",
     "description":"Vue.JS Plugin for Soss Router",
     "author":"Lasitha Senanayake",
     "version" : "0.2",
@@ -17,20 +17,11 @@
         "methods" : {
             "SaveAlbum":{
                 "method" : "POST"
-            },
-            "SaveArtical" : {
+            },"DeleteAlbum":{
                 "method" : "POST"
-            },"Artical" : {
-                "method" : "GET",
-                "parameters": ["q"]
             },"Album" : {
                 "method" : "GET",
                 "parameters": ["q"]
-            },
-            "saveSettings" : {
-                "method" : "POST"
-            },"Settings" : {
-                "method" : "POST"
             }
         }
     

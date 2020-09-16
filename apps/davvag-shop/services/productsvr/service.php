@@ -28,6 +28,74 @@ class ProductServices {
         }
     }
 
+    public function postCheckout($req,$res){
+        require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+        $handler =new Davvag_Order();
+        $profile = $req->Body(true);
+        $profile->order = new stdClass();
+        if(isset($_COOKIE["Location"])){
+            $location = json_decode($_COOKIE["Location"]);
+            $profile->order->lat = $location->lat;
+            $profile->order->lon = $location->lng;
+        }
+        
+        
+        $profile->order->profileId = $profile->id;
+        $profile->order->name = $profile->name;
+        $profile->order->contactno = $profile->contactno;
+        $profile->order->address = $profile->address;
+        $profile->order->city = $profile->city;
+        $profile->order->country = $profile->country;
+        $profile->order->orderdate = date("m-d-Y H:i:s");
+        $profile->order->InvoiceItems = array();
+        $profile->order->deliverydate = $profile->deliverydate;
+        $profile->order->paymenttype = $profile->paymenttype;
+        $profile->order->status = "new";//$profile->orderstatus;
+        $profile->order->remarks = isset($profile->remarks) ?$profile->remarks : "";
+        $profile->order->total = 0;
+        $profile->order->subtotal = 0;
+        $profile->order->paidamount = 0;
+        $profile->order->balance = 0;
+        $profile->order->taxamount = 0;
+        //$profile->order->tenant = $_SERVER["HTTP_HOST"];
+        $profile->order->invoiceDate = date("m-d-Y H:i:s");
+        $profile->order->invoiceDueDate = date("m-d-Y H:i:s");
+        
+       //$authData = json_decode($_COOKIE["authData"]);
+        $profile->order->email = $profile->email;
+        if(!isset($profile->items)){
+            $req->SetError("Invalied call");
+        }
+        for ($i=0;$i<sizeof($profile->items);$i++){
+            $item = $profile->items[$i];
+            
+            $detail = new stdClass();
+            $detail->itemid = $item->itemid;
+            $detail->productid = $item->itemid;
+            $detail->invType= $item->invType;
+            $detail->tid = $item->tid;
+            $detail->tenant = HOST_NAME;
+            $profile->order->tenant = HOST_NAME;
+            $detail->name = $item->name;
+            $detail->uom = $item->uom;
+            $detail->qty = $item->qty;
+            $detail->price = $item->price-($item->price*($item->discountper/100));
+            $detail->total = $item->qty * $detail->price;
+            $profile->order->total += ($detail->total);
+            $profile->order->subtotal += ($detail->total);
+            array_push($profile->order->InvoiceItems, $detail);
+        }
+        unset ($profile->items);
+        try{
+            $order= $handler->InvoiceSave($profile->order,$res);
+            $result = SOSSData::Insert ("orderheader_pending", $order,$tenantId = null);
+            $result = SOSSData::Insert ("orderdetails_pending", $order->InvoiceItems,$tenantId = null);
+            return $order;
+        }catch(Exception $e){
+            $req->SetError($e);
+        }
+    }
+
     function getProduct($req){
         //echo "imain";
         $data =null;

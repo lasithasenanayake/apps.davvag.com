@@ -5,6 +5,9 @@ WEBDOCK.component().register(function(exports){
     };
     var vueData =  {
         methods:{
+            getURL:function(i){
+                return "http://"+window.location.hostname+"/components/davvag-album/cms-album-handler/service/Album/?q="+i.id;
+            }
         },
         data :bindData
         ,

@@ -66,7 +66,7 @@ WEBDOCK.component().register(function(exports){
         producthandler = exports.getComponent("product");
         uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
-        
+        editor=$("#txtcaption").Editor();
         loadValidator();
         
         uploaderInstance = exports.getShellComponent("soss-uploader");
@@ -204,6 +204,7 @@ WEBDOCK.component().register(function(exports){
                                
                                if(r.result.products!=null){
                                 bindData.product = r.result.products[0];
+                                $("#txtcaption").data("editor").html(bindData.product.caption);
                                 if(r.result.products_attributes.length!=0)
                                     bindData.product.attributes=r.result.products_attributes[0];
                                 else
@@ -226,14 +227,7 @@ WEBDOCK.component().register(function(exports){
                         .error(function(error){
                             
             });
-        producthandler.transformers.allCategories()
-        .then(function(result){
-            for (var i=0;i<result.result.length;i++)
-            bindData.categories.push(result.result[i].name);
-        })
-        .error(function(){
-
-        });
+        
 
         
     }
@@ -252,6 +246,7 @@ WEBDOCK.component().register(function(exports){
         $('#send').prop('disabled', true);
         bindData.submitErrors = validator.validate(); 
         if (!bindData.submitErrors){
+            bindData.product.caption=$("#txtcaption").data("editor").html(); 
             bindData.product.caption=bindData.product.caption.split("'").join("~^");
             bindData.product.caption=bindData.product.caption.split('"').join("~*");
             bindData.product.Images=[];

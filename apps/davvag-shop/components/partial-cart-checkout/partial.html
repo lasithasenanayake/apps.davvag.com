@@ -1,6 +1,6 @@
 <div class="container" id="idOrderWizard">
-    <div class="row col-md-8">
-        <form>
+    <div class="row col-md-12">
+        <form id="Form">
             <div class="form-group col-md-12">
                 <label for="exampleInputPassword1">Email </label>
                 <input type="text" class="form-control" v-model="profile.email" disabled="disabled">
@@ -293,7 +293,8 @@
                 </div>
             </div> -->
             <div class="form-group col-md-12">
-                <input type="button" class="btn btn-success pull-right" style="margin-bottom:20px;" v-on:click="submitPurchase()" :disabled="isBusy" v-if="!isCompleted" value ="Complete purchase"/>
+                <button type="button" class="btn bg-primary-button pull-right" v-on:click="submitPurchase()">Complete Purchase</button>
+                
             </div>
         </form>
     </div>

@@ -51,7 +51,7 @@
         },
         "allalbums": {
             "method": "GET",
-            "route": "/all",
+            "route": "/allalbums",
             "destMethod": "GET",
             "destUrl" : "http://localhost:9000/data/d_cms_album_v1"
         },"allButtons": {

@@ -23,7 +23,7 @@
         <!--a v-if="!hasOrder" v-on:click="checkout(true)" style="cursor:pointer;"><div class="fabButton showMobile" style="background-image: url('assets/raha/img/gograb.png');"></div></a>
         <a v-if="hasOrder" v-on:click="checkout(false)" style="cursor:pointer;"><div class="fabButton showMobile" style="background-image: url('assets/raha/img/grabnextday.png');"></div></a-->
         
-        <div class="col-sm-8 col-md-8 col-md-offset-1 showMobileCollapse">
+        <div class="col-sm-8 col-md-12 col-md-offset-1 showMobileCollapse">
             <table class="table">
                 <thead>
                     <tr>
@@ -47,8 +47,8 @@
                                                             <td style="width:20%"></td>
                                                         </tr>
                                                         <tr style="height:34px;">
-                                                            <td>Unit Price</td>
-                                                            <td>Rs.{{ item.price }}</td>
+                                                            <td>Price</td>
+                                                            <td>{{ item.currencycode }} {{ item.price-(item.price*(item.discountper/100)) }}</td>
                                                             <td></td>
                                                         </tr>
                                                         <tr>
@@ -89,23 +89,21 @@
                         <td class="text-right"><h3><strong>Rs.{{ total }}</strong></h3></td>
                     </tr>
                     <tr>
-                        <td>
-                            <!-- <input type="button" class="btn btn-success pull-right" v-on:click="checkout(false)" value="Deliver Tomorrow"/> -->
-                        </td>
-                        <td class="text-right">
-                            <input type="button" class="btn btn-success" :disabled="hasOrder" v-on:click="checkout(true)" value="Checkout"/>
+                        <td class="text-right" colspan="2">
+                            <button type="button" class="btn bg-primary-button" v-on:click="navigateBack">Continue Shopping</button>
+                            <button type="button" class="btn bg-primary-button pull-right" v-on:click="checkout(true)">Check Out</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>   
-        <div class="col-sm-8 col-md-8 col-md-offset-1 collapseMobile" id="idLargeTable">
+        <div class="col-sm-8 col-md-12 col-md-offset-1 collapseMobile" id="idLargeTable">
             <table class="table">
                 <thead>
                     <tr>
-                        <th style="width:50%">Product</th>
+                        <th style="width:40%">Product</th>
                         <th style="width:8%">Quantity</th>
-                        <th class="text-center"  style="width:10%">Price</th>
+                        <th class="text-center"  style="width:20%">Price</th>
                         <th class="text-center"  style="width:22%">Total</th>
                         <th style="width:10%"> </th>
                     </tr>
@@ -114,7 +112,7 @@
                     <tr v-for="item in items">
                         <td class="col-sm-8 col-md-6">
                         <div class="media">
-                            <div class="thumbnail pull-left"> <img class="media-object" :src="'components/raha/soss-uploader/service/get/products/' +item.itemid+'-'+item.imgurl" alt="" style="width: 72px; height: 72px;"> </div>
+                            <div class="thumbnail pull-left"> <img class="media-object" :src="'components/dock/soss-uploader/service/get/products/' +item.itemid+'-'+item.imgurl" alt="" style="width: 72px; height: 72px;"> </div>
                             <div class="media-body checkoutItem">
                                 <h4 class="media-heading">{{ item.name }}</h4>
                                 <label class="media-heading">In Stock : {{ item.isOrder ? 'No' : 'Yes' }}</label>
@@ -123,43 +121,36 @@
                         <td class="col-sm-1 col-md-1" style="text-align: center">
                         <input type="email" class="form-control" id="exampleInputEmail1" v-model="item.qty">
                         </td>
-                        <td class="col-sm-1 col-md-1 text-center"><strong>Rs.{{ item.price }}</strong></td>
-                        <td class="col-sm-1 col-md-1 text-center"><strong>Rs.{{ item.price*item.qty }}</strong></td>
+                        <td class="col-sm-1 col-md-1 text-right"><strong>{{ item.currencycode }} {{ item.price-(item.price*(item.discountper/100))  }}</strong></td>
+                        <td class="col-sm-1 col-md-1 text-right"><strong>{{ item.currencycode }} {{ (item.price-(item.price*(item.discountper/100)))*item.qty }}</strong></td>
                         <td class="col-sm-1 col-md-1">
                         <button type="button" class="btn btn-danger" v-on:click="removeItem(item)">
-                            <span class="glyphicon glyphicon-remove"></span> Remove
+                            <span class="fa fa-trash"></span> 
                         </button></td>
                     </tr>
                     
                     <tr>
+                        <td> <h5>Subtotal</h5>  </td>
                         <td>   </td>
                         <td>   </td>
-                        <td>   </td>
-                        <td><h5>Subtotal</h5></td>
-                        <td class="text-right"><h5><strong>Rs.{{ total }}</strong></h5></td>
+                        <td class="text-right"> <h5><strong>Rs.{{ total }}</strong></h5></td>
+                        <td class="text-right"></td>
                     </tr>
                     <tr>
-                        <td>   </td>
-                        <td>   </td>
-                        <td>   </td>
                         <td><h3>Total</h3></td>
+                        <td>   </td>
+                        <td>   </td>
                         <td class="text-right"><h3><strong>Rs.{{ total }}</strong></h3></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>   </td>
-                        <td>   </td>
-                        <td>   </td>
-                        <td>
-                            <a class="btn btn-default" href="#/home" >
-                                <span class="glyphicon glyphicon-shopping-cart"></span> Continue Shopping
-                            </a>
+                        
+                        <td colspan="4">
+                            <button type="button" class="btn bg-primary-button" v-on:click="navigateBack">Continue Shopping</button><span></span>
+                            <button type="button" class="btn bg-primary-button pull-right" v-on:click="checkout(true)">Check Out</button>
                         </td>
-                        <!-- <td>
-                            <input type="button" class="btn btn-success" v-on:click="checkout(false)" value="Deliver Tomorrow"/>
-                        </td> -->
-                        <td>
-                            <input type="button" class="btn btn-success"  v-on:click="checkout(true)" value="Deliver Today"/>
-                        </td>
+                        
                     </tr>
                 </tbody>
             </table>

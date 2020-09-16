@@ -11,10 +11,11 @@ WEBDOCK.component().register(function(exports){
         content:"",
         submitErrors:[],
         p_image:[],
-        currentImage:"",
+        cImage:"",
         url:"",
         loading:true,
-        Articals:[]
+        Articals:[],
+        img:{},
     };
 
     var vueData =   {
@@ -24,9 +25,18 @@ WEBDOCK.component().register(function(exports){
                 handler1.appNavigate("..");
             },
             showModal: function(url){
-                bindData.currentImage = url;
+                bindData.cImage = url;
                 $("#image-gallery").modal();
+                bindData.cImage = url;
             },
+            getURL:function(i){
+                return "http://"+window.location.hostname+"/components/davvag-album/cms-album-handler/service/Album/?q="+i.id;
+            },
+            showimage:function(a){
+                bindData.img=a;
+                //$("#image-gallery").modal();
+            }
+            ,
             getfiletype:function(filename){
                 if(filename==null){
                     return "";
@@ -60,7 +70,7 @@ WEBDOCK.component().register(function(exports){
         onReady : function(s){
             bindData.loading=true;
             scope = s;
-            handler = exports.getComponent("cms-gapp-handler");
+            handler = exports.getComponent("cms-album-handler");
             pInstance = exports.getShellComponent("soss-routes");
             routeData = pInstance.getInputData();
             ///loadValidator();
@@ -87,25 +97,25 @@ WEBDOCK.component().register(function(exports){
     function loadCategory(scope){
         if (routeData.id){
             var menuhandler  = exports.getShellComponent("soss-data");
-            var query=[{storename:"d_cms_artical_v1",search:"id:"+routeData.id},
-            {storename:"d_cms_artical_imagev1",search:"articalid:"+routeData.id}];
+            var query=[{storename:"d_cms_album_v1",search:"id:"+routeData.id},
+            {storename:"d_cms_album_imagev1",search:"articalid:"+routeData.id}];
             //var tmpmenu=[];
             bindData.TopButtons=[];
             menuhandler.services.q(query)
                         .then(function(r){
                             console.log(JSON.stringify(r));
                             if(r.success){
-                                if(r.result.d_cms_artical_v1.length!=0)
-                                bindData.product= r.result.d_cms_artical_v1[0];
+                                if(r.result.d_cms_album_v1.length!=0)
+                                bindData.product= r.result.d_cms_album_v1[0];
                                 document.title = unescape(bindData.product.title);
                                 bindData.product.title=unescape(bindData.product.title);
-                                bindData.product.content=unescape(bindData.product.content);
+                                //bindData.product.content=unescape(bindData.product.content);
                                 bindData.product.summery=chunkString(unescape(bindData.product.summery),150);
                                 //bindData.product.tags=unescape(bindData.product.tags);
-                                bindData.product.content=bindData.product.content.split("~^").join("'");
-                                bindData.product.content=bindData.product.content.split('~*').join('"');
-                                bindData.p_image =  r.result.d_cms_artical_imagev1;
-                                bindData.url="http://"+window.location.hostname+"/components/davvag-cms-generalapps/cms-gapp-handler/service/Artical/?q="+bindData.product.id;
+                                //bindData.product.content=bindData.product.content.split("~^").join("'");
+                                //bindData.product.content=bindData.product.content.split('~*').join('"');
+                                bindData.p_image =  r.result.d_cms_album_imagev1;
+                                bindData.url="http://"+window.location.hostname+"/components/davvag-album/cms-album-handler/service/Album/?q="+bindData.product.id;
                                 var query=[{storename:"d_all_summery_pod_related",parameters:{keywords:bindData.product.tags,size:"3",id:"'"+bindData.product.id.toString()+"'"}}];
                                 menuhandler.services.q(query)
                                 .then(function(r1){
@@ -117,7 +127,7 @@ WEBDOCK.component().register(function(exports){
                                 });
                                 
                                 for (var i = 0; i < bindData.p_image.length; i++) {
-                                    bindData.p_image[i].scr='components/dock/soss-uploader/service/get/d_cms_artical/'+bindData.product.id+'-'+bindData.p_image[i].name;
+                                    bindData.p_image[i].scr='components/dock/soss-uploader/service/get/d_cms_album/'+bindData.product.id+'-'+bindData.p_image[i].name;
                                 }
                                 bindData.loading=false;
                             }

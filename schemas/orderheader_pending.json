@@ -4,8 +4,7 @@
             "fieldName":"invoiceNo",
             "dataType":"int",
             "annotations":{
-                "isPrimary": true,
-                "autoIncrement": true
+                "isPrimary": true
             }
         },
         {

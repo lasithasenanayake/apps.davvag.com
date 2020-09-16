@@ -23,6 +23,7 @@ WEBDOCK.component().register(function(exports){
 
 
     function submitPurchase(){
+    
         scope.submitErrors = [];
         scope.submitErrors = validator_profile.validate(); 
         if (!scope.submitErrors){
@@ -30,10 +31,16 @@ WEBDOCK.component().register(function(exports){
             bindData.profile.email = bindData.loginData.email;
             localStorage.setItem("profile", JSON.stringify(bindData.profile));
 
-            if(localStorage.items)
-                scope.profile.items=JSON.parse(localStorage.items);
+            if(sessionStorage.items){
+               
+                scope.profile.items=JSON.parse(sessionStorage.items);
+                completePayment();
+            }
+            else{
+                scope.submitErrors.push("Critical Error Items not found.");
+            }
 
-            completePayment();
+            
         }
     }
 
@@ -54,17 +61,21 @@ WEBDOCK.component().register(function(exports){
 
     function completePayment(){
         scope.isBusy = true;
-        cartHandler = exports.getComponent ("cart-handler");
+        cartHandler = exports.getComponent ("productsvr");
         scope.profile.paymenttype = "cashondelivery";
         var deliverToday = localStorage.deliverToday === 'true';
         scope.profile.deliverydate = deliverToday ? getCurrentDate() : getCurrentDate(1);
         scope.profile.orderstatus = deliverToday ? "readytodispatch" : "nextdayorder";
 
-        cartHandler.services.checkout(scope.profile).then(function(result){
-            localStorage.removeItem("items");
+        cartHandler.services.Checkout(scope.profile).then(function(result){
+            sessionStorage.removeItem("items");
             scope.isBusy = false;
             scope.isCompleted = true;
-            location.href="#/paycomplete";
+            if(result.success){
+                location.href="#/app/davvag-shop/order-complete";
+            }else{
+                s
+            }
         }).error(function(){
             scope.isBusy = false;
         });
@@ -78,7 +89,7 @@ WEBDOCK.component().register(function(exports){
         validator_profile.map ("profile.name",true, "Please enter your full name");
         validator_profile.map ("profile.contactno",true, "Please enter your contact number");
         validator_profile.map ("profile.contactno","numeric", "Phone number should only consist of numbers");
-        validator_profile.map ("profile.contactno","minlength:10", "Phone number should consit of 10 numbers");
+        //validator_profile.map ("profile.contactno","minlength:9", "Phone number should consit of 10 numbers");
 
         validator_signup = validatorInstance.newValidator (scope);
         validator_signup.map ("signupForm.email",true, "Please enter your email");
@@ -87,7 +98,7 @@ WEBDOCK.component().register(function(exports){
         validator_signup.map ("signupForm.name",true, "Please enter your full name");
         validator_signup.map ("signupForm.contactno",true, "Please enter your contact number");
         validator_signup.map ("signupForm.contactno","numeric", "Phone number should only consist of numbers");
-        validator_signup.map ("signupForm.contactno","minlength:10", "Phone number should consit of 10 numbers");
+        //validator_signup.map ("signupForm.contactno","minlength:9", "Phone number should consit of 10 numbers");
         
 
         validator_login = validatorInstance.newValidator (scope);

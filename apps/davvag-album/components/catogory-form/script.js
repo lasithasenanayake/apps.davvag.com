@@ -17,13 +17,13 @@ WEBDOCK.component().register(function(exports){
             gotoUom: gotoUom,
             navigateBack: function(){
                 handler1 = exports.getShellComponent("soss-routes");
-                handler1.appNavigate("..");
+                handler1.appNavigate("../catall");
             }
         },
         data : bindData,
         onReady : function(s){
             scope = s;
-            handler = exports.getComponent("cms-gapp-handler");
+            handler = exports.getComponent("cms-album-handler");
             pInstance = exports.getShellComponent("soss-routes");
             validatorInstance = exports.getShellComponent ("soss-validator");
             routeData = pInstance.getInputData();
@@ -69,7 +69,6 @@ WEBDOCK.component().register(function(exports){
     function loadValidator(){
         validator = validatorInstance.newValidator (scope);
         validator.map ("product.Name",true, "You should enter a name");
-        validator.map ("product.url",true, "You should enter a url");
     }
 
     function submit(){
@@ -98,7 +97,7 @@ WEBDOCK.component().register(function(exports){
 
     function gotoUom(){
         handler1 = exports.getShellComponent("soss-routes");
-        handler1.appNavigate("..");
+        handler1.appNavigate("../catall");
     }
 
 

@@ -3,69 +3,29 @@ require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 class ArticalService{
-    public function postSaveArtical($req,$res){
-        
+    
+    public function postDeleteAlbum($req,$res){
         $Artical=$req->Body(true);
-        $user= Auth::Autendicate("profile","postInvoiceSave",$res);
-        $summery =new stdClass();
-        $summery->summery=$Artical->summery;
-        $summery->title=$Artical->title;
-        $summery->keywords=$Artical->tags;
-        $summery->application="#/app/davvag-cms-generalapps/a";
-        $summery->code="d_cms_artical_v1";
-        $summery->imgStorageLocation="d_cms_artical";
-        //$summery->imgname=
-        //if(isset())
-        $summery->imgname=isset($Artical->imgname)? $Artical->imgname : '';
-        //echo "im in"
-        if(!isset($Artical->id)){
-            $result=SOSSData::Insert ("d_cms_artical_v1", $Artical,$tenantId = null);
-            //return $result;
-            //var_dump($result);
+        if(isset($Artical->id)){
+            $result=SOSSData::Query("d_cms_album_imagev1","articalid:".$Artical->id);
             if($result->success){
-                $Artical->id = $result->result->generatedId;
-                $summery->id=$result->result->generatedId;
-                $summery->code.="-s-".$result->result->generatedId;
-                $summery->imgname=$result->result->generatedId."-".$summery->imgname;
-                SOSSData::Insert ("d_all_summery", $summery,$tenantId = null);
-                
-                //return $Artical;
+                SOSSData::Delete("d_cms_album_imagev1",$result->result);
+                $result = SOSSData::Delete("d_cms_album_v1",$Artical);
+                CacheData::clearObjects("d_cms_album_v1");
+                //CacheData::clearObjects("d_all_summery");
+                CacheData::clearObjects("d_cms_album_v1_pod_bycat_paging");
+                CacheData::clearObjects("d_cms_album_v1_pod_paging");
+                return $result;
             }else{
-                $res->SetError ("Error Saving.");
-                //exit();
-                return $res;
-            }
-        }else{
-            $result=SOSSData::Update ("d_cms_artical_v1", $Artical,$tenantId = null);
-            $summery->id=$Artical->id;
-            $summery->code.="-s-".$Artical->id;
-            $summery->imgname=$Artical->id."-".$summery->imgname;
-            SOSSData::Update ("d_all_summery", $summery,$tenantId = null);
-        }
-        CacheData::clearObjects("d_cms_artical_v1");
-        CacheData::clearObjects("d_all_summery");
-        CacheData::clearObjects("d_cms_artical_v1_pod_bycat_paging");
-        CacheData::clearObjects("d_cms_artical_v1_pod_paging");
-        if(count($Artical->RemovedImages)>0){
-            $Artical->removedStatus=SOSSData::Delete("d_cms_artical_imagev1",$Artical->RemovedImages);
-        }
-        foreach($Artical->Images as $key=>$value){
-            $Artical->Images[$key]->articalid=$Artical->id;
-            if($Artical->Images[$key]->id==0){
-                $result2=SOSSData::Insert ("d_cms_artical_imagev1", $Artical->Images[$key],$tenantId = null);
-                if($result2->success){
-                    $Artical->Images[$key]->id = $result2->result->generatedId;
-                }
-
-            }else{
-                $result2=SOSSData::Update ("d_cms_artical_imagev1", $Artical->Images[$key],$tenantId = null);
+                $res->SetError ("Error Deleting.");
+                return $result;
             }
             
-            //var_dump($invoice->InvoiceItems[$key]->invoiceNo);
+
+        }else{
+            $res->SetError ("Error Deleting.");
+            return $Artical;
         }
-        CacheData::clearObjects("d_cms_artical_imagev1");
-        return $Artical;
-        
     }
 
     public function postSaveAlbum($req,$res){
@@ -81,7 +41,7 @@ class ArticalService{
                 $Artical->id = $result->result->generatedId; 
                 //return $Artical;
             }else{
-                $res->SetError ("Error Saving.");
+                $res->SetError ($result);
                 //exit();
                 return $res;
             }
@@ -114,58 +74,7 @@ class ArticalService{
         
     }
 
-    function getArtical($req){
-        //echo "imain";
-        $data =null;
-        if(isset($_GET["q"])){
-            //echo "in here";
-            $result= CacheData::getObjects_fullcache(md5("id:".$_GET["q"]),"d_cms_artical_v1");
-            if(!isset($result)){
-                //echo "in here";
-                $result = SOSSData::Query("d_cms_artical_v1",urlencode("id:".$_GET["q"]));
-                //return $result;
-                if($result->success){
-                    //$f->{$s->storename}=$result->result;
-                    if(isset($result->result[0])){
-                        $data= $result->result[0];
-                        CacheData::setObjects(md5("id:".$_GET["q"]),"d_cms_artical_v1",$result->result);
-                    }
-                }
-            }else{
-                $data= $result[0];
-            }
-            //$result = SOSSData::Query ("d_cms_artical_v1",urlencode("id:".$_GET["q"]));
-            //var_dump($result);
-            //echo "imain";
-            if(isset($data)){
-                
-                
-                echo '<!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8" />
-                    <meta name="description" content="'.urldecode($data->summery).'">
-                    <meta name="tags" content="'.urldecode($data->tags).'">
-                    <meta name="og:title" content="'.urldecode($data->title).'">
-                    <meta name="og:description" content="'.urldecode($data->summery).'">
-                    <meta name="og:tags"  content="'.urldecode($data->tags).'">
-                    <meta name="og:image"  content="http://'.$_SERVER["HTTP_HOST"].'/components/dock/soss-uploader/service/get/d_cms_artical/'.$_GET["q"]."-".$data->imgname.'">
-                    <title>'.urldecode($data->title).'</title>
-                    
-                </head>
-                <body>
-                    loading.....
-                    <script type="text/javascript">
-                        setTimeout(function(){ window.location = "/#/app/davvag-cms-generalapps/a?id='.$_GET["q"].'"; }, 1000);
-                        
-                    </script>    
-                </body>
-                </html>';
-                exit();      
-
-            }
-        }
-    }
+    
 
     function getAlbum($req){
         //echo "imain";
@@ -209,7 +118,7 @@ class ArticalService{
                 <body>
                     loading.....
                     <script type="text/javascript">
-                        setTimeout(function(){ window.location = "/#/app/davvag-cms-generalapps/abm?id='.$_GET["q"].'"; }, 1000);
+                        setTimeout(function(){ window.location = "/#/app/davvag-album/a?id='.$_GET["q"].'"; }, 1000);
                         
                     </script>    
                 </body>

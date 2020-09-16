@@ -62,7 +62,7 @@
         "version":"1.7",
         "icon":"appicon.png"
     },
-    "tags":["showindock"],
+    "tags":["showindock","showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "menu",

@@ -2,7 +2,7 @@
     "name" : "Album List",
     "description":"This has the album list",
     "author":"Lasitha Senanayake",
-    "version" : "0.1",
+    "version" : "0.2",
     "gitUrl" : "",
     "resources": {
         "files":[

@@ -67,6 +67,10 @@ WEBDOCK.component().register(function(exports){
                 }
                 return items;
             },
+            navigateBack:function(){
+                handler1 = exports.getShellComponent("soss-routes");
+                handler1.appNavigate("..");
+            },
             removeItem: function(item){
                 var removeIndex;
 
@@ -106,7 +110,7 @@ WEBDOCK.component().register(function(exports){
             total: function() {
                 tot=0;
                 for(i in this.items){
-                    tot+=(this.items[i].qty*this.items[i].price);
+                    tot+=(this.items[i].qty*(this.items[i].price-(this.items[i].price*(this.items[i].discountper/100))));
                 }
                 return tot;
             },

@@ -14,7 +14,8 @@ WEBDOCK.component().register(function(exports){
         canShowSignUp: false,
         partialToShow: 0,
         isBusy: false,
-        isCompleted: false
+        isCompleted: false,
+        fbEnabled:false
     };
 
     var vueData =  {

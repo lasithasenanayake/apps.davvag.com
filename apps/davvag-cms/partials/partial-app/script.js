@@ -70,7 +70,7 @@ WEBDOCK.component().register(function(exports){
                 view = data[i].object.view;
 
             renderDiv.html(view);
-            renderDiv.attr("style", "animation: fadein 0.2s");
+            renderDiv.attr("style", "animation: fadein 0.2s;padding-top: 0px;");
             if (!instance)
                 return;
 

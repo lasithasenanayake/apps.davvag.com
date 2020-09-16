@@ -2,7 +2,7 @@ WEBDOCK.component().register(function(exports){
     var scope;
 
     function loadUoms(skip, take){
-        var handler = exports.getComponent("cms-gapp-handler");
+        var handler = exports.getComponent("cms-album-handler");
         
         handler.transformers.allcat()
         .then(function(result){

@@ -99,9 +99,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "partial-album-view",
+                    "/" : "partial-homeblog-bg",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "partial-album-view",
+                    "/home" : "partial-homeblog-bg",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

@@ -111,10 +111,10 @@
                                             </thead>   
                                             <tbody>
                                               <tr>
-                                                  <td>Donna R. Folse</td>
+                                                  <td>Default</td>
                                                   <td>{{ product.currencycode }}.{{ product.price-(product.price*(product.discountper/100)) }}</td>
                                                   <td>{{ product.uom }}</td>
-                                                  <td> <input type="number" min="0" step="1" value="1" style="width: 50px"/></td>                                       
+                                                  <td> <input type="number" min="0" step="1" value="1" style="width: 50px" v-model="product.qty"/></td>                                       
                                               </tr>                                  
                                             </tbody>
                                           </table>

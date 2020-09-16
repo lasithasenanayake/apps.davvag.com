@@ -10,6 +10,49 @@ class UploaderService {
         return stream_get_contents($tempStream);
     }
 
+    private function compress($source, $destination, $quality) {
+
+        $info = mime_content_type($source);
+        file_put_contents($destination, $source);
+        //imagejpeg($source, $destination, $quality);
+        /*
+        switch($info){
+            case "image/jpeg":
+                $image = imagecreatefromgif($source);
+                imagejpeg($image, $destination, $quality);
+                
+            break;
+            case "image/gif":
+                $image = imagecreatefromgif($source);
+                imagejpeg($image, $destination, $quality);
+            break;
+            case "image/png":
+                $image = imagecreatefrompng($source);
+                imagejpeg($image, $destination, $quality);
+            break;
+            default:
+                file_put_contents($destination, $source);
+            break;
+        }*/
+      
+    }
+
+    function compressImage($source, $destination, $quality) {
+
+        $info = getimagesize($source);
+      
+        if ($info['mime'] == 'image/jpeg') 
+          $image = imagecreatefromjpeg($source);
+      
+        elseif ($info['mime'] == 'image/gif') 
+          $image = imagecreatefromgif($source);
+      
+        elseif ($info['mime'] == 'image/png') 
+          $image = imagecreatefrompng($source);
+      
+        imagejpeg($image, $destination, $quality);
+      
+    }
 
     public function __handle($req, $res){
         Carbite::Reset();
@@ -53,7 +96,9 @@ class UploaderService {
             if (!file_exists($folder))
                 mkdir($folder, 0777, true);
             
-            file_put_contents("$folder/$name", $this->getPostBody());
+            $this->compress($this->getPostBody(),"$folder/$name",60);
+            //file_put_contents("$folder/$name", $this->getPostBody());
+            //$this->compressImage($_FILES['imagefile']['tmp_name'],"$folder/$name",60);
             $resObj = new stdClass();
             $resObj->sucess = true;
             $resObj->message = "Successfully Uploaded!!!";

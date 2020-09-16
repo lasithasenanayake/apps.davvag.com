@@ -54,7 +54,7 @@ WEBDOCK.component().register(function(exports){
         onReady : function(s){
             
             scope = s;
-            handler = exports.getComponent("cms-gapp-handler");
+            handler = exports.getComponent("cms-album-handler");
             pInstance = exports.getShellComponent("soss-routes");
             validatorInstance = exports.getShellComponent ("soss-validator");
             uploaderInstance = exports.getShellComponent("soss-uploader");
@@ -177,10 +177,10 @@ WEBDOCK.component().register(function(exports){
                 if (result.result.length !=0){
                     bindData.product = result.result[0];
                     
-                    bindData.product.content=bindData.product.content.split("~^").join("'");
-                    bindData.product.content=bindData.product.content.split('~*').join('"');
+                    //bindData.product.content=bindData.product.content.split("~^").join("'");
+                    //bindData.product.content=bindData.product.content.split('~*').join('"');
                     //editor.setText(bindData.product.content);
-                    $("#txtEditor").data("editor").html(bindData.product.content);
+                    //$("#txtEditor").data("editor").html(bindData.product.content);
                     //var editorObj = $("#txtEditor").data('wysihtml5');
                     //var editor = editorObj.editor;
                     //seditor.setValue(bindData.product.content);

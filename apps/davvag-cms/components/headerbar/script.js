@@ -89,6 +89,7 @@ WEBDOCK.component().register(function(exports){
         if(sessionStorage.blogheader){
             document.title=JSON.parse(sessionStorage.blogheader).name;
             bindData.name=JSON.parse(sessionStorage.blogheader).name;
+            bindData.url=JSON.parse(sessionStorage.blogheader).buttonuri;
             bindData.headerdata=JSON.parse(sessionStorage.blogheader);
         }else{
             var data={name:"cms-global"}

@@ -1,6 +1,6 @@
 {
     "components": {
-        "cms-gapp-handler": {
+        "cms-album-handler": {
             "type":"service",
             "location":"services"
         },"Artical-view": {
@@ -34,7 +34,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "menu",
-            "onLoad": ["cms-gapp-handler"],
+            "onLoad": ["cms-album-handler"],
             "subApps":{
                 "Articles" : {
                     "route" : "/artical",
