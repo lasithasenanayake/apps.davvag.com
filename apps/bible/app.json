@@ -19,7 +19,7 @@
         "version":"0.2",
         "icon":"appicon.png"
     },
-    "tags":["showindock"],
+    "tags":["showindock","showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "uom-all",

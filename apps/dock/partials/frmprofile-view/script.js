@@ -1,12 +1,13 @@
 WEBDOCK.component().register(function(exports){
     var bindData = {
-        item:{catogory:"Student",id:0,title:"Mr",name:"Lasitha",gender:"m",organization:"Christ Gospel",email:"lasitha@gmail.com",contactno:"sss",addresss:"ssss",country:"sssss",city:"dddddddd"},
+        item:{catogory:"",id:0,title:"",name:"",gender:"",organization:"",email:"",contactno:"",addresss:"",country:"",city:""},
         submitErrors: undefined,
         SearchItem:"",
         items:[],
         Activities:[],
         Transaction:[],
         Summary:{},
+        profile:{},
         showSearch:false,
         image:'components/dock/soss-uploader/service/get/profile/1'
     };

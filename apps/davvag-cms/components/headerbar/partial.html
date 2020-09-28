@@ -22,7 +22,7 @@
     </form>
   </div>
 </nav>
-<div id="mobile-menu" class="row">
+<div v-if="MobileMenu.length!=0" id="mobile-menu" class="row">
   <ul class="nav navbar-nav navbar-right mobile-bar">
   <li v-for="menu in MobileMenu">
     <a  :href="menu.url" target="_self">

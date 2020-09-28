@@ -1,7 +1,7 @@
 <div class="container">
   
   <div class="row profile">
-  <div class="col-md-3">
+  <div class="col-md-4">
     <div class="profile-sidebar">
       <!-- SIDEBAR USERPIC -->
       <div class="profile-userpic">
@@ -9,25 +9,47 @@
       </div>
       <!-- END SIDEBAR USERPIC -->
       <!-- SIDEBAR USER TITLE -->
-      <div class="profile-usertitle">
-        <div class="profile-usertitle-name">
-          {{ item.name }}
-        </div>
-        <div class="profile-usertitle-job">
-          Thank you for selecting this student to sponsor for higher studies. Please fill the following details and submit to us. We will send you an email with payment gateway link. 
-         
-        </div>
+    
+      <div style="padding-bottom: 30px;">
+        <table>
+          <tr>
+            <th>Name:</th>
+            <td>{{ item.name }}</td>
+        </tr>
+          <tr>
+              <th>Date of Birth:</th>
+              <td>{{ item.dateofbirth | dateformate }}</td>
+          </tr>
+          <tr>
+            <th>Course of study:</th>
+            <td>{{ attributes.course }}</td>
+          </tr>
+          <tr>
+              <th>Academic Year:</th>
+              <td>{{ attributes.academic_year }}</td>
+          </tr>
+          <tr>
+            <th>Scholarship:</th>
+            <td>{{ attributes.scholarship }}</td>
+          </tr>
+          <tr>
+            <th>Course Fee Balnace (USD):</th>
+            <td>{{ Summary.outstanding | formatMoney }}</td>
+          </tr>
+          
+          
+          
+      </table> 
       </div>
       <!-- END SIDEBAR USER TITLE -->
       <!-- SIDEBAR BUTTONS -->
-      <div class="profile-userbuttons">
-       
-      </div>
+      
       <!-- END SIDEBAR BUTTONS -->
       <!-- SIDEBAR MENU -->
       <!-- END MENU -->
     </div>
   </div>
+  
   <div class="col-md-6">
           <div class="profile-content">
             <div class="row">

@@ -53,6 +53,14 @@
             "dataType":"float"
         },
         {
+            "fieldName":"discount_percentage",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"discount",
+            "dataType":"float"
+        },
+        {
             "fieldName":"total",
             "dataType":"float"
         }

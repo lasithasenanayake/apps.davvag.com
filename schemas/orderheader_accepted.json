@@ -59,6 +59,45 @@
             }
         },
         {
+            "fieldName":"supplier_profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"supplier_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"supplier_address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"supplier_country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
             "fieldName":"lon",
             "dataType":"float"
         },
@@ -102,6 +141,10 @@
         },
         {
             "fieldName":"subtotal",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"discount",
             "dataType":"float"
         },
         {

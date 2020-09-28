@@ -39,7 +39,7 @@ class ProductServices {
             $profile->order->lon = $location->lng;
         }
         
-        
+        $profile->order->supplier_profileId = $profile->id;
         $profile->order->profileId = $profile->id;
         $profile->order->name = $profile->name;
         $profile->order->contactno = $profile->contactno;
