@@ -8,8 +8,13 @@ WEBDOCK.component().register(function(exports){
         Transaction:[],
         Summary:{},
         showSearch:false,
-        image:'components/dock/soss-uploader/service/get/profile/1'
+        image:'components/dock/soss-uploader/service/get/profile/1',
+        appName:"Hello World"
     };
+
+    function completeResponce(results){
+        console.log(results);
+    }
 
     var vueData = {
         onReady: function(){
@@ -17,6 +22,16 @@ WEBDOCK.component().register(function(exports){
         },
         data:bindData,
         methods: {
+            downloadapp:function(appname,form,data){
+                apploader.downloadAPP(appname,form,"appdock",function(d){
+                    $('#decker1100').addClass("profile-content-show");
+                },function(e){
+                    console.log(e);
+                },completeResponce,data);
+            },
+            hide:function(){
+                $('#decker1100').removeClass("profile-content-show");
+            },
             pay:function(){
 
             },
@@ -31,11 +46,14 @@ WEBDOCK.component().register(function(exports){
                 userHandler.services.Logout().then(function(result){
                     if(result.result){
                         localStorage.clear();
-                        sessionStorage.clear();
+                        //sessionStorage.clear();
                         pInstance = exports.getShellComponent("soss-routes");
                         pInstance.appNavigate("../login");
                     }else{
-
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        pInstance = exports.getShellComponent("soss-routes");
+                        pInstance.appNavigate("../login");
                     }
                 }).error(function(result){
                     //$("#form-reset :input").prop("disabled", false);
@@ -95,7 +113,7 @@ WEBDOCK.component().register(function(exports){
     var profileHandler;
     var uploaderInstance;
     var pInstance;
-
+    var apploader;
     function initializeComponent(){
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
@@ -104,6 +122,11 @@ WEBDOCK.component().register(function(exports){
         //routeData = pInstance.getInputData();
         //console.log("profile");
         //console.log(localStorage.profile);
+        exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+            apploader=_uploader;
+            apploader.initialize();
+            //uploader.upload(files, "products", productId,cb);
+        });
         if(localStorage.profile!=null){
             profile =JSON.parse(localStorage.profile);
             //console.log(profile);

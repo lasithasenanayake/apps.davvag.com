@@ -18,13 +18,6 @@
             "dataType":"java.lang.String"
         },
         {
-            "fieldName":"keywords",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 500
-            }
-        },
-        {
             "fieldName":"price",
             "dataType":"float"
         },
@@ -70,19 +63,16 @@
             "annotations":{
                 "maxLen": 10
             }
+        },{
+            "fieldName":"storeid",
+            "dataType":"int"
         },
         {
-            "fieldName":"collectedByID",
+            "fieldName":"storename",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 100
-            }
-        },
-        {
-            "fieldName":"collectedBy",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 200
+                "maxLen": 500,
+                "encoding":"utf8"
             }
         },
         {
@@ -92,13 +82,6 @@
         {
             "fieldName":"tid",
             "dataType":"int"
-        },
-        {
-            "fieldName":"collectedBy",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 200
-            }
-        }           
+        }          
     ]
 }

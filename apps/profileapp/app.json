@@ -36,6 +36,9 @@
         "frmprofile-list": {
             "type":"component",
             "location":"components"
+        },"setting-app":{
+            "type":"component",
+            "location":"components"
         }
     },  
     "description":{

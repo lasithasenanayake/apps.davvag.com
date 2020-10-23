@@ -59,7 +59,7 @@
     "description":{
         "title": "CMS",
         "author":"Davvag",
-        "version":"1.7",
+        "version":"1.8",
         "icon":"appicon.png"
     },
     "tags":["showindock","showincms"],

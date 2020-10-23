@@ -12,14 +12,14 @@ WEBDOCK.component().register(function(exports){
         name:"Loading...",
         icon:"",
         MobileMenu:[],
-        TopButtons:[],
+        headerbars_TopButtons:[],
         searchbar:false,
         facebook:"",
         youtube:"",
         gpluse:undefined,
         twitter:undefined,
         instergram:undefined,
-        url:"#/home",
+        headerbar_url:"#/home",
         headerdata:{}
     };
     var vueData = {
@@ -49,18 +49,18 @@ WEBDOCK.component().register(function(exports){
         var menuhandler  = exports.getComponent("soss-data");
         var query=[{storename:"d_cms_buttons_v1",search:"BType:Top"}];
         var tmpmenu=[];
-        bindData.TopButtons=[];
+        bindData.headerbars_TopButtons=[];
         menuhandler.services.q(query)
                     .then(function(r){
                         //console.log(JSON.stringify(r));
                         if(r.success){
-                            //bindData.TopButtons=r.result.d_cms_buttons_v1;
+                            //bindData.headerbars_TopButtons=r.result.d_cms_buttons_v1;
                             //tmpmenu=r.result.d_cms_buttons_v1;
                             r.result.d_cms_buttons_v1.sort((a,b) => (a.sortorder > b.sortorder) ? 1 : ((b.sortorder > a.sortorder) ? -1 : 0)); 
                             r.result.d_cms_buttons_v1.forEach(element => {
                                 getSubMenu(element.id,function(s){
                                     element.sub=s;
-                                    bindData.TopButtons.push(element);
+                                    bindData.headerbars_TopButtons.push(element);
                                 });             
                                 
                             });
@@ -76,7 +76,7 @@ WEBDOCK.component().register(function(exports){
                     .then(function(r){
                         console.log(JSON.stringify(r));
                         if(r.success){
-                            //bindData.TopButtons=r.result.d_cms_buttons_v1;
+                            //bindData.headerbars_TopButtons=r.result.d_cms_buttons_v1;
                             //tmpmenu=r.result.d_cms_buttons_v1;
                             bindData.MobileMenu =r.result.d_cms_buttons_v1;
                             
@@ -89,7 +89,7 @@ WEBDOCK.component().register(function(exports){
         if(sessionStorage.blogheader){
             document.title=JSON.parse(sessionStorage.blogheader).name;
             bindData.name=JSON.parse(sessionStorage.blogheader).name;
-            bindData.url=JSON.parse(sessionStorage.blogheader).buttonuri;
+            bindData.headerbar_url=JSON.parse(sessionStorage.blogheader).buttonuri;
             bindData.headerdata=JSON.parse(sessionStorage.blogheader);
         }else{
             var data={name:"cms-global"}
@@ -98,7 +98,7 @@ WEBDOCK.component().register(function(exports){
                         console.log(JSON.stringify(r));
                         if(r.success){
                             bindData.name= r.result.name;
-                            bindData.url=r.result.buttonuri;
+                            bindData.headerbar_url=r.result.buttonuri;
                             document.title=r.result.name;
                             //JSON.parse(sessionStorage.blogheader)
                             bindData.headerdata=r.result;
@@ -127,20 +127,20 @@ WEBDOCK.component().register(function(exports){
                 .error(function(){
                     ///signout();
                 });
-        console.log(JSON.stringify(bindData.TopButtons));
+        console.log(JSON.stringify(bindData.headerbars_TopButtons));
         new Vue(vueData);
     }
 
     function getSubMenu(id,cb){
         var query=[{storename:"d_cms_buttons_v1",search:"parentButtonid:"+id}];
         //var tmpmenu=[];
-        //bindData.TopButtons=[];
+        //bindData.headerbars_TopButtons=[];
         var menuhandler  = exports.getComponent("soss-data");
         menuhandler.services.q(query)
                     .then(function(r){
                         //console.log(JSON.stringify(r));
                         if(r.success){
-                            //bindData.TopButtons=r.result.d_cms_buttons_v1;
+                            //bindData.headerbars_TopButtons=r.result.d_cms_buttons_v1;
                             cb(r.result.d_cms_buttons_v1);
                             //return r.result.d_cms_buttons_v1;
                         }else{

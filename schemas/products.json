@@ -78,6 +78,17 @@
             "annotations":{
                 "maxLen": 1
             }
+        },{
+            "fieldName":"storeid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"storename",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
         },
         {
             "fieldName":"catogory",

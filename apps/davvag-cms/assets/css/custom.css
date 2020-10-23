@@ -15,6 +15,10 @@
   --Lft: left;
 }
 
+.id-soss-routes {
+  min-height: 100vh !important;
+}
+
 a {
   color:var(--backcolor);
 }

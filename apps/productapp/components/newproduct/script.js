@@ -233,12 +233,13 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadValidator(){
+        bindData.product.caption=$("#txtcaption").data("editor").html(); 
         validator = validatorInstance.newValidator (bindData);
-        validator.map ("product.name",true, "You should enter a name");
-        validator.map ("product.caption",true, "You should enter a caption");
-        validator.map ("product.price",true, "You should endter a price");
-        validator.map ("product.price","number", "Price should be a number");
-        validator.map ("product.catogory",true, "You should select a product category");
+        validator.map ("product.name",true, "You should enter a name.");
+        //validator.map ("product.caption",true, "You should enter a psroduct Caption.");
+        validator.map ("product.price",true, "You should endter a price.");
+        validator.map ("product.price","number", "Price should be a number.");
+        validator.map ("product.catogory",true, "You should select a product category.");
     }
     
 

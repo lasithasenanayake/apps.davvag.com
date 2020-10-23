@@ -3,6 +3,13 @@ require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 class ArticalService{
+    public function postDeleteButton($req,$res){
+        $item=$req->Body(true);
+        $result=SOSSData::Delete("d_cms_buttons_v1", $item);
+        CacheData::clearObjects("d_cms_buttons_v1");
+        return $result;
+    }
+
     public function postSaveArtical($req,$res){
         
         $Artical=$req->Body(true);

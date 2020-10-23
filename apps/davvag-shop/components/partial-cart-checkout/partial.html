@@ -1,23 +1,23 @@
 <div class="container" id="idOrderWizard">
-    <div class="row col-md-12">
+    <div class="input-form">
         <form id="Form">
-            <div class="form-group col-md-12">
+            <div class="form-group">
                 <label for="exampleInputPassword1">Email </label>
                 <input type="text" class="form-control" v-model="profile.email" disabled="disabled">
             </div>
-            <div class="form-group col-md-12">
+            <div class="form-group">
                 <label for="exampleInputPassword1">Name *</label>
                 <input type="text" class="form-control" v-model="profile.name">
             </div>
-            <div class="form-group col-md-6">
+            <div class="form-group">
                 <label for="exampleInputPassword1">Contact Number *</label>
                 <input type="text" class="form-control" v-model="profile.contactno" maxlength="10">
             </div>
-            <div class="form-group col-md-6">
+            <div class="form-group">
                     <label for="exampleInputPassword1">Address *</label>
                     <textarea class="form-control deliveryAddress" v-model="profile.address" style="margin-bottom:10px;"></textarea>
             </div>
-            <div class="form-group col-md-6">
+            <div class="form-group">
                     <label for="exampleInputPassword1">Counrty *</label>
                     <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="profile.country">
                             <option value=""></option>
@@ -274,7 +274,7 @@
                             <option value="Zimbabwe">Zimbabwe</option>
                           </select>
             </div>
-            <div class="form-group col-md-12">
+            <div class="form-group">
                 <label for="exampleInputPassword1">Remarks (You can mention additional information such as landmarks)</label>
                 <textarea class="form-control deliveryAddress" v-model="profile.remarks" style="margin-bottom:10px;"></textarea>
             </div>
@@ -292,10 +292,9 @@
                     </div>
                 </div>
             </div> -->
-            <div class="form-group col-md-12">
-                <button type="button" class="btn bg-primary-button pull-right" v-on:click="submitPurchase()">Complete Purchase</button>
+            
+            <button type="button" class="btn bg-primary-button  btn-block" v-on:click="submitPurchase()">Complete Purchase</button>
                 
-            </div>
         </form>
     </div>
 </div>

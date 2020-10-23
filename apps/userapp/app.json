@@ -12,6 +12,10 @@
             "type":"component",
             "location":"components"
         },
+        "chnage-password": {
+            "type":"component",
+            "location":"components"
+        },
         "login-switcher": {
             "type":"component",
             "location":"components"

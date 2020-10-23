@@ -87,7 +87,7 @@
         </a>
         </div>
         <div class="col-social">
-            <a  :href="'whatsapp://send?text='+product.summery+' '+url" target="_blank" aria-label="Share on WhatsApp">                
+            <a  :href="'whatsapp://send?text='+escape(product.summery)+' '+escape(url)" target="_blank" aria-label="Share on WhatsApp">                
                     <i class="fa fa-whatsapp fa-2x"></i>
                 </a>
         </div>

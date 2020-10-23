@@ -88,6 +88,27 @@
             }
         },
         {
+            "fieldName":"campanyregno",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"taxregno",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"postalcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
             "fieldName":"title",
             "dataType":"java.lang.String",
             "annotations":{
@@ -151,6 +172,14 @@
             "annotations":{
                 "maxLen": 8
             }
+        },
+        {
+            "fieldName":"mainid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"mainprofileid",
+            "dataType":"int"
         }
 
     ]
