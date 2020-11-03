@@ -5,13 +5,13 @@
       <div class="text-center border-bottom p-4">
         <div class="mb-4 profile-user">
           <img :src="image" class="rounded-circle avatar-lg img-thumbnail" alt="">
-          <button type="button" class="btn bg-light avatar-xs p-0 rounded-circle profile-photo-edit">
+          <button type="button" class="btn bg-light avatar-xs p-0 rounded-circle profile-photo-edit" v-on:click="changeProfilePic">
               <i class="fa fa-pencil"></i>
           </button>
         </div>
         <h5 class="font-size-16 mb-1 text-truncate">{{ item.name }}</h5>
       </div>
-      <div class="simplebar-content" style="padding: 5px;height: calc(100vh - 400px); overflow: hidden scroll; padding-right: 20px; padding-bottom: 0px;">
+      <div class="simplebar-content" style="padding: 5px;height: calc(100vh - 300px); overflow: hidden scroll; padding-right: 20px; padding-bottom: 0px;">
         
         <div id="profile-setting-accordion" class="custom-accordion">
             <div class="card shadow-none border mb-2">
@@ -28,7 +28,7 @@
                     <div class="card-body">
 
                         <div class="float-right">
-                            <button type="button" class="btn btn-light btn-sm"><i class="fa fa-pencil"></i> Edit</button>
+                            <button type="button" class="btn btn-light btn-sm" v-on:click="downloadapp('userapp','profile-edit',item,'Edit Profile')"><i class="fa fa-pencil"></i> Edit</button>
                         </div>
 
                         <div>
@@ -72,13 +72,13 @@
 
                                 </div>
                                 <div class="dropdown ml-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Everyone <i class="mdi mdi-chevron-down"></i>
+                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm"  v-on:click="showMenu('#dr-profile-photo')" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ profile_policy.profilephoto | privacy_filter}}<i class="mdi mdi-chevron-down"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" href="#">Everyone</a>
-                                        <a class="dropdown-item" href="#">selected</a>
-                                        <a class="dropdown-item" href="#">Nobody</a>
+                                    <div id="dr-profile-photo" class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-profile-photo','profilephoto',1)">Everyone</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-profile-photo','profilephoto',0)">Nobody</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-profile-photo','profilephoto',2)">Followers</a>
                                     </div>
                                 </div>
                             </div>
@@ -91,7 +91,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="privacy-lastseenSwitch" checked="">
+                                        <input type="checkbox" class="custom-control-input" id="privacy-lastseenSwitch" v-model="profile_policy.lastseen">
                                         <label class="custom-control-label" for="privacy-lastseenSwitch"></label>
                                     </div>
                                 </div>
@@ -105,13 +105,13 @@
 
                                 </div>
                                 <div class="dropdown ml-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Everyone <i class="mdi mdi-chevron-down"></i>
+                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm"  v-on:click="showMenu('#dr-status')" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ profile_policy.status | privacy_filter}} <i class="mdi mdi-chevron-down"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" href="#">Everyone</a>
-                                        <a class="dropdown-item" href="#">selected</a>
-                                        <a class="dropdown-item" href="#">Nobody</a>
+                                    <div id="dr-status" class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-status','status',1)">Everyone</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-status','status',0)">Nobody</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-status','status',2)">Followers</a>
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +125,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="privacy-readreceiptSwitch" checked="">
+                                        <input type="checkbox" class="custom-control-input" id="privacy-readreceiptSwitch"  v-model="profile_policy.read_receipts">
                                         <label class="custom-control-label" for="privacy-readreceiptSwitch"></label>
                                     </div>
                                 </div>
@@ -135,17 +135,17 @@
                         <div class="py-3 border-top">
                             <div class="media align-items-center">
                                 <div class="media-body overflow-hidden">
-                                    <h5 class="font-size-13 mb-0 text-truncate">Groups</h5>
+                                    <h5 class="font-size-13 mb-0 text-truncate">Posts</h5>
 
                                 </div>
                                 <div class="dropdown ml-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Everyone <i class="mdi mdi-chevron-down"></i>
+                                    <button class="btn btn-light btn-sm dropdown-toggle w-sm" v-on:click="showMenu('#dr-posts')" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ profile_policy.posts | privacy_filter}}  <i class="mdi mdi-chevron-down"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" href="#">Everyone</a>
-                                        <a class="dropdown-item" href="#">selected</a>
-                                        <a class="dropdown-item" href="#">Nobody</a>
+                                    <div id="dr-posts" class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-posts','posts',1)">Everyone</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-posts','posts',0)">Nobody</a>
+                                        <a class="dropdown-item" v-on:click="setAttribute('#dr-posts','posts',2)">Followers</a>
                                     </div>
                                 </div>
                             </div>
@@ -182,7 +182,12 @@
                                 </div>
                             </div>
                             <div class="py-3">
-                                <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp('userapp','chnage-password',item)" class="text-body d-block">Change Password</a></h5>
+                                <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="downloadapp('userapp','chnage-password',item,'Change Password')"> Change Password <i class="fa fa-pencil" ></i></button>
+                    
+                            </div>
+                            <div class="py-3">
+                                <button type="button" class="btn btn-danger btn-sm" style="width: 100%;" v-on:click="logout"> Logout <i class="fa fa-key" ></i></button>
+                    
                             </div>
                         </div>
                     </div>
@@ -210,7 +215,10 @@
                                 <h5 class="font-size-13 mb-0"><a href="#" class="text-body d-block">Contact</a></h5>
                             </div>
                             <div class="py-3 border-top">
-                                <h5 class="font-size-13 mb-0"><a href="#" class="text-body d-block">Terms &amp; Privacy policy</a></h5>
+                                <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp('userapp','privacy-policy',item,'Privacy Policy')">Privacy Policy</a></h5>
+                            </div>
+                            <div class="py-3 border-top">
+                                <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp('userapp','terms-conditions',item,'Terms & Conditions')"> Terms & Conditions</a></h5>
                             </div>
                         </div>
                     </div>
@@ -220,47 +228,34 @@
         </div>
         <!-- end profile-setting-accordion -->
     </div>
-      <!-- END SIDEBAR USER TITLE -->
-      <!-- SIDEBAR BUTTONS -->
-      <div class="profile-userbuttons">
-        <button type="button" class="btn btn-success btn-sm" v-on:click="downloadapp">Edit</button>
-        <button type="button" class="btn btn-success btn-sm">Chang Password</button>
-        
-      </div>
-      <div class="profile-userbuttons">
-        <button type="button" class="btn btn-success btn-sm" v-on:click="showPay">Pay Online</button>
-      </div>
+      
+      
       <div class="profile-userbuttons">
         <button type="button" class="btn btn-danger btn-sm" v-on:click="logout">Logout</button>
       </div>
       <!-- END SIDEBAR BUTTONS -->
       <!-- SIDEBAR MENU -->
-      <div class="profile-usermenu">
-        <ul class="nav">
-            <li class="active"><a href="#tran" data-toggle="tab"><strong>Trasaction History</strong></a>|</li>
-            <li><a href="#events" data-toggle="tab"><strong> Orders</strong></a> </li>
-        </ul>
-      </div>
+      
       <!-- END MENU -->
     </div>
   </div>
   <div class="col-md-8">
           <div id="decker1100" class="profile-content">
             <!-- Tab panes -->
-            <div class="app_header">
-              <div class="d-block d-lg-none mr-2">
-                <a v-on:click="hide" class="user-chat-remove text-muted font-size-16 p-2"><i class="fa fa-arrow-left"></i></a>
+            <div class="row app_header">
+                <div class="app_title">
+                     <h4>{{ appName }}</h4>
+                </div>
+                <div  class="app_close">
+                  <a v-on:click="hide"><i class="fa fa-times"></i></a>
+                </div>
               </div>
-              <div class="media-body overflow-hidden">
-                <h4>{{ appName }}</h4>
-              </div>
-              
-            </div>
-            <div id="appdock" style="padding: 5px;">cccccc</div>
-            <div class="tab-content">
-              
+            <div  id="tabs" class="tab-content">
+                <div class="tab-pane" id="app">
+                      <div id="appdock" style="padding: 5px;"></div>
+                    </div>
               <div class="tab-pane active" id="tran">
-                <h1>Tranaction History</h1>
+                
                 <table class="table mb30">
                   <thead>
                     <tr>

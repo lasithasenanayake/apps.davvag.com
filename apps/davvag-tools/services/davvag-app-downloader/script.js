@@ -6,14 +6,14 @@ WEBDOCK.component().register(function(exports, scope){
         //clearCeate();
     }
     var callback;
-    var errCallback,completed,data;
+    var errCallback,completed,data_collected;
 
     
     exports.downloadAPP=function(appId,startupComponent,id,cb,er,cbcompleted,d){
         callback=cb;
         errCallback=er;
         completed=cbcompleted;
-        data=d;
+        data_collected=d;
         //var leftMenu = exports.getComponent("left-menu");
         //WEBDOCK.freezeUiComponent("left-menu",true);
         //leftMenu.getApps(function(apps){
@@ -61,7 +61,7 @@ WEBDOCK.component().register(function(exports, scope){
 
                 if (instance.vue.onReady){
                     if(completed){
-                        instance.vue.onReady(scope,{status:"internalcall",data:data,completedEvent:completed,renderDiv:renderDiv});
+                        instance.vue.onReady(scope,{status:"internalcall",data:data_collected,completedEvent:completed,renderDiv:renderDiv});
                     }else{
                         instance.vue.onReady(scope,renderDiv);
                     }

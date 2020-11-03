@@ -104,7 +104,8 @@
 .profile-content {
   padding: 20px;
   background: #fff;
-  height: calc(100vh- 160px);
+  height: calc(100vh - 60px);
+  overflow: hidden scroll;
 }
 
 .hide{
@@ -175,7 +176,26 @@
   display: inline-block;
 }
 
+.app_title{
+  width: 100%;
+  text-align: center;
+}
+
+.app_close{
+  display: none;
+}
 @media only screen and (max-width: 600px) {
+
+  .app_title{
+    width: calc(100vw - 5px);
+    text-align: center;
+  }
+  
+  .app_close{
+    width: 5px;
+    display: inline;
+  }
+
   .profile-content {
     padding: 5px;
     z-index: 100002;

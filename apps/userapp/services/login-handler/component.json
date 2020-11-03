@@ -49,6 +49,12 @@
             },
             "registerUser":{
                 "method":"POST"
+            },
+            "ChangePassword":{
+                "method":"POST"
+            },
+            "updatePolicy":{
+                "method":"POST"
             }
         }
     },

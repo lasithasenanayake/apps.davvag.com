@@ -1,8 +1,8 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,callHandler;
+    var scope,validator_profile,service_handler,sossrout_handler,callHandler,cbcomplete;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{}
+        submitErrors : [],submitInfo : [],data:{},showtitle:true
     };
 
     var vueData =  {
@@ -14,12 +14,16 @@ WEBDOCK.component().register(function(exports){
         onReady: function(s,c){
             scope=s;
             callHandler=c;
+            if(callHandler.completedEvent){
+                bindData.showtitle=false;
+                cbcomplete=callHandler.completedEvent;
+            }
             initialize();
         }
     }
 
     function initialize(){
-        service_handler = exports.getComponent("app-handler");
+        service_handler = exports.getComponent("login-handler");
         if(!service_handler){
             console.log("Service has not Loaded please check.");
         }
@@ -30,18 +34,34 @@ WEBDOCK.component().register(function(exports){
         lockForm();
         scope.submitErrors = [];
         scope.submitErrors = validator_profile.validate(); 
+        if(scope.data.newpassword!=scope.data.changepassword){
+            if(scope.submitErrors){
+                scope.submitErrors.push("Password Miss Match.");
+            }else{
+                scope.submitErrors=["Password Miss Match."];
+            }
+        }
         if (!scope.submitErrors){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            service_handler.services.Save(bindData.data).then(function(result){
-                
-                console.log(result);
+            service_handler.services.ChangePassword(bindData.data).then(function(result){
+                //console.log(result);
                 
                 if(result.success){
-                    scope.submitInfo.push("result.result.message");
+                    if(result.result.error){
+                        scope.submitErrors.push(result.result.message);
+                    }else{
+                        if(cbcomplete){
+                            cbcomplete(result);
+                        }
+                        scope.submitInfo.push("Successfuly Changed.");
+                        scope.data.password=scope.data.newpassword=scope.data.changepassword="";
+                        
+                    }
+                    
                 }else{
-                    scope.submitErrors.push("Error");
+                    scope.submitErrors.push("Error Chnaging Password");
                 }
                 unlockForm();
             }).error(function(result){
@@ -50,6 +70,8 @@ WEBDOCK.component().register(function(exports){
                 unlockForm();
             });
 
+        }else{
+            unlockForm();
         }
     }
 
@@ -73,10 +95,10 @@ WEBDOCK.component().register(function(exports){
         var validatorInstance = exports.getShellComponent ("soss-validator");
 
         validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.email",true, "Please enter your full name");
-        validator_profile.map ("data.password",true, "Please enter your contact number");
-        validator_profile.map ("data.contactno","numeric", "Phone number should only consist of numbers");
-        validator_profile.map ("data.contactno","minlength:9", "Phone number should consit of 10 numbers");
+        validator_profile.map ("data.password",true, "Please enter your Old  password");
+        validator_profile.map ("data.newpassword",true, "Please enter your New  password");
+        validator_profile.map ("data.changepassword",true, "Please enter your New  Confirm Password");
+
 
         
         

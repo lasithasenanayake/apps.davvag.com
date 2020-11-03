@@ -1,6 +1,7 @@
+
 WEBDOCK.component().register(function(exports){
     var bindData = {
-        item:{catogory:"Student",id:0,title:"Mr",name:"Lasitha",gender:"m",organization:"Christ Gospel",email:"lasitha@gmail.com",contactno:"sss",addresss:"ssss",country:"sssss",city:"dddddddd"},
+        item:{catogory:"",id:0,title:"",name:"",gender:"m",organization:"",email:"",contactno:"",addresss:"",country:"",city:""},
         submitErrors: undefined,
         SearchItem:"",
         items:[],
@@ -9,11 +10,22 @@ WEBDOCK.component().register(function(exports){
         Summary:{},
         showSearch:false,
         image:'components/dock/soss-uploader/service/get/profile/1',
-        appName:"Hello World"
+        appName:"Tranaction History",
+        profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1}
     };
-
+    var newFile;
     function completeResponce(results){
+        if($('#decker1100').hasClass("profile-content-show")){
+            bindData.apptitle="Tranaction History";
+            showTab("#tran");
+            $('#decker1100').removeClass("profile-content-show");
+        }
         console.log(results);
+    }
+
+    function showTab(x){
+        $("#tabs>div.active").removeClass("active");
+        $(x).addClass("active");
     }
 
     var vueData = {
@@ -22,16 +34,54 @@ WEBDOCK.component().register(function(exports){
         },
         data:bindData,
         methods: {
-            downloadapp:function(appname,form,data){
+            changeProfilePic:function(){
+                cropper1.crope(1,1,function(e){
+                    //console.log(e);
+                    bindData.image=e.data;
+                    newFile=e.fileData;
+                    exports.getAppComponent("davvag-tools","davvag-file-uploader", function(uploader){
+                        uploader.initialize();
+                        var files=[];
+                        newFile.name=bindData.item.id;
+                        files.push(newFile);
+                        uploader.upload(files, "profile", null,function(e){
+                            console.log(e);
+                        });
+                    });
+                });
+
+            },
+            downloadapp:function(appname,form,data,apptitle){
                 apploader.downloadAPP(appname,form,"appdock",function(d){
                     $('#decker1100').addClass("profile-content-show");
+                    bindData.appName=apptitle;
+                    showTab("#app");
                 },function(e){
                     console.log(e);
                 },completeResponce,data);
             },
             hide:function(){
                 $('#decker1100').removeClass("profile-content-show");
+                bindData.apptitle="Tranaction History";
+                showTab("#tran");
             },
+            showMenu:function(a){
+                if($(a).hasClass("show")){
+                    $(a).removeClass("show");
+                    $(a).addClass("toggle");
+                }else{
+                    $(a).addClass("show");
+                    $(a).removeClass("toggle");
+                }
+                
+            },
+            setAttribute:function(a,itemprop,newValue){
+                $(a).removeClass("show");
+                $(a).addClass("toggle");
+                bindData.profile_policy[itemprop]=newValue;
+                updatePolicy();
+            }
+            ,
             pay:function(){
 
             },
@@ -99,9 +149,34 @@ WEBDOCK.component().register(function(exports){
               if (!value) return ''
               value = value.toString()
               return parseFloat(value).toFixed(2);
+            },
+            privacy_filter:function(value){
+                switch(value){
+                    case 0:
+                        return "Nobody";
+                        break;
+                    case 1:
+                        return "Everyone";
+                        break;
+                    case 2:
+                        return "Followers";
+                        break;
+                }
             }
+
           
         }
+    }
+
+    function updatePolicy(){
+        bindData.profile_policy.id=bindData.item.id;
+        authhandler.services.updatePolicy(bindData.profile_policy).then(function(r){
+            if(r.success){
+                bindData.profile_policy=r.result;
+            }
+        }).error(function(er){
+
+        });
     }
 
     exports.vue = vueData;
@@ -111,26 +186,25 @@ WEBDOCK.component().register(function(exports){
     //var item ={};
     var productHandler;
     var profileHandler;
-    var uploaderInstance;
+    var authhandler;
     var pInstance;
-    var apploader;
+    var apploader,cropper1;
     function initializeComponent(){
+        exports.getAppComponent("davvag-tools","davvag-img-cropper", function(cropper){
+            cropper.initialize(300,300);
+            cropper1=cropper;
+        });
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
-        uploaderInstance = exports.getComponent ("soss-uploader");
-        //localStorage.profile
-        //routeData = pInstance.getInputData();
-        //console.log("profile");
-        //console.log(localStorage.profile);
+        authhandler = exports.getComponent ("login-handler");
         exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
             apploader=_uploader;
             apploader.initialize();
-            //uploader.upload(files, "products", productId,cb);
         });
         if(localStorage.profile!=null){
             profile =JSON.parse(localStorage.profile);
             //console.log(profile);
-            getProfilebyID(profile.id)
+            getProfilebyID(profile.id);
         }
         //console.log(routeData);
     }
@@ -153,7 +227,7 @@ WEBDOCK.component().register(function(exports){
             var query=[{storename:"profilestatus",search:"profileid:"+id},
                         {storename:"profile","search":"id:"+id},
                         {storename:"ledger","search":"profileid:"+id},
-                        {storename:"profileservices","search":"profileid:"+id}];
+                        {storename:"profileservices","search":"profileid:"+id},{storename:"profile_policy","search":"id:"+id}];
                         pInstance.services.q(query)
             .then(function(r){
                 console.log(JSON.stringify(r));
@@ -164,6 +238,9 @@ WEBDOCK.component().register(function(exports){
                     }
                     if(r.result.profile.length!=0){
                         bindData.item=r.result.profile[0];
+                    }
+                    if(r.result.profile_policy.length!=0){
+                        bindData.profile_policy=r.result.profile_policy[0];
                     }
                     bindData.items=r.result.profileservices;
                 }

@@ -1,0 +1,31 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"profilephoto",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"lastseen",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"status",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"read_receipts",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"posts",
+            "dataType":"int"
+        }
+    ]
+}
