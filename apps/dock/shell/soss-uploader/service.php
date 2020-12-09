@@ -64,9 +64,6 @@ class UploaderService {
         });
 
         Carbite::GET("/get/@ns/@name",function($req,$res){
-            header("Cache-Control: private, max-age=10800, pre-check=10800");
-            header("Pragma: private");
-            header("Expires: " . date(DATE_RFC822,strtotime("+2 day")));
             $ns = $req->Params()->ns;
             $name = $req->Params()->name;
             $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/$ns";

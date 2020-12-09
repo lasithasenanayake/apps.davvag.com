@@ -34,7 +34,7 @@
     <div id="status"><i class="fa fa-spinner fa-spin"></i></div>
 </div>
 
-<div class="headerbar" webdock-component="headerbar" id="id-headerbar">
+<div class="headerbar" webdock-component="headerbar_usertab" id="id-headerbar">
     </div>
 <div id="idLeftPanel" class="leftpanel" webdock-component="left-menu" style="display:none">
 

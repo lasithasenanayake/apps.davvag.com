@@ -65,6 +65,10 @@ WEBDOCK.component().register(function(exports){
         }else{
             bindData.data=JSON.parse(localStorage.profile);
             bindData.p_image="components/dock/soss-uploader/service/get/profile/"+bindData.data.id.toString();
+            if(bindData.data.catogory==null){
+                cb();
+                return;
+            }
             if(bindData.data.catogory.toLowerCase()=='vender'){
                 if(routeData.u){
                     location.href=unescape(routeData.u);

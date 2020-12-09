@@ -1,0 +1,56 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["id","lastid","page","size","userid"],
+        "query": "select * from messages where inboxid=$userid and userboxid=$id and sysversionid>$lastid Limit $page,$size"
+    },
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int"
+        },{
+            "fieldName":"msgdate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"inboxid",
+            "dataType":"int"
+            
+        },
+        {
+            "fieldName":"userboxid",
+            "dataType":"int"
+           
+        },{
+            "fieldName":"messagetype",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"m_to",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"m_from",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"m_read",
+            "dataType":"int"
+           
+        }
+        ,
+        {
+            "fieldName":"messagetext",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"sysversionid",
+            "dataType":"float"
+           
+        }
+        
+
+    ]
+}

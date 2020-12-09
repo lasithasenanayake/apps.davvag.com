@@ -1,4 +1,5 @@
 WEBDOCK.component().register(function(exports){
+    var apploader;
     var bindData={
         userData: {
             email : "Loading",
@@ -20,14 +21,41 @@ WEBDOCK.component().register(function(exports){
         twitter:undefined,
         instergram:undefined,
         url:"#/home",
-        headerdata:{}
+        headerdata:{},
+        Notify:[],        
+        appTitle:"",
+        appIcon:""
     };
+    function completeResponce(d){
+        console.log(d);
+    }
+
     var vueData = {
         data:bindData,
         methods: {
             signout: signout,
             submitSearch: function(event){
                 event.preventDefault();
+            },
+            notification:function(){
+                $(".notification-bar").show(100); 
+            },downloadapp:function(appname,form,data,apptitle,m){
+                //$('#decker1100').addClass("profile-content-show");
+                bindData.appTitle=apptitle;
+                console.log(data);
+                data=JSON.parse(data);
+                data.notfy=m;
+                $('#notifyappwindow').modal('toggle');
+                $(".notification-bar").hide(100); 
+                apploader.downloadAPP(appname,form,"notifyappdock",function(d){
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,data);
+            },close: function(){
+                //bindData.product=p;
+                $('#notifyappwindow').modal('toggle');
             }
         }
     }
@@ -43,12 +71,24 @@ WEBDOCK.component().register(function(exports){
         });
     }
 
+    $(document).mouseup(function (e) { 
+        if ($(e.target).closest(".notification-bar").length === 0) { 
+            $(".notification-bar").hide(100); 
+        } 
+    }); 
+
     exports.onReady = function(element){
         vueData.el = '#' + $(element).attr('id');
         var handler  = exports.getComponent("auth-handler");
         var menuhandler  = exports.getComponent("soss-data");
         var query=[{storename:"d_cms_buttons_v1",search:"BType:Top"}];
         var tmpmenu=[];
+       
+        $(".notification-bar").hide(); 
+        exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+            apploader=_uploader;
+            apploader.initialize();
+        });
         bindData.TopButtons=[];
         menuhandler.services.q(query)
                     .then(function(r){
@@ -119,13 +159,25 @@ WEBDOCK.component().register(function(exports){
                 .then(function(result){
                     if(result.result!=null){
                         vueData.data.userData=result.result;
-                        console.log(result);
                     }else{
+                        localStorage.clear();
                        // signout();
                     }
                 })
                 .error(function(){
                     ///signout();
+                    localStorage.clear();
+                });
+        console.log(JSON.stringify(bindData.TopButtons));
+        handler.services.Notification()
+                .then(function(result){
+                    if(result.result!=null){
+                        vueData.data.Notify=result.result;
+                    }
+                })
+                .error(function(){
+                    ///signout();
+                    //localStorage.clear();
                 });
         console.log(JSON.stringify(bindData.TopButtons));
         new Vue(vueData);

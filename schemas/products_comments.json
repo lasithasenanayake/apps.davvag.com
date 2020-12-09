@@ -1,0 +1,34 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },{
+            "fieldName":"commentDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"itemid",
+            "dataType":"int"
+            
+        },
+        {
+            "fieldName":"pid",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"comment",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        }
+
+    ]
+}

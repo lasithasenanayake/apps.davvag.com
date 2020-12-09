@@ -1,0 +1,35 @@
+{
+    "fields" : [
+        {
+            "fieldName":"itemid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"pid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"profileid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"score",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"comment",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        }
+
+    ]
+}

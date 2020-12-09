@@ -1,3 +1,21 @@
+.notification-bar{
+	overflow: hidden;
+    position: absolute;
+    top: 0px;
+	width: 328px;
+	min-height: 300px;
+    z-index: 991;
+    margin-top: 60px;
+    right: 0px;
+    margin-right: 27px;
+    transition: height 0.3s ease-in-out 0s;
+    max-height: calc(-100px + 100vh);
+	background-color: var(--formBackColor);
+	overflow: hidden scroll;
+	filter: drop-shadow(0 0 0.75rem var(--backcolor));
+}
+
+
 #mobile-menu{
     display: none;
 }
@@ -61,7 +79,13 @@
         display: block;
 		max-height: 64px;
 		padding-left: 10px;
-    }
+	}
+	.notification-bar{
+		margin-right: 5px;
+		margin-left: 5px;
+		width: 100%;
+		max-height: calc(-200px + 100vh);
+	}
     
     mobile-box{
         width: 64px;

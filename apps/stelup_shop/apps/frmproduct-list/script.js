@@ -1,7 +1,7 @@
 WEBDOCK.component().register(function(exports){
     var page=0;
     var size=40;
-    var menuhandler;
+    var menuhandler,apploader;
     //var q
     //document.body.addEventListener('scroll', loadproducts);
    
@@ -16,7 +16,9 @@ WEBDOCK.component().register(function(exports){
         itemCount:0,
         profile:localStorage.profile!=null?JSON.parse(localStorage.profile):null,
         showstore:false,
-        showshare:false
+        showshare:false,        
+        appTitle:"",
+        appIcon:""
     };
 
     var items=[];
@@ -41,6 +43,10 @@ WEBDOCK.component().register(function(exports){
         });
     }
     //var firstLoad=true;
+    function completeResponce(d){
+        console.log(e);
+    }
+    
     function loadproducts(){
        
         var routId   = exports.getShellComponent("soss-routes");
@@ -103,6 +109,21 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
         methods:{
+            downloadapp:function(appname,form,data,apptitle,appicon){
+                //$('#decker1100').addClass("profile-content-show");
+                bindData.appIcon=appicon;
+                bindData.appTitle=apptitle;
+                $('#modalappwindow').modal('toggle');
+                apploader.downloadAPP(appname,form,"appdock",function(d){
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,data);
+            },close: function(){
+                //bindData.product=p;
+                $('#modalappwindow').modal('toggle');
+            },
         edit:function(i){
             $('#modalImagePopup').modal('toggle');
             $('#modalImagePopup').on('hidden.bs.modal', function (e) {
@@ -261,9 +282,13 @@ WEBDOCK.component().register(function(exports){
         },
         data :bindData
         ,
-        onReady: function(s){
+        onReady: function(x){
             menuhandler  = exports.getComponent("app-handler");
             loadproducts();
+            exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+                apploader=_uploader;
+                apploader.initialize();
+            });
             window.document.body.onscroll = function(e) {
     
             //console.log(window.document.body);

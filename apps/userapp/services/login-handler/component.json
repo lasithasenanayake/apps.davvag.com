@@ -55,6 +55,9 @@
             },
             "updatePolicy":{
                 "method":"POST"
+            },"ProfileData":{
+                "method" : "GET",
+                "parameters": []
             }
         }
     },

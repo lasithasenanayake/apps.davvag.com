@@ -1,7 +1,7 @@
 WEBDOCK.component().register(function(exports){
     var page=0;
     var size=40;
-    var menuhandler;
+    var menuhandler,apploader;
     //var q
     //document.body.addEventListener('scroll', loadproducts);
    
@@ -15,7 +15,9 @@ WEBDOCK.component().register(function(exports){
         a5:0,
         profile:localStorage.profile!=null?JSON.parse(localStorage.profile):null,
         showstore:false,
-        showshare:false
+        showshare:false,
+        appTitle:"",
+        appIcon:""
     };
     function calqty(){
         var items=[];
@@ -93,6 +95,9 @@ WEBDOCK.component().register(function(exports){
             
         }
     }
+    function completeResponce(d){
+        console.log(e);
+    }
 
     function goLogin(){
         //$('#modalImagePopup').modal('hide');
@@ -143,6 +148,21 @@ WEBDOCK.component().register(function(exports){
             window.location="#/app/stelup_shop/itemonboard?id="+i.itemid.toString();
             //});
             //window.location="#/app/stelup_shop/itemonboard?id="+i.itemid.toString();
+        },
+        downloadapp:function(appname,form,data,apptitle,appicon){
+            //$('#decker1100').addClass("profile-content-show");
+            bindData.appIcon=appicon;
+            bindData.appTitle=apptitle;
+            $('#modalappwindow').modal('toggle');
+            apploader.downloadAPP(appname,form,"appdock",function(d){
+                
+            },function(e){
+                console.log(e);
+                bindData.loadingAppError=true;
+            },completeResponce,data);
+        },close: function(){
+            //bindData.product=p;
+            $('#modalappwindow').modal('toggle');
         },
         marksold:function(i){
             i.showonstore="N";
@@ -233,10 +253,7 @@ WEBDOCK.component().register(function(exports){
         navcheckout: function(){
             window.location="#/app/stelup_shop/checkout";
         }   
-        ,selectStoreClose: function(){
-            //bindData.product=p;
-            //$('#modalImagePopup').modal('toggle');
-        },handleScroll (event) {
+        ,handleScroll (event) {
             // Any code to be executed when the window is scrolled
             console.log(event);
           },
@@ -267,9 +284,13 @@ WEBDOCK.component().register(function(exports){
         ,
         onReady: function(s){
             menuhandler  = exports.getComponent("app-handler");
+            exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+                apploader=_uploader;
+                apploader.initialize();
+            });
             loadproducts();
             window.document.body.onscroll = function(e) {
-    
+            
             //console.log(window.document.body);
             //console.log("test  " + (window.innerHeight + window.scrollY) +" yo " +document.body.offsetHeight);
             if ((window.innerHeight + window.scrollY+30) >= document.body.offsetHeight) {

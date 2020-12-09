@@ -13,7 +13,13 @@
   --FooterLinkhoverColor:rgb(55, 4, 104);
   --W200: 200px;
   --Lft: left;
+  --formBackColor: #f1f8f9;
 }
+
+.modal {
+  z-index: 100000;
+}
+
 
 .id-soss-routes {
   min-height: 100vh !important;
@@ -56,7 +62,7 @@ a:hover{
   }
   
   #id-headerbar{
-      z-index:99999;
+      z-index:1010;
       position: fixed; /* Set the navbar to fixed position */
       top: 0; /* Position the navbar at the top of the page */
       width: 100%;

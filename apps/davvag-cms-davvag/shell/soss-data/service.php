@@ -18,7 +18,7 @@ class SearchServices {
         
     }
 
-    private handleTransfer($req, $operation){
+    private function handleTransfer($req, $operation){
         $postBody = $req->Body(true);
         $securityToken = $postBody->from->securityToken;
 
@@ -47,7 +47,7 @@ class SearchServices {
         return $responseMessage;
     }
 
-    private authorizeAllDomains($req, $postBody, $securityToken, $operation){
+    private function authorizeAllDomains($req, $postBody, $securityToken, $operation){
         $authFailData  = array();
         
         foreach ($postBody->domains as $domain) {
@@ -62,7 +62,7 @@ class SearchServices {
         return $authFailData;
     }
 
-    private authorizeDomain($domain, $securityToken, $class, $operation, $req){
+    private function authorizeDomain($domain, $securityToken, $class, $operation, $req){
 
     }
 

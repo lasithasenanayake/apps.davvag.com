@@ -1,0 +1,123 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": [
+            "pid",
+            "id"
+        ],
+        "query": "SELECT *,(select count(0) from profile_followers where pid=$pid and id=$id) as followed,(select count(0) from profile_followers where  id=$id) as followers,(select count(0) from profile_followers where  pid=$id) as following,IFNULL((select sum(score) from products_reviews where  profileid=$id),0) as reviewscore,(select count(0) from products_reviews where  profileid=$id) as reviews  FROM profile where id=$id"
+    },
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "contactno",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 20
+            }
+        },
+        {
+            "fieldName": "email",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName": "gender",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName": "organization",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "address",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "city",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "country",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 20
+            }
+        },
+        {
+            "fieldName": "maritalStatus",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 8
+            }
+        },
+        {
+            "fieldName": "occupation",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "createdate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "followed",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "followers",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "following",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "reviewscore",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "reviews",
+            "dataType": "int"
+        }
+    ]
+}

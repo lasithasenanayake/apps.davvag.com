@@ -1,5 +1,8 @@
 {
     "apps":{
+        "davvag-tools":{
+            "version":"latest"
+        },
         "stelup_shop":{
             "version":"latest"
         },

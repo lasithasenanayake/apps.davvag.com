@@ -79,10 +79,14 @@ WEBDOCK.component().register(function(exports){
         if(localStorage.profile==null){
             
             location.href="#/app/userapp?u=#/app/stelup_shop/itemonboard";
-            
+            return;
         }else{
             bindData.profile=JSON.parse(localStorage.profile);
             //bindData.p_image="components/dock/soss-uploader/service/get/profile/"+bindData.data.id.toString();
+            if(bindData.profile.catogory==null){
+                location.href="#/app/stelup_shop/selleronboard?u=#/app/stelup_shop/itemonboard"
+                return;
+            }
             if(bindData.profile.catogory.toLowerCase()=='vender'){
                 bindData.attributes.country=bindData.profile.country;
                 
@@ -90,6 +94,7 @@ WEBDOCK.component().register(function(exports){
                 
             }else{
                 location.href="#/app/stelup_shop/selleronboard?u=#/app/stelup_shop/itemonboard"
+                return;
             }
             
         }

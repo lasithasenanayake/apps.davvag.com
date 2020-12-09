@@ -1,0 +1,56 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },{
+            "fieldName":"msgdate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"inboxid",
+            "dataType":"int"
+            
+        },
+        {
+            "fieldName":"userboxid",
+            "dataType":"int"
+           
+        },{
+            "fieldName":"messagetype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName":"m_to",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"m_from",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"m_read",
+            "dataType":"int"
+           
+        }
+        ,
+        {
+            "fieldName":"messagetext",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        }
+
+    ]
+}

@@ -17,6 +17,9 @@ WEBDOCK.component().register(function(exports, scope){
         //var leftMenu = exports.getComponent("left-menu");
         //WEBDOCK.freezeUiComponent("left-menu",true);
         //leftMenu.getApps(function(apps){
+            var renderDiv = $("#" + id);
+            renderDiv.empty();
+            renderDiv.html("<h1>Please Wait Loading</h1>");
             ver="9.0";
             //var appObj = apps[appId];
             WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){

@@ -37,6 +37,41 @@ class appService {
     }
 
 
+    public function postComment($req,$res){
+        $p=$req->Body(true);
+        $result = SOSSData::Query ("products", urlencode("itemid:".($p->itemid==null?0:$p->itemid).""));
+        if($result->success){
+            if(count($result->result)!=0){
+                $r=SOSSData::Insert("products_comments",$p);
+                if($r->success){
+                    $p->id= $r->result->generatedId;
+                    return $p;
+                }else{
+                    $res->SetError ($r);
+                    return;
+                }
+                 
+            }else{
+                $res->SetError ("invalied Favorite.");
+                return;
+            }
+        }else{
+            $res->SetError ($result);
+            return;
+        }
+        
+    }
+
+    public function getAllComments($req,$res){
+        $result = SOSSData::Query ("products_comments", urlencode("itemid:".($_GET["id"]==null?0:$_GET["id"]).""));
+        if($result->success){
+            return $result->result;
+        }else{
+            $res->SetError ($result);
+            return;
+        }
+    }
+
     public function postFavorite($req,$res){
         $p=$req->Body(true);
         $result = SOSSData::Query ("products", urlencode("itemid:".($p->itemid==null?0:$p->itemid).""));

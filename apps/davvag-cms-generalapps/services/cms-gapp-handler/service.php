@@ -2,6 +2,8 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
+require_once(PLUGIN_PATH_LOCAL . "/davvag-summary/summary.php");
+require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class ArticalService{
     public function postDeleteButton($req,$res){
         $item=$req->Body(true);
@@ -14,27 +16,21 @@ class ArticalService{
         
         $Artical=$req->Body(true);
         $user= Auth::Autendicate("profile","postInvoiceSave",$res);
-        $summery =new stdClass();
-        $summery->summery=$Artical->summery;
-        $summery->title=$Artical->title;
-        $summery->keywords=$Artical->tags;
-        $summery->application="#/app/davvag-cms-generalapps/a";
-        $summery->code="d_cms_artical_v1";
-        $summery->imgStorageLocation="d_cms_artical";
-        //$summery->imgname=
-        //if(isset())
-        $summery->imgname=isset($Artical->imgname)? $Artical->imgname : '';
-        //echo "im in"
+        $imgname=isset($Artical->imgname)? $Artical->imgname : '';
+        $date=$Artical->createdate?$Artical->createdate:null;
+
         if(!isset($Artical->id)){
             $result=SOSSData::Insert ("d_cms_artical_v1", $Artical,$tenantId = null);
             //return $result;
             //var_dump($result);
             if($result->success){
                 $Artical->id = $result->result->generatedId;
-                $summery->id=$result->result->generatedId;
-                $summery->code.="-s-".$result->result->generatedId;
-                $summery->imgname=$result->result->generatedId."-".$summery->imgname;
-                SOSSData::Insert ("d_all_summery", $summery,$tenantId = null);
+                
+                $summery =Summary::GetObject("davvag-cms-generalapps",$Artical->id,
+                "/components/davvag-cms/soss-uploader/service/get/d_cms_artical/".$Artical->id."-".$imgname,
+                "#/app/davvag-cms-generalapps/a?id=".$Artical->id
+                ,$Artical->title,$Artical->summery,$Artical->tags,$date);
+                Summary::Save($summery);
                 
                 //return $Artical;
             }else{
@@ -44,13 +40,13 @@ class ArticalService{
             }
         }else{
             $result=SOSSData::Update ("d_cms_artical_v1", $Artical,$tenantId = null);
-            $summery->id=$Artical->id;
-            $summery->code.="-s-".$Artical->id;
-            $summery->imgname=$Artical->id."-".$summery->imgname;
-            SOSSData::Update ("d_all_summery", $summery,$tenantId = null);
+            $summery =Summary::GetObject("davvag-cms-generalapps",$Artical->id,
+                "/components/davvag-cms/soss-uploader/service/get/d_cms_artical/".$Artical->id."-".$imgname,
+                "/#/app/davvag-cms-generalapps/a?id=".$Artical->id
+                ,$Artical->title,$Artical->summery,$Artical->tags,$date);
+                Summary::Save($summery);
         }
         CacheData::clearObjects("d_cms_artical_v1");
-        CacheData::clearObjects("d_all_summery");
         CacheData::clearObjects("d_cms_artical_v1_pod_bycat_paging");
         CacheData::clearObjects("d_cms_artical_v1_pod_paging");
         if(count($Artical->RemovedImages)>0){
@@ -125,25 +121,8 @@ class ArticalService{
         //echo "imain";
         $data =null;
         if(isset($_GET["q"])){
-            //echo "in here";
-            $result= CacheData::getObjects_fullcache(md5("id:".$_GET["q"]),"d_cms_artical_v1");
-            if(!isset($result)){
-                //echo "in here";
-                $result = SOSSData::Query("d_cms_artical_v1",urlencode("id:".$_GET["q"]));
-                //return $result;
-                if($result->success){
-                    //$f->{$s->storename}=$result->result;
-                    if(isset($result->result[0])){
-                        $data= $result->result[0];
-                        CacheData::setObjects(md5("id:".$_GET["q"]),"d_cms_artical_v1",$result->result);
-                    }
-                }
-            }else{
-                $data= $result[0];
-            }
-            //$result = SOSSData::Query ("d_cms_artical_v1",urlencode("id:".$_GET["q"]));
-            //var_dump($result);
-            //echo "imain";
+            $data = Summary::GetCode("davvag-cms-generalapps",$_GET["q"]);
+
             if(isset($data)){
                 
                 
@@ -151,19 +130,19 @@ class ArticalService{
                 <html>
                 <head>
                     <meta charset="utf-8" />
-                    <meta name="description" content="'.urldecode($data->summery).'">
+                    <meta name="description" content="'.urldecode($data->description).'">
                     <meta name="tags" content="'.urldecode($data->tags).'">
                     <meta name="og:title" content="'.urldecode($data->title).'">
-                    <meta name="og:description" content="'.urldecode($data->summery).'">
-                    <meta name="og:tags"  content="'.urldecode($data->tags).'">
-                    <meta name="og:image"  content="http://'.$_SERVER["HTTP_HOST"].'/components/dock/soss-uploader/service/get/d_cms_artical/'.$_GET["q"]."-".$data->imgname.'">
+                    <meta name="og:description" content="'.urldecode($data->description).'">
+                    <meta name="og:tags"  content="'.urldecode($data->tag).'">
+                    <meta name="og:image"  content="http://'.$_SERVER["HTTP_HOST"].$data->imgurl.'">
                     <title>'.urldecode($data->title).'</title>
                     
                 </head>
                 <body>
-                    loading.....
+                    Please Wait Redirecting....
                     <script type="text/javascript">
-                        setTimeout(function(){ window.location = "/#/app/davvag-cms-generalapps/a?id='.$_GET["q"].'"; }, 1000);
+                        setTimeout(function(){ window.location = "'.$data->url.'"; }, 1000);
                         
                     </script>    
                 </body>

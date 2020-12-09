@@ -1,6 +1,7 @@
 <?php
 require_once (PLUGIN_PATH . "/auth/auth.php");
-
+require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
+require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class LoginService {
 
     function __construct(){
@@ -42,6 +43,20 @@ class LoginService {
 
     public function getResetPassword($req){
         return AUTH::ResetPassword ($_GET["email"], $_GET["token"], $_GET["password"]);
+    }
+
+    public function getNotification($req){
+        $userprofile=Profile::getUserProfile();
+        if($userprofile->profile){
+            $result = SOSSData::Query("profile_notify_u","pid:".$userprofile->profile->id);
+            if($result->success){
+                return $result->result;
+            }else{
+                return [];
+            }
+        }else{
+            return [];
+        }
     }
 }
 

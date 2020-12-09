@@ -1,0 +1,75 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },{
+            "fieldName":"notify_date",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"pid",
+            "dataType":"int"
+            
+        },{
+            "fieldName":"notify_type",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },{
+            "fieldName":"notify_data",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 700
+            }
+        },
+        {
+            "fieldName":"notify_message",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"appcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"app",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"apptitle",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"m_read",
+            "dataType":"int"
+            
+        },
+        {
+            "fieldName":"url",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        }
+
+    ]
+}

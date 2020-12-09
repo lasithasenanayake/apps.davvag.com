@@ -35,7 +35,7 @@ class LoginService {
             }
             
             if(isset($outObject->email)){
-                $result = SOSSData::Query ("profile", urlencode("email:".$outObject->email.""));
+                $result = SOSSData::Query ("profile", urlencode("linkeduserid:".$outObject->userid.""));
 
                 if ($result->success == true){
                     if (sizeof($result->result) > 0){
@@ -46,6 +46,47 @@ class LoginService {
             }
         }else{
             $res->SetError("Session Expired");
+        }
+        
+    }
+
+    public function getProfileData($req,$res){
+        //$url = "http://localhost:9000/getsession/$_GET[token]";
+        $profile=new stdClass();
+        if(isset($_COOKIE["authData"])){
+            $outObject=json_decode($_COOKIE["authData"]);
+            if(isset($outObject->userid)){
+                $result = SOSSData::Query ("profile", urlencode("linkeduserid:".$outObject->userid.""));
+
+                if ($result->success == true){
+                    if (sizeof($result->result) > 0){
+                        $profile=$result->result[0];
+                        $result = SOSSData::Query ("profile_policy", urlencode("id:".$profile->id.""));
+                        $profile->profile_policy=sizeof($result->result) > 0?$result->result[0]:null;
+                        $result = SOSSData::Query ("profilestatus", urlencode("profileid:".$profile->id.""));
+                        $profile->profilestatus=sizeof($result->result) > 0?$result->result[0]:null;
+                        $result = SOSSData::Query ("ledger", urlencode("profileid:".$profile->id.""));
+                        $profile->ledger=$result->result;
+                        $result = SOSSData::Query ("orderheader_pending", urlencode("profileid:".$profile->id.""));
+                        $profile->order_pending=$result->result;
+                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
+                        $profile->order_rejected=$result->result;
+                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
+                        $profile->order_rejected=$result->result;
+                        $result = SOSSData::Query ("orderheader_accepted", urlencode("profileid:".$profile->id.""));
+                        $profile->orders=$result->result;
+                        //$outObject->profile = $result->result[0];
+                        return $profile;
+                    }else{
+                        $res->SetError("Critical Error Profile Not Registered.");
+                    }
+                }else{
+                    $res->SetError($result);
+                }
+                //CacheData::setObjects($outObject->token,"sessions",$outObject);
+            }
+        }else{
+            $res->SetError("Not Authorized");
         }
         
     }
@@ -209,6 +250,7 @@ class LoginService {
                 $r= SOSSData::Update ("profile_policy", $bodypolicy);
             }
             if($r->success){
+                CacheData::clearObjects("profile_policy");
                 return $bodypolicy;
             }else{
                 $res->SetError($r);

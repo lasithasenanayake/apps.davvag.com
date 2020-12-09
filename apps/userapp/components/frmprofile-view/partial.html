@@ -50,6 +50,13 @@
                             <p class="text-muted mb-1">Location</p>
                             <h5 class="font-size-14 mb-0">{{ item.city }}, {{ item.country }}</h5>
                         </div>
+                        <hr/>
+                        <div class="py-3">
+                            <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="showTab('#tran','Transactions History')"> Transactions <i class="fa fa-usd" ></i></button>
+                        </div>
+                        <div class="py-3">
+                            <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="showTab('#events','Purchases History')"> Purchases <i class="fa fa-shopping-cart" ></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,7 +98,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="privacy-lastseenSwitch" v-model="profile_policy.lastseen">
+                                        <input type="checkbox" class="custom-control-input" id="privacy-lastseenSwitch" v-model="profile_policy.lastseen" @change="updatepolicy">
                                         <label class="custom-control-label" for="privacy-lastseenSwitch"></label>
                                     </div>
                                 </div>
@@ -125,7 +132,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="privacy-readreceiptSwitch"  v-model="profile_policy.read_receipts">
+                                        <input type="checkbox" class="custom-control-input" id="privacy-readreceiptSwitch"  v-model="profile_policy.read_receipts" @change="updatepolicy">
                                         <label class="custom-control-label" for="privacy-readreceiptSwitch"></label>
                                     </div>
                                 </div>
@@ -176,7 +183,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="security-notificationswitch">
+                                        <input type="checkbox" class="custom-control-input" id="security-notificationswitch" @change="updatepolicy">
                                         <label class="custom-control-label" for="security-notificationswitch"></label>
                                     </div>
                                 </div>
@@ -252,7 +259,8 @@
               </div>
             <div  id="tabs" class="tab-content">
                 <div class="tab-pane" id="app">
-                      <div id="appdock" style="padding: 5px;"></div>
+                      <div  id="appdock" style="padding: 5px;"><h1>Please Wait Loading</h1></div>
+                      
                     </div>
               <div class="tab-pane active" id="tran">
                 
@@ -286,34 +294,84 @@
               </div>
               <div class="tab-pane" id="events">
                 <div class="events">
-                  <h1>Orders </h1>
                   <h5 class="subtitle">Order Pending</h5>
                   <div class="row">
-                    <div class="col-sm-6" v-for="itm in items">
-                      <div class="media">
-                       
-                        <img class="pull-left media-object" :src="'components/dock/soss-uploader/service/get/products/'+itm.itemid" alt="100x120" width="0" height="0" style="width: 100px; height: 120px;">
-                        
-                        <div class="media-body event-body">
-                          <h4 class="event-title">{{ itm.name }}</h4>
-                          <small class="text-muted"><i class="fa fa-shield"></i> {{ itm.catogory }}</small>
-                          <small class="text-muted"><i class="fa fa-calendar"></i> {{ itm.purchaseddate }}</small>
-                          <p><strong>Unit Of Mesure: </strong>{{ itm.uom }} | <strong>Quantity: </strong>{{ itm.qty }} | <strong>Total Charged: </strong>{{ itm.price }}</p>
-                          
-                          
-                          <span :class="'pull-right label label-'+status(itm.status)">{{ itm.status }}</span>
-                        </div>
-                      </div><!-- media -->
-                    </div><!-- col-sm-6 -->
                     
+                    <table class="table mb30">
+                        <thead>
+                          <tr>
+                            <th>Number</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amout</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="t in items_pending">
+                            <td>{{ t.invoiceNo }}</td>
+                            <td>{{ t.invoiceDate }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>{{ t.total | currency }}</td>
+                            <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+                          </tr>
+                         
+                        </tbody>
+                      </table>
                     
                   </div>
                   
                   <br>
                   
-                  <h5 class="subtitle">Orders Completed</h5>
+                  
                   <div class="row">
-        
+                    <h5 class="subtitle">Orders Accepted</h5>
+                    <table class="table mb30">
+                        <thead>
+                          <tr>
+                            <th>Number</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amout</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="t in items">
+                            <td>{{ t.invoiceNo }}</td>
+                            <td>{{ t.invoiceDate }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>{{ t.total | currency }}</td>
+                            <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+                          </tr>
+                         
+                        </tbody>
+                      </table>
+                  </div>
+
+                  <div class="row">
+                    <h5 class="subtitle">Orders Rejected</h5>
+                    <table class="table mb30">
+                        <thead>
+                          <tr>
+                            <th>Number</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amout</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="t in items_rejected">
+                            <td>{{ t.invoiceNo }}</td>
+                            <td>{{ t.invoiceDate }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>{{ t.total | currency }}</td>
+                            <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+                          </tr>
+                         
+                        </tbody>
+                      </table>
                   </div>
                   
                 </div><!-- events -->

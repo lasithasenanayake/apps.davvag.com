@@ -1,17 +1,21 @@
 
 WEBDOCK.component().register(function(exports){
     var bindData = {
-        item:{catogory:"",id:0,title:"",name:"",gender:"m",organization:"",email:"",contactno:"",addresss:"",country:"",city:""},
+        item:{catogory:"",id:0,title:"",name:"",gender:"",organization:"",email:"",contactno:"",addresss:"",country:"",city:""},
         submitErrors: undefined,
         SearchItem:"",
         items:[],
+        items_pending:[],
+        items_rejected:[],
         Activities:[],
         Transaction:[],
         Summary:{},
         showSearch:false,
         image:'components/dock/soss-uploader/service/get/profile/1',
         appName:"Tranaction History",
-        profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1}
+        profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1},
+        loadingApp:false,
+        loadingAppError:false
     };
     var newFile;
     function completeResponce(results){
@@ -34,6 +38,7 @@ WEBDOCK.component().register(function(exports){
         },
         data:bindData,
         methods: {
+            updatepolicy:updatePolicy,
             changeProfilePic:function(){
                 cropper1.crope(1,1,function(e){
                     //console.log(e);
@@ -51,13 +56,25 @@ WEBDOCK.component().register(function(exports){
                 });
 
             },
+            showTab:function(tab,title){
+                $('#decker1100').addClass("profile-content-show");
+                bindData.appName=title;
+                showTab(tab);
+            },
             downloadapp:function(appname,form,data,apptitle){
+                $('#decker1100').addClass("profile-content-show");
+                bindData.loadingApp=false;
+                bindData.appName=apptitle;
+                showTab("#app");
                 apploader.downloadAPP(appname,form,"appdock",function(d){
-                    $('#decker1100').addClass("profile-content-show");
-                    bindData.appName=apptitle;
-                    showTab("#app");
+                    
+                    
+                    bindData.loadingApp=true;
+                    bindData.loadingAppError=false;
+                    
                 },function(e){
                     console.log(e);
+                    bindData.loadingAppError=true;
                 },completeResponce,data);
             },
             hide:function(){
@@ -219,30 +236,25 @@ WEBDOCK.component().register(function(exports){
 
     function getProfilebyID(id){
         //console.log(bindData.item)
-        
             console.log("items chnaged");
             //bindData.item=response.result[0];
             bindData.image = 'components/dock/soss-uploader/service/get/profile/'+id;
-            
-            var query=[{storename:"profilestatus",search:"profileid:"+id},
-                        {storename:"profile","search":"id:"+id},
-                        {storename:"ledger","search":"profileid:"+id},
-                        {storename:"profileservices","search":"profileid:"+id},{storename:"profile_policy","search":"id:"+id}];
-                        pInstance.services.q(query)
+            authhandler.services.ProfileData()
             .then(function(r){
-                console.log(JSON.stringify(r));
                 if(r.success){
                     bindData.Transaction=r.result.ledger;
-                    if(r.result.profilestatus.length!=0){
-                        bindData.Summary=r.result.profilestatus[0];
+                    if(r.result.profilestatus!=null){
+                        bindData.Summary=r.result.profilestatus;
                     }
-                    if(r.result.profile.length!=0){
-                        bindData.item=r.result.profile[0];
+                    if(r.result!=null){
+                        bindData.item=r.result;
                     }
-                    if(r.result.profile_policy.length!=0){
-                        bindData.profile_policy=r.result.profile_policy[0];
+                    if(r.result.profile_policy!=null){
+                        bindData.profile_policy=r.result.profile_policy;
                     }
-                    bindData.items=r.result.profileservices;
+                    bindData.items=r.result.orders;
+                    bindData.items_pending=r.result.order_pending;
+                    bindData.items_rejected=r.result.order_rejected;
                 }
             })
             .error(function(error){

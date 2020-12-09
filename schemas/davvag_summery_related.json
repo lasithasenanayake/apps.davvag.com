@@ -1,0 +1,91 @@
+{
+    "rawquery" : {
+        "type":"sql",
+        "parameters" : ["size","keywords","id"],
+        "query": "SELECT *, MATCH(title, description,tag) AGAINST('$keywords') AS score FROM davvag_summery WHERE id not in($id) and MATCH(title, description,tag) AGAINST('$keywords') ORDER BY score DESC LIMIT $size"
+    },
+    "fields" : [
+        {
+            "fieldName":"code",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },{
+            "fieldName":"sumDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"description",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"title",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"tag",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"imgurl",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName":"url",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName":"applicationtype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 150
+            }
+        },
+        {
+            "fieldName":"id",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"appcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"pid",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200,
+                "encoding":"utf8"
+            }
+        }
+    ]
+}

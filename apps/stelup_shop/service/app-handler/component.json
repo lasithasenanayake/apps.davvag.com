@@ -30,6 +30,12 @@
             },"allProducts" : {
                 "method" : "GET",
                 "parameters": ["page","size","pid","q"]
+            },
+            "Comment": {
+                "method" : "POST"
+            },"AllComments" : {
+                "method" : "GET",
+                "parameters": ["id"]
             }
 
         }
