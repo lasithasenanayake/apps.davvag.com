@@ -88,6 +88,7 @@
                     $obj->app=isset($notify->app)?$notify->app:null;
                     $obj->apptitle=isset($notify->apptitle)?$notify->apptitle:null;
                     $obj->m_read=0;
+                    $obj->app_state=isset($notify->app_state)?$notify->app_state:0;
                     self::$notifyObjects=self::$notifyObjects?self::$notifyObjects:array();
                     array_push(self::$notifyObjects,$obj);
                     return $obj;

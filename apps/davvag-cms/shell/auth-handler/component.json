@@ -38,6 +38,10 @@
             "Notification":{
                 "method" : "GET",
                 "parameters": []
+            },
+            "ClearNotiifcatiion":{ 
+                "method" : "GET",
+                "parameters": ["id"]
             }
         }
     },

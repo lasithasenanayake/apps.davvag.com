@@ -178,13 +178,15 @@ WEBDOCK.component().register(function(exports){
                         {
                             if(sessionStorage.redirecturl){
                                 scope.isBusy=false;
-                                location.href=sessionStorage.redirecturl;
+                                location.href="?q="+encodeURI(sessionStorage.redirecturl);
                             }else{
                                 if(sessionStorage.blogheader){
-                                    location.href=JSON.parse(sessionStorage.blogheader).buttonuri;
+                                    //location.href=JSON.parse(sessionStorage.blogheader).buttonuri;
+                                    location.href="?q="+encodeURI(JSON.parse(sessionStorage.blogheader).buttonuri);
                                     //pInstance.appNavigate(JSON.parse(sessionStorage.blogheader).url);
                                 }else{
-                                    pInstance.appNavigate("../profile");
+                                    location.href="?q="+encodeURI("/#/app/userapp/profile");
+                                    //pInstance.appNavigate("../profile");
                                 }
                             }
                         }

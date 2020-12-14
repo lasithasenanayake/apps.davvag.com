@@ -58,6 +58,25 @@ class LoginService {
             return [];
         }
     }
+
+    public function getClearNotiifcatiion($req,$res){
+        $userprofile=Profile::getUserProfile();
+        $result = SOSSData::Query("profile_notify_u","id:".$_GET["id"]);
+        if($result->success && count($result->result)>0){
+            $n=$result->result[0];
+            if($n->pid==$userprofile->profile->id){
+                
+                SOSSData::Delete("profile_notify_u",$n);
+                return $n;
+            }else{
+                $res->SetError ("UnAuthorized Access.");
+                return false;
+            }
+        }else{
+            $res->SetError ("Notification not found.");
+            return false;
+        }
+    }
 }
 
 ?>

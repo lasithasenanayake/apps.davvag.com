@@ -69,6 +69,10 @@
             "annotations":{
                 "maxLen": 100
             }
+        },
+        {
+            "fieldName":"app_state",
+            "dataType":"int"
         }
 
     ]

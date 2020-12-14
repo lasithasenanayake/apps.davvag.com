@@ -1,5 +1,5 @@
 WEBDOCK.component().register(function(exports){
-    var apploader;
+    var apploader, handler;
     var bindData={
         userData: {
             email : "Loading",
@@ -27,7 +27,24 @@ WEBDOCK.component().register(function(exports){
         appIcon:""
     };
     function completeResponce(d){
-        console.log(d);
+       if(d.notfy.id){
+            handler.services.ClearNotiifcatiion({id:d.notfy.id.toString()})
+            .then(function(result){
+                if(result.success){
+                    //vueData.data.Notify=result.result;
+                    filteredItems = bindData.Notify.filter(function(item) {
+                        if(item.id!==d.notfy.id)
+                            return item;
+                    });
+                    bindData.Notify==null?[]:filteredItems;
+                }
+            })
+            .error(function(){
+                ///signout();
+                //localStorage.clear();
+            });
+       }
+        console.log(JSON.stringify(d));
     }
 
     var vueData = {
@@ -79,7 +96,7 @@ WEBDOCK.component().register(function(exports){
 
     exports.onReady = function(element){
         vueData.el = '#' + $(element).attr('id');
-        var handler  = exports.getComponent("auth-handler");
+        handler  = exports.getComponent("auth-handler");
         var menuhandler  = exports.getComponent("soss-data");
         var query=[{storename:"d_cms_buttons_v1",search:"BType:Top"}];
         var tmpmenu=[];

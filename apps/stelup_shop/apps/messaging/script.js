@@ -17,7 +17,11 @@ WEBDOCK.component().register(function(exports){
                 if (el) {
                   el.scrollIntoView();
                 }
-              }
+              },
+            textOnChage:function(){
+                var element = document.getElementById("message_data");
+                $("#message_data").animate({ scrollTop: element.scrollHeight }, 1000);
+            }
            
         },
         data :bindData,
@@ -64,7 +68,7 @@ WEBDOCK.component().register(function(exports){
             
             if(result.success){
                 bindData.messages=result.result;
-                setTimeout(updateScroll(),5000);
+                //setTimeout(updateScroll(),5000);
                 
             }else{
                 lockForm();

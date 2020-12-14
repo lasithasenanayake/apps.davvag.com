@@ -1,1 +1,30 @@
-{"apps":{"stelup_shop":{"version":"latest"},"davvag-app-manager":{"version":"latest"},"davvag-cms":{"version":"latest"},"davvag-cms-generalapps":{"version":"latest"},"userapp":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms"}}}}
+{
+    "apps": {
+        "stelup_shop": {
+            "version": "latest"
+        },
+        "davvag-app-manager": {
+            "version": "latest"
+        },
+        "davvag-cms": {
+            "version": "latest"
+        },
+        "davvag-cms-generalapps": {
+            "version": "latest"
+        },
+        "userapp": {
+            "version": "latest"
+        },
+        "davvag-shop": {
+            "version": "latest"
+        }
+    },
+    "webdock": {
+        "events": {
+            "onStartup": {
+                "admin": "dock",
+                "default": "davvag-cms"
+            }
+        }
+    }
+}
