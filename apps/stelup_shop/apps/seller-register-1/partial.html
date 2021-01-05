@@ -312,7 +312,7 @@
   <hr>
     <div class="form-group">
       <label for="stripekey">Publishable key</label>
-      <input type="text" id="stripekey" class="form-control"  aria-describedby="" placeholder="Enter Publishable key" v-model="attributes.stripkey">
+      <input type="text" id="stripekey" class="form-control"  aria-describedby="" placeholder="Enter Publishable key" v-model="attributes.stripekey">
     </div>
     <div class="form-group">
       <label for="secretkey">Secret key</label>
@@ -327,35 +327,35 @@
   <hr>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.refunds">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.refunds">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I give refunds
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.internationalshipping">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.internationalshipping">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I ship internationally.
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.internationalshipping">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.internationalshipping">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I ship internationally.
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.combinedshipping">
+        <input type="checkbox" true-value="Y" false-value="N" v-model="attributes.combinedshipping">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I can do combined shipping
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.bundleshipping">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.bundleshipping">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I can do bundles
     </label>
@@ -368,7 +368,7 @@
   <hr>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.reviews">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.reviews">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         You must have atleast  <input type="number" maxlength="2" size="2" autocomplete="off" v-model="attributes.numberofreviews" style="
         size: 2;
@@ -383,28 +383,28 @@
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.sendvideo">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.sendvideo">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         You must send a video of you packaging the photocard.
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.sendphotocardvideo">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.sendphotocardvideo">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         You must send a video of you posting the photocard if you can
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.icovershipping">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.icovershipping">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         You must cover shipping from you to me - I will cover shipping from me to you
     </label>
   </div>
   <div class="checkbox">
     <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.localtradonly">
+        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.localtradonly">
         <span class="cr"><i class="cr-icon fa fa-check"></i></span>
         I will only trade within the {{ data.country }} unless states otherwise
     </label>

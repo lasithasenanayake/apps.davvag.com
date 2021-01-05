@@ -251,7 +251,7 @@ WEBDOCK.component().register(function(exports){
             //$('#modalImagePopup').modal('show');
         }, 
         navcheckout: function(){
-            window.location="#/app/stelup_shop/checkout";
+            window.location="#/app/stelup_shop/checkout-cart";
         }   
         ,handleScroll (event) {
             // Any code to be executed when the window is scrolled

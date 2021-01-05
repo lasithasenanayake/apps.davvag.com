@@ -17,6 +17,10 @@
             "type":"service",
             "location":"service"
         },
+        "productsvr":{
+            "type":"service",
+            "location":"service"
+        },
         "p_svr":{
             "type":"service",
             "location":"service"
@@ -44,6 +48,18 @@
         "product-comments":{
             "type":"component",
             "location":"apps"
+        },
+        "cart-checkout":{
+            "type":"component",
+            "location":"apps"
+        },
+        "partial-cart":{
+            "type":"component",
+            "location":"apps"
+        },
+        "order-complete":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -56,15 +72,19 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "home-sp",
-            "onLoad": ["app-handler","p_svr"],
+            "onLoad": ["app-handler","p_svr","productsvr"],
             "routes":{
                 "partials":{
                     "/test":"sample-input-form",
                     "/xplo":"frmproduct-list",
                     "/selleronboard":"seller-register-1",
                     "/itemonboard":"product-register",
-                    "/checkout":"",
-                    "/profile":"profile"
+                    "/checkout":"cart-checkout",
+                    "/checkout-cart":"partial-cart",
+                    "/profile":"profile",
+                    "/payment-gateway":"",
+                    "/order-complete":"order-complete"
+
                 }
             }
         }

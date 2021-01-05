@@ -19,29 +19,21 @@
             }
         },
         {
-            "fieldName":"course",
+            "fieldName":"ipg_type",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 200,
-                "encoding":"utf8"
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"academic_year",
+            "fieldName":"username",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 20
+                "maxLen": 30
             }
         },
         {
-            "fieldName":"scholarship",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 6
-            }
-        },
-        {
-            "fieldName":"gceol",
+            "fieldName":"bio",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 400,
@@ -49,31 +41,102 @@
             }
         },
         {
-            "fieldName":"gceal",
+            "fieldName":"website",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 400,
-                "encoding":"utf8"
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"zscore",
+            "fieldName":"instagram",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 400,
-                "encoding":"utf8"
+                "maxLen": 50
             }
         },
         {
-            "fieldName":"ambition",
+            "fieldName":"stripekey",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 600,
-                "encoding":"utf8"
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"scholarshipdes",
+            "fieldName":"stripeSecretKey",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"refunds",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"combinedshipping",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"internationalshipping",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"reviews",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"bundleshipping",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"numberofreviews",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"sendvideo",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"sendphotocardvideo",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"icovershipping",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"localtradonly",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
+            "fieldName":"notes",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 600,

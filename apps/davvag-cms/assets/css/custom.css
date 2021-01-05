@@ -22,7 +22,7 @@
 
 
 .id-soss-routes {
-  min-height: 100vh !important;
+  min-height: calc(100vh - 200px) !important;
 }
 
 a {
@@ -62,7 +62,7 @@ a:hover{
   }
   
   #id-headerbar{
-      z-index:1010;
+      z-index:1100;
       position: fixed; /* Set the navbar to fixed position */
       top: 0; /* Position the navbar at the top of the page */
       width: 100%;

@@ -26,7 +26,7 @@ class BroadcastService {
         if (file_exists($tenantFile)){
             $jsonContents = file_get_contents($tenantFile);
             $tenantObj = json_decode($jsonContents);
-
+            //return $tenantObj;
             if (isset($tenantObj)){
                 foreach ($tenantObj->apps as $appCode => $appData) {
                     

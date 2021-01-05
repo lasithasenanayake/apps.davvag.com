@@ -1,0 +1,1 @@
+copy schemas\*.* D:\xampp\htdocs\git\localhost\schemas\ 

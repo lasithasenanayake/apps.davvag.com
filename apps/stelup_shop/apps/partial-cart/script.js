@@ -4,17 +4,36 @@ WEBDOCK.component().register(function(exports){
     var bindData =  {
             message : "Works!!!",
             items: [],
+            itemsGrouped:[],
             hasOrder: false,
             user:{}
     };
 
     function processItems(){
         bindData.hasOrder = false;
-        for(var i=0;i<bindData.items.length;i++)
-        if (bindData.items[i].isOrder){
-            bindData.hasOrder = true;
-            break;
+        const grouped = groupBy(bindData.items, i => i.storeid);
+        for(var i=0;i<bindData.items.length;i++){
+            filteredItems = bindData.itemsGrouped.filter(function(item) {
+                if(item.storeid===bindData.items[i].storeid)
+                    return item;
+            });
+            if(filteredItems.length==0){
+                bindData.itemsGrouped.push({storeid:bindData.items[i].storeid,storename:bindData.items[i].storename,items:grouped.get(bindData.items[i].storeid),total:0});
+            }
+            
         }
+        for(var i=0;i<bindData.itemsGrouped.length;i++){
+            tot=0;
+            for(var x=0;x<bindData.itemsGrouped[i].items.length;x++){
+                    tot+=(bindData.itemsGrouped[i].items[x].qty*(bindData.itemsGrouped[i].items[x].price-(bindData.itemsGrouped[i].items[x].price*(bindData.itemsGrouped[i].items[x].discountper/100))));
+            }
+            bindData.itemsGrouped[i].total=tot;
+        }
+        console.log(JSON.stringify(bindData.itemsGrouped));
+            //bindData.itemsGrouped.find(function(items[i].storeid){})
+            
+            
+            
     }
 
     function login(){
@@ -87,13 +106,9 @@ WEBDOCK.component().register(function(exports){
 
                 sessionStorage.items = JSON.stringify(bindData.items);
             },
-            checkout: function(isToday){
-                sessionStorage.deliverToday = isToday;
-                // if (!localStorage.loginData){
-                //     $('#idCartLogin').modal('show');
-                // }else{
-                    location.href ="#/app/userapp?u=#/app/davvag-shop/checkout-complete";
-                // }
+            checkout: function(store){
+                sessionStorage.tmpstorecheckout = JSON.stringify(store);
+                location.href ="#/app/userapp?u=#/app/stelup_shop/checkout";
             },
             closeModal: function(){
                 $('#idCartLogin').modal('hide');
@@ -114,6 +129,7 @@ WEBDOCK.component().register(function(exports){
                 }
                 return tot;
             },
+            
             watch:{
                 items: function (val, oldVal) {
                     consol.log(val);
@@ -123,7 +139,21 @@ WEBDOCK.component().register(function(exports){
             }
         }
     }
-
+    function groupBy(list, keyGetter) {
+        const map = new Map();
+        list.forEach((item) => {
+             const key = keyGetter(item);
+             const collection = map.get(key);
+             if (!collection) {
+                 map.set(key, [item]);
+             } else {
+                 collection.push(item);
+             }
+        });
+        return map;
+    }
+    const grouped = groupBy(bindData.items, i => i.storeid);
+    console.log(grouped);
     exports.vue = vueData;
     exports.onReady = function(){
     }

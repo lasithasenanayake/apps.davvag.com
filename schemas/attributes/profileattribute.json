@@ -1,79 +1,135 @@
 [{
     "type": "select",
-    "label": "Course of study",
+    "label": "Payment Gateway Type",
     "req": 0,
-    "name": "course",
+    "name": "ipg_type",
     "choices": [{
-        "label": "Medicine",
-        "sel": "Medicine"
+        "label": "stripe",
+        "sel": "stripe"
     }, {
-        "label": "Engineering",
-        "sel": "Engineering"
+        "label": "paypal",
+        "sel": "paypal"
     }, {
-        "label": "Business Management",
-        "sel": "Business Management"
-    }, {
-        "label": "Information Technology",
-        "sel": "Information Technology"
-    }, {
-        "label": "Hospitality Management",
-        "sel": "Hospitality Management"
-    }]
-},{
-    "type": "select",
-    "label": "Academic Year",
-    "req": 0,
-    "name": "academic_year",
-    "choices": [{
-        "label": "2020/2021",
-        "sel": "2020/2021"
-    }, {
-        "label": "2021/2022",
-        "sel": "2021/2022"
-    }]
-},{
-    "type": "select",
-    "label": "Scholarship looking for",
-    "req": 0,
-    "name": "scholarship",
-    "choices": [{
-        "label": "Full",
-        "sel": "Full"
-    }, {
-        "label": "Half",
-        "sel": "Half"
-    }, {
-        "label": "Part",
-        "sel": "Part"
+        "label": "other",
+        "sel": "other"
     }]
 },
 {
-    "type": "textarea",
-    "label": "GCE O/L Results & School",
-    "name": "gceol",
+    "type": "text",
+    "label": "User Name",
+    "name": "username",
     "req": 1
 },
 {
     "type": "textarea",
-    "label": "GCE A/L Results & School",
-    "name": "gceal",
+    "label": "BIO",
+    "name": "bio",
     "req": 1
 },
 {
-    "type": "textarea",
-    "label": "Z Score",
-    "name": "zscore",
+    "type": "text",
+    "label": "Web Site",
+    "name": "website",
     "req": 1
 },
 {
-    "type": "textarea",
-    "label": "Students ambition",
-    "name": "ambition",
+    "type": "text",
+    "label": "Instagram User",
+    "name": "instagram",
     "req": 1
 },
 {
-    "type": "textarea",
-    "label": "Short description why this student needs scholarship",
-    "name": "scholarshipdes",
+    "type": "text",
+    "label": "Publishable key",
+    "name": "stripekey",
     "req": 1
-}]
+},
+{
+    "type": "text",
+    "label": "Secret key",
+    "name": "stripeSecretKey",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "I give refunds",
+    "name": "refunds",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "I can do combined shipping",
+    "name": "combinedshipping",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "I ship internationally.",
+    "name": "internationalshipping",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "I can do bundles",
+    "name": "bundleshipping",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "reviews",
+    "name": "reviews",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "text",
+    "label": "Number of reviews",
+    "name": "numberofreviews",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "You must send a video of you packaging the photocard.",
+    "name": "sendvideo",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "You must send a video of you posting the photocard if you can.",
+    "name": "sendphotocardvideo",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": "You must cover shipping from you to me - I will cover shipping from me to you",
+    "name": "icovershipping",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+},
+{
+    "type": "checkbox",
+    "label": " I will only trade within my country unless states otherwise",
+    "name": "localtradonly",
+    "truevalue": "Y",
+    "falsevalue": "N",
+    "req": 1
+}, {
+    "type": "textarea",
+    "label": "Notes",
+    "name": "notes",
+    "req": 0
+} ]

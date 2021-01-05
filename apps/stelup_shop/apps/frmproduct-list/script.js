@@ -218,7 +218,7 @@ WEBDOCK.component().register(function(exports){
             $('#modalImagePopup').modal('show');
         }, 
         navcheckout: function(){
-            window.location="#/app/davvag-shop/checkout";
+            window.location="#/app/stelup_shop/checkout-cart";
         }   
         ,selectStoreClose: function(){
             //bindData.product=p;

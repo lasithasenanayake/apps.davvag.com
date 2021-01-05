@@ -106,6 +106,13 @@
             "dataType":"float"
         },
         {
+            "fieldName":"currencycode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
             "fieldName":"contactno",
             "dataType":"java.lang.String",
             "annotations":{

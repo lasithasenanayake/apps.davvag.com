@@ -3,7 +3,65 @@
  * Copyright 2013-2016 Start Bootstrap
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
+ .profile-row{
+	display: table;
+	width: 100%; /*Optional*/
+	table-layout: fixed; /*Optional*/
+	border-spacing: 5px; /*Optional*/
+	max-height: 40px;
+}
 
+.profile-row-header{
+	display: table;
+	width: 100%; /*Optional*/
+	table-layout: fixed; /*Optional*/
+	border-spacing: 5px; /*Optional*/
+	height: 40px;
+	border-color: rgba(0,0,0,1);
+	text-align: right;
+}
+.profile-row-header i {
+	
+	font-size: large;
+	margin: auto;
+	padding: 10px;
+	
+}
+.profile-row-header a:hover{
+	background-color: #fff;
+
+}
+.profile-pic-col{
+	display: table-cell;
+	width: 40px;
+	
+}
+.profile-col{
+	display: table-cell;
+	text-align: left;
+
+}
+.profile-pic-col img {
+	float: none;
+	width: 40px;
+	height: 40px;
+	-webkit-border-radius: 50% !important;
+	-moz-border-radius: 50% !important;
+	border-radius: 50% !important;
+	}
+
+  .profile-userpic img {
+	float: none;
+	margin: 0 auto;
+	width: 40px;
+	height: 40px;
+	-webkit-border-radius: 50% !important;
+	-moz-border-radius: 50% !important;
+	border-radius: 50% !important;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+  }
  .input-form {
     padding-top: 20px;
     padding-left: 10px;
@@ -22,6 +80,11 @@
     .input-form {
         width: 90%;
     }
+
+    .profile-pic-col h5{
+		text-overflow: clip;
+		
+	}
     
 }
 
