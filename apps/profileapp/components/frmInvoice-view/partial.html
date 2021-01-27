@@ -27,10 +27,10 @@
             
     				<address>
         			<strong>Invoiced By:</strong><br>
-    					Lanka Bible College<br>
-    					Christopher Road,<br>
-    					Peradeneya<br>
-    					Sri Lanka
+					{{ InvoiceToSave.supplier_name }}<br>
+					<address>{{ InvoiceToSave.supplier_address }}</address><br>
+					{{ InvoiceToSave.supplier_city }}<br>
+					{{ InvoiceToSave.supplier_country }}
     				</address>
     			</div>
     		</div>
@@ -44,7 +44,11 @@
     				</address>
     			</div>
     			<div class="col-xs-6 text-right">
+					
     				<address>
+						<strong>Conatct Details:</strong><br>
+    					{{ InvoiceToSave.supplier_contactno }}<br>
+              			{{ InvoiceToSave.supplier_email }}<br>
     					<strong>Order Date:</strong><br>
               {{ InvoiceToSave.invoiceDate }}<br>
               <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=inv'+InvoiceToSave.invoiceNo+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>

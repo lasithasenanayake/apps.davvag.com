@@ -19,10 +19,10 @@
             }
         },
         {
-            "fieldName":"ipg_type",
+            "fieldName":"learning_type",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 100
+                "maxLen": 10
             }
         },
         {
@@ -55,84 +55,38 @@
             }
         },
         {
-            "fieldName":"stripekey",
+            "fieldName":"facebook",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 100
             }
         },
         {
-            "fieldName":"stripeSecretKey",
+            "fieldName":"linkedin",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 100
             }
         },
         {
-            "fieldName":"refunds",
+            "fieldName":"pastorname",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 1
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"combinedshipping",
+            "fieldName":"church",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 1
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"internationalshipping",
+            "fieldName":"pastorcontactno",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"reviews",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"bundleshipping",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"numberofreviews",
-            "dataType":"int"
-        },
-        {
-            "fieldName":"sendvideo",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"sendphotocardvideo",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"icovershipping",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
-            }
-        },
-        {
-            "fieldName":"localtradonly",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 1
+                "maxLen": 100
             }
         },
         {

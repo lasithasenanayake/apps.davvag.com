@@ -37,6 +37,10 @@
                 "method" : "GET",
                 "parameters": ["id"]
             },
+            "SupplierData":{
+                "method" : "GET",
+                "parameters": []
+            },
             "q" : {
                 "method" : "POST"
             }

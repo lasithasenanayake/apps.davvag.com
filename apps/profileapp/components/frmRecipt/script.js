@@ -12,7 +12,8 @@ WEBDOCK.component().register(function(exports){
         date:new Date(),
         duedate:new Date(),
         invoiceSave:false,
-        InvoiceToSave:{}
+        InvoiceToSave:{},
+        supplierData:{}
     };
 
     function calcTotals(){
@@ -121,6 +122,17 @@ WEBDOCK.component().register(function(exports){
         uploaderInstance = exports.getComponent ("soss-uploader");
         pInstance = exports.getShellComponent("soss-routes");
         routeData = pInstance.getInputData();
+        profileHandler.services.SupplierData().then(
+            function(r){
+                if(r.success){
+                    bindData.supplierData=r.result;
+                }else{
+                    bindData.supplierData={name:"error Loading...",id:-1};
+                }
+            }
+        ).error(function(er){
+            bindData.supplierData={name:"error Loading...",id:-1};
+        });
         if(routeData.tid!=null){
             var query=[{storename:"paymentheader",search:"receiptNo:"+routeData.tid},{storename:"paymentdetails",search:"receiptNo:"+routeData.tid}];
                     profileHandler.services.q(query)

@@ -18,6 +18,10 @@ WEBDOCK.component().register(function(exports){
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");
                 handler.appNavigate(id ? "../cat?id=" + id : "../cat");
+            },
+            navigateCarousel: function(id){
+                handler = exports.getShellComponent("soss-routes");
+                handler.appNavigate(id ? "../carousel?id=" + id : "../carousel");
             }
         },
         data :{

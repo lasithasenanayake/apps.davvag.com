@@ -14,11 +14,29 @@ class Davvag_Order{
         }
     }
     
+    public function AcceptOrder($id){
+        $result = SOSSData::Query ("orderheader_pending", urlencode("invoiceno:".$id.""));
+        if($result->success && count($result->result)>0){
+            $order=$this->getOrder($id);
+            $order->status='accepted';
+            SOSSData::Insert("orderheader_accepted",$order);
+            SOSSData::Insert("orderdetails_accepted",$order->details);
+            SOSSData::Update("orderheader",$order);
+            
+            SOSSData::Delete("orderheader_pending",$result->result);
+            $r = SOSSData::Query ("orderdetails_pending", urlencode("invoiceno:".$id.""));
+            SOSSData::Delete("orderdetails_pending",$r->result);
+
+        }
+
+    }
+
+
     public function PayOrder($id,$amount,$remarks,$paymentType,$online_ref_id){
         $order=$this->getOrder($id);
         if($order!=null){
             if($order->balance>=$amount){
-                $order->balance=0;
+               
                 $order->PaymentComplete='Y';
                 $order->paidamount=$amount;
                 $order->status='Paid';
@@ -26,6 +44,7 @@ class Davvag_Order{
                 $payment->profileId=$order->profileId;
                 $payment->email=$order->email;
                 $payment->name=$order->name;
+                $payment->paymentType=$paymentType;
                 $payment->city=$order->city;
                 $payment->address=$order->address;
                 $payment->country=$order->country;
@@ -52,6 +71,7 @@ class Davvag_Order{
                 $invDetails->DueAmount=$order->balance;
                 $invDetails->PaidAmout=$amount;
                 $invDetails->Balance=$order->balance-$amount;
+                $order->balance=$order->balance-$amount;
                 array_push($payment->InvoiceItems,$invDetails);
                 return $this->SavePayment($payment);
                 //$payment->InvoiceSave

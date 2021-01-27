@@ -49,6 +49,7 @@ WEBDOCK.component().register(function(exports){
         producthandler = exports.getComponent("product");
         uomhandler = exports.getComponent("uom-handler");
         loadValidator();
+        
         productHandler = exports.getAppComponent("uom", "uom-handler", function(i){
             uomhandler = i;
             uomhandler.transformers.allUom()
@@ -138,6 +139,7 @@ WEBDOCK.component().register(function(exports){
         if (!bindData.submitErrors){
             var productId =0;
             var promiseObj;
+            bindData.product.storeid=0;
             if (bindData.product.itemid) {
                 productId=bindData.product.itemid;
                 promiseObj = producthandler.transformers.updateProduct(bindData.product);

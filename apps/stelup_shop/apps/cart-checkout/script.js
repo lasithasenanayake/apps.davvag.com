@@ -21,7 +21,7 @@ WEBDOCK.component().register(function(exports){
         isCompleted: false,
         order:null
     };
-
+    
 
     function submitPurchase(){
     
@@ -35,6 +35,7 @@ WEBDOCK.component().register(function(exports){
             if(sessionStorage.tmpstorecheckout){
                 items=JSON.parse(sessionStorage.tmpstorecheckout);
                 scope.profile.data=items;
+                //scope.profile.storeid=items[0].storeid!=null?items[0].storeid:1;
                 scope.items=items;
                 completePayment();
             }
@@ -86,13 +87,13 @@ WEBDOCK.component().register(function(exports){
                     items=filteredItems;
                     
                 }
-
+                //localStorage.tmpOrder=JSON.stringify(bindData.order);
                 if(items.length!=0){
                     sessionStorage.items=JSON.stringify(items);
-                    location.href="#/app/stelup_shop/checkout-cart";
+                    location.href="#/app/davvag-stripe?orderid="+bindData.order.invoiceNo+"&url="+encodeURI("#/app/stelup_shop/checkout-cart");
                 }else{
                     sessionStorage.removeItem("items");
-                    location.href="#/app/stelup_shop/order-complete";
+                    location.href="#/app/davvag-stripe?orderid="+bindData.order.invoiceNo+"&url="+encodeURI("#/app/stelup_shop/order-complete");
                 }
                 
             }else{

@@ -21,26 +21,36 @@ class UploaderService {
         });
 
         Carbite::GET("/get/@ns/@name",function($req,$res){
-            header("Cache-Control: private, max-age=10800, pre-check=10800");
-            header("Pragma: private");
-            header("Expires: " . date(DATE_RFC822,strtotime("+2 day")));
+           
             $ns = $req->Params()->ns;
             $name = $req->Params()->name;
             $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/$ns";
             //echo "im here";
             //echo "$folder/$name";
-            if(!file_exists("$folder/$name")){
-                $name="0";
-                //echo "im here in no file";
-                //return 0;
-            }
+           
             if(file_exists("$folder/$name")){
+                header("Cache-Control: private, max-age=10800, pre-check=10800");
+                header("Pragma: private");
+                header("Expires: " . date(DATE_RFC822,strtotime("+2 day")));
                 $type=mime_content_type("$folder/$name");
                 header("Content-Type: $type");
                 echo file_get_contents("$folder/$name");
                 exit();
             }else{
-                return "Error Procesing";
+                
+                $name="0";
+                if(file_exists("$folder/$name")){
+                    header("Cache-Control: private, max-age=10800, pre-check=10800");
+                    header("Pragma: private");
+                    header("Expires: " . date(DATE_RFC822,strtotime("+1 day")));
+                    $type=mime_content_type("$folder/$name");
+                    header("Content-Type: $type");
+                    echo file_get_contents("$folder/$name");
+                    exit();
+                } else{
+                    return "Error Procesing";
+                }
+                
             }
             
         });

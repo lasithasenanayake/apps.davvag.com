@@ -125,7 +125,7 @@
             }
         },
         {
-            "fieldName":"preparedBy",
+            "fieldName":"source_id",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 200

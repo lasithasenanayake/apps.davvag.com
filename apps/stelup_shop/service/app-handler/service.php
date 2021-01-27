@@ -137,6 +137,7 @@ class appService {
                 }
             }
             CacheData::clearObjects("profile");
+            CacheData::clearObjects("profile_data");
             return $profile;
         }else{
             $profile->attributes->id=$profile->id;
@@ -144,6 +145,7 @@ class appService {
             $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
             $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
             CacheData::clearObjects("profile");
+            CacheData::clearObjects("profile_data");
             return $profile;
            
         }

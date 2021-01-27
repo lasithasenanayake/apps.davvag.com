@@ -32,6 +32,8 @@
                 "method" : "POST"
             },"Settings" : {
                 "method" : "POST"
+            },"SaveCarousel" : {
+                "method" : "POST"
             }
         }
     

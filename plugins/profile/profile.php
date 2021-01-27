@@ -15,27 +15,46 @@
         }
 
         private static function dbProfile($id,$pid,$userid){
+            $profile = new stdClass();
+            
             if($userid){
                 $result = SOSSData::Query ("profile", urlencode("linkeduserid:".$userid.""));
             }else{
-                $mainObj = new stdClass();
-                $mainObj->parameters = new stdClass();
-                $mainObj->parameters->pid = $pid;
-                $mainObj->parameters->id = $id;
-                $result = SOSSData::ExecuteRaw("profile_internal", $mainObj);
-                if(!$result->success){
-                    SOSSData::Insert("products_reviews",array("itemid"=>0,"pid"=>"0"));
-                    SOSSData::Insert("profile_followers",array("id"=>0,"pid"=>"0"));
+                if($id==0){
+                    $user=Auth::GetDomainAttributes();
+                    $result = SOSSData::Query ("profile", urlencode("email:".$user->email.""));
+                    if($result->success && count($result->result)){
+                        $profile->profile=$result->result[0];
+                        return $profile;
+                    }else{
+                        $user->id=0;
+                        $profile->profile=$user;
+                        return $profile;
+                    }
+                    
+                }else{
+                    $mainObj = new stdClass();
+                    $mainObj->parameters = new stdClass();
+                    $mainObj->parameters->pid = $pid;
+                    $mainObj->parameters->id = $id;
+                    $result = SOSSData::ExecuteRaw("profile_internal", $mainObj);
                 }
+               
             }
             if($result->success && count($result->result)>0){
-                $profile = new stdClass();
+                
                 $profile->profile=$result->result[0];
                 $result = SOSSData::Query ("profile_policy", urlencode("id:".$profile->profile->id.""));
                 if($result->success && count($result->result)>0){
                     $profile->policy=$result->result[0];
                 }else{
                     $profile->policy=array("profilephoto"=>1,"lastseen"=>1,"status"=>1,"read_receipts"=>1,"posts"=>1);
+                }
+                $result = SOSSData::Query ("profile_attributes", urlencode("id:".$profile->profile->id.""));
+                if($result->success && count($result->result)>0){
+                    $profile->attributes=$result->result[0];
+                }else{
+                    $profile->attributes=null;
                 }
                 CacheData::setObjects($userid?$userid:$id."-".$pid,"profile_data",$profile);
                 return $profile;

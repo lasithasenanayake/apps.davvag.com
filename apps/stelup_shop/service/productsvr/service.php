@@ -30,6 +30,7 @@ class ProductServices {
 
     public function postCheckout($req,$res){
         require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+        require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
         $handler =new Davvag_Order();
         $profile = $req->Body(true);
         $profile->order = new stdClass();
@@ -38,8 +39,19 @@ class ProductServices {
             $profile->order->lat = $location->lat;
             $profile->order->lon = $location->lng;
         }
+        $Store_profile= Profile::getProfile($profile->data->storeid,0);
+        if(isset($Store_profile->profile)){
+            //return $Store_profile->profile;
+            $Store_profile=$Store_profile->profile;
+            $profile->order->supplier_profileId = $Store_profile->id; 
+            $profile->order->supplier_name = $Store_profile->name;
+            $profile->order->supplier_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
+            $profile->order->supplier_address = isset($Store_profile->address)?$Store_profile->address:null;
+            $profile->order->supplier_city = isset($Store_profile->city)?$Store_profile->city:null;
+            $profile->order->supplier_country = isset($Store_profile->country)?$Store_profile->country:null;
+            $profile->order->supplier_email = isset($Store_profile->email)?$Store_profile->email:null;
+        }
         
-        $profile->order->supplier_profileId = $profile->data->storeid;
         $profile->order->profileId = $profile->id;
         $profile->order->name = $profile->name;
         $profile->order->contactno = $profile->contactno;

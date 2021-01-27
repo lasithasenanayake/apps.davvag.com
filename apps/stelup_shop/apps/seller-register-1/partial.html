@@ -308,19 +308,7 @@
   <button  class="btn bg-primary-button btn-block" v-on:click="biosiginup">Next</button>
 </form>
 <form id="form-details-3" class="inactiveForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center"> Stripe Information </h3>
-  <hr>
-    <div class="form-group">
-      <label for="stripekey">Publishable key</label>
-      <input type="text" id="stripekey" class="form-control"  aria-describedby="" placeholder="Enter Publishable key" v-model="attributes.stripekey">
-    </div>
-    <div class="form-group">
-      <label for="secretkey">Secret key</label>
-      <input type="password" id="secretkey" class="form-control"  placeholder="Secret Key" v-model="attributes.stripeSecretKey">
-    </div>
-    
-  
-  <button  class="btn bg-primary-button btn-block" v-on:click="stripesiginup">Next</button>
+  <div id="app_stripe"></div>
 </form>
 <form id="form-details-4" class="inactiveForm" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Your own selling policies!</h5>

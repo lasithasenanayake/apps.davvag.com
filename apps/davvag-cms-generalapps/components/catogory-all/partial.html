@@ -2,6 +2,7 @@
     <div>
         <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
             <a v-on:click="navigate()" class="btn btn-primary">New Catogory</a>
+            <a class="btn btn-primary" v-on:click="navigateCarousel(null)" ><span class="glyphicon glyphicon-pencil"></span>Main Carousel</a>
         </div>
     </div>
     <br/><br/><br/>
@@ -22,6 +23,7 @@
         <td>
             <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
                 <a class="btn btn-primary" v-on:click="navigate(item.id)" ><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+                <a class="btn btn-primary" v-on:click="navigateCarousel(item.id)" ><span class="glyphicon glyphicon-pencil"></span> Carousel</a>
                 <a class="btn btn-primary" href=""> <span class="glyphicon glyphicon-remove"></span> Delete</a>
             </div>
         </td>

@@ -15,6 +15,10 @@
             "type":"component",
             "location":"components"
         },
+        "carousel-form": {
+            "type":"component",
+            "location":"components"
+        },
         "Button-form": {
             "type":"component",
             "location":"components"
@@ -90,7 +94,8 @@
                     "/a" : "Artical-view",
                     "/settings":"cms-settings",
                     "/albumall":"Album-all",
-                    "/album":"Album-form"
+                    "/album":"Album-form",
+                    "/carousel":"carousel-form"
                 }
             }
         },"dock":{

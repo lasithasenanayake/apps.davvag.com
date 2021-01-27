@@ -89,7 +89,7 @@
                     </div>
                     <div class="mb10">
                         <label class="control-label">Company Name</label>
-                        <input type="text" class="form-control" name="organization" placeholder="Name if the Company" value="<?php echo !isset($data->organization)?"":$data->userfvsullname ?>"/>
+                        <input type="text" class="form-control" name="organization" placeholder="Name if the Company" value="<?php echo !isset($data->organization)?"":$data->organization ?>"/>
                     </div>
                     <div class="mb10">
                         <label class="control-label">Domain Name</label>

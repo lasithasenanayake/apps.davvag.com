@@ -18,7 +18,18 @@
         "methods" : {
             "ChargeAmountFromCard" : {
                 "method" : "POST"
-            }        
+            },
+            "TestChargeAmountFromCard" : {
+                "method" : "POST"
+            },
+            "Order" : {
+                "method" : "GET",
+                "parameters":["id"]
+            },
+            "PublicToken" : {
+                "method" : "GET",
+                "parameters":["id"]
+            }       
         }
     },
     "transformers": {

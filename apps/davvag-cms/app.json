@@ -67,7 +67,7 @@
             "type":"partial",
             "location":"partials"
         },
-        "partial-homeblog-bg":{
+        "partial-homeblog-bg-carousel":{
             "type":"partial",
             "location":"partials"
         },
@@ -103,9 +103,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "partial-homeblog-bg",
+                    "/" : "partial-homeblog-bg-carousel",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "partial-homeblog-bg",
+                    "/home" : "partial-homeblog-bg-carousel",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

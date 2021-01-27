@@ -2,6 +2,7 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
+require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class ProfileService{
     //public var $appname="profileapp";
     private function updateLedger($ledgertran){
@@ -56,7 +57,13 @@ class ProfileService{
         }
     }
 
-    
+    public function getSupplierData($req,$res){
+        
+        $Store_profile= Profile::getProfile(0,0);
+        if(isset($Store_profile->profile)){
+            return $Store_profile->profile;
+        }else{return null;}
+    }
 
     public function postInvoiceSave($req,$res){
         
@@ -75,6 +82,18 @@ class ProfileService{
         //return $result;
         if(count($result->result)!=0)
         {
+            $Store_profile= Profile::getProfile(0,0);
+            if(isset($Store_profile->profile)){
+                //return $Store_profile->profile;
+                $Store_profile=$Store_profile->profile;
+                $Transaction->supplier_profileId = $Store_profile->id; 
+                $Transaction->supplier_name = $Store_profile->name;
+                $Transaction->supplier_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
+                $Transaction->supplier_address = isset($Store_profile->address)?$Store_profile->address:null;
+                $Transaction->supplier_city = isset($Store_profile->city)?$Store_profile->city:null;
+                $Transaction->supplier_country = isset($Store_profile->country)?$Store_profile->country:null;
+                $Transaction->supplier_email = isset($Store_profile->email)?$Store_profile->email:null;
+            }
             $Transaction->preparedByID=$user->userid;
             $Transaction->preparedBy=$user->email;
             $Transaction->PaymentComplete="N";
@@ -188,6 +207,7 @@ class ProfileService{
         //return $result;
         if(count($result->result)!=0)
         {
+            
             $Transaction->preparedByID=$user->userid;
             $Transaction->preparedBy=$user->email;
             $Transaction->Complete="N";
@@ -310,6 +330,18 @@ class ProfileService{
         //return $result;
         if(count($result->result)!=0)
         {
+            $Store_profile= Profile::getProfile(0,0);
+            if(isset($Store_profile->profile)){
+                //return $Store_profile->profile;
+                $Store_profile=$Store_profile->profile;
+                $payment->supplier_profileId = $Store_profile->id; 
+                $payment->supplier_name = $Store_profile->name;
+                $payment->supplier_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
+                $payment->supplier_address = isset($Store_profile->address)?$Store_profile->address:null;
+                $payment->supplier_city = isset($Store_profile->city)?$Store_profile->city:null;
+                $payment->supplier_country = isset($Store_profile->country)?$Store_profile->country:null;
+                $payment->supplier_email = isset($Store_profile->email)?$Store_profile->email:null;
+            }
             
             $result = SOSSData::Insert ("paymentheader", $payment,$tenantId = null);
             CacheData::clearObjects("paymentheader");

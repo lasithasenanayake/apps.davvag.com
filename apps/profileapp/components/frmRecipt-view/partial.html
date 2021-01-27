@@ -8,13 +8,17 @@
     <div id="printcontent" >
     <div class="row">
         <div class="col-xs-12">
+			
+			
     		<div class="invoice-title">
-    			<h2>Receipt</h2><h3 class="pull-right">Receipt # {{ InvoiceToSave.receiptNo }}</h3>
+				<img :src="'components/dock/soss-uploader/service/get/profile/'+InvoiceToSave.supplier_profileId" width="100px" class="pull-right" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/><br/>
+    			<h2>Receipt</h2>
     		</div>
     		<hr>
     		<div class="row">
     			<div class="col-xs-6">
     				<address>
+			<h3>Receipt # {{ InvoiceToSave.receiptNo }}</h3>
             <strong>Payment by:</strong><br>
             <strong>ID: </strong>{{ InvoiceToSave.profileId }}<br>
     					{{ InvoiceToSave.name }}<br>
@@ -25,13 +29,13 @@
     			</div>
     			<div class="col-xs-6 text-right">
             
-    				<address>
-        			<strong>Payment To:</strong><br>
-    					Lanka Bible College<br>
-    					Christopher Road,<br>
-    					Peradeneya<br>
-    					Sri Lanka
-    				</address>
+					<address>
+						<strong>Payment To:</strong><br>
+							{{ InvoiceToSave.supplier_name }}<br>
+							<address>{{ InvoiceToSave.supplier_address }}</address><br>
+							{{ InvoiceToSave.supplier_city }}<br>
+							{{ InvoiceToSave.supplier_country }}
+						</address>
     			</div>
     		</div>
     		<div class="row">
@@ -39,15 +43,19 @@
     				<address>
     					<strong>Conatct Details:</strong><br>
     					{{ InvoiceToSave.contactno }}<br>
-              {{ InvoiceToSave.email }}<br>
-              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
+			  {{ InvoiceToSave.email }}<br>
+			  <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=rpt'+InvoiceToSave.receiptNo+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
+              
     				</address>
     			</div>
     			<div class="col-xs-6 text-right">
     				<address>
+						<strong>Conatct Details:</strong><br>
+    					{{ InvoiceToSave.supplier_contactno }}<br>
+              			{{ InvoiceToSave.supplier_email }}<br>
     					<strong>Payment Type:</strong><br>
               {{ InvoiceToSave.paymentType }}<br>
-              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=rpt'+InvoiceToSave.receiptNo+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
+              
               <br>
     				</address>
     			</div>

@@ -44,7 +44,7 @@ class appService {
         $profile=Profile::getProfile($_GET["id"],$id);
         if(isset($profile->profile)){
             $outprofile = $profile->profile;
-           
+            $outprofile->attributes=$profile->attributes;
             $outprofile->followed= $id==$outprofile->id?-1:$outprofile->followed;
             
             return $outprofile;

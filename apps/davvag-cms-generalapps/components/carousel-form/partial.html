@@ -1,0 +1,97 @@
+<div class="container" >
+    
+        <a v-on:click="navigateBack()" class= "dock-link">Back</a>
+        <div class="form-group">
+          <label for="exampleInputEmail1">Catogory ID</label>
+          <input type="number" class="form-control" v-model="product.catid"  disabled="disabled">
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1">Hight</label>
+          <input type="number" class="form-control" v-model="product.c_hight" >
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1">Width</label>
+          <input type="text" class="form-control" v-model="product.c_width">
+        </div>
+        <button id="send2" class="btn btn-primary" v-on:click="openForm">Add Carousel Item</button>
+        <button id="send" class="btn btn-primary" v-on:click="submit">Submit</button>
+ 
+ <!-- Slideshow container -->
+ <br/><br/>
+<div class="slideshow-container">
+
+  <!-- Full-width images with number and caption text -->
+  <div class="mySlides" v-for="(item, index)  in product.carouselitems">
+    <div class="numbertext"><button class="btn btn-danger" v-on:click="remove(item)">X</button> {{ index+1 }} /  {{ product.carouselitems.length }}</div>
+    <img :src="item.imgurl" style="width:100%">
+    <div class="text">
+      <h1 v-if="item.title" v-html="item.title">dd</h1>
+      <p v-if="item.caption" >{{ item.caption }}</p>
+      <button v-if="item.button_url" class="btn btn-primary">{{ item.button_caption }}</button>
+      
+    </div>
+  </div>
+
+  
+
+  <!-- Next and previous buttons -->
+  <a class="prev" v-on:click="plusSlides(-1)">&#10094;</a>
+  <a class="next" v-on:click="plusSlides(1)">&#10095;</a>
+</div>
+<br>
+
+
+<div style="text-align:center">
+  <span v-for="(item, index)  in product.carouselitems" class="dot" v-on:click="currentSlide(index)"></span>
+</div>
+</div>
+
+<div class="modal fade" id="carousel-uploader" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+        <div class="modal-header">
+          
+        </div>
+        <div class="modal-body">
+          <div class="profile-content">
+              <div>
+                <p v-if="submitErrors" v-for="error in submitErrors" class = "alert alert-danger"> {{error}} </p>
+              </div>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Catogory ID</label>
+                <input type="number" class="form-control" v-model="product.catid"  disabled="disabled">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Title</label>
+                <input type="Text" class="form-control" v-model="carousel.title">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Caption</label>
+                <input type="text" class="form-control" v-model="carousel.caption">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Button Caption</label>
+                <input type="text" class="form-control" v-model="carousel.button_caption">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Button URL</label>
+                <input type="text" class="form-control" v-model="carousel.button_url">
+              </div>
+              <div class="form-group">
+                <label for="exampleInputFile" class="col-md-4">Carousel Image</label>
+                <div class="col-md-4">
+                  <img :src="carousel.imgurl" class="col-md-12" width="100%" @click="crope"/>
+                  <button @click="crope">New Image</button>
+                </div>
+            </div>
+            </div>
+          </div>
+          
+        <div class="modal-footer">
+          <button class="btn btn-primary" v-on:click="addItem(carousel)">Save</button>
+          <button type="button" class="btn btn-warning" v-on:click="selectStoreClose()">Cancel</button>
+        </div>
+    </div>
+</div>
+</div>

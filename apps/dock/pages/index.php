@@ -8,7 +8,7 @@
   <link rel="icon" href="assets/dock/images/favicon.ico" type="image/png">
       
   <title>DAVAAG Application Dock</title>
-
+  <link href="assets/dock/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/dock/css/style.default.css" rel="stylesheet">
   <link href="assets/dock/css/dockanimation.css" rel="stylesheet">
 </head>
@@ -37,7 +37,7 @@
 
 <script src="lib/jquery.js"></script>
 <script src="lib/webdock.js" webdockapp="dock"></script>
-<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=<?php echo MAPS_APIKEY; ?>"></script>
+<link href="assets/dock/css/bootstrap.min.css" rel="stylesheet">
 <script type="text/javascript">
     WEBDOCK.onReady (function(){
         jQuery('#preloader').delay(350).fadeOut(function(){

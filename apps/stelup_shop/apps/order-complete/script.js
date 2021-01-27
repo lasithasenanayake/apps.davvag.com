@@ -1,7 +1,20 @@
 WEBDOCK.component().register(function(exports){
-    bindData={header:{buttonuri:""}};
+    bindData={header:{buttonuri:""},InvoiceToSave:sessionStorage.tmpRept?JSON.parse(sessionStorage.tmpRept):null};
     var vueData =  {
         methods:{
+            navigateBack: function(){
+                handler1 = exports.getShellComponent("soss-routes");
+                handler1.appNavigate("..");
+            },
+            print:function(){
+                var prtContent=document.getElementById("printcontent");
+                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+                WinPrint.document.open('text/html');
+                WinPrint.document.write('<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"><div style="margin: 30px;"> '+prtContent.innerHTML+'</div>');
+                WinPrint.document.close();
+                WinPrint.focus();
+                setTimeout(function(){ WinPrint.print();WinPrint.close(); }, 3000);
+            }
         },
         data :bindData,
         onReady: function(s){

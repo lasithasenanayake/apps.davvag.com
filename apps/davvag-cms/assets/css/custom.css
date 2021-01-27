@@ -14,6 +14,7 @@
   --W200: 200px;
   --Lft: left;
   --formBackColor: #f1f8f9;
+  --scrollColor: #f7aeab;
 }
 
 .modal {
@@ -134,6 +135,9 @@ a:hover{
     display: none;
   }
 
+  img.image-blog-post {
+    width: 100%;
+  }
 } 
   
   .id-soss-routes{
@@ -147,6 +151,7 @@ a:hover{
   img.image-blog-post{
     margin-right:25px;
     margin-bottom:15px;
+    
   }
   
   h2.blog-post-title{

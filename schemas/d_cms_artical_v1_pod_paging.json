@@ -2,7 +2,7 @@
     "rawquery" : {
         "type":"sql",
         "parameters" : ["page","size","boost"],
-        "query": "select * from d_cms_artical_v1 where boost='$boost' limit $page,$size"
+        "query": "select * from d_cms_artical_v1 where boost='$boost' order by createdate desc limit $page,$size"
     },
     "fields" : [
         {

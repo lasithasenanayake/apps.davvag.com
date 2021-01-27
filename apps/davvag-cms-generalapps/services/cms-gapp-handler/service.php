@@ -28,7 +28,7 @@ class ArticalService{
                 
                 $summery =Summary::GetObject("davvag-cms-generalapps",$Artical->id,
                 "/components/davvag-cms/soss-uploader/service/get/d_cms_artical/".$Artical->id."-".$imgname,
-                "#/app/davvag-cms-generalapps/a?id=".$Artical->id
+                "/#/app/davvag-cms-generalapps/a?id=".$Artical->id
                 ,$Artical->title,$Artical->summery,$Artical->tags,$date);
                 Summary::Save($summery);
                 
@@ -117,6 +117,46 @@ class ArticalService{
         
     }
 
+    public function postSaveCarousel($req,$res)
+    {
+        $Carousel=$req->Body(true);
+        $r= SOSSData::Query("d_cms_carousel_v1","catid:".$Carousel->catid);
+        if($r->success ){
+            if(count($r->result)>0){
+                $result2=SOSSData::Update ("d_cms_carousel_v1", $Carousel);
+                if($result2->success){
+                    $resultq=SOSSData::Query("d_cms_carousel_dtl_v1","catid:".$Carousel->catid);
+                    SOSSData::Delete("d_cms_carousel_dtl_v1",$resultq->result);
+                    if(count($Carousel->carouselitems)>0){
+                        SOSSData::Insert ("d_cms_carousel_dtl_v1", $Carousel->carouselitems);
+                    }
+                    
+                    CacheData::clearObjects("d_cms_carousel_dtl_v1");
+                    CacheData::clearObjects("d_cms_carousel_v1");
+                    return $Carousel;
+                    
+                }else{
+                    $res->SetError ("Error Updateing.");
+                    return null;
+                }
+            }else{
+                $result2=SOSSData::Insert ("d_cms_carousel_v1", $Carousel);
+                if($result2->success){
+                    if(count($Carousel->carouselitems)>0){
+                        SOSSData::Insert ("d_cms_carousel_dtl_v1", $Carousel->carouselitems);
+                    }
+                    CacheData::clearObjects("d_cms_carousel_dtl_v1");
+                    CacheData::clearObjects("d_cms_carousel_v1");
+                    return $Carousel;
+                }else{
+                    $res->SetError ("Error Saving.");
+                    return null;
+                }
+                
+            }
+        }
+    }
+
     function getArtical($req){
         //echo "imain";
         $data =null;
@@ -130,21 +170,25 @@ class ArticalService{
                 <html>
                 <head>
                     <meta charset="utf-8" />
-                    <meta name="description" content="'.urldecode($data->description).'">
-                    <meta name="tags" content="'.urldecode($data->tags).'">
-                    <meta name="og:title" content="'.urldecode($data->title).'">
-                    <meta name="og:description" content="'.urldecode($data->description).'">
+                    <meta name="description" content="'.urldecode($data->description).'"/>
+                    <meta name="tags" content="'.urldecode($data->tags).'"/>
+                    <meta name="og:title" content="'.urldecode($data->title).'"/>
+                    <meta name="og:description" content="'.urldecode($data->description).'"/>
                     <meta name="og:tags"  content="'.urldecode($data->tag).'">
-                    <meta name="og:image"  content="http://'.$_SERVER["HTTP_HOST"].$data->imgurl.'">
+                    <meta name="og:image"  itemprop="image" content="http://'.$_SERVER["HTTP_HOST"].$data->imgurl.'"/>
+                    <meta property="og:type" content="website" />
                     <title>'.urldecode($data->title).'</title>
                     
                 </head>
-                <body>
-                    Please Wait Redirecting....
-                    <script type="text/javascript">
-                        setTimeout(function(){ window.location = "'.$data->url.'"; }, 1000);
+                <script type="text/javascript">
+                    window.location = "'.$data->url.'";
                         
-                    </script>    
+                        
+                </script>    
+                <body>
+                    Please Wait Redirecting....</br>
+                    
+                    <a href="'.$data->url.'"> Click here to read </a>
                 </body>
                 </html>';
                 exit();      

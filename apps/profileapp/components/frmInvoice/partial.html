@@ -140,11 +140,11 @@
     			<div class="col-xs-6 text-right">
             
     				<address>
-        			<strong>Invoiced By:</strong><br>
-    					Lanka Bible College<br>
-    					Christopher Road,<br>
-    					Peradeneya<br>
-    					Sri Lanka
+              <strong>Billed By:</strong><br>
+              {{ supplierData.name }}<br>
+              {{ supplierData.address}}<br>
+              {{ supplierData.city }}<br>
+    					{{ supplierData.country }}
     				</address>
     			</div>
     		</div>
@@ -159,6 +159,9 @@
     			</div>
     			<div class="col-xs-6 text-right">
     				<address>
+              <strong>Conatct Details:</strong><br>
+              {{ supplierData.contactno }}<br>
+              {{ supplierData.email }}<br>
     					<strong>Order Date:</strong><br>
               {{ InvoiceToSave.invoiceDate }}<br>
               <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=inv'+InvoiceToSave.invoiceNo+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>

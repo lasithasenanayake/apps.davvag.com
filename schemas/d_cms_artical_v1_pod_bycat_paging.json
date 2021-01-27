@@ -2,7 +2,7 @@
     "rawquery" : {
         "type":"sql",
         "parameters" : ["page","size","catid"],
-        "query": "select * from d_cms_artical_v1 where catid=$catid limit $page,$size"
+        "query": "select * from d_cms_artical_v1 where catid=$catid order by createdate desc limit $page,$size"
     },
     "fields" : [
         {

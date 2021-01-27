@@ -1,5 +1,5 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,cropper1,routeData;
+    var scope,validator_profile,service_handler,sossrout_handler,cropper1,routeData,apploader,profilehandler;
 
     var bindData = {
         submitErrors : [],submitInfo : [],data:{},attributes:{},p_image:"components/dock/soss-uploader/service/get/profile/0"
@@ -17,19 +17,28 @@ WEBDOCK.component().register(function(exports){
             },
             biosiginup:function(){
                 $("#form-details-2").toggle();
-                $("#form-details-3").toggle();;
+                $("#form-details-3").toggle();
+                datanew= bindData.data;
+                datanew.css="";
+                apploader.downloadAPP("davvag-stripe","register-stripe","app_stripe",function(d){
+                    
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,datanew);
             },
             stripesiginup:function(){
                 $("#form-details-3").toggle();
-                $("#form-details-4").toggle();;
+                $("#form-details-4").toggle();
             },
             sellingoplicy:function(){
                 $("#form-details-4").toggle();
-                $("#form-details-5").toggle();;
+                $("#form-details-5").toggle();
             },
             tradingoplicy:function(){
                 $("#form-details-5").toggle();
-                $("#form-details-6").toggle();;
+                $("#form-details-6").toggle();
             },
             crope:function(){
                 cropper1.crope(1,1,function(e){
@@ -49,8 +58,18 @@ WEBDOCK.component().register(function(exports){
             Login(routeData,function(){
                 initialize();
             });
+            exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+                apploader=_uploader;
+                
+            });
+            
             
         }
+    }
+
+    function completeResponce(s){
+        $("#form-details-3").toggle();
+        $("#form-details-4").toggle();
     }
 
     function Login(routeData,cb){
@@ -96,7 +115,26 @@ WEBDOCK.component().register(function(exports){
         });
         pInstance = exports.getShellComponent("soss-routes");
         routeData = pInstance.getInputData();
+        profilehandler  = exports.getComponent("p_svr");
+        loadProfile();
         loadValidator();
+    }
+
+    function loadProfile(){
+        
+        idx=bindData.data.id;//?routeData.id:bindData.profile.id;
+        bindData.loading=true;
+        profilehandler.services.Profile({id:idx}).then(function(a){
+            if(a.success){
+                bindData.data=a.result;
+                bindData.attributes=bindData.data.attributes;
+                //oadproducts();
+            }else{
+                console.log(a);
+            }
+        }).error(function(e){
+            console.log(e);
+        })
     }
 
     var newFile;

@@ -7,6 +7,8 @@ if(isset($_SESSION["regadmin"] )){
         $data->{$key}=$value;
     }
     $data->nationalidcardnumber=$data->xxxxxxx;
+    //var_dump($data);
+    //exit();
     if (empty($_POST["email"])) {
         $emailError = "Email is required";
         $validate=false;

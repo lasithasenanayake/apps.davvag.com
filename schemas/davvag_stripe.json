@@ -1,0 +1,25 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"stripeKey",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"stripeSecretKey",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        }
+    ]
+}
