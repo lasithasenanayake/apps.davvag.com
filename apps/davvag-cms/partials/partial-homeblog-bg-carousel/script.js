@@ -96,7 +96,7 @@ WEBDOCK.component().register(function(exports){
     function MainSroll(){
         if(window.innerWidth>600){
             $("#mainBody").scroll(function(e){
-                if ((e.currentTarget.clientHeight + e.currentTarget.scrollTop) >= e.currentTarget.scrollHeight) {
+                if ((e.currentTarget.clientHeight + e.currentTarget.scrollTop+30) >= e.currentTarget.scrollHeight) {
                     // you're at the bottom of the page
                     console.log($("#mainBody").outerHeight());
                     console.log("In the event ...");

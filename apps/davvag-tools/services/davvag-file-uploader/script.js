@@ -10,7 +10,7 @@ WEBDOCK.component().register(function(exports, scope){
         clear();
         //if(cropperdiv==null){
         bodyEt=$("body");
-        bodyEt.append("<div id='davvagfileupload' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='exampleModalLabel' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 class='modal-title' id='modalLabel'>Uploading Please Wait</h5></div><div class='modal-body'><div class='progress'><div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width: 0%'></div></div></div><div class='modal-footer'><button type='button' id='close-button' class='btn btn-secondary' data-dismiss='modal'>Close</button></div></div></div></div>");
+        bodyEt.append("<div id='davvagfileupload' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='exampleModalLabel' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='uploadertitle' class='modal-title' id='modalLabel'>Uploading Please Wait</h5></div><div id='uploaderbody' class='modal-body'><div class='progress'><div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width: 0%'></div></div></div><div class='modal-footer'><button type='button' id='close-button' class='btn btn-secondary' data-dismiss='modal'>Close</button></div></div></div></div>");
         //}
         $progress = $('.progress');
         $progressBar = $('.progress-bar');
@@ -35,8 +35,8 @@ WEBDOCK.component().register(function(exports, scope){
     }
 
     function complete(){
-        $('.modal-title').html("<h5 class='modal-title' id='modalLabel'>Uploading Completed</h5>");
-        $('.modal-body').html("You may close the window. Upload has successfully completed");
+        $('#uploadertitle').html("<h5 class='modal-title' id='modalLabel'>Uploading Completed</h5>");
+        $('#uploaderbody').html("You may close the window. Upload has successfully completed");
         $closebutton.style.visibility = "visible";
     }
     exports.upload=function(newfiles,classname,id,cb){
@@ -76,12 +76,8 @@ WEBDOCK.component().register(function(exports, scope){
                             percent = Math.round((completed / imagecount) * 100);
                             percentage = percent + '%';
                             $progressBar.width(percentage).attr('aria-valuenow', percent).text(percentage);
-                            //newfiles[i].status=false;
-                            //newfiles[i].message=e;
                             if(imagecount==completed){
-                                //$('#davvag-fileupload').modal("hide");
                                 complete();
-                                //$closebutton.style.visibility = "visible";
                                 cb(newfiles);
                             }
                         });

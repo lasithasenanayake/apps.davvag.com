@@ -10,30 +10,48 @@ class UploaderService {
         return stream_get_contents($tempStream);
     }
 
-    private function compress($source, $destination, $quality) {
+    function generateRandomString($length = 10) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
 
-        $info = mime_content_type($source);
-        file_put_contents($destination, $source);
-        //imagejpeg($source, $destination, $quality);
-        /*
-        switch($info){
-            case "image/jpeg":
-                $image = imagecreatefromgif($source);
+    private function compress($source, $destination, $quality) {
+        $tmpname=$this->generateRandomString();
+        $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/tmp";
+        if (!file_exists($folder))
+        mkdir($folder, 0777, true);
+
+        file_put_contents("$folder/$tmpname", $source);
+        $type=mime_content_type("$folder/$tmpname");
+        
+        if($type=='image/png' || $type=='image/jpeg' || $type=='image/gif'){
+            //var_dump($type);
+            $info = getimagesize("$folder/$tmpname");
+            if ($info['mime'] == 'image/jpeg'){
+                $image = imagecreatefromjpeg("$folder/$tmpname");
                 imagejpeg($image, $destination, $quality);
-                
-            break;
-            case "image/gif":
-                $image = imagecreatefromgif($source);
+            } 
+            elseif ($info['mime'] == 'image/gif'){
+                $image = imagecreatefromgif("$folder/$tmpname");
                 imagejpeg($image, $destination, $quality);
-            break;
-            case "image/png":
-                $image = imagecreatefrompng($source);
-                imagejpeg($image, $destination, $quality);
-            break;
-            default:
-                file_put_contents($destination, $source);
-            break;
-        }*/
+            } 
+            elseif ($info['mime'] == 'image/png'){
+                $image = imagecreatefrompng("$folder/$tmpname");
+                imagepng($image, $destination, $quality);
+            } 
+            
+            
+        }else{
+            file_put_contents($destination, $source);
+        }
+        
+        unlink("$folder/$tmpname");
+        
       
     }
 
@@ -93,9 +111,7 @@ class UploaderService {
             if (!file_exists($folder))
                 mkdir($folder, 0777, true);
             
-            $this->compress($this->getPostBody(),"$folder/$name",60);
-            //file_put_contents("$folder/$name", $this->getPostBody());
-            //$this->compressImage($_FILES['imagefile']['tmp_name'],"$folder/$name",60);
+            $this->compress($this->getPostBody(),"$folder/$name",80);
             $resObj = new stdClass();
             $resObj->sucess = true;
             $resObj->message = "Successfully Uploaded!!!";
