@@ -94,6 +94,9 @@ WEBDOCK.component().register(function(exports){
     } 
 
     function MainSroll(){
+        $('.carousel').carousel({
+            interval: 4000
+          });
         if(window.innerWidth>600){
             $("#mainBody").scroll(function(e){
                 if ((e.currentTarget.clientHeight + e.currentTarget.scrollTop+30) >= e.currentTarget.scrollHeight) {

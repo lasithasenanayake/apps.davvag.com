@@ -25,25 +25,37 @@ class UploaderService {
         $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/tmp";
         if (!file_exists($folder))
         mkdir($folder, 0777, true);
+        
 
         file_put_contents("$folder/$tmpname", $source);
         $type=mime_content_type("$folder/$tmpname");
-        
+        //echo filesize("$folder/$tmpname");
+        //echo $type;
+       
         if($type=='image/png' || $type=='image/jpeg' || $type=='image/gif'){
             //var_dump($type);
             $info = getimagesize("$folder/$tmpname");
+            //var_dump($info);
             if ($info['mime'] == 'image/jpeg'){
                 $image = imagecreatefromjpeg("$folder/$tmpname");
+                //unlink("$destination");
                 imagejpeg($image, $destination, $quality);
+                imagedestroy($image);
             } 
             elseif ($info['mime'] == 'image/gif'){
-                $image = imagecreatefromgif("$folder/$tmpname");
+                $image = imagecreatefromjpeg("$folder/$tmpname");
+                //unlink("$folder/$tmpname");
                 imagejpeg($image, $destination, $quality);
+                imagedestroy($image);
             } 
             elseif ($info['mime'] == 'image/png'){
-                $image = imagecreatefrompng("$folder/$tmpname");
-                imagepng($image, $destination, $quality);
-            } 
+                    $image = imagecreatefrompng("$folder/$tmpname");
+                    imagejpeg($image, $destination, $quality);
+                    imagedestroy($image);
+            }else{
+                //unlink("$folder/$tmpname");
+                file_put_contents($destination, $source);
+            }
             
             
         }else{
@@ -77,8 +89,17 @@ class UploaderService {
         Carbite::SetAttribute("reqUri",$req->Params()->handlerName .$req->Params()->route);
         Carbite::SetAttribute("no404",true);
 
-        Carbite::GET("/test",function($req,$res){
-            $res->Set("Hello World");
+        Carbite::GET("/test/@ns/@name",function($req,$res){
+            $ns = $req->Params()->ns;
+            $name = $req->Params()->name;
+            $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/$ns";
+            $source="$folder/$name";
+            $info=getimagesize($source);
+            var_dump($info);
+            
+                echo $info['mime'];
+      
+        
         });
 
         Carbite::GET("/get/@ns/@name",function($req,$res){
@@ -112,6 +133,22 @@ class UploaderService {
                 mkdir($folder, 0777, true);
             
             $this->compress($this->getPostBody(),"$folder/$name",80);
+            $resObj = new stdClass();
+            $resObj->sucess = true;
+            $resObj->message = "Successfully Uploaded!!!";
+            $res->Set($resObj);
+        });
+
+        Carbite::POST("/upload_uncompressed/@ns/@name",function($req,$res){
+            $ns = $req->Params()->ns;
+            $name = $req->Params()->name;
+            $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/$ns";
+            
+            if (!file_exists($folder))
+                mkdir($folder, 0777, true);
+                
+            file_put_contents("$folder/$name", $this->getPostBody());
+            
             $resObj = new stdClass();
             $resObj->sucess = true;
             $resObj->message = "Successfully Uploaded!!!";

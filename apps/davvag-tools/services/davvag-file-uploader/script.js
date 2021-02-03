@@ -85,4 +85,50 @@ WEBDOCK.component().register(function(exports, scope){
             }
     }    
 
+    exports.upload_uncompressed=function(newfiles,classname,id,cb){
+        $modal.modal({backdrop: 'static', keyboard: false});
+        if(!newfiles){
+            cb(newfiles);
+            return;
+        }
+        var imagecount=newfiles.length;
+        var completed=0
+        var percent = '0';
+        var percentage = '0%';
+        uploaderInstance = exports.getShellComponent("soss-uploader");
+            for (var i = 0; i < newfiles.length; i++) {
+                console.log(i);
+                        var filename =id!=null?id.toString()+"-"+newfiles[i].name:newfiles[i].name;
+                        console.log(filename);
+                        uploaderInstance.services.upload_uncompressed(newfiles[i], classname, filename)
+                        .then(function(result2){
+                           
+                            //$.notify("product Image Has been uploaded", "info");
+                            //newfiles[i].status=true;
+                            //newfiles[i].result=result2;
+                            completed++;
+                            percent = Math.round((completed / imagecount) * 100);
+                            percentage = percent + '%';
+                            $progressBar.width(percentage).attr('aria-valuenow', percent).text(percentage);
+                            if(imagecount==completed){
+                                //$('#davvag-fileupload').modal("hide");
+                                complete();
+                                cb(newfiles);
+                            }
+                            
+                        })
+                        .error(function(e){
+                            completed++;
+                            percent = Math.round((completed / imagecount) * 100);
+                            percentage = percent + '%';
+                            $progressBar.width(percentage).attr('aria-valuenow', percent).text(percentage);
+                            if(imagecount==completed){
+                                complete();
+                                cb(newfiles);
+                            }
+                        });
+                  
+            }
+    }    
+
 });

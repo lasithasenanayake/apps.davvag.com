@@ -9,11 +9,41 @@ WEBDOCK.component().register(function(exports){
         content:""
 
     };
+    var newfiles=[];
+    function createImage(files) {
+        //console.log(JSON.stringify(files));
+        //if(!newfiles){
+        newfiles=[];
+        if(files.length>0){
+            
+            getImage(0,files[0]);
+            
+        }
+        
+    }
+
+    function getImage(index,file){
+        var reader = new FileReader();
+            reader.onload = function (e) {
+                //newfiles[index].scr=e.target.result;
+                //newfiles[index].name="0";
+                //file.name="0";
+                newfiles.push(file);
+                bindData.product.icon=e.target.result;
+            };
+        reader.readAsDataURL(file);
+    }
 
     var vueData =   {
         methods: {
             submit: submit,
             gotoUom: gotoUom,
+            onFileChange: function(e) {
+                var files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                createImage(files);
+            },
             navigateBack: function(){
                 handler1 = exports.getShellComponent("soss-routes");
                 handler1.appNavigate("..");
@@ -27,9 +57,7 @@ WEBDOCK.component().register(function(exports){
             validatorInstance = exports.getShellComponent ("soss-validator");
             routeData = pInstance.getInputData();
             
-            //var menuhandler  = exports.getShellComponent("soss-data");
-           // var promiseObj = handler.services.Settings({name:"cms-global"});
-            //else promiseObj = handler.transformers.insertArtical (bindData.product);
+            
             handler.services.Settings({name:"cms-global"})
             .then(function(result){
                 if(result.result){
@@ -73,20 +101,28 @@ WEBDOCK.component().register(function(exports){
             var saveObject={name:"cms-global",body:bindData.product}
             var promiseObj = handler.services.saveSettings(saveObject);
             //else promiseObj = handler.transformers.insertArtical (bindData.product);
-            
+                    if(newfiles.length>0){
+                        bindData.product.icon="components/davvag-cms/soss-uploader/service/get/assets/"+newfiles[0].name;
+                    }
+                    
+                    
+                    promiseObj
+                        .then(function(result){
+                            if(newfiles.length>0){
+                                exports.getAppComponent("davvag-tools","davvag-file-uploader", function(uploader){
+                                    uploader.initialize();
+                                    uploader.upload_uncompressed(newfiles, "assets", null,function(){
+                                        gotoUom();
+                                    });
+                                });
+                            }
+                        })
+                        .error(function(){
+                            $('#send').prop('disabled', false);
+                        });
+                    
 
-            promiseObj
-            .then(function(result){
-                //uploadFile(promiseObj.)
-                /*
-                uploadFile(result.result.id, function(){
-                    gotoUom();
-                });*/
-                gotoUom();
-            })
-            .error(function(){
-                $('#send').prop('disabled', false);
-            });
+            
         }else{
             $('#send').prop('disabled', false);
         }

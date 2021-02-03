@@ -1,0 +1,147 @@
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Attribute Creator</h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+      <strong>INFO! </strong> {{error}}
+    </div>
+</div>
+<div class="form-group">
+  <label for="exampleInputEmail1">Attribute Form Name</label>
+  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="data.name">
+  <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
+</div>
+<button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
+<hr/>
+<form id="sampleForm">
+  <h2>Input Fields To creation Form</h2>
+</form>
+</div>
+<div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+        <div class="modal-header">
+            <h1>Add Field</h1>
+        </div>
+        <div class="modal-body">
+          <div class="mainBody input-form-popup">
+            <div class="input-error">
+              <div class="alert alert-danger" v-if="submitFieldErrors" v-for="error in submitFieldErrors">
+                <strong>ERROR! </strong> {{error}}
+              </div>
+             
+            </div>
+            <div class="form-group">
+              <label for="exampleInputPassword1">Field Type</label>
+              <select class="form-control" data-placeholder="Choose a Flow..." v-model="fieldType">
+                <option v-bind:value="i" v-for="i in fieldTypes">{{ i }}</option>
+              </select>
+            </div>
+            <div id="frmtext">
+              <div class="form-group">
+                <div class="col-md-6">
+                  <label for="exampleInputEmail1">Label</label>
+                  <input type="text" class="form-control" id="txtLbale" aria-describedby="emailHelp" placeholder="Please add the display Lable" v-model="field.label">
+                  <small id="emailHelp" class="form-text text-muted">Here you can input the label to display.</small>
+                </div>
+                <div class="col-md-6">
+                  <label for="exampleInputEmail1">Name</label>
+                  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.name">
+                  <small id="NameHelp" class="form-text text-muted">Here you can input the label to display.</small>
+                </div>
+                
+              </div>
+              
+              
+            </div>
+            <div v-if="fieldType=='select' || fieldType=='text' || fieldType=='textarea' || fieldType=='checkbox'" id="frmselect">
+              <div class="form-group">
+                <div class="col-md-6">
+                  <label for="exampleInputPassword1">Value Type</label>
+                  <select class="form-control" data-placeholder="Choose a Flow..." v-model="valuetype">
+                    <option value="java.lang.String" >String</option>
+                    <option value="int" >Integer</option>
+                    <option value="float" >Float / Decimal</option>
+                  </select>
+                </div>
+                <div v-if="valuetype=='java.lang.String'" class="col-md-6">
+                  <label for="exampleInputEmail1">Max Length</label>
+                  <input type="Number" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.maxlen">
+                  <small id="NameHelp" class="form-text text-muted">Max Lenght of your string.</small>
+                </div>
+                
+              </div>
+            </div>
+            <div v-if="fieldType=='select'" id="frmSelect">
+              <div class="form-group">
+                <div class="col-md-4">
+                  <label for="exampleInputEmail1">Choice Value</label>
+                  <input type="text" class="form-control" id="txtValue" aria-describedby="NameHelp" placeholder="Choice Value" v-model="select.value">
+                </div>
+                <div class="col-md-4">
+                  <label for="exampleInputEmail1">Caption </label>
+                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Choice Caption" v-model="select.caption">
+                </div>
+                <div class="col-md-3">
+                  <label for="exampleInputEmail1"> </label>
+                  <button  class="btn bg-primary-button btn-block" v-on:click="addValue(select)">Add Values</button>
+                </div>
+                
+              </div>
+              <div class="form-group">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Value</th>
+                      <th scope="col">Caption</th>
+                      <th scope="col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="x in select_values">
+                      <td>{{ x.sel }}</td>
+                      <td>{{ x.label }}</td>
+                      <td><button  type="button" class="btn btn-danger" v-on:click="removeValue(x)">Remove</button></td>
+                    </tr>
+                  </tbody>
+                  </table>
+              </div>
+            </div>
+            <div v-if="fieldType=='checkbox'" id="date">
+              <div class="form-group">
+                <div class="col-md-6">
+                  <label for="exampleInputPassword1">True Value</label>
+                  <input type="Text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.truevalue">
+                  
+                </div>
+                <div  class="col-md-6">
+                  <label for="exampleInputEmail1">False Value</label>
+                  <input type="Text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.falsealue">
+                  
+                </div>
+                
+              </div>
+            </div>
+            <div v-if="fieldType=='fileupload'" id="frmfileupload">
+              <h1>Not Impletmented</h1>
+            </div>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="data.req">
+              <label class="form-check-label" for="exampleCheck1">Required</label>
+            </div>
+          </div>
+          
+          
+        </div>
+          
+        <div class="modal-footer">
+          <button class="btn btn-primary" v-on:click="addNew(field)">Add</button>
+          <button type="button" class="btn btn-warning" v-on:click="closeField()">Cancel</button>
+        </div>
+    </div>
+</div>
+</div>

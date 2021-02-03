@@ -1,5 +1,8 @@
 {
     "apps":{
+        "davvag-attributes":{
+            "version":"latest"
+        },
         "davvag-stripe":{
             "version":"latest"
         },
