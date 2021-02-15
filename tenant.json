@@ -1,5 +1,9 @@
 {
     "apps":{
+        "lbc-dashborad-report":{
+            "version":"latest"
+        },
+
         "davvag-attributes":{
             "version":"latest"
         },

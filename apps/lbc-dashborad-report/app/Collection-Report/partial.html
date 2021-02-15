@@ -1,0 +1,32 @@
+<div style="color:black;">
+    <div>
+        <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
+           
+        </div>
+    </div>
+    <br/><br/><br/>
+
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Profile ID</th>
+        <th>Name</th>
+        <th>Contact No</th>
+        <th>Organization</th>
+        <th class="text-right">Outstanding Amount</th>
+        <th>Viwe Profile</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items">
+        <td>{{ item.id }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.contactno }}</td>
+        <td>{{ item.organization }}</td>
+        <td class="text-right">{{ item.outstanding | currency }}</td>
+        <td><a class="btn btn-info" v-on:click="navigate(item)">view</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

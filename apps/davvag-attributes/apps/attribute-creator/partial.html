@@ -11,7 +11,7 @@
 </div>
 <div class="form-group">
   <label for="exampleInputEmail1">Attribute Form Name</label>
-  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="data.name">
+  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name">
   <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
 </div>
 <button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
@@ -19,6 +19,7 @@
 <form id="sampleForm">
   <h2>Input Fields To creation Form</h2>
 </form>
+<button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>
 </div>
 <div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
     
@@ -130,7 +131,7 @@
               <h1>Not Impletmented</h1>
             </div>
             <div class="form-group form-check">
-              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="data.req">
+              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="field.req">
               <label class="form-check-label" for="exampleCheck1">Required</label>
             </div>
           </div>

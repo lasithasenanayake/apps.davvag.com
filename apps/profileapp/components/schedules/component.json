@@ -1,8 +1,8 @@
 {
-    "name" : "frmProfile",
-    "description":"",
-    "author":"Laistha Senanayake",
-    "version" : "0.6",
+    "name" : "keyword-list",
+    "description":"Vue.JS Plugin for Soss Router",
+    "author":"Supun Dissanayake",
+    "version" : "0.1",
     "gitUrl" : "",
     "resources": {
         "files":[

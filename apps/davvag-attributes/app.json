@@ -6,14 +6,14 @@
         },
         "app-handler": {
             "type":"service",
-            "location":"service"
+            "location":"services"
         }
     },
     "description":{
         "title": "Attribute Creator",
         "author":"Davvag",
         "version":"0.1",
-        "icon":""
+        "icon":"appicon.png"
     },
     "tags":["showindock"],
     "configuration":{

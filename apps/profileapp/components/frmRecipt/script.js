@@ -13,7 +13,8 @@ WEBDOCK.component().register(function(exports){
         duedate:new Date(),
         invoiceSave:false,
         InvoiceToSave:{},
-        supplierData:{}
+        supplierData:{},
+        submitErrors:[]
     };
 
     function calcTotals(){
@@ -173,7 +174,9 @@ WEBDOCK.component().register(function(exports){
 
     function savePreview(){
         //var d = ;
-
+        bindData.submitErrors=[];
+        
+        if(bindData.submitErrors.length!=0)return;
         bindData.InvoiceToSave={
             receiptNo:0,
             receiptDate:fDate(bindData.date),
@@ -214,6 +217,7 @@ WEBDOCK.component().register(function(exports){
     function saveInvoice(){
         console.log(JSON.stringify(bindData.InvoiceToSave));
         //return;
+        
         profileHandler.services.PaymentSave(bindData.InvoiceToSave)
         .then(function(response){
             console.log(JSON.stringify(response));
@@ -221,6 +225,8 @@ WEBDOCK.component().register(function(exports){
             if(response.success){
                 //console
                 bindData.InvoiceToSave=response.result;
+                handler1 = exports.getShellComponent("soss-routes");
+                handler1.appNavigate("../receipt?tid="+bindData.InvoiceToSave.receiptNo);
                 
             }else{
                 alert (response.result.error);

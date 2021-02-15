@@ -249,6 +249,8 @@ WEBDOCK.component().register(function(exports){
                 //console
                 $.notify("invoice Has been generated", "success");
                 bindData.InvoiceToSave=response.result;
+                handler1 = exports.getShellComponent("soss-routes");
+                handler1.appNavigate("../invoice?tid="+bindData.InvoiceToSave.invoiceNo);
                 
             }else{
                 $.notify("Error! Savining Error", "error");

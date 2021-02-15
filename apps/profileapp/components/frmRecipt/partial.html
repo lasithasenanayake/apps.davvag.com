@@ -1,5 +1,9 @@
 <div  class="container" v-show="!invoiceSave">
-    
+  <div class="row">
+    <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+      <strong>ERROR! </strong> {{error}}
+    </div>
+  </div>
     <div class="row clearfix" style="margin-top:20px">
         <div class="pull-left col-md-4">
           <table class="table table-bordered table-hover" id="tab_logic_total">

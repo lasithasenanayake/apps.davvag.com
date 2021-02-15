@@ -1,0 +1,49 @@
+{
+    "components": {
+        "rpt-handler": {
+            "type":"service",
+            "location":"services"
+        }
+        ,
+        "Collection-Report":{
+            "type":"component",
+            "location":"app"
+        }
+    },
+    "description":{
+        "title": "LBC Dashbord",
+        "author":"Lasitha Senanayake",
+        "version":"0.1",
+        "icon":"appicon.png"
+    },
+    "tags":["showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "Collection-Report",
+            "onLoad": ["rpt-handler"],
+            "routes":{
+                "partials":{
+                    "/keyword" : "Collection-Report"
+                }
+            }
+        }
+    },
+    "resources": {
+        "js" : [
+            {
+                "tag": "bootstrap-datetimepicker",
+                "version" : "latest",
+                "location":"assets/bootstrap-datetimepicker.min.js"
+            }
+        ],
+        "css":[
+            {
+                "type":"css",
+                "location":"assets/bootstrap-datetimepicker.min.css"
+            },{
+                "type" : "css",
+                "location" : "assets/broadstyle.css"
+            }
+        ]
+    }
+}

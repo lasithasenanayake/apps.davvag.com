@@ -6,15 +6,19 @@
         </div>
       </div>
     <div id="printcontent" >
+	
     <div class="row">
         <div class="col-xs-12">
     		<div class="invoice-title">
-    			<h2>Invoice</h2><h3 class="pull-right">Invoice # {{ InvoiceToSave.invoiceNo }}</h3>
-    		</div>
+				<img :src="'components/dock/soss-uploader/service/get/profile/'+InvoiceToSave.supplier_profileId" width="100px" class="pull-right" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/><br/>
+				  <h2>Invoice</h2>
+				</div>
+				<hr>
     		<hr>
     		<div class="row">
     			<div class="col-xs-6">
     				<address>
+			<h3>Invoice # {{ InvoiceToSave.invoiceNo }}</h3>
             <strong>Billed To:</strong><br>
             <strong>ID:</strong>{{ InvoiceToSave.profileId }}<br>
     					{{ InvoiceToSave.name }}<br>
@@ -39,20 +43,20 @@
     				<address>
     					<strong>Conatct Details:</strong><br>
     					{{ InvoiceToSave.contactno }}<br>
-              {{ InvoiceToSave.email }}<br>
-              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>
+			  {{ InvoiceToSave.email }}<br>
+			  <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=inv'+InvoiceToSave.invoiceNo+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>
+              
     				</address>
     			</div>
     			<div class="col-xs-6 text-right">
-					
+					 
     				<address>
 						<strong>Conatct Details:</strong><br>
     					{{ InvoiceToSave.supplier_contactno }}<br>
               			{{ InvoiceToSave.supplier_email }}<br>
     					<strong>Order Date:</strong><br>
               {{ InvoiceToSave.invoiceDate }}<br>
-              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=inv'+InvoiceToSave.invoiceNo+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>
-              <br>
+              
     				</address>
     			</div>
     		</div>

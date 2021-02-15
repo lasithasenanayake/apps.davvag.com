@@ -441,16 +441,27 @@ class ProfileService{
 
                     $r = SOSSData::Insert ("profile_attributes", $profile->attributes);
                 }
+                //CacheData::clearObjects("profile");
+                return $profile;
+            }else{
+                $res->SetError ("Profile Didn't get saved");
+                return null;
             }
-            CacheData::clearObjects("profile");
-            return $profile;
+            
         }else{
             $profile->attributes->id=$profile->id;
+            
             $result = SOSSData::Update("profile", $profile);
-            $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
-            $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
-            CacheData::clearObjects("profile");
-            return $profile;
+            if($result->success){
+                $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
+                $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+                CacheData::clearObjects("profile");
+                return $profile;
+            }else{
+                $res->SetError ("Profile Didn't get Update");
+                return null;
+            }
+            
            
         }
         

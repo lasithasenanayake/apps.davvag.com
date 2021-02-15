@@ -1,8 +1,8 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler;
+    var scope,validator_profile,service_handler,sossrout_handler,complete_call;
 
     var bindData = {
-        submitFieldErrors : [],submitErrors : [],submitInfo : [],data:{},valuetype:"",select:{},select_values:[],field:{},fields:[],fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],fieldType:"text"
+        submitFieldErrors : [],submitErrors : [],submitInfo : [],att_info:{},data:{},valuetype:"",select:{},select_values:[],field:{},fields:[],fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],fieldType:"text"
     };
 
     var vueData =  {
@@ -26,7 +26,7 @@ WEBDOCK.component().register(function(exports){
                     return;
                 }
                 newField={"type":bindData.fieldType,"name":f.name,"label":f.label,"valuetype":bindData.valuetype,"req":f.req}
-                if(f.valuetype=='java.lang.String')
+                if(bindData.valuetype=='java.lang.String')
                     newField.maxlen=f.maxlen
                 if(f.choices!=null){
                     newField.choices=f.choices;
@@ -69,8 +69,16 @@ WEBDOCK.component().register(function(exports){
            
         },
         data :bindData,
-        onReady: function(s){
+        onReady: function(s,c){
             scope=s;
+            call_handler=c;
+            complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
+            if(c.data.main_node){
+                bindData.att_info=c.data;
+            }else{
+                bindData.att_info={main_node:"attr",name:"",primarykey:{"name":"id","valuetype":"int","autoIncrement": true}};
+            }
+            
             initialize();
         }
     }
@@ -157,14 +165,15 @@ WEBDOCK.component().register(function(exports){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            service_handler.services.Save(bindData.data).then(function(result){
-                
-                console.log(result);
+            bindData.att_info.atrributeFields=bindData.fields;
+            service_handler.services.Save(bindData.att_info).then(function(result){
                 
                 if(result.success){
-                    scope.submitInfo.push("result.result.message");
+                    if(complete_call){
+                        complete_call(result.result);
+                    }
                 }else{
-                    scope.submitErrors.push("Error");
+                    scope.submitErrors.push("Error Saving");
                 }
                 unlockForm();
             }).error(function(result){
@@ -196,12 +205,7 @@ WEBDOCK.component().register(function(exports){
         var validatorInstance = exports.getShellComponent ("soss-validator");
 
         validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.email",true, "Please enter your full name");
-        validator_profile.map ("data.password",true, "Please enter your contact number");
-        validator_profile.map ("data.contactno","numeric", "Phone number should only consist of numbers");
-        validator_profile.map ("data.contactno","minlength:9", "Phone number should consit of 10 numbers");
-
-        
+        validator_profile.map ("att_info.name",true, "Please enter attribute name");
         
     }
 
