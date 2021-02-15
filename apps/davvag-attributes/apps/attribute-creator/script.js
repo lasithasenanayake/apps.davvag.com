@@ -2,7 +2,7 @@ WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,complete_call;
 
     var bindData = {
-        submitFieldErrors : [],submitErrors : [],submitInfo : [],att_info:{},data:{},valuetype:"",select:{},select_values:[],field:{},fields:[],fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],fieldType:"text"
+        submitFieldErrors : [],submitErrors : [],submitInfo : [],att_info:{},data:{},valuetype:"",primary:false,select:{},select_values:[],field:{},fields:[],fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],fieldType:"text"
     };
 
     var vueData =  {
@@ -25,7 +25,8 @@ WEBDOCK.component().register(function(exports){
                 if(bindData.submitFieldErrors.length>0){
                     return;
                 }
-                newField={"type":bindData.fieldType,"name":f.name,"label":f.label,"valuetype":bindData.valuetype,"req":f.req}
+                newField={"type":bindData.fieldType,"name":f.name,"label":f.label,"valuetype":bindData.valuetype,"req":f.req,
+                "primary":bindData.primary?bindData.primary:false,"autoIncrement":f.autoIncrement?f.autoIncrement:false,"readonly":f.readonly}
                 if(bindData.valuetype=='java.lang.String')
                     newField.maxlen=f.maxlen
                 if(f.choices!=null){
@@ -42,6 +43,8 @@ WEBDOCK.component().register(function(exports){
                 }
                 bindData.fields.push(newField);
                 bindData.field={};
+                bindData.primary=false;
+                
                 createForm(bindData.fields,"sampleForm")
                 $('#modalFieldPopup').modal('toggle');
             },
@@ -65,7 +68,8 @@ WEBDOCK.component().register(function(exports){
             },
             removeValue:function(x){
 
-            }
+            },
+            loadvalue:loadvalue
            
         },
         data :bindData,
@@ -75,11 +79,59 @@ WEBDOCK.component().register(function(exports){
             complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
             if(c.data.main_node){
                 bindData.att_info=c.data;
+                //newField={"type":c.data.fieldType,"name":f.name,"label":f.label,"valuetype":bindData.valuetype,"req":f.req}
             }else{
-                bindData.att_info={main_node:"attr",name:"",primarykey:{"name":"id","valuetype":"int","autoIncrement": true}};
+                bindData.att_info={main_node:"attr",name:""};
             }
             
             initialize();
+        },
+        computed:{
+            isPrimary:function(){
+                switch (bindData.valuetype) {
+                    case "java.lang.String":
+                        if(bindData.field.maxlen<100){
+                            return true;
+                        }else{
+                            bindData.primary=false;
+                            return false;
+                        }
+                        break;
+                        case "int":
+                            return true;
+                            break;
+                        case "float":
+                            return true;
+                            break;
+                        case "java.util.Date":
+                            bindData.primary=false;
+                            return false;
+                            break;
+                    default:
+                        return false;
+                        break;
+                }
+            },
+            autoIncrement:function(){
+                switch (bindData.valuetype) {
+                        case "int":
+                            if(bindData.primary)
+                              return true;
+                            else
+                              return false;
+                            break;
+                        case "float":
+                            if(bindData.primary)
+                                return true;
+                            else
+                               return false;
+                            break;
+                    default:
+                        bindData.field.autoIncrement=false;
+                        return false;
+                        break;
+                }
+            }
         }
     }
 
@@ -89,6 +141,33 @@ WEBDOCK.component().register(function(exports){
             console.log("Service has not Loaded please check.")
         }
         loadValidator();
+        
+    }
+
+    function loadvalue(id) {
+        lockForm();
+        service_handler.services.Atrribute({id:bindData.att_info.main_node +'_'+id.toString()}).then(function(result){
+                
+            if(result.success){
+               if(result.result!=null){
+                   bindData.att_info=result.result;
+                   bindData.fields=bindData.att_info.atrributeFields?bindData.att_info.atrributeFields:[];
+                   createForm(bindData.fields,"sampleForm");
+               }else{
+                    //bindData.att_info=result.result;
+                    bindData.fields=[];
+                    createForm(bindData.fields,"sampleForm");
+               }
+            }else{
+                bindData.fields=[];
+                createForm(bindData.fields,"sampleForm");
+            }
+            unlockForm();
+        }).error(function(result){
+            bindData.fields=[];
+            createForm(bindData.fields,"sampleForm");
+            unlockForm();
+        });
     }
 
     function createForm(arr,id){
@@ -144,7 +223,16 @@ WEBDOCK.component().register(function(exports){
                 default:
                     alert('There was no input type found.');
                     break;
-            }               
+            }
+            $txt=$('<div class="col-sm-3"></div>'); 
+            
+            $txt.append('<button class="btn btn-danger">Delete</button>');
+            if(obj.primary){
+                $txt.append('<label class=" control-label">Primary </label>');
+            }
+            $fieldSet.append($txt);
+            
+
         });
     
         $("#" + id).html($formTmp.html())

@@ -18,6 +18,10 @@
         "methods" : {
             "Save" : {
                 "method" : "POST"
+            },
+            "Atrribute" : {
+                "method" : "GET",
+                "parameters": ["id"]
             }        
         }
     },

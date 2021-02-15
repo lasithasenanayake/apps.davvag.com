@@ -1,0 +1,1 @@
+{"fields":[{"fieldName":"456","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},{"fieldName":"fghfgh","dataType":"java.lang.String","annotations":{"maxLen":"445"}}]}

@@ -12,11 +12,22 @@ class appService {
         if(isset($_GET["id"])){
             $folder_attributes = TENANT_RESOURCE_LOCATION . "/schemas/attributes";
             $file=$_GET["id"];
-            if(file_exists("$folder_attributes/$file.json")){
-                return json_decode(file_get_contents("$folder_attributes/$file.json"));
-            }else{
-                return null;
+            $r=SOSSData::Query("d_attributes","id:$file"); 
+            if($r->success){
+                if(count($r->result)>0){
+                    if(file_exists("$folder_attributes/$file.json")){
+                        $data=new stdClass();
+                        $data->id=$r->result[0]->id;
+                        $data->main_node=$r->result[0]->main_node;
+                        $data->name=$r->result[0]->name;
+                        $data->atrributeFields=json_decode(file_get_contents("$folder_attributes/$file.json"));
+                        return $data;
+                    }else{
+                        return null;
+                    }
+                }
             }
+            
         }
         # code...
     }
@@ -26,6 +37,9 @@ class appService {
         $folder_schemas = TENANT_RESOURCE_LOCATION . "/schemas";
         $file=$data->main_node."_".$data->name;
         $file_date=date("YmdHis");
+        $objData=new stdClass();
+        $data->id=$file;
+        
         $data->schema=$this->ConvertToSchemaFile($data);
         if(file_exists("$folder_attributes/$file.json")){
             if (!file_exists("$folder_attributes/backup"))
@@ -41,6 +55,14 @@ class appService {
         }
         file_put_contents("$folder_attributes/$file.json",json_encode($data->atrributeFields));
         file_put_contents("$folder_schemas/$file.json",json_encode($data->schema));
+        $r=SOSSData::Query("d_attributes","id:$file"); 
+        if($r->success){
+            if(count($r->result)==0){
+                SOSSData::Insert("d_attributes",$data); 
+            }else{
+                SOSSData::Update("d_attributes",$data); 
+            }
+        }
         return $data; 
     }
 
@@ -53,9 +75,10 @@ class appService {
             $field->fieldName=$item->name;
             $field->dataType=$item->valuetype;
             $field->annotations=new stdClass();
-            if(isset($item->primary))$field->annotations->isPrimary=true;
+            if(isset($item->primary) && $item->primary==true)$field->annotations->isPrimary=true;
+            if(isset($item->autoIncrement) && $item->autoIncrement==true)$field->annotations->autoIncrement=true;
             if(isset($item->maxlen))$field->annotations->maxLen=$item->maxlen;
-            if(isset($item->autoIncrement))$field->annotations->autoIncrement=$item->autoIncrement;
+            //if(isset($item->autoIncrement))$field->annotations->autoIncrement=$item->autoIncrement;
             if(isset($item->encoding))$field->annotations->encoding=$item->encoding;
             array_push($schema_Class->fields,$field);
 

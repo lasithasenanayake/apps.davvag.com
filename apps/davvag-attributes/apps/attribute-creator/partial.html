@@ -11,7 +11,7 @@
 </div>
 <div class="form-group">
   <label for="exampleInputEmail1">Attribute Form Name</label>
-  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name">
+  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name" v-on:focusout="loadvalue(att_info.name);">
   <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
 </div>
 <button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
@@ -67,6 +67,7 @@
                     <option value="java.lang.String" >String</option>
                     <option value="int" >Integer</option>
                     <option value="float" >Float / Decimal</option>
+                    <option value="java.util.Date" >Date</option>
                   </select>
                 </div>
                 <div v-if="valuetype=='java.lang.String'" class="col-md-6">
@@ -133,6 +134,18 @@
             <div class="form-group form-check">
               <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="field.req">
               <label class="form-check-label" for="exampleCheck1">Required</label>
+            </div>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="field.readonly">
+              <label class="form-check-label" for="exampleCheck1">Read Only</label>
+            </div>
+            <div v-if="isPrimary" class="form-group form-check">
+              <input type="checkbox" class="form-check-input" true-value="true" false-value="false" v-model="primary">
+              <label class="form-check-label" for="exampleCheck1">Is Primary Key</label>
+            </div>
+            <div v-if="autoIncrement" class="form-group form-check">
+              <input type="checkbox" class="form-check-input" true-value="true" false-value="false" v-model="field.autoIncrement">
+              <label class="form-check-label" for="exampleCheck1">Auto autoIncrement</label>
             </div>
           </div>
           

@@ -1,0 +1,1 @@
+[{"type":"text","name":"45645","label":"456456","valuetype":"java.lang.String","req":"1","primary":"true","autoIncrement":false,"maxlen":"56"},{"type":"select","name":"56756","label":"567567","valuetype":"java.lang.String","primary":false,"autoIncrement":false,"maxlen":"56756","choices":[{"label":"666","sel":"666"},{"label":"666","sel":"6666"}]}]
