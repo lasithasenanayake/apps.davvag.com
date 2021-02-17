@@ -7,6 +7,10 @@
         "app-handler": {
             "type":"service",
             "location":"services"
+        },
+        "attribute-generator":{
+            "type":"service",
+            "location":"services"
         }
     },
     "description":{
@@ -19,7 +23,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "attribute-creator",
-            "onLoad": ["app-handler"],
+            "onLoad": ["app-handler","attribute-generator"],
             "routes":{
                 "partials":{}
             }
