@@ -20,9 +20,7 @@
       </address>
       
       <ul class="social-list">
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('inv',item)">Invoice</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('rpt',item)">Payment</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('change',item)">Change Status</button></li>
+
       </ul>
     </div><!-- col-sm-3 -->
     <div class="col-sm-9">
@@ -35,13 +33,18 @@
         
         <div class="mb20"></div>
         
-        <button class="btn btn-success mr5" v-on:click="navigate(item.id)"><i class="fa fa-user" ></i> Edit</button>
+        
+        <button class="btn btn-success mr5" v-on:click="updateStatus(item,'active')"><i class="fa fa-user" ></i> Active</button>
+        <button class="btn btn-warning mr5" v-on:click="updateStatus(item,'inactive')"><i class="fa fa-exclamation" ></i> Inactive</button>
+        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'hidden')"><i class="fa fa-eraserf" ></i> Hidden</button>
+        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'void')"><i class="fa fa-eraserf" ></i> Void</button>
        <!-- <button class="btn btn-white"><i class="fa fa-envelope-o"></i> Message</button>-->
       </div><!-- profile-header -->
       
       <!-- Nav tabs -->
     <ul class="nav nav-tabs nav-justified nav-profile">
-      <li class="active"><a href="#tran" data-toggle="tab"><strong>Trasaction History</strong></a></li>
+      
+      <li><a href="#tran" data-toggle="tab"><strong>Trasaction History</strong></a></li>
       <li><a href="#events" data-toggle="tab"><strong>Enrolments</strong></a></li>
     </ul>
     

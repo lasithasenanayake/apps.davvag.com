@@ -43,6 +43,9 @@
             },
             "q" : {
                 "method" : "POST"
+            },
+            "ChangeStatus":{
+                "method" : "POST"
             }
         }
     

@@ -432,7 +432,7 @@ class ProfileService{
         {
             $profile->createdate=date_format(new DateTime(), 'm-d-Y H:i:s');
             $profile->userid=$user->userid;
-            $profile->status="tobeactivated";
+            $profile->Status="inactive";
             $result = SOSSData::Insert ("profile", $profile,$tenantId = null);
             if($result->success){
                 $profile->id=$result->result->generatedId;
@@ -534,6 +534,33 @@ class ProfileService{
             
         }
         return $f;
+    }
+
+    public function postChangeStatus($req,$res){
+        $profile = $req->Body(true);
+        if(isset($profile->id)){
+            $result = SOSSData::Query ("profile", urlencode("id:".($profile->id==null?0:$profile->id).""));
+            if($result->success && count($result->result)>0){
+                $tmpStatus=$profile->Status;
+                $profile=$result->result[0];
+                $profile->Status=$tmpStatus;
+                //return $profile;
+                $result = SOSSData::Update("profile", $profile);
+                CacheData::clearObjects("profile");
+                if($result->success){
+                    return $profile;
+                }else{
+                    $res->SetError($result);
+                    return null;
+                }
+            }else{
+                $res->SetError("Invalied Request.");
+                return null;
+            }
+        }else{
+            $res->SetError("Invalied Request.");
+            return null;
+        }
     }
     
 }

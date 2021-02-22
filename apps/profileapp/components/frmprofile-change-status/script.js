@@ -27,7 +27,7 @@ WEBDOCK.component().register(function(exports){
                
                 handler = exports.getShellComponent("soss-routes");
                 if(p!=null){
-                    handler.appNavigate("../"+pagev+"?id=" + p.id);
+                    handler.appNavigate("/"+pagev+"?id=" + p.id);
                     addProfileToTmp(p);
                 }else{
                     handler.appNavigate("/"+pagev);
@@ -43,7 +43,29 @@ WEBDOCK.component().register(function(exports){
                     handler.appNavigate("/"+pagev);
                 }
             },
+            updateStatus:function(p,status){
+                p.Status=status;
+                profileHandler.services.ChangeStatus(p)
+                .then(function(response){
+                    //console.log(JSON.stringify(response));
+                    if(response.success){
+                        bindData.item=response.result;
+                        $.notify("Info! Profile Status Updated", "info");
+                    }else{
+                        $.notify("ERROR! Saving Profile", "error");
+                        //console.log(JSON.stringify(response));
+                        WEBDOCK.freezeUiComponent("soss-routes",false); 
+                        //alert (response.result.error);
+                    }
+                })
+                .error(function(error){
+                    //alert (error.responseJSON.result);
+                    $.notify("ERROR! "+ error.responseJSON.result, "error");
+                    
+                });
+            },
             status:function(status){
+                
                 switch((status?status:'active').toString().toLowerCase()){
                     case "tobeactive":
                         return "primary";
@@ -68,8 +90,8 @@ WEBDOCK.component().register(function(exports){
         },
         filters: {
             currency: function (value) {
-              if (!value) return ''
-              value = value.toString()
+              if (!value) return '-'
+              value = value.toString();
               return parseFloat(value).toFixed(2);
             }
           

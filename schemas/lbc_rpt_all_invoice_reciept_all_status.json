@@ -2,7 +2,7 @@
     "rawquery" : {
         "type":"sql",
         "parameters" : ["page","size"],
-        "query": "SELECT * FROM profile p,profilestatus s where  p.id=s.profileid and s.outstanding>0 and status not in('void','hidden') limit $page,$size;"
+        "query": "SELECT * FROM profile as p LEFT JOIN profilestatus  as s on p.id=s.profileid  limit $page,$size;"
     },
     "fields" : [
         {

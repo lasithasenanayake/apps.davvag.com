@@ -8,12 +8,19 @@
         "Collection-Report":{
             "type":"component",
             "location":"app"
+        },
+        "Profilelist-Report":{
+            "type":"component",
+            "location":"app"
+        },"Profilelist-Report-all":{
+            "type":"component",
+            "location":"app"
         }
     },
     "description":{
         "title": "LBC Dashbord",
         "author":"Lasitha Senanayake",
-        "version":"0.1",
+        "version":"0.5",
         "icon":"appicon.png"
     },
     "tags":["showindock"],
@@ -23,9 +30,15 @@
             "onLoad": ["rpt-handler"],
             "routes":{
                 "partials":{
-                    "/keyword" : "Collection-Report"
+                    "/collection" : "Collection-Report",
+                    "/allprofiles" : "Profilelist-Report",
+                    "/all":"Profilelist-Report-all"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"Outstanding Report","path":"collection"},{"name":"All Profiles","path":"allprofiles"},{"name":"All","path":"all"}
+            ]
         }
     },
     "resources": {

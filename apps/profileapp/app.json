@@ -39,12 +39,16 @@
         },"setting-app":{
             "type":"component",
             "location":"components"
+        },
+        "frmprofile-change-status":{
+            "type":"component",
+            "location":"components"
         }
     },  
     "description":{
         "title": "Profile",
         "author":"Davvag",
-        "version":"0.13",
+        "version":"0.14",
         "icon":""
     },
     "tags":["showindock"],
@@ -60,7 +64,8 @@
                     "/rpt" : "frmRecipt",
                     "/po" : "frmPO",
                     "/receipt" : "frmRecipt-view",
-                    "/invoice":"frmInvoice-view"
+                    "/invoice":"frmInvoice-view",
+                    "/change":"frmprofile-change-status"
                 }
             }
         }

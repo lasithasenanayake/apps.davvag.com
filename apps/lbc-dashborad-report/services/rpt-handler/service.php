@@ -29,6 +29,45 @@ class rptService {
         }
     }
 
+
+    public function getallProfiles($req,$res){
+        if (isset($_GET["page"]) && isset($_GET["size"])){
+            
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->page = $_GET["page"];
+            $mainObj->parameters->size = $_GET["size"];
+           
+
+            $resultObj = SOSSData::ExecuteRaw("lbc_rpt_all_invoice_reciept", $mainObj);
+            return $resultObj->result;
+        } else {
+            
+            $mainObj = new stdClass();
+            $mainObj->error="Invalied Query";
+            return $mainObj;
+        }
+    }
+
+    public function getallProfiles_withoutfilter($req,$res){
+        if (isset($_GET["page"]) && isset($_GET["size"])){
+            
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->page = $_GET["page"];
+            $mainObj->parameters->size = $_GET["size"];
+           
+
+            $resultObj = SOSSData::ExecuteRaw("lbc_rpt_all_invoice_reciept_all_status", $mainObj);
+            return $resultObj->result;
+        } else {
+            
+            $mainObj = new stdClass();
+            $mainObj->error="Invalied Query";
+            return $mainObj;
+        }
+    }
+
     public function getPendingSchedulesBy($req,$res){
         if(isset($_GET["app"]) && isset($_GET["service"]) && isset($_GET["method"])){
             $app=$_GET["app"];

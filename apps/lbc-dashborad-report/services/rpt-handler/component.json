@@ -19,9 +19,13 @@
             "allOutstandingProfiles" : {
                 "method" : "GET",
                 "parameters":["page","size"]
-            },"PendingSchedulesBy":{
+            },
+            "allProfiles" : {
+                "method" : "GET",
+                "parameters":["page","size"]
+            },"allProfiles_withoutfilter":{
                 "method":"GET",
-                "parameters":["app","service","method"]
+                "parameters":["page","size"]
             },
             "DeleteItem":{
                 "method":"POST"
