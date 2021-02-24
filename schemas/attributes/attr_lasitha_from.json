@@ -1,0 +1,1 @@
+[{"type":"text","name":"xmpp","label":"xmpp","valuetype":"int","req":"1","primary":"true","autoIncrement":"true","readonly":"1"},{"type":"select","name":"asadasd","label":"sdsds","valuetype":"java.lang.String","req":"1","primary":false,"autoIncrement":false,"readonly":"1","choices":[{"label":"234123","sel":"234234"}]}]

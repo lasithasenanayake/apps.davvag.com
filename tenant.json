@@ -101,7 +101,7 @@
         "davvag-orders":{
             "version":"latest"
         },
-        "davvag-global":{
+        "davvag-sample-app-1":{
             "version":"latest"
         }
     },

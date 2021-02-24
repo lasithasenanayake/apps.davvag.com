@@ -1,0 +1,1 @@
+{"fields":[{"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":"500"}},{"fieldName":"keyform","dataType":"java.lang.String","annotations":{"isPrimary":true,"maxLen":"40"}}]}

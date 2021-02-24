@@ -29,27 +29,6 @@ WEBDOCK.component().register(function(exports){
                 }else{
                     handler.appNavigate("/"+pagev);
                 }
-            },status:function(status){
-                switch((status?status:'active').toString().toLowerCase()){
-                    case "tobeactive":
-                        return "primary";
-                    break;
-                    case "tobeactivated":
-                        return "pramary";
-                        break;
-                    case "inactive":
-                        return "warning";
-                    break;
-                    case "void":
-                        return "danger";
-                    break;
-                    case "active":
-                        return "success";
-                    break;
-                    default:
-                        return "warning";
-                    break;
-                }
             }
         }
     }

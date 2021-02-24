@@ -11,6 +11,14 @@
         "test-form":{
             "type":"component",
             "location":"apps"
+        },
+        "profile":{
+            "type":"service",
+            "location":"service"
+        },
+        "frmprofile-list":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -23,10 +31,10 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "sample-input-form",
-            "onLoad": ["app-handler"],
+            "onLoad": ["frmprofile-list"],
             "routes":{
                 "partials":{
-                    "/test":"test-form"
+                    "/profile":"frmprofile-view"
                 }
             }
         }

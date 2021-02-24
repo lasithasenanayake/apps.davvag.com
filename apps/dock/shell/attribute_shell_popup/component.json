@@ -1,6 +1,6 @@
 {
-    "name" : "soss-uploader",
-    "description":"Vue.JS Plugin for Soss Router",
+    "name" : "dynamic-attributes",
+    "description":"WEBDOCK Router",
     "author":"Supun Dissanayake",
     "version" : "0.1",
     "gitUrl" : "",
@@ -14,20 +14,15 @@
     },
     "serviceHandler" : {
         "file": "service.php",
-        "class": "UploaderService",
+        "class": "appService",
         "methods" : {
-            "get" : {
-                "method" : "GET",
-                "route":"/get/@ns/@name"
+            "Save" : {
+                "method" : "POST"
             },
-            "upload" : {
+            "uploadFile" : {
                 "method" : "POST",
                 "route":"/upload/@ns/@name"
-            },
-            "upload_uncompressed" : {
-                "method" : "POST",
-                "route":"/upload_uncompressed/@ns/@name"
             }
         }
-    }    
+    }
 }

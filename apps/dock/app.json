@@ -81,6 +81,12 @@
         },"bible":{
             "type":"component",
             "location":"components"
+        },"attribute_shell":{
+            "type":"shell",
+            "location":"shell"
+        },"attribute_shell_popup":{
+            "type":"shell",
+            "location":"shell"
         }
     },
     "description":{
@@ -92,7 +98,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "product",
-            "onLoad": ["dependencies","login-handler", "soss-routes","dynamic-attributes","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
+            "onLoad": ["attribute_shell","attribute_shell_popup","dependencies","login-handler", "soss-routes","dynamic-attributes","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
             "firewall" : {
                 "guest" : [],
                 "admin": []

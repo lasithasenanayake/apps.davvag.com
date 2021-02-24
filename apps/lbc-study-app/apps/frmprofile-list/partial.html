@@ -46,7 +46,6 @@
               <h4 class="person-name" v-on:click="navigate('view',profile)">{{ profile.name }}</h4>
               <div class="text-muted"><i class="fa fa-map-marker"></i> {{ profile.city }}, {{ profile.country }}</div>
               <div class="text-muted"><i class="fa fa-briefcase"></i> {{ profile.organization }}</div>
-              <div class="profile-position"><i class="fa fa-star"></i>  <span :class="'label label-'+status(profile.Status)"> {{ profile.Status }}</span></div>
               <ul class="social-list">
                 <li><button class="btn btn-default btn-xs" v-on:click="navigate('view',profile)">View</button></li>
                 <li><button class="btn btn-default btn-xs" v-on:click="navigate('edit',profile)">Edit</button></li>

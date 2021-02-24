@@ -171,11 +171,11 @@ WEBDOCK.component().register(function(exports){
     }
 
     function createForm(arr,id){
-        var $formTmp = $('<form class="form-horizontal form-bordered"></form>');
+        var $formTmp = $('<form id="'+bindData.id+'" class="form-horizontal form-bordered"></form>');
     
         arr.forEach( function(obj, idx) {
             var $fieldSet,
-                $selctOpts = $('<select class="form-control" name="" id="'+obj.name+'"></select>'),
+                $selctOpts = $('<select class="form-control" name="" id="'+obj.name+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+'></select>'),
                 inputType = obj.type; 
                 
             switch (inputType){
@@ -183,11 +183,9 @@ WEBDOCK.component().register(function(exports){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-6"></div>');
-                    if ( obj.req === 1) {
-                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'" required>');
-                    } else {
-                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'">');
-                    }
+                    
+                    $txt.append('<input class="form-control" type="text" id="'+obj.name+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+'>');
+                    
                     $fieldSet.append($txt); 
                     $formTmp.append($fieldSet);
                     break;
@@ -195,7 +193,7 @@ WEBDOCK.component().register(function(exports){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-6"></div>');
-                    $txt.append('<textarea class="form-control" rows="4" cols="50" id="'+obj.name+'"></textarea>');
+                    $txt.append('<textarea class="form-control" rows="4" cols="50" id="'+obj.name+' '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+'"></textarea>');
                     $fieldSet.append($txt); 
                     $formTmp.append($fieldSet);
                     break;
@@ -226,7 +224,7 @@ WEBDOCK.component().register(function(exports){
             }
             $txt=$('<div class="col-sm-3"></div>'); 
             
-            $txt.append('<button class="btn btn-danger">Delete</button>');
+            $txt.append('<button class="btn btn-danger" onclick="removexdr001('+idx.toString()+')">Delete</button>');
             if(obj.primary){
                 $txt.append('<label class=" control-label">Primary </label>');
             }
@@ -234,7 +232,7 @@ WEBDOCK.component().register(function(exports){
             
 
         });
-    
+        
         $("#" + id).html($formTmp.html())
            
         // Loop for the select options.
@@ -245,6 +243,17 @@ WEBDOCK.component().register(function(exports){
         }
     }
 
+    window.removexdr001=function(id){
+        //const index = bindData.fields.indexOf(id);
+        if(!(bindData.fields[id].syskey?bindData.fields[id].syskey:false)){
+            if (id > -1) {
+                bindData.fields.splice(id, 1);
+            }
+        }
+        createForm(bindData.fields,"sampleForm");
+       
+    }
+    
     function submit(){
         lockForm();
         scope.submitErrors = [];

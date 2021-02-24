@@ -1,0 +1,1 @@
+{"fields":[{"fieldName":"admin","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},{"fieldName":"name","dataType":"java.lang.String","annotations":{"maxLen":"150"}},{"fieldName":"address","dataType":"java.lang.String","annotations":{"maxLen":"255"}}]}

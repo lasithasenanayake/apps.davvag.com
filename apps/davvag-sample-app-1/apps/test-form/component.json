@@ -1,8 +1,8 @@
 {
-    "name" : "frmprofile-list",
-    "description":"",
-    "author":"Laistha Senanayake",
-    "version" : "0.2",
+    "name" : "Sample Input Form",
+    "description":"Vue.JS Plugin for Soss Router",
+    "author":"Lasitha Dissanayake",
+    "version" : "0.1",
     "gitUrl" : "",
     "resources": {
         "files":[
@@ -13,6 +13,11 @@
             {
                 "type" : "mainView",
                 "location" : "partial.html"
+            }
+        ],"css":[
+            {
+                "type":"css",
+                "location":"sample-input-form.css"
             }
         ]
     }

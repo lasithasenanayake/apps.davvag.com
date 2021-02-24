@@ -1,6 +1,6 @@
 WEBDOCK.component().register(function(exports){
     var bindData = {
-        item:{catogory:"Student",id:0,title:"Mr",name:"Lasitha",gender:"m",organization:"Christ Gospel",email:"lasitha@gmail.com",contactno:"sss",addresss:"ssss",country:"sssss",city:"dddddddd"},
+        item:{catogory:"Student",id:0,title:"",name:"Loading ....",gender:"m",organization:"",email:"",contactno:"",addresss:"",country:"",city:""},
         submitErrors: undefined,
         SearchItem:"",
         items:[],

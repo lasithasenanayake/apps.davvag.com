@@ -1,0 +1,1 @@
+[{"type":"textarea","name":"description","label":"Decription","valuetype":"java.lang.String","req":"1","primary":false,"autoIncrement":false,"maxlen":"500"},{"type":"textarea","name":"keyform","label":"key","valuetype":"java.lang.String","req":"1","primary":"true","autoIncrement":false,"readonly":"1","maxlen":"40"}]
