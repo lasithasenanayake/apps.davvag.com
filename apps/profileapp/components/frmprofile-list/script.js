@@ -128,7 +128,8 @@ WEBDOCK.component().register(function(exports){
                             image:"components/dock/soss-uploader/service/get/profile/"+element.id,
                             email:element.email,
                             contactno:element.contactno,
-                            organization:element.organization
+                            organization:element.organization,
+                            Status:element.Status
                         })
                     });
                     
