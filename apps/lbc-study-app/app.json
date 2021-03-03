@@ -8,7 +8,7 @@
             "type":"service",
             "location":"service"
         },
-        "test-form":{
+        "Setting-form":{
             "type":"component",
             "location":"apps"
         },
@@ -19,11 +19,23 @@
         "frmprofile-list":{
             "type":"component",
             "location":"apps"
+        },
+        "frmprofile-view":{
+            "type":"component",
+            "location":"apps"
+        },
+        "course_creation":{
+            "type":"component",
+            "location":"apps"
+        },
+        "subject_creation":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
-        "title": "Sampe App",
-        "author":"Davvag",
+        "title": "LBC Study APP",
+        "author":"Lasitha Senanayake",
         "version":"0.1",
         "icon":"appicon.png"
     },
@@ -31,12 +43,20 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "sample-input-form",
-            "onLoad": ["frmprofile-list"],
+            "onLoad": ["profile"],
             "routes":{
                 "partials":{
-                    "/profile":"frmprofile-view"
+                    "/view":"frmprofile-view",
+                    "/serach":"frmprofile-list",
+                    "/course_creation":"course_creation",
+                    "/subject_creation":"subject_creation",
+                    "/settings":"Setting-form"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"Profile Search","path":"serach"},{"name":"Course","path":"course_creation"},{"name":"Settings","path":"settings"}
+            ]
         }
     }
 }

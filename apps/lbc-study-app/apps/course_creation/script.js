@@ -1,8 +1,8 @@
 WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,attribute;
-
+    var course="attr_course_creation";
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{}
+        submitErrors : [],submitInfo : [],data:{},active:1
     };
 
     var vueData =  {
@@ -19,11 +19,11 @@ WEBDOCK.component().register(function(exports){
             },
             popup:function(){
                 att_popup=exports.getShellComponent("attribute_shell_popup");
-                att_popup.open("attr_lasitha_form",{admin:"0"},function(data){
+                att_popup.open(course,{},function(data){
                     renderDrid(); 
-
                 });
-            }
+            },
+            redrawGrid:renderDrid
            
         },
         data :bindData,
@@ -48,16 +48,21 @@ WEBDOCK.component().register(function(exports){
 
     function renderDrid() {
         lockForm(); 
-        attribute.renderGrid("attr_lasitha_form","sampleform",[{type:"data",name:"admin",displayname:"ID",style:""},
-        {type:"data",name:"name",displayname:"yo man"},
-        {type:"button",name:"openalert",fn:"function",caption:"Execute Command",displayname:"Edit",function:function(e){
+        attribute.renderGrid(course,"form-course",[{type:"data",name:"code",displayname:"Code",attributes:[]},
+        {type:"data",name:"name",displayname:"Name"},
+        {type:"button",name:"edit",fn:"function",caption:"Edit",displayname:"Edit",function:function(e){
             item=e.data;
             att_popup=exports.getShellComponent("attribute_shell_popup");
             att_popup.open(e.id,item,function(_d){
                 console.log(_d);
             });
-        }}],
-        "",function(i){
+        },attributes:[{width:"100px"}]},
+        {type:"button",name:"Subjects",fn:"function",caption:"Subcjects",displayname:"Subcjects",function:function(e){
+            item=e.data;
+            window.location="#/app/lbc-study-app/subject_creation?code="+item.code;
+            
+        },attributes:[{width:"100px"}]}],
+        "status:"+bindData.active.toString(),function(i){
             
             
         });

@@ -10,6 +10,19 @@
                 "type" : "mainScript",
                 "location" : "script.js"
             }
+        ],
+        "js" : [
+            {
+                "tag": "bootstrap-datetimepicker",
+                "version" : "latest",
+                "location":"bootstrap-datepicker.js"
+            }
+        ],
+        "css":[
+            {
+                "type":"css",
+                "location":"datepicker.css"
+            }
         ]
     },
     "serviceHandler" : {

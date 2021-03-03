@@ -103,6 +103,9 @@
         },
         "davvag-sample-app-1":{
             "version":"latest"
+        },
+        "lbc-study-app":{
+            "version":"latest"
         }
     },
     "webdock":{

@@ -1,0 +1,19 @@
+<div class="content">
+  <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Subject Creation for {{ courseData.name }}</h1>
+  <hr>
+  
+  <div class="form-group form-check">
+    <button class="btn btn-success" v-on:click="goback">Back</button>
+    <button class="btn btn-success" v-on:click="popup">New</button>
+    <input type="checkbox" true-value="1" false-value="0" value="1" v-model="active">
+    <label class="form-check-label" for="exampleCheck1">Active</label>
+    <button class="btn btn-info" v-on:click="redrawGrid">Filter</button>
+  </div>
+  
+  <hr>
+  <div id="form-course">
+    Loading Data....
+  </div>  
+</div>
+
+

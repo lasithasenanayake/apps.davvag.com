@@ -25,22 +25,15 @@ WEBDOCK.component().register(function(exports){
                 if(bindData.submitFieldErrors.length>0){
                     return;
                 }
-                newField={"type":bindData.fieldType,"name":f.name,"label":f.label,"valuetype":bindData.valuetype,"req":f.req,
-                "primary":bindData.primary?bindData.primary:false,"autoIncrement":f.autoIncrement?f.autoIncrement:false,"readonly":f.readonly}
+                newField={"type":bindData.fieldType,"valuetype":bindData.valuetype,"primary":bindData.primary?bindData.primary:false};
+                for(var pname in bindData.field){
+                    newField[pname]=bindData.field[pname];
+                }
+                //,"name":f.name,"label":f.label,e,"req":f.req,
+                //s,"autoIncrement":f.autoIncrement?f.autoIncrement:false,"readonly":f.readonly}
                 if(bindData.valuetype=='java.lang.String')
                     newField.maxlen=f.maxlen
-                if(f.choices!=null){
-                    newField.choices=f.choices;
-                    bindData.select_values=[];
-                }
-
-                if(f.truevalue){
-                    newField.truevalue=f.truevalue;
-                }
-
-                if(f.falsevalue){
-                    newField.falsevalue=f.falsevalue;
-                }
+                
                 bindData.fields.push(newField);
                 bindData.field={};
                 bindData.primary=false;

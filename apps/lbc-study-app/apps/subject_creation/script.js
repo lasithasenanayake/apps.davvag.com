@@ -1,8 +1,8 @@
 WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,attribute;
-
+    var course="attr_subject_creation";
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{}
+        submitErrors : [],submitInfo : [],data:{},active:1,courseData:{}
     };
 
     var vueData =  {
@@ -10,7 +10,6 @@ WEBDOCK.component().register(function(exports){
             submit:submit,
             load:function(){
                 bindData.data=attribute.get_data();
-                
                 attribute.services.Save(bindData.data).then(function(r){
                     console.log(JSON.stringify(r));
                 }).error(function(e){
@@ -19,23 +18,45 @@ WEBDOCK.component().register(function(exports){
             },
             popup:function(){
                 att_popup=exports.getShellComponent("attribute_shell_popup");
-                att_popup.open("attr_lasitha_form",{admin:"0"},function(data){
+                att_popup.open(course,{course_code:bindData.courseData.code,course_name:bindData.courseData.name},function(data){
                     renderDrid(); 
-
                 });
-            }
+            },
+            goback:function(){
+                window.location="#/app/lbc-study-app/course_creation"
+            },
+            redrawGrid:renderDrid
            
         },
         data :bindData,
         onReady: function(s){
+            sossrout_handler=exports.getShellComponent("soss-routes");
+            r=sossrout_handler.getInputData();
             scope=s;
-            initialize();
+            if(r.code){
+                console.log(r.code);
+                rQuery=[];
+                rQuery.push({storename:"attr_course_creation",search:"code:"+r.code});
+                menuhandler=exports.getShellComponent("soss-data");
+                menuhandler.services.q(rQuery)
+                .then(function(r){
+                    if(r.success && r.result["attr_course_creation"].length>0){
+                        bindData.courseData=r.result["attr_course_creation"][0];
+                        initialize();
+                    } 
+                })
+                .error(function(error){
+                        cbErr(error.responseJSON);
+                });
+                
+            }
         }
     }
 
     
 
     function initialize(){
+        
         service_handler = exports.getComponent("app-handler");
         if(!service_handler){
             console.log("Service has not Loaded please check.")
@@ -48,16 +69,16 @@ WEBDOCK.component().register(function(exports){
 
     function renderDrid() {
         lockForm(); 
-        attribute.renderGrid("attr_lasitha_form","sampleform",[{type:"data",name:"admin",displayname:"ID",style:""},
-        {type:"data",name:"name",displayname:"yo man"},
-        {type:"button",name:"openalert",fn:"function",caption:"Execute Command",displayname:"Edit",function:function(e){
+        attribute.renderGrid(course,"form-course",[{type:"data",name:"code",displayname:"Code",attributes:[]},
+        {type:"data",name:"name",displayname:"Name"},
+        {type:"button",name:"edit",fn:"function",caption:"Edit",displayname:"Edit",function:function(e){
             item=e.data;
             att_popup=exports.getShellComponent("attribute_shell_popup");
             att_popup.open(e.id,item,function(_d){
                 console.log(_d);
             });
         }}],
-        "",function(i){
+        "status:"+bindData.active.toString()+",course_code:"+bindData.courseData.code,function(i){
             
             
         });
