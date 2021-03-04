@@ -1,6 +1,6 @@
 WEBDOCK.component().register(function(exports){
     var bindData = {
-        item:{catogory:"Student",id:0,title:"Mr",name:"Lasitha",gender:"m",organization:"Christ Gospel",email:"lasitha@gmail.com",contactno:"sss",addresss:"ssss",country:"sssss",city:"dddddddd"},
+        item:{catogory:"Student",id:0,title:"",name:"",gender:"",organization:"",email:"",contactno:"",addresss:"",country:"",city:"dddddddd"},
         submitErrors: undefined,
         SearchItem:"",
         items:[],
@@ -8,7 +8,9 @@ WEBDOCK.component().register(function(exports){
         Transaction:[],
         Summary:{},
         showSearch:false,
-        image:''
+        image:'',
+        ActiveEnrolments:[],
+        EnrolmentHistory:[]
     };
 
     var vueData = {
@@ -28,7 +30,7 @@ WEBDOCK.component().register(function(exports){
                 handler = exports.getShellComponent("soss-routes");
                 if(p!=null){
                     handler.appNavigate("../"+pagev+"?id=" + p.id);
-                    addProfileToTmp(p);
+                    //addProfileToTmp(p);
                 }else{
                     handler.appNavigate("/"+pagev);
                 }
@@ -116,18 +118,14 @@ WEBDOCK.component().register(function(exports){
                     bindData.item=response.result[0];
                     bindData.image = 'components/dock/soss-uploader/service/get/profile/'+bindData.item.id;
                     
-                    var query=[{storename:"profilestatus",search:"profileid:"+id},
-                                {storename:"ledger","search":"profileid:"+id},
-                                {storename:"profileservices","search":"profileid:"+id}];
+                    var query=[{storename:"lbc_course_entrolments_active",search:"profileid:"+id},
+                                {storename:"lbc_course_entrolments_history","search":"profileid:"+id}];
                     profileHandler.services.q(query)
                     .then(function(r){
                         console.log(JSON.stringify(r));
                         if(r.success){
-                            bindData.Transaction=r.result.ledger;
-                            if(r.result.profilestatus.length!=0){
-                                bindData.Summary=r.result.profilestatus[0];
-                            }
-                            bindData.items=r.result.profileservices;
+                            bindData.ActiveEnrolments=r.result.lbc_course_entrolments_active;
+                            bindData.EnrolmentHistory=r.result.lbc_course_entrolments_history;
                         }
                     })
                     .error(function(error){

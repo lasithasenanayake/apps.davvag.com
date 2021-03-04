@@ -18,7 +18,18 @@
         "methods" : {
             "Save" : {
                 "method" : "POST"
-            }        
+            },
+            "SaveEntrol":{
+                "method" : "POST"
+            },
+            "Courses":{
+                "method":"GET",
+                "parameters":["id"]
+            },
+            "Subjects":{
+                "method":"GET",
+                "parameters":["id"]
+            }    
         }
     },
     "transformers": {

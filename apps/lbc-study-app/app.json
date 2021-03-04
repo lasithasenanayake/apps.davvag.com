@@ -31,6 +31,9 @@
         "subject_creation":{
             "type":"component",
             "location":"apps"
+        },"enrol-course":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -43,14 +46,15 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "sample-input-form",
-            "onLoad": ["profile"],
+            "onLoad": ["profile","app-handler"],
             "routes":{
                 "partials":{
                     "/view":"frmprofile-view",
                     "/serach":"frmprofile-list",
                     "/course_creation":"course_creation",
                     "/subject_creation":"subject_creation",
-                    "/settings":"Setting-form"
+                    "/settings":"Setting-form",
+                    "/enrol":"enrol-course"
                 }
             }
         },"dock":{

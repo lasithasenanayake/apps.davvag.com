@@ -1,0 +1,40 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"courseCode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"courseName",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"enrolDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"status",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        }        
+    ]
+}

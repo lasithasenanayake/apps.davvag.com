@@ -20,9 +20,8 @@
       </address>
       
       <ul class="social-list">
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('inv',item)">Invoice</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('rpt',item)">Payment</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('change',item)">Change Status</button></li>
+        <li><button class="btn btn-warning btn-xs" v-on:click="navigatebutton('enrol',item)">Enrol Course</button></li>
+        
       </ul>
     </div><!-- col-sm-3 -->
     <div class="col-sm-9">
@@ -49,33 +48,31 @@
     <div class="tab-content">
       
       <div class="tab-pane active" id="tran">
-        <table class="table mb30">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>#</th>
-              <th>Date</th>
-              <th>Amout</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="t in Transaction">
-              <td>{{ t.trantype }}</td>
-              <td>{{ t.tranid }}</td>
-              <td>{{ t.tranDate }}</td>
-              <td>{{ t.amount | currency }}</td>
-              <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>{{ Summary.outstanding | currency }}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
+        <h3>Active Courses</h3>
+        <hr/> 
+        <div id="accordion">
+          <div class="card" v-for="enItem in ActiveEnrolments">
+            <div class="card-header" id="headingOne">
+              <h5 class="mb-0">
+                <button class="btn btn-link" data-toggle="collapse" :data-target="'#'+enItem.courseCode" aria-expanded="true" aria-controls="collapseOne">
+                  {{ enItem.courseCode }} - {{ enItem.courseName }} | <b>Status:</b> <span :class="'label label-'+status(enItem.status)"> {{ enItem.status }}</span>
+                </button>
+              </h5>
+              
+            </div>
+        
+            <div :id="enItem.courseCode" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+              <div class="card-body">
+                <button class="btn btn-success"> Enrol Subject </button>
+                <div :id="'grid_'+enItem.courseCode"></div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        <hr/>
+        <h3>Finished Courses</h3>
+        <hr/> 
       </div>
       <div class="tab-pane" id="events">
         <div class="events">

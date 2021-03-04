@@ -25,6 +25,13 @@ class ProfileService{
         }
     }
 
+    public function getActiveEnrolments($req,$res){
+        if($_GET["id"]){
+            $r = SOSSData::Query("lbc_course_entrolments","profileId:".$_GET["id"]);
+            return $r->result;
+        }
+    }
+
     public function getByID($req){
         $s  =null;
         $search=null;
