@@ -78,7 +78,13 @@ WEBDOCK.component().register(function(exports){
                         if(header){
                             tableheader.append('<th'+str_attribute+'>'+el.displayname+"</th>");
                         }
-                        row.append('<td'+str_attribute+'>'+element[el.name]+"</td>");
+                        if(el.function){
+                            s=el.function(element);
+                            row.append('<td'+str_attribute+'>'+s+"</td>");
+                        }else{
+                            row.append('<td'+str_attribute+'>'+element[el.name]+"</td>");
+                        }
+                        
                         break;
                     case "button":
                         if(header){
@@ -126,7 +132,7 @@ WEBDOCK.component().register(function(exports){
                 return "number";
             break;
             case "java.util.Date":
-                return "text";
+                return "date";
                 break;
             default:
                 return "text"
@@ -137,14 +143,41 @@ WEBDOCK.component().register(function(exports){
 
     function getGenrateDateTime(){
         //$.fn.datepicker.defaults.format = "mm-dd-yyyy";
-        
+        /*
         for (let index = 0; index < dataTimeInputs.length; index++) {
             const element = dataTimeInputs[index];
             $("#"+element).datepicker();
             
-        }
+        }*/
     }
 
+    function SetValue(val,t){
+        switch (t) {
+            case "int":
+                return  parseInt((val?val:0)).toString();
+                break;
+            case "java.lang.String":
+                return (val?val:"");
+                break;
+            case "float":
+                return parseFloat((val?val:0)).toString();
+            break;
+            case "java.util.Date":
+                if(val){
+                    s=val.split("-");
+                    year =s[2].split(" ");
+                    return year[0]+"-"+s[0]+"-"+s[1];
+                }else{
+                    const d = new Date();
+                    return d.getFullYear()+"-"+(d.getMonth()+1).toString()+"-"+d.getDate();
+                }
+                
+                break;
+            default:
+                return "text"
+                break;
+        }
+    }
     function createForm(arr,id){
         var $formTmp = $('<form id="'+id+'_form" class="form-horizontal form-bordered"></form>');
         primaryData=[];
@@ -159,7 +192,7 @@ WEBDOCK.component().register(function(exports){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-9"></div>');
-                    
+                    /*
                     if(obj.valuetype=="java.util.Date"){
                         dataTimeInputs.push(elementID);
                         date_time=$('<div id="'+elementID+'" class="input-append date"></div>');
@@ -167,10 +200,10 @@ WEBDOCK.component().register(function(exports){
                         //date_time.append('<input type="'+getInputType(obj.valuetype)+'"  size="16" data-format="dd/MM/yyyy hh:mm:ss"  '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+(data[obj.name]?data[obj.name]:'')+'" />');
                         date_time.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
                         $txt.append(date_time);
-                    }else{
-                        $txt.append('<input class="form-control" type="'+getInputType(obj.valuetype)+'" id="'+elementID+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+(data[obj.name]?data[obj.name]:'')+'" />');
+                    }else{*/
+                        $txt.append('<input class="form-control" type="'+getInputType(obj.valuetype)+'" id="'+elementID+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+SetValue(data[obj.name],obj.valuetype)+'" />');
 
-                    }
+                    //}
                     $fieldSet.append($txt); 
                     $formTmp.append($fieldSet);
                     break;
@@ -244,6 +277,15 @@ WEBDOCK.component().register(function(exports){
                         data[element.name]=element.falsevalue;
                     }
                     break
+                case "text":
+                    if(element.valuetype=="java.util.Date"){
+                        s=$("#"+attrivuteID+"_"+element.name).val();
+                        d=new Date($("#"+attrivuteID+"_"+element.name).val());
+                        data[element.name]=(d.getMonth()+1)+"-"+d.getDate()+"-"+d.getFullYear()+" "+d.getHours()+":"+d.getHours()+":"+d.getSeconds();
+                    }else{
+                        data[element.name]=$("#"+attrivuteID+"_"+element.name).val();
+                    }
+                    break;
                 default:
                     data[element.name]=$("#"+attrivuteID+"_"+element.name).val()
                     break;

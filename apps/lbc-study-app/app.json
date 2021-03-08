@@ -34,6 +34,10 @@
         },"enrol-course":{
             "type":"component",
             "location":"apps"
+        },
+        "enrol-subject":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -54,7 +58,8 @@
                     "/course_creation":"course_creation",
                     "/subject_creation":"subject_creation",
                     "/settings":"Setting-form",
-                    "/enrol":"enrol-course"
+                    "/enrol":"enrol-course",
+                    "/enrol_subject":"enrol-subject"
                 }
             }
         },"dock":{

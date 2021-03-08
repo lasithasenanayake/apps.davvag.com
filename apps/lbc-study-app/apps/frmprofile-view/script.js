@@ -20,6 +20,7 @@ WEBDOCK.component().register(function(exports){
         data:bindData,
         methods: {
             getProfilebyID:getProfilebyID,
+            showTab:renderDrid,
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");
                 handler.appNavigate("../edit?id=" + id);
@@ -87,11 +88,50 @@ WEBDOCK.component().register(function(exports){
     var profileHandler;
     var uploaderInstance;
     var pInstance;
-
+    var attribute;
+    function renderDrid(code,id) {
+        //lockForm(); 
+        if($("#"+code).hasClass("collapse")){
+            //$("#"+code).removeClass("collapse");
+            //$("#"+code).addClass("show");
+            attribute.renderGrid("attr_lbc_entrollments","grid_"+code,[{type:"data",name:"subject_code",displayname:"Code",attributes:[]},
+            {type:"data",name:"subject_name",displayname:"Name"},{type:"data",displayname:"Result",function:function(e){
+                //item=e.data;
+                if(e.result>0 && e.result<=45){
+                    return "F";
+                }else if (e.result>45 && e.result<=50){
+                    return "S";
+                }else if (e.result>50 && e.result<=60){
+                    return "X";
+                }else if (e.result>60 && e.result<=75){
+                    return "P";
+                }
+                return "Not Graded Yet";
+            }},
+            {type:""},
+            {type:"button",name:"edit",fn:"function",caption:"Edit",displayname:"",function:function(e){
+                item=e.data;
+                att_popup=exports.getShellComponent("attribute_shell_popup");
+                att_popup.open(e.id,item,function(_d){
+                    console.log(_d);
+                });
+            }}],
+            "id:"+id,function(i){
+                
+                
+            });
+        }else{
+            //$("#"+code).removeClass("show");
+            //$("#"+code).addClass("collapse");
+        }
+        
+    }
+    
     function initializeComponent(){
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-routes");
         uploaderInstance = exports.getComponent ("soss-uploader");
+        attribute=exports.getShellComponent("attribute_shell");
         routeData = pInstance.getInputData();
         if(routeData!=null){
             getProfilebyID(routeData.id)

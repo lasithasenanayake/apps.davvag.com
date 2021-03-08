@@ -9,7 +9,7 @@
       <strong>INFO! </strong> {{error}}
     </div>
 </div>
-<form id="form-details">
+
   <div class="form-group">
     <label for="exampleInputEmail1">Course</label>
     <select class="form-control" v-model="data.course">
@@ -24,6 +24,5 @@
   </div>
   
   <button  class="btn btn-warning btn-block" v-on:click="submit">Enrol</button>
-  <button  class="btn btn-success btn-block" v-on:click="submit">Cancel</button>
-</form>
+  <button  class="btn btn-success btn-block" v-on:click="cancel">Cancel</button>
 </div>

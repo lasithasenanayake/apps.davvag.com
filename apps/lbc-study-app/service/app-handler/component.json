@@ -22,6 +22,9 @@
             "SaveEntrol":{
                 "method" : "POST"
             },
+            "SaveEntrolSubjects":{
+                "method" : "POST"
+            },
             "Courses":{
                 "method":"GET",
                 "parameters":["id"]

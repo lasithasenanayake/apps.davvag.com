@@ -7,7 +7,10 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
         methods:{
-            submit:submit
+            submit:submit,
+            cancel:function(){
+                window.location="#/app/lbc-study-app/view?id="+bindData.data.profileId.toString();
+            }
            
         },
         data :bindData,
@@ -26,7 +29,7 @@ WEBDOCK.component().register(function(exports){
             routData=sossrout_handler.getInputData();
             id=(routData.id?routData.id:(externdata.id?externdata.id:0));
             if(routData.id){
-                service_handler.services.Courses({id:id.toString()}).then(function(r){
+                service_handler.services.Subjects({id:id.toString()}).then(function(r){
                     if(r.success){
                         bindData.data=r.result;
                         bindData.subjects=r.result.subjects;
@@ -47,6 +50,9 @@ WEBDOCK.component().register(function(exports){
         loadValidator();
     }
 
+
+    
+
     function submit(){
         lockForm();
         scope.submitErrors = [];
@@ -55,7 +61,7 @@ WEBDOCK.component().register(function(exports){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            service_handler.services.SaveEntrol(bindData.data).then(function(result){
+            service_handler.services.SaveEntrolSubjects(bindData.data).then(function(result){
                 
                 console.log(result);
                 
@@ -96,7 +102,7 @@ WEBDOCK.component().register(function(exports){
         var validatorInstance = exports.getShellComponent ("soss-validator");
 
         validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.course.code",true, "Please Select the Course");
+        validator_profile.map ("data.subject.code",true, "Please Select the Course");
     }
 
     exports.vue = vueData;

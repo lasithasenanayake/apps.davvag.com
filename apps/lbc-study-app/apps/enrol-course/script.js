@@ -7,7 +7,10 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
         methods:{
-            submit:submit
+            submit:submit,
+            cancel:function(){
+                window.location="#/app/lbc-study-app/view?id="+bindData.data.id.toString();
+            }
            
         },
         data :bindData,

@@ -54,7 +54,7 @@
           <div class="card" v-for="enItem in ActiveEnrolments">
             <div class="card-header" id="headingOne">
               <h5 class="mb-0">
-                <button class="btn btn-link" data-toggle="collapse" :data-target="'#'+enItem.courseCode" aria-expanded="true" aria-controls="collapseOne">
+                <button class="btn btn-link" data-toggle="collapse" :data-target="'#'+enItem.courseCode" aria-expanded="true" aria-controls="collapseOne" v-on:click="showTab(enItem.courseCode,enItem.id)">
                   {{ enItem.courseCode }} - {{ enItem.courseName }} | <b>Status:</b> <span :class="'label label-'+status(enItem.status)"> {{ enItem.status }}</span>
                 </button>
               </h5>
@@ -63,8 +63,11 @@
         
             <div :id="enItem.courseCode" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
               <div class="card-body">
-                <button class="btn btn-success"> Enrol Subject </button>
-                <div :id="'grid_'+enItem.courseCode"></div>
+                <button class="btn btn-success" v-on:click="navigatebutton('enrol_subject',enItem)"> Enrol Subject </button>
+                <hr>
+                <div :id="'grid_'+enItem.courseCode">
+                  loading please wait...
+                </div>
               </div>
             </div>
           </div>

@@ -42,6 +42,32 @@ class appService {
         //return $data; 
     }
 
+    public function postSaveEntrolSubjects($req,$res){
+        $data = $req->Body(true);
+        $r = SOSSData::Query("attr_lbc_entrollments","id:".$data->id.",subject_code:".$data->subject->code);
+        if($r->success && count($r->result)==0){
+            $saveData=new stdClass();
+            $saveData->id=$data->id;
+            $saveData->profileId=$data->profileId;
+            $saveData->subject_code=$data->subject->code;
+            $saveData->subject_name=$data->subject->name;
+            $saveData->status="pending";
+            $re=SOSSData::Insert("attr_lbc_entrollments",$saveData);
+            if($re->success){
+                //$saveData->id=$re->result->generatedId;
+                CacheData::clearObjects("attr_lbc_entrollments");
+                return $saveData;
+            }
+            else{
+                $res->SetError("Error Enrolling");
+                return null;
+            }
+        }else{
+            $res->SetError("Already Active Subject there or Internal Error!");
+        }
+        //return $data; 
+    }
+
     public function getActiveEnrolments($req,$res){
         if($_GET["id"]){
             $r = SOSSData::Query("lbc_course_entrolments","profileId:".$_GET["id"]);
@@ -76,12 +102,14 @@ class appService {
             $r=SOSSData::Query("lbc_course_entrolments_active","id:".$_GET["id"]);
             if($r->success && count($r->result)>0){
                 $profile=$r->result[0];
-                $r=SOSSData::Query("attr_subject_creation","course_code:".$profile->courseCode.",status:1");
+                $r=SOSSData::Query("attr_subject_creation",urlencode("course_code:".$profile->courseCode.",status:1"));
                 if($r->success){
                     $profile->subjects= $r->result;
                 }else{
+                    $profile->Error=$r;
                     $profile->subjects= [];
                 }
+                //$profile->s=$r;
                 return $profile;
             }else{
                 $res->SetError("Error cannot find a Enrolment.");
