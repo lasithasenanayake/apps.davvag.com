@@ -1,0 +1,14 @@
+<div class="w3-bar w3-card-4 w3-white w3-top" style="opacity: 0.95;">
+  <img :src="headerdata.icon" height="40px" style="position: fixed; left: 50%; top: 5px; transform: translateX(-50%);">
+  <a v-for="btnitem in TopButtons" :href="btnitem.url" class="w3-bar-item w3-button w3-padding-top-64 w3-hover-black" v-html="unescape(btnitem.Caption)">Home</a>
+
+  <a href="javascript:void(0)" class="w3-bar-item w3-button w3-right w3-hide-large w3-hide-medium w3-padding-top-64 w3-hover-white" v-on:click="toggleMenu">☰</a>
+
+
+
+  <div id="demo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium">
+    <a v-for="btnitem in TopButtons" class="w3-bar-item w3-button" v-html="unescape(btnitem.Caption)">Plush</a>
+  </div>
+</div>
+
+

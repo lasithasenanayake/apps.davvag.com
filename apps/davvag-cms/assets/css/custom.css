@@ -1,7 +1,7 @@
 :root {
-  --backcolor: #b51f1f;
-  --backtextcolor:#ffffff;
-  --backtexthovercolor:#5040af;
+  --backcolor: #ffffff;
+  --backtextcolor:#131212;
+  --backtexthovercolor:#080808;
   --blue: #4679bd;
   --grey: #ddd;
   --textColor:#ddd;
@@ -9,7 +9,7 @@
   --SocialButton:rgb(5, 2, 150);
   --FooterColor:var(--backcolor);
   --FooterTextxColor:var(--backtextcolor);
-  --FooterLinkColor:#ffffff;
+  --FooterLinkColor:#030303;
   --FooterLinkhoverColor:rgb(55, 4, 104);
   --W200: 200px;
   --Lft: left;

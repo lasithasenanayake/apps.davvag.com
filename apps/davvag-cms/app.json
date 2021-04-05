@@ -39,7 +39,7 @@
             "type":"component",
             "location":"components"
         },
-        "headerbar_usertab": {
+        "jb_headerbar_shop": {
             "type":"component",
             "location":"components"
         },
@@ -79,7 +79,7 @@
             "type":"partial",
             "location":"partials"
         },
-        "qti-home":{
+        "jb-shoping-view":{
             "type":"partial",
             "location":"partials"
         }
@@ -103,9 +103,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "partial-homeblog-bg-carousel",
+                    "/" : "jb-shoping-view",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "partial-homeblog-bg-carousel",
+                    "/home" : "jb-shoping-view",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",
