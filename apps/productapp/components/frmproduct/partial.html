@@ -27,6 +27,16 @@
     </select>
   </div>
   <div class="form-group">
+    <label for="exampleInputPassword1">Item Selling Type *</label>
+    <select class="form-control mb15" data-placeholder="Choose Selling Method"  title="" v-model="data.sellstype">
+            <option value="tr">Trade</option>
+            <option value="tr-se">Trade & Sell</option>
+            <option value="se">Sell</option>
+            <option value="bi-se">Bid & Sell</option>
+            <option value="bi">Bid</option>
+          </select>
+  </div>
+  <div class="form-group">
     <label for="exampleSelect1">Type : {{product.tradeType}}</label>
     <select class="form-control" id="textProductCategory" v-model="product.invType">
       <option>Sell</option>

@@ -4,6 +4,46 @@ require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 class ArticalService{
     
+    public function postSaveCarousel($req,$res)
+    {
+        $Carousel=$req->Body(true);
+        $r= SOSSData::Query("d_album_carousel_v1","catid:".$Carousel->catid);
+        if($r->success ){
+            if(count($r->result)>0){
+                $result2=SOSSData::Update ("d_album_carousel_v1", $Carousel);
+                if($result2->success){
+                    $resultq=SOSSData::Query("d_album_carousel_dtl_v1","catid:".$Carousel->catid);
+                    SOSSData::Delete("d_album_carousel_dtl_v1",$resultq->result);
+                    if(count($Carousel->carouselitems)>0){
+                        SOSSData::Insert ("d_album_carousel_dtl_v1", $Carousel->carouselitems);
+                    }
+                    
+                    CacheData::clearObjects("d_album_carousel_dtl_v1");
+                    CacheData::clearObjects("d_album_carousel_v1");
+                    return $Carousel;
+                    
+                }else{
+                    $res->SetError ("Error Updateing.");
+                    return null;
+                }
+            }else{
+                $result2=SOSSData::Insert ("d_album_carousel_v1", $Carousel);
+                if($result2->success){
+                    if(count($Carousel->carouselitems)>0){
+                        SOSSData::Insert ("d_album_carousel_dtl_v1", $Carousel->carouselitems);
+                    }
+                    CacheData::clearObjects("d_album_carousel_dtl_v1");
+                    CacheData::clearObjects("d_album_carousel_v1");
+                    return $Carousel;
+                }else{
+                    $res->SetError ("Error Saving.");
+                    return null;
+                }
+                
+            }
+        }
+    }
+
     public function postDeleteAlbum($req,$res){
         $Artical=$req->Body(true);
         if(isset($Artical->id)){

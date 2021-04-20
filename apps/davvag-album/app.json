@@ -22,15 +22,19 @@
         "Album-form":{
             "type":"component",
             "location":"components"
+        },
+        "carousel-form":{
+            "type":"component",
+            "location":"components"
         }
     },
     "description":{
         "title": "Davvag Album",
         "author":"Davvag",
-        "version":"1.0",
+        "version":"4.0",
         "icon":"appicon.png"
     },
-    "tags":["showindock"],
+    "tags":["showindock","showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "menu",
@@ -51,7 +55,8 @@
                     "/catall":"catogory-all",
                     "/a" : "Artical-view",
                     "/albumall":"Album-all",
-                    "/album":"Album-form"
+                    "/album":"Album-form",
+                    "/carousel":"carousel-form"
                 }
             }
         },"dock":{

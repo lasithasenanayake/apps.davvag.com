@@ -1,5 +1,5 @@
 <div class="input-form">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Make a Listing</h1>
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Make a Proposal</h1>
 <hr>
 <div class="input-error">
   <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
@@ -10,31 +10,33 @@
     </div>
 </div>
 <form id="form-details-0" class="activeForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Validating Post Requirment.</h5>
+  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Please wait Validating Post Requirment.</h5>
   <hr>
 </form>
 <form id="form-details-1" class="inactiveForm" onsubmit="event.preventDefault();">
-  <div class="form-group">
-    <label for="name">Name *</label>
-    <input type="text" id="name" class="form-control"  aria-describedby="emailHelp" placeholder="Enter Name" v-model="data.name">
-  </div>
+  
   
   <div class="form-group">
     <label for="address">Description *</label>
-    <textarea class="form-control deliveryAddress" v-model="data.caption" placeholder="Describe Your Product" style="margin-bottom:10px;"></textarea>
+    <textarea class="form-control deliveryAddress" v-model="data.description" placeholder="What you have to offer?" style="margin-bottom:10px;"></textarea>
   </div>
   <div class="form-group">
-    <label for="exampleInputPassword1">Item Selling Type *</label>
-    <select class="form-control mb15" data-placeholder="Choose Selling Method"  title="" v-model="data.sellstype">
-            <option value="tr">Trade</option>
-            <option value="tr-se">Trade & Sell</option>
-            <option value="se">Sell</option>
-          </select>
+    <label for="address">Condition *</label>
+    <textarea class="form-control deliveryAddress" v-model="data.item_condition" placeholder="Condition of the item?" style="margin-bottom:10px;"></textarea>
   </div>
+  <button  class="btn bg-primary-button btn-block" v-on:click="sellersiginup">Next</button>
+</form>
+<form id="form-details-2" class="inactiveForm" onsubmit="event.preventDefault();">
+  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center"> Delivery Information </h3>
+  <hr>
   <div class="form-group">
-    <label for="exampleInputPassword1">Location *</label>
-    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="attributes.country">
-            <option value="">Choose a Country...</option>
+    <label for="exampleInputPassword1">Address *</label>
+    <textarea class="form-control deliveryAddress" v-model="data.address" style="margin-bottom:10px;"></textarea>
+</div>
+<div class="form-group">
+    <label for="exampleInputPassword1">Counrty *</label>
+    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="data.country">
+            <option value=""></option>
             <option value="United States">United States</option>
             <option value="United Kingdom">United Kingdom</option>
             <option value="Afghanistan">Afghanistan</option>
@@ -287,31 +289,12 @@
             <option value="Zambia">Zambia</option>
             <option value="Zimbabwe">Zimbabwe</option>
           </select>
-  </div>
-  <div class="form-group">
-    <label for="username">Number of Items *</label>
-    <input type="number"  class="form-control"  aria-describedby="Help2" placeholder="Quantity" v-model="data.qty">
-  </div>
-  <div class="form-group">
-    <label for="username">Item Price *</label>
-    <input type="number"  class="form-control"  aria-describedby="Help2" placeholder="Selling Price" v-model="data.price">
-  </div>
-  <button  class="btn bg-primary-button btn-block" v-on:click="sellersiginup">Next</button>
-</form>
-<form id="form-details-2" class="inactiveForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Shipping Options</h5>
-  <hr>
-  <div class="form-group">
-    <label for="username">Domestic *</label>
-    <input type="number"  class="form-control"  aria-describedby="Help2" placeholder="Shipping Price Domestic" v-model="attributes.domestic">
-    <small id="Help2" class="form-text text-muted">This for Domestic shipping charges.</small>
-  </div>
-  <div class="form-group">
-    <label for="username">International *</label>
-    <input type="number"  class="form-control"  aria-describedby="Help2" placeholder="Shipping Price International" v-model="attributes.international">
-    <small id="Help2" class="form-text text-muted">This for International shipping charges.</small>
-  </div>
-  <button  class="btn bg-primary-button btn-block" v-on:click="biosiginup">Next</button>
+</div>
+<div class="form-group">
+  <label for="exampleInputPassword1">Remarks (You can mention additional information such as landmarks)</label>
+  <textarea class="form-control deliveryAddress" v-model="data.remarks" style="margin-bottom:10px;"></textarea>
+</div>
+<button  class="btn bg-primary-button btn-block" v-on:click="biosiginup">Next</button>
 </form>
 <form id="form-details-3" class="inactiveForm" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center"> Images </h3>
@@ -337,98 +320,25 @@
     </div>
   </div>
     
-  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Save As Draft</button>
-  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Publish Product</button>
+  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Done</button>
 </form>
 <form id="form-details-4" class="inactiveForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Your own selling policies!</h5>
+  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Your Proposal has been sent!</h5>
   <hr>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.refunds">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I give refunds
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.internationalshipping">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I ship internationally.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.internationalshipping">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I ship internationally.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.combinedshipping">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I can do combined shipping
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.bundleshipping">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I can do bundles
-    </label>
-  </div>
+  <p style="text-align: center">
+    The seller will confirm or reject the Proposal. Please wait before you ship your items.
+  </p>
   
-  <button  class="btn bg-primary-button btn-block" v-on:click="sellingoplicy">Next</button>
+  <button  class="btn bg-primary-button btn-block" v-on:click="sellingoplicy">OK</button>
 </form>
 <form id="form-details-5" class="inactiveForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Your trading policies!</h5>
+  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Error Sending Your Proposal</h5>
   <hr>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.reviews">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        You must have atleast  <input type="number" maxlength="2" size="2" autocomplete="off" v-model="attributes.numberofreviews" style="
-        size: 2;
-        width: 50px;
-        border-top: none;
-        border-right: none;
-        border-left: none;
-        background: none;
-        /* border-bottom: black; */
-    "> reviews.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.sendvideo">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        You must send a video of you packaging the photocard.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.sendphotocardvideo">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        You must send a video of you posting the photocard if you can
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.icovershipping">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        You must cover shipping from you to me - I will cover shipping from me to you
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" value="Y" v-model="attributes.localtradonly">
-        <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-        I will only trade within the {{ data.country }} unless states otherwise
-    </label>
-  </div>
+  <p style="text-align: center">
+    {{ errorMessage }}
+  </p>
   
-  <button  class="btn bg-primary-button btn-block" v-on:click="tradingoplicy">Next</button>
+  <button  class="btn bg-primary-button btn-block" v-on:click="tradingoplicy">Retry</button>
 </form>
 <form id="form-details-6" class="inactiveForm" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Profile Image</h5>

@@ -1,0 +1,29 @@
+  <div class="col-sm-12" style="padding-bottom: 10px;">
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div style="width: 40px;">
+                    <div class="profile-userpic">
+                        <img :src="'components/dock/soss-uploader/service/get/profile/'+data.profileId" class="img-responsive" alt="">
+                        
+                    </div>
+                </div>
+                <div class="col">
+                    <a :href="'#/app/stelup_shop/profile?id='+data.profileId">
+                        <h5 v-html="data.name"></h5>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+data.itemid+'-1'" style="width: 100%;">
+        <div class="card-body">
+          <h5 class="card-title" v-html="data.name">Card title</h5>
+          <p class="card-text" v-html="marked(data.item_condition)">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          <button  class="btn bg-primary-button btn-block" v-on:click="submit">Accept</button>
+          <button  class="btn bg-primary-button btn-block" v-on:click="submit">Cancel</button>
+       
+        </div>
+        
+      </div>
+</div>

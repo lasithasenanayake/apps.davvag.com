@@ -1,109 +1,100 @@
-
-/* sign in FORM */
-#logreg-forms{
-    width:412px;
-    margin:10vh auto;
-    background-color:#f3f3f3;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-}
-#logreg-forms form {
-    width: 100%;
-    max-width: 410px;
-    padding: 15px;
+#loading {
+    background: #f4f4f2 url("img/page-bg.png") repeat scroll 0 0;
+    height: 100%;
+    left: 0;
     margin: auto;
+    position: fixed;
+    top: 0;
+    width: 100%;
 }
-#logreg-forms .form-control {
-    position: relative;
-    box-sizing: border-box;
-    height: auto;
-    padding: 10px;
-    font-size: 16px;
-}
-#logreg-forms .form-control:focus { z-index: 2; }
-#logreg-forms .form-signin input[type="email"] {
-    margin-bottom: -1px;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-}
-#logreg-forms .form-signin input[type="password"] {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-
-#logreg-forms .social-login{
-    width:390px;
-    margin:0 auto;
-    margin-bottom: 14px;
-}
-#logreg-forms .social-btn{
-    font-weight: 100;
-    color:white;
-    width:190px;
-    font-size: 0.9rem;
-}
-
-#logreg-forms a{
-    display: block;
-    padding-top:10px;
-    color:lightseagreen;
-}
-
-#logreg-form .lines{
-    width:200px;
-    border:1px solid red;
-}
-
-
-#logreg-forms button[type="submit"]{ margin-top:10px; }
-
-#logreg-forms .facebook-btn{  background-color:#3C589C; }
-
-#logreg-forms .google-btn{ background-color: #DF4B3B; }
-
-#logreg-forms .form-reset, #logreg-forms .form-signup{ display: none; }
-
-#logreg-forms .form-signup .social-btn{ width:210px; }
-
-#logreg-forms .form-signup input { margin-bottom: 2px;}
-
-.form-signup .social-login{
-    width:210px !important;
+.bokeh {
+    border: 0.01em solid rgba(150, 150, 150, 0.1);
+    border-radius: 50%;
+    font-size: 100px;
+    height: 1em;
+    list-style: outside none none;
     margin: 0 auto;
+    position: relative;
+    top: 35%;
+    width: 1em;
+    z-index: 2147483647;
+}
+.bokeh li {
+    border-radius: 50%;
+    height: 0.2em;
+    position: absolute;
+    width: 0.2em;
+}
+.bokeh li:nth-child(1) {
+    animation: 1.13s linear 0s normal none infinite running rota, 3.67s ease-in-out 0s alternate none infinite running opa;
+    background: #00c176 none repeat scroll 0 0;
+    left: 50%;
+    margin: 0 0 0 -0.1em;
+    top: 0;
+    transform-origin: 50% 250% 0;
+}
+.bokeh li:nth-child(2) {
+    animation: 1.86s linear 0s normal none infinite running rota, 4.29s ease-in-out 0s alternate none infinite running opa;
+    background: #ff003c none repeat scroll 0 0;
+    margin: -0.1em 0 0;
+    right: 0;
+    top: 50%;
+    transform-origin: -150% 50% 0;
+}
+.bokeh li:nth-child(3) {
+    animation: 1.45s linear 0s normal none infinite running rota, 5.12s ease-in-out 0s alternate none infinite running opa;
+    background: #fabe28 none repeat scroll 0 0;
+    bottom: 0;
+    left: 50%;
+    margin: 0 0 0 -0.1em;
+    transform-origin: 50% -150% 0;
+}
+.bokeh li:nth-child(4) {
+    animation: 1.72s linear 0s normal none infinite running rota, 5.25s ease-in-out 0s alternate none infinite running opa;
+    background: #88c100 none repeat scroll 0 0;
+    margin: -0.1em 0 0;
+    top: 50%;
+    transform-origin: 250% 50% 0;
+}
+@keyframes opa {
+12% {
+    opacity: 0.8;
+}
+19.5% {
+    opacity: 0.88;
+}
+37.2% {
+    opacity: 0.64;
+}
+40.5% {
+    opacity: 0.52;
+}
+52.7% {
+    opacity: 0.69;
+}
+60.2% {
+    opacity: 0.6;
+}
+66.6% {
+    opacity: 0.52;
+}
+70% {
+    opacity: 0.63;
+}
+79.9% {
+    opacity: 0.6;
+}
+84.2% {
+    opacity: 0.75;
+}
+91% {
+    opacity: 0.87;
+}
 }
 
-/* Mobile */
-
-@media screen and (max-width:500px){
-    #logreg-forms{
-        width:300px;
-    }
-    
-    #logreg-forms  .social-login{
-        width:200px;
-        margin:0 auto;
-        margin-bottom: 10px;
-    }
-    #logreg-forms  .social-btn{
-        font-size: 1.3rem;
-        font-weight: 100;
-        color:white;
-        width:200px;
-        height: 56px;
-        
-    }
-    #logreg-forms .social-btn:nth-child(1){
-        margin-bottom: 5px;
-    }
-    #logreg-forms .social-btn span{
-        display: none;
-    }
-    #logreg-forms  .facebook-btn:after{
-        content:'Facebook';
-    }
-  
-    #logreg-forms  .google-btn:after{
-        content:'Google+';
-    }
-    
+@keyframes rota {
+100% {
+    transform: rotate(360deg);
 }
+}
+

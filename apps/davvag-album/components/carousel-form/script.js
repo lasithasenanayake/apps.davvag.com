@@ -76,7 +76,7 @@ WEBDOCK.component().register(function(exports){
         data : bindData,
         onReady : function(s){
             scope = s;
-            handler = exports.getComponent("cms-gapp-handler");
+            handler = exports.getComponent("cms-album-handler");
             pInstance = exports.getShellComponent("soss-routes");
             validatorInstance = exports.getShellComponent ("soss-validator");
             routeData = pInstance.getInputData();
@@ -89,19 +89,19 @@ WEBDOCK.component().register(function(exports){
                 bindData.product={catid:routeData.id,carouselitems:[]};
             }
                 
-            query=[{storename:"d_cms_carousel_v1",search:"catid:"+catid.toString()},{storename:"d_cms_carousel_dtl_v1",search:"catid:"+catid.toString()}];
+            query=[{storename:"d_album_carousel_v1",search:"catid:"+catid.toString()},{storename:"d_album_carousel_dtl_v1",search:"catid:"+catid.toString()}];
             //var tmpmenu=[];
             bindData.TopButtons=[];
             menuhandler.services.q(query)
                         .then(function(r){
                             console.log(JSON.stringify(r));
                             if(r.success){
-                                if(r.result.d_cms_carousel_v1.length!=0){
+                                if(r.result.d_album_carousel_v1.length!=0){
                                     bindData.newEntery=false;
-                                    bindData.product=r.result.d_cms_carousel_v1[0];
+                                    bindData.product=r.result.d_album_carousel_v1[0];
                                 }
-                                if(r.result.d_cms_carousel_dtl_v1.length!=0){
-                                    bindData.carouselitems=r.result.d_cms_carousel_dtl_v1;
+                                if(r.result.d_album_carousel_dtl_v1.length!=0){
+                                    bindData.carouselitems=r.result.d_album_carousel_dtl_v1;
                                     
                                 }
                                 
@@ -174,7 +174,7 @@ function showSlides(n) {
                 
                 if(element.newFile){
                     element.imgname=product.catid+"-"+element.newFile.name;
-                    element.imgurl="components/davvag-cms/soss-uploader/service/get/carousel/"+product.catid.toString()+"-"+element.newFile.name;
+                    element.imgurl="components/davvag-cms/soss-uploader/service/get/album_carousel/"+product.catid.toString()+"-"+element.newFile.name;
                     files.push(element.newFile);
                 }
                 
@@ -186,7 +186,7 @@ function showSlides(n) {
                         exports.getAppComponent("davvag-tools","davvag-file-uploader", function(_uploader){
                             uploader=_uploader;
                             uploader.initialize();
-                            uploader.upload(files, "carousel", product.catid,function(r){
+                            uploader.upload(files, "album_carousel", product.catid,function(r){
                                 gotoUom();
                             });
                             bindData.product=r.result;

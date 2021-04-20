@@ -1,0 +1,19 @@
+{
+    "fields" : [
+        {
+            "fieldName":"catid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"c_width",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"c_hight",
+            "dataType":"int"
+        }
+    ]
+}

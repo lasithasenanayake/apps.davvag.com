@@ -17,12 +17,21 @@
   --scrollColor: #f7aeab;
 }
 
+.navbar-dark .navbar-nav .nav-link:hover {
+  color: var(--backtextcolor);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: var(--backtexthovercolor);
+}
+
 .modal {
   z-index: 100000;
 }
 
 
 .id-soss-routes {
+  padding-top: 20px;
   min-height: calc(100vh - 200px) !important;
 }
 

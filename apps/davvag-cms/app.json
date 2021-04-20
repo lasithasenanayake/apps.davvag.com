@@ -39,7 +39,7 @@
             "type":"component",
             "location":"components"
         },
-        "jb_headerbar_shop": {
+        "headerbar_usertab": {
             "type":"component",
             "location":"components"
         },
@@ -79,7 +79,7 @@
             "type":"partial",
             "location":"partials"
         },
-        "jb-shoping-view":{
+        "partial-album-bg-carousel":{
             "type":"partial",
             "location":"partials"
         }
@@ -103,9 +103,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "jb-shoping-view",
+                    "/" : "partial-album-bg-carousel",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "jb-shoping-view",
+                    "/home" : "partial-album-bg-carousel",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

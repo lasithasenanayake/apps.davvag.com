@@ -46,7 +46,7 @@
             </div>    
         
         <div class="col-md-4 col-sm-6">
-                <h1> No Results for Search Query "{{ q }}" </h1>
+                <h1> Items not found </h1>
             </div>
             <div class="col-md-4 col-sm-6">
            
@@ -77,6 +77,9 @@
                                         <div class="col-md-12"><img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;"></div>
                                         
                                       </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <strong>Price:</strong> {{ product.price | currency_formate }}
+                                </div>
                                 <div class="row" style="margin-top: 10px;">
                                     <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
                                         <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>

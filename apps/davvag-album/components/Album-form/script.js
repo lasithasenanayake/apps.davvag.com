@@ -1,9 +1,9 @@
 WEBDOCK.component().register(function(exports){
     var scope;
     var handler;
-    var pInstance, validatorInstance,uploaderInstance;
+    var pInstance, validatorInstance,uploaderInstance,cropper1;
     var routeData;
-    var newfiles;
+    var newfiles
     var editor;
     //bkLib.onDomLoaded(nicEditors.allTextAreas);
     var bindData = {
@@ -29,7 +29,19 @@ WEBDOCK.component().register(function(exports){
                 handler1 = exports.getShellComponent("soss-routes");
                 handler1.appNavigate("../albumall");
             },removeImage: removeImage,
+            crop:function(){
+                if(!newfiles)
+                 newfiles=[];
+                cropper1.crope(300,300,function(e){
+                    //console.log(e);
+                    bindData.p_image.push({id:0,name:e.fileData.name,scr:e.data,file:e.fileData});
+                    newfiles.push(e.fileData);
+                    //bindData.carousel.imgurl=e.data;
+                    //bindData.carousel.newFile=e.fileData;
+                });
+            },
             onFileChange: function(e) {
+                
                 var files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
                     return;
@@ -61,6 +73,11 @@ WEBDOCK.component().register(function(exports){
             routeData = pInstance.getInputData();
             $('#grnDatePicker').datepicker().on('changeDate', function(ev){
                 bindData.product.createdate = $('#grnDatePicker').val(); 
+            });
+            exports.getAppComponent("davvag-tools","davvag-img-cropper", function(cropper){
+                cropper.initialize(300,300);
+                cropper1=cropper;
+                $('#carousel-uploader').modal('show');
             });
             var menuhandler  = exports.getShellComponent("soss-data");
             var query=[{storename:"d_cms_cat_v1",search:""}];
@@ -132,41 +149,18 @@ WEBDOCK.component().register(function(exports){
     var imagecount=0;
     var completed=0;    
     function uploadFile(productId, cb){
-            if(!newfiles){
-                cb();
-                return;
-            }
-            imagecount=newfiles.length;
-            for (var i = 0; i < newfiles.length; i++) {
-                //newfiles.push(newFile[i]);
-                //getImage(i,files[i]);
-                //console.log();
-                //imagecount++;
-                console.log(i);
-
-                        uploaderInstance.services.uploadFile(newfiles[i], "d_cms_album", productId+"-"+newfiles[i].name )
-                        .then(function(result2){
-                            $.notify("Profile Image Has been uploaded", "info");
-                            completed++;
-                            if(imagecount==completed){
-                                cb();
-                            }
-                            //cb();
-                        })
-                        .error(function(){
-                            completed++;
-                            $.notify("Profile Image Has not been uploaded", "error");
-                            //cb();
-                            if(imagecount==completed){
-                                cb();
-                            }
-                        });
-                    
-                    
-                    
-                  
-            }
-            //cb();
+        if(newfiles.length>0){
+            exports.getAppComponent("davvag-tools","davvag-file-uploader", function(_uploader){
+                uploader=_uploader;
+                uploader.initialize();
+                uploader.upload(newfiles, "d_cms_album", productId,function(r){
+                    cb();
+                });
+                bindData.product=r.result;
+            });
+        }else{
+            cb();
+        }
         
     }
 

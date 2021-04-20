@@ -142,6 +142,9 @@ WEBDOCK.component().register(function(exports){
     }
     var vueData =  {
         methods:{
+        trade:function(i){
+                window.location="#/app/stelup_shop/traditem?itemid="+i.itemid.toString();
+            },
         edit:function(i){
             //$('#modalImagePopup').modal('toggle');
             //$('#modalImagePopup').on('hidden.bs.modal', function (e) {
@@ -311,6 +314,10 @@ WEBDOCK.component().register(function(exports){
                 if (!value) return ''
                 value = value.toString()
                 return marked(unescape(value));
+              },
+              currency_formate:function(val){
+                if (!val) return '0.00'
+                return parseFloat(val).toFixed(2);
               },
               dateformate:function(v){
                   if(!v){

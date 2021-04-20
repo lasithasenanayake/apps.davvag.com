@@ -1,6 +1,6 @@
 <?php
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-
+require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 
 class appService {
 
@@ -153,6 +153,33 @@ class appService {
         
     }
 
+    public function postSaveProductProposal($req,$res){
+        
+        $product=$req->Body(true);
+        $profile=Profile::getProfile($product->supplier_profileId,$product->profileId);
+        if($profile->profile){
+            $product->supplier_name= $profile->profile->name;
+            $product->supplier_address= $profile->profile->address;
+            $product->supplier_country= $profile->profile->country;
+            $product->supplier_email= $profile->profile->email;
+            $product->status="new";
+            $result=SOSSData::Insert ("stelup_trade", $product);
+            if($result->success){
+                $product->id = $result->result->generatedId;
+                Profile::AddNotify($product->supplier_profileId,"product_proposal",$product);
+                profile::Send_Notify();
+                //$summery->id=$result->result->generatedId;
+                //$product=$this->saveAttributes($product);
+                return $product;
+            }else{
+                $res->SetError ($result);
+                return $res;
+            }
+        }else{
+            $res->SetError("Supplier Profile Not Found");
+        }
+
+    }
     public function postSaveProduct($req,$res){
         
         $product=$req->Body(true);

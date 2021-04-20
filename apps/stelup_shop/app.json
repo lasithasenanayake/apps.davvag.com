@@ -60,6 +60,14 @@
         "order-complete":{
             "type":"component",
             "location":"apps"
+        },
+        "product-trade":{
+            "type":"component",
+            "location":"apps"
+        },
+        "accept_proposal":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -83,7 +91,8 @@
                     "/checkout-cart":"partial-cart",
                     "/profile":"profile",
                     "/payment-gateway":"",
-                    "/order-complete":"order-complete"
+                    "/order-complete":"order-complete",
+                    "/traditem":"product-trade"
 
                 }
             }

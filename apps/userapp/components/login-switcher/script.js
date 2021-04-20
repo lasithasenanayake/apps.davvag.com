@@ -48,13 +48,13 @@ WEBDOCK.component().register(function(exports){
                     }
                 }else{
                     if(routeData.u)
-                        sessionStorage.redirecturl=routeData.u;
+                        sessionStorage.redirecturl=unescape(routeData.u);
 
                     location.href="#/app/userapp/login";
                 }
             }).error(function(result){
                 if(routeData.u)
-                        sessionStorage.redirecturl=routeData.u;
+                        sessionStorage.redirecturl=unescape(routeData.u);
                 localStorage.clear();
                 location.href="#/app/userapp/login";
                 //pInstance.appNavigate("/login");

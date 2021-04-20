@@ -63,6 +63,7 @@ if(isset($_SESSION["regadmin"] )){
             if($data->domain==$r->domain){
                 header("Location: $redirectUrl");
             }else{
+		var_dump($data);
                 $error="Error Registering.";
                 require_once (dirname(__FILE__) . "/pages/signup.php");
                 exit();

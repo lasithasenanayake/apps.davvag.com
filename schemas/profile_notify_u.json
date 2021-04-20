@@ -25,7 +25,7 @@
             "fieldName":"notify_data",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 700
+                "maxLen": 1500
             }
         },
         {

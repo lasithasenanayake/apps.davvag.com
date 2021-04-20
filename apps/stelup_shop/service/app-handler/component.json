@@ -36,6 +36,9 @@
             },"AllComments" : {
                 "method" : "GET",
                 "parameters": ["id"]
+            },
+            "SaveProductProposal":{
+                "method" : "POST"
             }
 
         }

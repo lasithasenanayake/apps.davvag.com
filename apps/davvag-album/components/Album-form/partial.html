@@ -79,9 +79,8 @@
       </div>
       <div class="tab-pane" id="settings-logo-title">
         <div class="form-group">
-          <div class="form-group files">
-            <label>Upload Your File </label>
-            <input type="file" class="form-control" multiple="" @change="onFileChange" v-model="files">
+          <div class="form-group">
+            <button @click="crop" class="btn btn-default">Crop Uploads</button>
           </div>
           <div>
               <div class="row">

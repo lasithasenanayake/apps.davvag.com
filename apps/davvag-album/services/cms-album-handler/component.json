@@ -22,6 +22,9 @@
             },"Album" : {
                 "method" : "GET",
                 "parameters": ["q"]
+            },
+            "SaveCarousel":{
+                "method":"POST"
             }
         }
     

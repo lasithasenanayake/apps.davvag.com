@@ -1,18 +1,28 @@
 {
     "fields" : [
         {
-            "fieldName":"itemid",
+            "fieldName":"changeid",
             "dataType":"int",
             "annotations":{
-                "isPrimary": true
+                "isPrimary": true,
+                "autoIncrement": true
             }
         },
         {
+            "fieldName":"itemid",
+            "dataType":"int"
+        },
+        {
             "fieldName":"attributeid",
-            "dataType":"int",
-            "annotations":{
-                "isPrimary": true
-            }
+            "dataType":"int"
+        },
+        {
+            "fieldName":"refid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"TranDate",
+            "dataType":"java.util.Date"
         },
         {
             "fieldName":"tid",

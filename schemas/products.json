@@ -43,6 +43,21 @@
             }
         },
         {
+            "fieldName":"sellstype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"qty",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"reorder_qty",
+            "dataType":"float"
+        },
+        {
             "fieldName":"price",
             "dataType":"float"
         },

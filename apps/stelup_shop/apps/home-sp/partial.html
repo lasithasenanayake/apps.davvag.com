@@ -37,6 +37,9 @@
                 
                 <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
                 <div class="row" style="margin: 10px;">
+                    <strong>Price:</strong> {{ product.price | currency_formate}}
+                </div>
+                <div class="row" style="margin: 10px;">
                     <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
                         <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>
                         <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
@@ -56,7 +59,8 @@
                
                 </div>
                 <div v-if="!isEditable(product)" class="card-body">
-                    <button type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
+                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
                     <button type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
                     
                 </div>
