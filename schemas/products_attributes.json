@@ -8,6 +8,21 @@
             }
         },
         {
+            "fieldName":"domestic",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"international",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
             "fieldName":"winetype",
             "dataType":"java.lang.String",
             "annotations":{

@@ -235,7 +235,7 @@ WEBDOCK.component().register(function(exports){
             bindData.data.imgurl="1";
             bindData.data.storeid=bindData.profile.id;
             bindData.data.storename=bindData.profile.name;
-            
+            bindData.data.attributes=bindData.attributes;
             
             service_handler.services.SaveProduct(bindData.data).then(function(result){
                 

@@ -98,6 +98,19 @@
         {
             "fieldName":"favorite",
             "dataType":"int"
-        }          
+        },
+        {
+            "fieldName":"domestic",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"international",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"country",
+            "dataType":"java.lang.String",
+            
+        }           
     ]
 }

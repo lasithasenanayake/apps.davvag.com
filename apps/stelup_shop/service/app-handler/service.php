@@ -198,8 +198,7 @@ class appService {
             //var_dump($result);
             if($result->success){
                 $product->itemid = $result->result->generatedId;
-                //$summery->id=$result->result->generatedId;
-                //$product=$this->saveAttributes($product);
+                $product=$this->saveAttributes($product); 
                 
             }else{
                 $res->SetError ("Error Saving.");
@@ -209,7 +208,7 @@ class appService {
             $result=SOSSData::Update ("products", $product,$tenantId = null);
             $summery->id=$product->itemid;
             if($result->success){
-                //$product=$this->saveAttributes($product);
+                $product=$this->saveAttributes($product);
                 
             }else{
                 $res->SetError ("Error Saving.");
@@ -241,6 +240,29 @@ class appService {
         CacheData::clearObjects("products_image");
         return $product;
         
+    }
+
+    private function saveAttributes($product){
+        if(isset($product->attributes)){
+            $attributes = $product->attributes;
+            //$attributes->itemid=$product->itemid;
+            $r=null;
+            if(isset($product->attributes->itemid))
+                $r=SOSSData::Update ("products_attributes", $attributes);
+            else{
+                $attributes->itemid=$product->itemid;
+                $r=SOSSData::Insert ("products_attributes", $attributes);
+            }
+            if($r->success){
+                $product->attributes=$attributes;
+            }else{
+                $product->attributes=null;
+            }
+            return $product;
+
+        }else{
+            return $product;
+        }
     }
 
     public function getAllProducts($req,$res){
