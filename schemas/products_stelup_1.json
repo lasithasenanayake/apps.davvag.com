@@ -109,7 +109,7 @@
         },
         {
             "fieldName":"country",
-            "dataType":"java.lang.String",
+            "dataType":"java.lang.String"
             
         }          
     ]
