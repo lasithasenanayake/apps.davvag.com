@@ -68,6 +68,7 @@ class ProductServices {
                     
         }
         //$result=SOSSData::Insert ("profile", $data);
+        $data->supplier_profileId=0;
         $result=SOSSData::Insert ("payment_ext_request", $data);
         if($result->success){
             $data->id=$result->result->generatedId;

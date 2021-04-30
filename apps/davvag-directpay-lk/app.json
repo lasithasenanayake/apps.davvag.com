@@ -11,22 +11,27 @@
         "app-handler": {
             "type":"service",
             "location":"service"
+        },
+        "directpay-settings":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
-        "title": "Strip Payment Gatway App",
+        "title": "Directpay Payment Gatway App",
         "author":"Davvag",
         "version":"0.1",
         "icon":"appicon.png"
     },
-    "tags":["showincms"],
+    "tags":["showincms","showindock"],
     "configuration":{
         "webdock":{
             "startupComponent" : "charge-form",
             "onLoad": ["app-handler"],
             "routes":{
                 "partials":{
-                    "/mapstripe":"register-stripe"
+                    "/mapstripe":"register-stripe",
+                    "/settings":"directpay-settings"
                 }
             }
         }

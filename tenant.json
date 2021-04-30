@@ -106,6 +106,9 @@
         },
         "lbc-study-app":{
             "version":"latest"
+        },
+        "davvag-directpay-lk":{
+            "version":"latest"
         }
     },
     "webdock":{

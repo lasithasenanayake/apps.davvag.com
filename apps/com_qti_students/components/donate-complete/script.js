@@ -56,21 +56,8 @@ WEBDOCK.component().register(function(exports){
                 }
             },
             submitPurchase:function(){
-                var menuhandler  = exports.getComponent("productsvr");
-                bindData.profile.profileid=bindData.item.id;
-                menuhandler.services.PaymentRequest(bindData.profile)
-                        .then(function(r){
-                            console.log(JSON.stringify(r));
-                            
-                        })
-                        .error(function(error){
-                            //bindData.products=[];
-                            //bindData.loading=false;
-                            bindData.allloaded=false;
-                            //page=
-                            console.log(error.responseJSON);
-                    });
-            }        
+                window.location="#/app/davvag-directpay-lk?repid="+bindData.paymetRequest.id
+            }
           },filters:{
             formatMoney:function(v){
                 if(v){

@@ -37,7 +37,7 @@ class Stripe_IPG {
     public function getPublicToken($req,$res)
     {
       # code...
-      if($_GET["id"]){ 
+      if(isset($_GET["id"])){ 
         $keys=$this->Stripkeys($_GET["id"]);
         ///return $keys;
         if(isset($keys)){

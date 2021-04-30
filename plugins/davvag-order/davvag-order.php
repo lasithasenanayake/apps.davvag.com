@@ -13,7 +13,106 @@ class Davvag_Order{
             return null;
         }
     }
+
+    public function ExtPaymentRequest($id){
+        $result = SOSSData::Query ("payment_ext_request", urlencode("id:".$id.""));
+        if($result->success && count($result->result)>0){
+            $order= $result->result[0];
+            //$r = SOSSData::Query ("orderdetails", urlencode("invoiceno:".$id.""));
+            //$order->details=$r->result;
+            return $order;
+        }else{
+            return null;
+        }
+    }
+
+    public function ConfirmExtPayment($p){
+        $result = SOSSData::Query ("payment_ext_request", urlencode("id:".$p->id.""));
+        if($result->success && count($result->result)>0){
+            $oldpay= $result->result[0];
+            
+                $payment =new stdClass();
+                $payment->profileId=$p->profileId;
+                $payment->email=$p->email;
+                $payment->name=$p->name;
+                $payment->paymentType=$p->paymentType;
+                $payment->city=$p->city;
+                $payment->address=$p->address;
+                $payment->country=$p->country;
+                $payment->contactno=$p->contactno;
+                $payment->supplier_profileid=isset($p->supplier_profileId)?$p->supplier_profileId:0;
+                $payment->supplier_email=isset($p->supplier_email)?$p->supplier_email:"";
+                $payment->supplier_name=isset($p->supplier_name)?$p->supplier_name:"";
+                $payment->supplier_city=isset($p->supplier_city)?$p->supplier_city:"";
+                $payment->supplier_address=isset($p->supplier_address)?$p->supplier_address:"";
+                $payment->supplier_country=isset($p->supplier_country)?$p->supplier_country:"";
+                $payment->receiptDate=date("m-d-Y H:i:s");
+                $payment->status='Paid';
+                $payment->paymentAmount=$p->amount;
+                $payment->outstandingAmount=$p->outstandingAmount;
+                $payment->balanceAmount=$p->balanceAmount-$p->amount;
+                $payment->source_id=$p->OnlineTranID;
+                $payment->remark=$p->remarks;
+                
+                $amount=$p->amount;
+                $rep=$this->PayforPendingOrders($payment);
+                $p->paymentAmount=$p->amount;
+                $p->outstandingAmount=$p->outstandingAmount;
+                $p->balanceAmount=$p->balanceAmount-$p->amount;
+                $p->recieptid=$rep->receiptNo;
+                $p->status='Paid';
+                SOSSData::Insert("payment_ext_request_confirm",$p);
+                SOSSData::Delete("payment_ext_request",$p);
+            return $rep;
+        }else{
+            throw new Exception("No External Payment Request found.", 1);
+            //return null;
+        }
+    }
     
+    private function PayforPendingOrders($payment){
+        $r = SOSSData::Query ("orderheader", urlencode("profileId:".$payment->profileId.",paymentComplete:N"));
+        $payment->InvoiceItems=[];
+        if($r->success && count($r->result)>0){
+            $amount=$payment->paymentAmount;
+            $orderUpdate=[];
+            foreach ($r->result as $key => $order) {
+                # code...
+                
+                if($amount>0){
+                    $invDetails =new stdClass();
+                    $invDetails->transactionid=$order->invoiceNo;
+                    $invDetails->tranType='invoice';
+                    $invDetails->description='Invoice #'.$order->invoiceNo.' Invoiced On '.$order->invoiceDate.'';
+                    $invDetails->DueAmount=$order->balance;
+                    
+                    if($amount>$order->balance){
+                        $invDetails->PaidAmout=$order->balance;
+                        $invDetails->Balance=0;
+                    }else{
+                        $invDetails->PaidAmout=$amount;
+                        $invDetails->Balance=$order->balance-$amount;
+                    }
+                    
+                    if($order->balance>=$amount){
+                        $amount=0;
+                    }else{
+    
+                        $amount=$amount-$order->balance;
+                    }
+                    //$order->balance=$order->balance-$amount;
+                    
+                    array_push($payment->InvoiceItems,$invDetails);
+                }else{
+                    break;
+                }
+            }
+            return $this->SavePayment($payment);
+        }else{
+            return $r;
+        }
+    }
+
     public function AcceptOrder($id){
         $result = SOSSData::Query ("orderheader_pending", urlencode("invoiceno:".$id.""));
         if($result->success && count($result->result)>0){
@@ -86,15 +185,15 @@ class Davvag_Order{
         //s$user= Auth::Autendicate("profile","postPaymentSave",$res);
         
         
-        $result = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));
+        $r = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));
         //$payment->collectedByID=$user->userid;
         //s$payment->collectedBy=$user->email;
         //return $result;
-        if(count($result->result)!=0)
+        if(count($r->result)!=0)
         {
             
-            $result = SOSSData::Insert ("paymentheader", $payment,$tenantId = null);
-            CacheData::clearObjects("paymentheader");
+            $result = SOSSData::Insert ("paymentheader", $payment);
+            
            
             if($result->success){
                 $payment->receiptNo = $result->result->generatedId;
@@ -137,6 +236,7 @@ class Davvag_Order{
                     }
                     //return $invUpdate;
                     $result = SOSSData::Insert ("paymentdetails", $payment->InvoiceItems,$tenantId = null);
+                    CacheData::clearObjects("paymentheader");
                     CacheData::clearObjects("paymentdetails");
                     CacheData::clearObjects("orderheader");
                     //return $result;
@@ -149,6 +249,7 @@ class Davvag_Order{
                                 
                 return $payment;
             }else{
+                //var_dump($result);
                 throw new Exception("Error Processing Request", 1);
             }
         }else{
@@ -317,6 +418,10 @@ class Davvag_Order{
                 SOSSData::Insert ("product_inventrymaster", $itemInv,$tenantId = null);
             }
         }
+    }
+
+    public function getPaymentRequest($id){
+
     }
 
 
