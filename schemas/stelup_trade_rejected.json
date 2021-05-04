@@ -1,0 +1,140 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName":"supplier_profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"supplier_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"supplier_address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"supplier_country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName":"description",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"item_condition",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"remarks",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"error",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"status",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 15
+            }
+        },
+        {
+            "fieldName":"attachment",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"attt_itemid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"itemid",
+            "dataType":"int"
+        }       
+    ]
+}

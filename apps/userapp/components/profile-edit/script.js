@@ -73,7 +73,7 @@ WEBDOCK.component().register(function(exports){
         
         $("#form-details-0").toggle();
         $("#form-details-1").toggle();
-        service_handler = exports.getComponent("app-handler");
+        service_handler = exports.getComponent("login-handler");
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }

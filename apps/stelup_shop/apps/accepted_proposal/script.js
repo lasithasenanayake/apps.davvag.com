@@ -32,32 +32,8 @@ WEBDOCK.component().register(function(exports){
     }
 
     function submit(){
-        lockForm();
-        scope.submitErrors = [];
-        scope.submitErrors = validator_profile.validate(); 
-        if (!scope.submitErrors){
-            lockForm();
-            scope.submitErrors = [];
-            scope.submitInfo=[];
-            service_handler.services.ConfirmProductProposal(bindData.data).then(function(result){
-                
-                console.log(result);
-                
-                if(result.success){
-                    bindData.data.notfy.closeapp=true;
-                    complete_call(bindData.data);
-                    scope.submitInfo.push("Confirmed");
-                }else{
-                    scope.submitErrors.push("Error Confirming Request");
-                }
-                unlockForm();
-            }).error(function(result){
-                scope.submitErrors = [];
-                bindData.submitErrors.push("Error");
-                unlockForm();
-            });
-
-        }
+        bindData.data.notfy.closeapp=true;
+        complete_call(bindData.data);
     }
 
     function Reject(){

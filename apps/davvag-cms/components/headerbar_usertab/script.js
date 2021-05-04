@@ -35,8 +35,17 @@ WEBDOCK.component().register(function(exports){
                     filteredItems = bindData.Notify.filter(function(item) {
                         if(item.id!==d.notfy.id)
                             return item;
+                        else{
+                            x=document.getElementById("notfy-"+item.id);
+                            if(x!=null)x.remove();
+                        }
                     });
                     bindData.Notify==null?[]:filteredItems;
+                    if(d.notfy.closeapp){
+                        $('#notifyappwindow').modal('toggle');
+                    }
+                }else{
+                    alert("Error");
                 }
             })
             .error(function(){

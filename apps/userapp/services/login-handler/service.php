@@ -8,6 +8,60 @@ class LoginService {
         
     } 
 
+    public function postSave($req,$res){
+        $profile=$req->Body(true);
+        $user= Auth::Autendicate("profile","postSave",$res);
+        if($user->email!=$profile->email){
+            $res->SetError ("You do not have permission to update this profile.");
+            return;
+        }
+        //return $profile;
+        if(!isset($profile->email)){
+            //http_response_code(500);
+            $res->SetError ("provide email");
+            return;
+        }
+        if(!isset($profile->contactno)){
+            //http_response_code(500);
+            $res->SetError ("provide contact no");
+            return;
+        }
+        //var_dump($profile);
+        //exit();
+        $result = SOSSData::Query ("profile", urlencode("id:".($profile->id==null?0:$profile->id).""));
+        
+        //return urlencode("id:".$profile->id."");
+        if(count($result->result)==0)
+        {
+            $profile->createdate=date_format(new DateTime(), 'm-d-Y H:i:s');
+            $profile->userid=$user->userid;
+            $profile->status="tobeactivated";
+            $result = SOSSData::Insert ("profile", $profile,$tenantId = null);
+            if($result->success){
+                $profile->id=$result->result->generatedId;
+                if(isset($profile->attribute)){
+                    $profile->attributes->id=$result->result->generatedId;
+
+                    $r = SOSSData::Insert ("profile_attributes", $profile->attributes);
+                }
+            }
+            CacheData::clearObjects("profile");
+            CacheData::clearObjects("profile_data");
+            return $profile;
+        }else{
+            $profile->attributes->id=$profile->id;
+            $result = SOSSData::Update("profile", $profile);
+            $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
+            $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            CacheData::clearObjects("profile");
+            CacheData::clearObjects("profile_data");
+            return $profile;
+           
+        }
+        
+        
+    }
+    
     public function getGoogleLogin($req,$res){
             //App ID
             require_once (PLUGIN_PATH . "/Google/Client.php");

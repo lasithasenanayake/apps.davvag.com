@@ -102,7 +102,7 @@
                     $obj->notify_date=date("m-d-Y H:i:s");
                     $obj->notify_message=$notify->message;
                     $obj->notify_type=$className;
-                    $obj->notify_data=json_encode($data);
+                    $obj->notify_data=addslashes(json_encode($data));
                     $obj->appcode=isset($notify->appcode)?$notify->appcode:null;
                     $obj->app=isset($notify->app)?$notify->app:null;
                     $obj->apptitle=isset($notify->apptitle)?$notify->apptitle:null;

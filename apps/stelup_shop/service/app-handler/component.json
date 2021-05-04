@@ -22,6 +22,12 @@
             "SaveProduct": {
                 "method" : "POST"
             },
+            "ConfirmProductProposal": {
+                "method" : "POST"
+            },
+            "RejectProductProposal": {
+                "method" : "POST"
+            },
             "Like": {
                 "method" : "POST"
             },

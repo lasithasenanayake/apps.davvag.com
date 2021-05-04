@@ -68,6 +68,14 @@
         "accept_proposal":{
             "type":"component",
             "location":"apps"
+        },
+        "rejected_proposal":{
+            "type":"component",
+            "location":"apps"
+        },
+        "accepted_proposal":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{

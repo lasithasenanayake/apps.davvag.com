@@ -58,6 +58,9 @@
             },"ProfileData":{
                 "method" : "GET",
                 "parameters": []
+            },
+            "Save":{
+                "method":"POST"
             }
         }
     },

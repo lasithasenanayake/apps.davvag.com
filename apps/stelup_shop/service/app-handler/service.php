@@ -153,6 +153,77 @@ class appService {
         
     }
 
+    public function postConfirmProductProposal($req,$res){
+        $product=$req->Body(true);
+        $r=SOSSData::Query("stelup_trade","id:".$product->id);
+        $userProfile = Profile::getUserProfile();
+        //return $product;
+        if($r->success && count($r->result)>0){
+            $trad=$r->result[0];
+            if($trad->supplier_profileId==$userProfile->profile->id){
+                $r1=SOSSData::Query("products","itemid:".$trad->itemid);
+                if($r1->success && count($r1->result)>0){
+                    $product=$r1->result[0];
+                    if($product->qty>=1){
+                        $product->qty=$product->qty-1;
+                        SOSSData::Update("products",$product);
+                        $trad->status="Confirmed";
+                        SOSSData::Insert("stelup_trade_confirm",$trad);
+                        SOSSData::Delete("stelup_trade",$trad);
+                        Profile::AddNotify($trad->profileId,"stelup_proposal_accepted",$trad);
+                        Profile::Send_Notify();
+                        return $trad;
+                    }else{
+                        $trad->status="Error";
+                        $trad->error="Item out of stock found to accept Proposal";
+                        SOSSData::Insert("stelup_trade_rejected",$trad);
+                        SOSSData::Delete("stelup_trade",$trad);
+                        Profile::AddNotify($trad->profileId,"stelup_proposal_rejected",$trad);
+                        Profile::Send_Notify();
+                        $res->SetError("Insuficient Stock");
+                        return null;
+                    }
+                }else{
+                    $trad->status="Error";
+                    $trad->error="Item not found to accept Proposal";
+                    SOSSData::Insert("stelup_trade_rejected",$trad);
+                    SOSSData::Delete("stelup_trade",$trad);
+                    Profile::AddNotify($trad->profileId,"stelup_proposal_rejected",$trad);
+                    Profile::Send_Notify();
+                    $res->SetError("Item not found");
+                    return null;
+                }
+            }else{
+                $res->SetError("Access Denied");
+            }
+        }else{
+            $res->SetError("There is no trad to be accepted");
+            return;
+        }
+    }
+
+    public function postRejectProductProposal($req,$res){
+        $product=$req->Body(true);
+        $r=SOSSData::Query("stelup_trade","id:".$product->id);
+        $userProfile = Profile::getUserProfile();
+        if($r->success && count($r->result)>0){
+            $trad=$r->result[0];
+            if($trad->supplier_profileId==$userProfile->profile->id){
+                $trad->status="Rejected";
+                SOSSData::Insert("stelup_trade_rejected",$trad);
+                SOSSData::Delete("stelup_trade",$trad);
+                Profile::AddNotify($trad->profileId,"stelup_proposal_rejected",$trad);
+                Profile::Send_Notify();
+                return $trad;
+            }else{
+                $res->SetError("Access Denied");
+            }
+        }else{
+            $res->SetError("There is no trad to be accepted");
+            return;
+        }
+    }
+
     public function postSaveProductProposal($req,$res){
         
         $product=$req->Body(true);
@@ -166,10 +237,8 @@ class appService {
             $result=SOSSData::Insert ("stelup_trade", $product);
             if($result->success){
                 $product->id = $result->result->generatedId;
-                Profile::AddNotify($product->supplier_profileId,"product_proposal",$product);
-                profile::Send_Notify();
-                //$summery->id=$result->result->generatedId;
-                //$product=$this->saveAttributes($product);
+                Profile::AddNotify($product->supplier_profileId,"stelup_product_proposal",$product);
+                Profile::Send_Notify();
                 return $product;
             }else{
                 $res->SetError ($result);
