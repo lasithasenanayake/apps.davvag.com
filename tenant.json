@@ -109,6 +109,9 @@
         },
         "davvag-directpay-lk":{
             "version":"latest"
+        },
+        "davvag-ipg":{
+            "version":"latest"
         }
     },
     "webdock":{

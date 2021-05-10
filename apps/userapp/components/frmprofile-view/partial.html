@@ -280,14 +280,14 @@
                       <td>{{ t.tranid }}</td>
                       <td>{{ t.tranDate }}</td>
                       <td>{{ t.amount | currency }}</td>
-                      <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+                      <td><button class="btn btn-success btn-sm" v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
                     </tr>
                     <tr>
                       <td></td>
                       <td></td>
                       <td></td>
                       <td>{{ Summary.outstanding | currency }}</td>
-                      <td></td>
+                      <td><button v-if="Summary.outstanding>0" class="btn btn-success btn-sm" v-on:click="showPay();">Pay Bill</button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -404,7 +404,7 @@
           </div>
           
         <div class="modal-footer">
-          <button class="btn btn-primary" v-on:click="pay">Pay Now</button>
+          <button class="btn btn-primary" v-on:click="paybill(profile)">Pay Now</button>
           <button type="button" class="btn btn-danger" v-on:click="cancelPay">Cancel</button>
         </div>
     </div>

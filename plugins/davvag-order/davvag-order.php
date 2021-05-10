@@ -15,7 +15,9 @@ class Davvag_Order{
     }
 
     public function ExtPaymentRequest($id){
+        //sreturn $id;
         $result = SOSSData::Query ("payment_ext_request", urlencode("id:".$id.""));
+        //return $result;
         if($result->success && count($result->result)>0){
             $order= $result->result[0];
             //$r = SOSSData::Query ("orderdetails", urlencode("invoiceno:".$id.""));

@@ -15,7 +15,8 @@ WEBDOCK.component().register(function(exports){
         appName:"Tranaction History",
         profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1},
         loadingApp:false,
-        loadingAppError:false
+        loadingAppError:false,
+        submitErrors:[]
     };
     var newFile;
     function completeResponce(results){
@@ -55,6 +56,26 @@ WEBDOCK.component().register(function(exports){
                     });
                 });
 
+            },
+            paybill:function(p){
+                $('#modalImagePopup').modal('toggle');
+                $('#modalImagePopup').on('hidden.bs.modal', function () {
+                    bindData.item.amount=p.amount;
+                    var data={profileId:bindData.item.id,email:bindData.item.email,name:bindData.item.name,
+                    address:bindData.item.address,city:bindData.item.city,country:bindData.item.country,
+                    contactno:bindData.item.contactno,amount:profile.amount,remarks:p.remarks
+                    };
+                    
+                    authhandler.services.CreatePaymentRequest(data).then(function(result){
+                        if(result.success){
+                            window.location="#/app/davvag-ipg?repid="+result.result.id+"&url=#/app/userapp";
+                        }else{
+                            bindData.submitErrors.push("Error making the Transaction");
+                        }
+                    }).error(function(result){
+                        bindData.submitErrors.push(result.result.message);
+                    });
+                });
             },
             showTab:function(tab,title){
                 $('#decker1100').addClass("profile-content-show");
@@ -109,8 +130,8 @@ WEBDOCK.component().register(function(exports){
                 $('#modalImagePopup').modal('show');
             },
             logout:function(){
-                userHandler = exports.getComponent("login-handler");
-                userHandler.services.Logout().then(function(result){
+                
+                authhandler.services.Logout().then(function(result){
                     if(result.result){
                         localStorage.clear();
                         //sessionStorage.clear();
@@ -214,6 +235,7 @@ WEBDOCK.component().register(function(exports){
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
         authhandler = exports.getComponent ("login-handler");
+        //userHandler = exports.getComponent("login-handler");
         exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
             apploader=_uploader;
             apploader.initialize();

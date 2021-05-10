@@ -39,12 +39,20 @@
         "profile-edit":{
             "type":"component",
             "location":"components"
+        },
+        "frmInvoice-view":{
+            "type":"component",
+            "location":"components"
+        },
+        "frmRecipt-view":{
+            "type":"component",
+            "location":"components"
         }
     },
     "description":{
         "title": "User App",
         "author":"Davvag",
-        "version":"0.7",
+        "version":"0.71",
         "icon":"appicon.png"
     },
     "tags":["showincms"],
@@ -59,7 +67,9 @@
                     "/reset":"login-restpassword",
                     "/error":"login-error",
                     "/privacy-policy":"privacy-policy",
-                    "/terms-conditions":"terms-conditions"
+                    "/terms-conditions":"terms-conditions",
+                    "/receipt" : "frmRecipt-view",
+                    "/invoice":"frmInvoice-view"
                 }
             }
         }

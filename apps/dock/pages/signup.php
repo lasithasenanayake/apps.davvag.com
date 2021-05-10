@@ -93,8 +93,8 @@
                     </div>
                     <div class="mb10">
                         <label class="control-label">Domain Name</label>
-                        <input type="text"   class="form-control" value="<?php echo $_SERVER["HTTP_HOST"] ?>" disabled/>
-                        <input type="hidden"  name="domain" class="form-control" value="<?php echo $_SERVER["HTTP_HOST"] ?>"/>
+                        <input type="text"   class="form-control" value="<?php echo AUTH_DOMAIN ?>" disabled/>
+                        <input type="hidden"  name="domain" class="form-control" value="<?php echo AUTH_DOMAIN ?>"/>
                         <input type="hidden"  name="requestid" class="form-control" value="<?php echo $_SESSION["regadmin"] ?>"/>
                         
                         

@@ -1,0 +1,15 @@
+<header class="masthead">
+  <div class="hero-image">
+    <div class="mx-auto text-center">
+      <br/>
+      <h1 class="mx-auto my-0 text-white text-uppercase"> QBI Campus Student Portal</h1>
+      <h2 class="text-white-50 mx-auto mt-2 mb-5"> Please login to Continue. </h2>
+      <hr>
+      <button class="btn bg-primary-button" v-if="profile.id==null" v-on:click="navProfile">Login</button>
+      <button class="btn bg-primary-button" v-if="profile.id!=null" v-on:click="navProfile">Goto Dashboard</button>
+    </div>
+  </div>
+</header>
+
+
+

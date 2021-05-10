@@ -26,7 +26,7 @@ class Stripe_IPG {
       }else{
         //$this->Stripkeys($order->supplier_profileId);
         $keys=$this->Stripkeys($order->supplier_profileId);
-        ///return $keys;
+        //return $keys;
         if(isset($keys)){
           $order->stripeKey= $keys->stripeKey;
         }
@@ -142,6 +142,7 @@ class Stripe_IPG {
 
     public function postTestChargeAmountFromCard($req,$res)
     {
+        require_once(PLUGIN_PATH_LOCAL . "/davvag-ipg/davvag-ipg.php");
         $cardDetails=$req->Body(true);
         $userprofile=Profile::getUserProfile();
         if($userprofile->profile){
@@ -176,8 +177,11 @@ class Stripe_IPG {
                 if($q->success){
                   if(count($q->result)>0){
                     SOSSData::Update("davvag_stripe",$cardDetails);
+                    Davvag_IPG::SaveNewIPG("davvag-stripe",$cardDetails->id,"Stripe","Stripe is a international Payment Gateway","http://www.stripe.com","assets/davvag-stripe/stripe.png");
+
                   }else{
                     SOSSData::Insert("davvag_stripe",$cardDetails);
+                    Davvag_IPG::SaveNewIPG("davvag-stripe",$cardDetails->id,"Stripe","Stripe is a international Payment Gateway","http://www.stripe.com","assets/davvag-stripe/stripe.png");
                   }
                 }
                 

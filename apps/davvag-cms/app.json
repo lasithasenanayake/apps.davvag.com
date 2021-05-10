@@ -82,6 +82,10 @@
         "partial-album-bg-carousel":{
             "type":"partial",
             "location":"partials"
+        },
+        "qti-home-1":{
+            "type":"partial",
+            "location":"partials"
         }
 
     },
@@ -105,7 +109,7 @@
                 "partials" : {
                     "/" : "partial-album-bg-carousel",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "partial-album-bg-carousel",
+                    "/home" : "qti-home-1",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

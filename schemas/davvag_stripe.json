@@ -8,14 +8,14 @@
             }
         },
         {
-            "fieldName":"mainkey",
+            "fieldName":"stripeKey",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 50
+                "maxLen": 200
             }
         },
         {
-            "fieldName":"appkey",
+            "fieldName":"stripeSecretKey",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 200
