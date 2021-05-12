@@ -7,7 +7,7 @@ WEBDOCK.component().register(function(exports){
         products:[],
         sidebar:[],
         titlepage:{name:"",title:"",caption:""},
-        id:0,allloaded:false,loading:false,cards:[],profile:localStorage.profile?JSON.parse(localStorage.profile):{}
+        id:0,allloaded:false,loading:false,cards:[],profile:{}
     };
     var vueData =  {
         methods:{
@@ -27,6 +27,11 @@ WEBDOCK.component().register(function(exports){
             pInstance = exports.getShellComponent("soss-routes");
             routeData = pInstance.getInputData();
             menuhandler  = exports.getComponent("soss-data");
+            try {
+                bindData.profile=localStorage.profile?JSON.parse(localStorage.profile):{};
+            } catch (error) {
+                console.log("Error Parasng Profile");
+            }
             
         
             

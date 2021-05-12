@@ -23,7 +23,7 @@
         "version":"0.1",
         "icon":"appicon.png"
     },
-    "tags":["showincms","showindock"],
+    "tags":["showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "charge-form",

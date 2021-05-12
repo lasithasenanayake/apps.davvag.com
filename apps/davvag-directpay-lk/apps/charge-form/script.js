@@ -31,17 +31,17 @@ WEBDOCK.component().register(function(exports){
                 console.log(result);
                 
                 if(result.success){
-                   bindData.order=result.result;
+                   bindData.data=result.result;
                    //if(bindData.order.stripeKey!=null){}
-                   bindData.stripe_pulich_key=bindData.order.stripeKey?bindData.order.stripeKey:null;
-                   bindData.data.email=bindData.order.email;
-                   if(bindData.stripe_pulich_key==null){
+                   bindData.appkey=bindData.data.appkey?bindData.data.appkey:null;
+                   bindData.mainkey=bindData.data.mainkey?bindData.data.mainkey:null;;
+                   if(bindData.appkey==null){
                         if(routeData.url){
                             window.location=decodeURI(routeData.url);
                         }
                    }
-                   if(bindData.order.balance>0){
-                        unlockForm();
+                   if(bindData.data.amount>0){
+                    InitDirectpay();
                    }else{
                         bindData.submitErrors.push("Order is already paid.");
                         if(routeData.url){
@@ -103,10 +103,24 @@ WEBDOCK.component().register(function(exports){
 
     
     function InitDirectpay(){
-        if(!window.DirectPayCardPayment){
-            setTimeout(InitDirectpay,1000);
+        var direct = document.getElementById("DirectPayCardPayment");
+        
+        if(direct){
+            LoadCard();
         }else{
-            $("#card_container").empty();
+            const jqueryScript = document.createElement('script')
+            jqueryScript.src = bindData.data.apiuri;
+            jqueryScript.setAttribute("id", "DirectPayCardPayment");
+            jqueryScript.onload = () => { 
+                LoadCard();
+            }
+            document.head.append(jqueryScript);
+        }
+        
+    }
+
+    function LoadCard(){
+        $("#card_container").empty();
             DirectPayCardPayment.init({
                 container: 'card_container', //<div id="card_container"></div>
                 merchantId: bindData.mainkey, //your merchant_id
@@ -123,7 +137,6 @@ WEBDOCK.component().register(function(exports){
                 logo: 'https://test.com/directpay_logo.png',
                 apiKey: bindData.appkey
             });
-        }
     }
     //response callback.
     function responseCallback(result1) {

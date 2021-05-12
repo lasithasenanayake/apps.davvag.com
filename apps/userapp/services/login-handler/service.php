@@ -145,6 +145,7 @@ class LoginService {
             }
         }
 
+        $data->currencycode=defined("CURRENCY_CODE")?CURRENCY_CODE:"LKR";
         $result=SOSSData::Insert ("payment_ext_request", $data);
         if($result->success){
             $data->id=$result->result->generatedId;

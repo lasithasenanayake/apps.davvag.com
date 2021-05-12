@@ -10,7 +10,8 @@ WEBDOCK.component().register(function(exports){
         date:new Date(),
         duedate:new Date(),
         invoiceSave:false,
-        InvoiceToSave:{}
+        InvoiceToSave:{},
+        profile:{}
     };
 
     
@@ -33,6 +34,16 @@ WEBDOCK.component().register(function(exports){
                 WinPrint.document.close();
                 WinPrint.focus();
                 setTimeout(function(){ WinPrint.print();WinPrint.close(); }, 3000);
+            },
+            paybill:function(id){
+                window.location="#/app/davvag-ipg?orderid="+id;
+            }
+        },
+        filters: {
+            currency: function (value) {
+              if (!value) return '0.00'
+              value = value.toString()
+              return parseFloat(value).toFixed(2);
             }
         }
     }

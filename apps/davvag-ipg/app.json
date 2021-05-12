@@ -14,12 +14,12 @@
         }
     },
     "description":{
-        "title": "Sampe App",
+        "title": "IPG Selector",
         "author":"Davvag",
         "version":"0.1",
         "icon":"appicon.png"
     },
-    "tags":["showincms","showindock"],
+    "tags":["showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "payment-selector",

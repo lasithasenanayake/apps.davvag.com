@@ -21,6 +21,13 @@
                 "isPrimary": true,
                 "maxLen": 10
             }
+        },
+        {
+            "fieldName":"currencycode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
         }
         ,
         {

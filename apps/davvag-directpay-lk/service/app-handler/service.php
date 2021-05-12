@@ -27,10 +27,12 @@ class DirectPay_IPG {
             //SOSSData::Insert("davvag_ipgs",)
             SOSSData::Insert("davvag_directpay_lk",$data);
             Davvag_IPG::SaveNewIPG("davvag-directpay-lk",$data->id,"Direct Pay","Direct Pay is a Sri Lanka Payment Gateway","http://www.directpay.lk","assets/davvag-directpay-lk/directpay.png");
+            CacheData::clearObjects("davvag_directpay_lk");
             return $data;
         }else{
             SOSSData::Update("davvag_directpay_lk",$data);
             Davvag_IPG::SaveNewIPG("davvag-directpay-lk",$data->id,"Direct Pay","Direct Pay is a Sri Lanka Payment Gateway","http://www.directpay.lk","assets/davvag-directpay-lk/directpay.png");
+            CacheData::clearObjects("davvag_directpay_lk");
             return $data;
         }
       }else{
@@ -61,6 +63,7 @@ class DirectPay_IPG {
         if(isset($keys)){
           $rForm->mainkey= $keys->mainkey;
           $rForm->appkey= $keys->appkey;
+          $rForm->apiuri= $keys->apiuri;
         }
         return $rForm;
 
@@ -86,6 +89,15 @@ class DirectPay_IPG {
             $r=$handler->ConfirmExtPayment($payment);
             return $r;
         break;
+        case "order":
+            $order= $body->ExtReq;
+            $results=$body->ExtResults;
+            $rept=$handler->PayOrder($order->invoiceNo,$results->data->amount,"Payed via directpay.lk. tranid :[".$results->data->transactionId."]","DirectPay IPG",$results->data->transactionId);
+            if($rept){
+                $handler->AcceptOrder($order->invoiceNo);
+            }
+            return $rept;
+            return;
         default:
             $res->SetError("Unautherized ");
         break;
@@ -106,7 +118,7 @@ class DirectPay_IPG {
         $rForm->email=isset($order->email)!=true?"null@null.com":$order->email;
         $rForm->contactno=isset($order->contactno)!=true?"":$order->contactno;
         $rForm->rProfileId=$order->profileId;
-        $rForm->amount=$order->total;
+        $rForm->amount=$order->balance;
         $rForm->currencycode=isset($order->currencycode)!=true?"USD":$order->currencycode;
         $rForm->refId=$order->invoiceNo;
         $rForm->name=$order->name;
@@ -115,10 +127,11 @@ class DirectPay_IPG {
         $rForm->appkey="ddde7400a6bce53296bfe8e41b2b18fd9691abc2585927d1e5a1501339ec6fd2";
         $rForm->mainkey="OD04597";
         $keys=$this->DirectPaykeys((isset($order->supplier_profileId)?$order->supplier_profileId:0));
-        ///return $keys;
+        $rForm->ExtType='order';
         if(isset($keys)){
           $rForm->mainkey= $keys->mainkey;
           $rForm->appkey= $keys->appkey;
+          $rForm->apiuri= $keys->apiuri;
         }
         return $rForm;
         
