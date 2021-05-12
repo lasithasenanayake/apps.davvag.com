@@ -33,6 +33,13 @@ class appService {
         return $data; 
     }
 
+    public function postDelete($req,$res){
+        $data = $req->Body(true);
+        $data->status=SOSSData::Delete($data->id,$data->data);
+        CacheData::clearObjects($data->id);
+        return $data;
+    }
+
     
 
 

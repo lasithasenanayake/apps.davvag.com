@@ -25,6 +25,9 @@
             "Save" : {
                 "method" : "POST"
             },
+            "Delete" : {
+                "method" : "POST"
+            },
             "uploadFile" : {
                 "method" : "POST",
                 "route":"/upload/@ns/@name"
