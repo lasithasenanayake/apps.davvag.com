@@ -1,0 +1,97 @@
+<div  class="input-form">
+  <div class="input-error">
+    <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+      <strong>ERROR! </strong> {{error}}
+    </div>
+    <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+        <strong>INFO! </strong> {{error}}
+      </div>
+  </div>
+  <form v-if="data.id" id="maindisplay" class="activeForm" onsubmit="event.preventDefault();">
+    <p style="text-align: justify;">
+      You have submited a bank diposit or tranfer slip and it is in 
+      <strong style="color:darkblue;">"{{ data.status }}"</strong> status. 
+      As soon as we varify from the bank we will credit the amount of {{ data.currencycode }}.{{ data.dipositAmount }} to your account. if there is a change need to be made please click 
+      <strong style="color:darkred;">"Delete this Request"</strong> and you will be able to resend the request to us.
+      </p>
+    <button class="btn bg-primary-button btn-block" v-on:click="navigateback">Delete This Request</button>
+    <button class="btn bg-primary-button btn-block" v-on:click="navigateback">Go Back</button>
+  </form>
+  <form v-if="!data.id" id="maindisplay" class="activeForm" onsubmit="event.preventDefault();">
+    <h1 v-if="data.banks" style="text-align: center;">Select A Bank</h1>
+    <ul class="list-group list-group-flush">
+      <a class="link-group-a"v-on:click="navigateApp(item)" v-for="item in banks"><li class="list-group-item"  style="cursor:pointer">{{ item.bank_name }}</li></a>
+    </ul>
+    <button v-if="!data.banks" class="btn bg-primary-button btn-block" v-on:click="navigateback">Go Back</button>
+  </form>
+  <form id="bankdisplay" class="inactiveForm" onsubmit="event.preventDefault();">
+    <h2 style="text-align: center;">Bank Details</h2>
+    <div class="form-group">
+      <strong>Bank Name :</strong>
+      <span>{{ bank.bank_name }}</span>
+    </div>
+    <div class="form-group">
+      <strong>Account Holder :</strong>
+      <span>{{ bank.bank_accountname }}</span>
+    </div>
+    <div class="form-group">
+      <strong>Account No :</strong>
+      <span>{{ bank.bank_accountno }}</span>
+    </div>
+    <div class="form-group">
+      <strong>Branch Code :</strong>
+      <span>{{ bank.bank_branch_code }}</span>
+    </div>
+    <div class="form-group">
+      <strong>Swift Code :</strong>
+      <span>{{ bank.bank_swift_code }}</span>
+    </div>
+    <div class="form-group">
+      <small id="Help2" class="form-text text-muted">Use above bank details and Tranfer or diposit and submit the following information to us.</small>
+    </div>
+    <div v-if="bank.qr_code" class="form-group">
+      <img :src="bank.qr_code" width="350px">
+      <small id="Help2" class="form-text text-muted">Scan QR Code to tranfer from your banking APP.</small>
+    </div>
+    <button  class="btn bg-primary-button btn-block" v-on:click="submition">Submit Tranfer or Diposit Infomation</button>
+    <button  class="btn bg-primary-button btn-block" v-on:click="back">Back</button>
+  </form>
+  <form id="banksubmition" class="inactiveForm" onsubmit="event.preventDefault();">
+    <h2 style="text-align: center;">Diposit Details</h2>
+    <div class="form-group">
+      <label for="name">Name *</label>
+      <input type="text" id="name" class="form-control"  aria-describedby="emailHelp" placeholder="Enter Name" v-model="data.name">
+    </div>
+    
+    <div class="form-group">
+      <label for="contactno">Contact No *</label>
+      <input type="number" id="contactno" class="form-control"  aria-describedby="Help1" placeholder="Enter Contact No" v-model="data.contactno">
+      <small id="Help1" class="form-text text-muted">We'll never share your contact no with anyone else.</small>
+    </div>
+    <div class="form-group">
+      <label for="exampleInputPassword1">Email </label>
+      <input type="text" class="form-control" v-model="data.email" >
+    </div>
+    <div class="form-group">
+      <label for="exampleInputPassword1">Remarks (You can mention transfer or dipost referce or anyother remarks related to transaction)</label>
+      <textarea class="form-control deliveryAddress" v-model="data.remarks" style="margin-bottom:10px;"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="exampleInputPassword1">Diposit Amount *</label>
+      <input type="number" class="form-control" v-model="data.dipositAmount">
+    </div>
+    <div class="form-group">
+      <small id="Help2" class="form-text text-muted">If you do have a diposit slip or Tranferslip attach bellow.</small>
+    </div>
+    <div class="form-group">
+      <label for="exampleInputFile" class="col-md-1s2"></label>
+      <div class="col-md-12">
+        <img :src="bank_slip" class="col-md-12" width="300Px"/>
+        <input type="file" class="form-control"  accept="image/png, image/jpeg" @change="onFileChange">
+      </div>
+    </div>
+    <button  class="btn bg-primary-button btn-block" v-on:click="save">Submit</button>
+    <button  class="btn bg-primary-button btn-block" v-on:click="submitionback">Back</button>
+  </form>
+</div>
+

@@ -1,0 +1,66 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName":"paymentType",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"tranDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"description",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"status",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"amount",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"balance",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"collectedByID",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"collectedBy",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },{
+            "fieldName":"source_id",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        }
+    ]
+}

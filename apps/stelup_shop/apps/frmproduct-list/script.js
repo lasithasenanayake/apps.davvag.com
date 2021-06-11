@@ -1,6 +1,6 @@
 WEBDOCK.component().register(function(exports){
     var page=0;
-    var size=40;
+    var size=16;
     var menuhandler,apploader;
     //var q
     //document.body.addEventListener('scroll', loadproducts);
@@ -70,13 +70,83 @@ WEBDOCK.component().register(function(exports){
     }
     //var firstLoad=true;
     function completeResponce(d){
-        console.log(e);
+        if(d.method){
+            switch(d.method){
+                case "url_redirect":
+                    
+                    $('#modalappwindow').on('hidden.bs.modal', function () {
+                        // do something…
+                        window.location=d.url;
+                      });
+                      $('#modalappwindow').modal('toggle');
+                    break;
+                case "app_open":
+                    $('#modalappwindow').on('hidden.bs.modal', function () {
+                        // do something…
+                        $('#modalappwindow').unbind();
+                        bindData.appIcon=d.appicon;
+                        bindData.appTitle=d.apptitle;
+                        $('#modalappwindow').modal('toggle');
+                        apploader.downloadAPP(d.appname,d.form,"appdock",function(d){
+                            
+                        },function(e){
+                            console.log(e);
+                            bindData.loadingAppError=true;
+                        },completeResponce,d.data);
+                      });
+                      $('#modalappwindow').modal('toggle');
+                      break;
+                case "add_item":
+                      additem(d.item,d.isOrder);
+                      $('#modalappwindow').modal('toggle');
+                      break;
+            }
+        }
+        //console.log(e);
+    }
+    
+    function additem(itemx,isOrder){
+        item=JSON.parse(JSON.stringify(itemx));
+        item.qty=1;
+        items=[];
+        if(sessionStorage.items){           
+            items=JSON.parse(sessionStorage.items);
+        }
+        x=0;
+        for(i in items){
+            if(items[i].itemid===item.itemid){
+                items[i].qty++;
+                items[i].isOrder = isOrder;
+                sessionStorage.items=JSON.stringify(items);
+                bindData.itemCount =0;
+                for (var i=0;i<items.length;i++){
+                    var it = items[i];
+                    bindData.itemCount += it.qty;
+                }
+                
+                return;
+            }
+            x++;
+        }
+        
+        item.isOrder = isOrder;
+        items.push(item);
+        sessionStorage.items=JSON.stringify(items);
+        bindData.itemCount =0;
+        for (var i=0;i<items.length;i++){
+            var it = items[i];
+            bindData.itemCount += it.qty;
+        }
+        //services.topMenu.additems(item,bindData.itemCount);
+        
     }
     
     function loadproducts(){
        
         var routId   = exports.getShellComponent("soss-routes");
         routeData = routId.getInputData();
+        if(bindData.loading)
+            return;
         
             //var query=[{storename:"products",search:""}];
         if(menuhandler){
@@ -104,14 +174,14 @@ WEBDOCK.component().register(function(exports){
                                 }else{
                                     bindData.noproducts=false;
                                 }
-                                //bindData.loading=false;
                                 page=page+bindData.products.length;
+                                bindData.loading=false;
+                                
                             }
-                            //firstLoad=false;
                         })
                         .error(function(error){
                             //bindData.products=[];
-                            //bindData.loading=false;
+                            bindData.loading=false;
                             bindData.allloaded=false;
                             //page=
                             console.log(error.responseJSON);
@@ -120,7 +190,7 @@ WEBDOCK.component().register(function(exports){
             }catch(e){
                 console.log(e);
             }finally{
-                bindData.loading=false;
+                //bindData.loading=false;
             }
             
         }
@@ -271,40 +341,7 @@ WEBDOCK.component().register(function(exports){
                 }
             }
         },
-        additem:function(item,isOrder){
-            items=[];
-            if(sessionStorage.items){           
-                items=JSON.parse(sessionStorage.items);
-            }
-            x=0;
-            for(i in items){
-                if(items[i].itemid===item.itemid){
-                    items[i].qty++;
-                    items[i].isOrder = isOrder;
-                    sessionStorage.items=JSON.stringify(items);
-                    bindData.itemCount =0;
-                    for (var i=0;i<items.length;i++){
-                        var it = items[i];
-                        bindData.itemCount += it.qty;
-                    }
-                    //services.topMenu.additems(items[i],bindData.itemCount);
-                    $('#modalImagePopup').modal('toggle');
-                    return;
-                }
-                x++;
-            }
-            //item.qty=1;
-            item.isOrder = isOrder;
-            items.push(item);
-            sessionStorage.items=JSON.stringify(items);
-            bindData.itemCount =0;
-            for (var i=0;i<items.length;i++){
-                var it = items[i];
-                bindData.itemCount += it.qty;
-            }
-            //services.topMenu.additems(item,bindData.itemCount);
-            $('#modalImagePopup').modal('toggle');
-        }
+        additem:additem
         },
         data :bindData
         ,

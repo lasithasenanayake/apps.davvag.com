@@ -102,6 +102,7 @@ class ProductServices {
         unset ($profile->data);
         try{
             $order= $handler->InvoiceSave($profile->order,$res);
+            CacheData::clearObjects("products");
             $result = SOSSData::Insert ("orderheader_pending", $order);
             $result = SOSSData::Insert ("orderdetails_pending", $order->InvoiceItems);
             return $order;

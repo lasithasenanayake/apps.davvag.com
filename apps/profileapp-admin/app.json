@@ -1,0 +1,36 @@
+{
+    "components": {
+        "Invoice-reversal": {
+            "type":"component",
+            "location":"apps"
+        },
+        "app-handler": {
+            "type":"service",
+            "location":"service"
+        },
+        "test-form":{
+            "type":"component",
+            "location":"apps"
+        }
+    },
+    "description":{
+        "title": "Profile Admin App",
+        "author":"Davvag",
+        "version":"0.1",
+        "icon":"appicon.png"
+    },
+    "tags":["showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "",
+            "onLoad": ["app-handler"],
+            "routes":{
+                "partials":{
+                    "/Invoice-reversal":"Invoice-reversal"
+                }
+            }
+        },"dock":{
+            "subapps":[{"name":"Invoice Deletion","path":"Invoice-reversal"}]
+        }
+    }
+}

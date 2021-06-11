@@ -1,0 +1,35 @@
+{
+    "name" : "app-handler",
+    "description":"Vue.JS Plugin for Soss Router",
+    "author":"Lasitha Senanayake",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "js" : [
+            {
+                "tag": "jssip-3.7.4.min",
+                "version" : "latest",
+                "location":"jssip-3.7.4.min"
+            }
+        ],
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "appService",
+        "methods" : {
+            "Save" : {
+                "method" : "POST"
+            }        
+        }
+    },
+    "transformers": {
+        
+    }
+    
+}

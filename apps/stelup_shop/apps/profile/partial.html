@@ -56,10 +56,9 @@
   </div>
   <div class="row" style="margin: auto;">
         
-        <div class="divImage" v-for="item in products" style="margin: auto;">
-            <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+item.itemid+'-'+item.imgurl"  class="upload-image"  @click="selectStore(item)"/>
-            </div>
-        
+    <div  :class="item.qty>0?'divImage':'divImage watermarked'" v-for="item in products" style="margin: auto;" @click="downloadapp('stelup_shop','product_app',item,item.storename,'components/davvag-cms/soss-uploader/service/get/profile/'+item.storeid)">
+        <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+item.itemid+'-'+item.imgurl"  class="upload-image"/>
+        </div>
       
   </div>
   

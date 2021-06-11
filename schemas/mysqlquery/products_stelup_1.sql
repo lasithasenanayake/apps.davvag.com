@@ -16,9 +16,9 @@ CREATE PROCEDURE products_stelup
 )
 BEGIN
 	if q<>"" then
-		SELECT *,(select count(0) from products_likes  where itemid=p.itemid and pid=p_id) as liked,(select count(0) from products_favorites where itemid=p.itemid and pid=p_id)  as favorite,  MATCH(p.name, p.caption,p.keywords) AGAINST(q) AS score From products p inner join products_attributes on p.itemid= products_attributes.itemid where showonstore='y' and MATCH(p.name, p.caption,p.keywords) AGAINST(q) Limit param_page, param_size;
+		SELECT *,(select count(0) from products_likes  where itemid=p.itemid and pid=p_id) as liked,(select count(0) from products_favorites where itemid=p.itemid and pid=p_id)  as favorite,  MATCH(p.name, p.caption,p.keywords) AGAINST(q) AS score From products p inner join products_attributes on p.itemid= products_attributes.itemid where showonstore='y' and qty>0 and MATCH(p.name, p.caption,p.keywords) AGAINST(q) Limit param_page, param_size;
 	else
-        SELECT *,(select count(0) from products_likes  where itemid=p.itemid and pid=p_id) as liked,(select count(0) from products_favorites where itemid=p.itemid and pid=p_id)  as favorite From products p inner join products_attributes on p.itemid= products_attributes.itemid where showonstore='y' order by p.sysversionid desc Limit param_page, param_size;
+        SELECT *,(select count(0) from products_likes  where itemid=p.itemid and pid=p_id) as liked,(select count(0) from products_favorites where itemid=p.itemid and pid=p_id)  as favorite From products p inner join products_attributes on p.itemid= products_attributes.itemid where showonstore='y' and qty>0 order by p.sysversionid desc Limit param_page, param_size;
 	end if;
 END$$
 

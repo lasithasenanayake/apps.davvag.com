@@ -75,7 +75,8 @@ WEBDOCK.component().register(function(exports){
         loadValidator();
         routeData = pInstance.getInputData();
         $('#grnDatePicker').datepicker().on('changeDate', function(ev){
-            bindData.i_profile.dateofbirth = $('#grnDatePicker').val(); 
+            var d = new Date($('#grnDatePicker').val());
+            bindData.i_profile.dateofbirth =  (d.getMonth()+1).toString()+"-"+d.getDate()+"-"+d.getFullYear(); 
         });
         if(routeData.id!=null){
             getProfilebyID(routeData.id)
@@ -134,7 +135,11 @@ WEBDOCK.component().register(function(exports){
         var additem=true;
         if( localStorage.getItem("tmpprofiles")!==null)
         {
-            profiles=JSON.parse(localStorage.getItem("tmpprofiles"));
+            try{
+                profiles=JSON.parse(localStorage.getItem("tmpprofiles"));
+            }catch{
+                profiles=[];
+            }
         }
         profiles.forEach(element => {
             if(element.id==p.id){
@@ -189,13 +194,14 @@ WEBDOCK.component().register(function(exports){
                         bindData.i_profile=response.result;
                        
                     //}
+                    WEBDOCK.freezeUiComponent("soss-routes",false); 
                     $.notify("Profile Has been saved", "success");
                     addProfileToTmp(bindData.i_profile);
                     uploadFile(bindData.i_profile.id, function(){
                         handler1 = exports.getShellComponent("soss-routes");
                         handler1.appNavigate("..");
                     });
-                    WEBDOCK.freezeUiComponent("soss-routes",false); 
+                    
                     
                 }else{
                     $.notify("ERROR! Saving Profile", "error");

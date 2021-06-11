@@ -2,6 +2,7 @@ WEBDOCK.component().register(function(exports){
     var bindData = {
         i_profile:{},
         InvItems:[],
+        Advance:[],
         products:[],
         subtotal:0,
         tax:0,
@@ -14,7 +15,9 @@ WEBDOCK.component().register(function(exports){
         invoiceSave:false,
         InvoiceToSave:{},
         supplierData:{},
-        submitErrors:[]
+        submitErrors:[],
+        AdvanceBalance:0,
+        AdvanceAmount:0
     };
 
     function calcTotals(){
@@ -22,7 +25,13 @@ WEBDOCK.component().register(function(exports){
         bindData.InvItems.forEach(element => {
             bindData.subtotal+=parseFloat(element.balance);
         });
+
+        bindData.Advance.forEach(element => {
+            //bindData.subtotal+=parseFloat(-1*element.balance);
+            bindData.AdvanceAmount+=parseFloat(element.balance);
+        });
         bindData.subtotal=parseFloat(bindData.subtotal).toFixed(2);
+        bindData.AdvanceAmount=parseFloat(bindData.AdvanceAmount).toFixed(2);
         //bindData.taxamount=parseFloat(parseFloat(bindData.subtotal)*(parseFloat(bindData.tax)/100)).toFixed(2);
         bindData.total= parseFloat(parseFloat(bindData.subtotal)-parseFloat(bindData.paidamount)).toFixed(2);
        
@@ -100,7 +109,7 @@ WEBDOCK.component().register(function(exports){
         },
         filters: {
             currency: function (value) {
-              if (!value) return ''
+              if (!value) return '0.00'
               value = value.toString()
               return parseFloat(value).toFixed(2);
             }
@@ -191,10 +200,13 @@ WEBDOCK.component().register(function(exports){
             balanceAmount:bindData.total,
             paymentType:bindData.paymenttype,
             paymentAmount:bindData.paidamount,
+            advanceAmount:bindData.AdvanceAmount,
+            advanceUtilized:0,
             status:"Approved",
             detailsString:null,
             InvoiceItems:[]
         }
+        
         bindData.InvItems.forEach(element => {
             if(element.itemid!=0){
                 bindData.InvoiceToSave.InvoiceItems.push(
@@ -210,6 +222,20 @@ WEBDOCK.component().register(function(exports){
                 )
             }
         });
+        /*
+        bindData.Advance.forEach(element=>{
+            bindData.InvoiceToSave.InvoiceItems.push(
+                {
+                    receiptNo:0,
+                    transactionid:element.id,
+                    tranType:"Advance",
+                    description:"Advance #"+element.id+" Invoiced On " +element.tranDate,
+                    DueAmount:-1*element.balance,
+                    PaidAmout:0,
+                    Balance:-1*element.balance
+                }
+            )
+        });*/
 
         bindData.InvItems.detailsString=JSON.stringify(bindData.InvoiceToSave.InvoiceItem);
         bindData.invoiceSave=true;
@@ -250,13 +276,14 @@ WEBDOCK.component().register(function(exports){
                 if(response.result.length!=0){
                     bindData.i_profile=response.result[0];
                     bindData.p_image = 'components/dock/soss-uploader/service/get/profile/'+bindData.i_profile.id;
-                    var query=[{storename:"orderheader",search:"profileid:"+id+",PaymentComplete:N"}];
+                    var query=[{storename:"orderheader",search:"profileid:"+id+",PaymentComplete:N"},{storename:"payment_advance",search:"profileid:"+id+",status:new"}];
                     profileHandler.services.q(query)
                     .then(function(r){
                         console.log(JSON.stringify(r));
                         if(r.success){
 
                             bindData.InvItems=r.result.orderheader;
+                            bindData.Advance=r.result.payment_advance;
                             calcTotals();
                             
                         }

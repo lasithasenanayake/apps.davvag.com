@@ -13,7 +13,14 @@ WEBDOCK.component().register(function(exports){
         data :bindData,
         onReady: function(s){
             scope=s;
-            initialize();
+            var direct = document.getElementById("DirectPayCardPayment");
+        
+            if(direct){
+                location.reload();
+            }else{
+                initialize();
+            }
+            
         }
     }
 
@@ -134,7 +141,7 @@ WEBDOCK.component().register(function(exports){
                 debug: false,
                 responseCallback: responseCallback,
                 errorCallback: errorCallback,
-                logo: 'https://test.com/directpay_logo.png',
+                logo: 'https://'+document.location.hostname+"/"+JSON.parse(sessionStorage.blogheader).icon,
                 apiKey: bindData.appkey
             });
     }
@@ -142,19 +149,24 @@ WEBDOCK.component().register(function(exports){
     function responseCallback(result1) {
         console.log("successCallback-Client", result1);
         bindData.data.ExtResults=result1;
+        bindData.submitInfo=[];
         service_handler.services.Payment(bindData.data).then(function(result){
             console.log(result);
             
             if(result.success && result.result!=null){
-                alert(JSON.stringify(result));
+                bindData.submitInfo.push("Payement was Successful.")
+                window.location="#/app/userapp/receipt?tid="+result.result.receiptNo;
+            
+                
                
             }else{
                 ///bindData.data=null;
-                bindData.submitErrors.push("Internal Error.");
+                bindData.submitErrors.push("Payment Errors.");
+
             }
             
         }).error(function(result){
-            bindData.submitErrors.push("Critical Error please refresh");
+            bindData.submitErrors.push("Payment was not made Please try again.");
         });
         
     }

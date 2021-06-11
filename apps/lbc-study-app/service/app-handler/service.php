@@ -44,11 +44,12 @@ class appService {
 
     public function postSaveEntrolSubjects($req,$res){
         $data = $req->Body(true);
-        $r = SOSSData::Query("attr_lbc_entrollments","id:".$data->id.",subject_code:".$data->subject->code);
+        $r = SOSSData::Query("attr_lbc_entrollments","id:".$data->id.",subject_id:".$data->subject->ID);
         if($r->success && count($r->result)==0){
             $saveData=new stdClass();
             $saveData->id=$data->id;
             $saveData->profileId=$data->profileId;
+            $saveData->subject_id=$data->subject->ID;
             $saveData->subject_code=$data->subject->code;
             $saveData->subject_name=$data->subject->name;
             $saveData->status="pending";

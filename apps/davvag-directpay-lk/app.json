@@ -20,7 +20,7 @@
     "description":{
         "title": "Directpay Payment Gatway App",
         "author":"Davvag",
-        "version":"0.1",
+        "version":"0.6",
         "icon":"appicon.png"
     },
     "tags":["showincms"],

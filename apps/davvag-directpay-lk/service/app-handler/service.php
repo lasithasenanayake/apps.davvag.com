@@ -75,6 +75,12 @@ class DirectPay_IPG {
     public function postPayment($req,$res){
       $body=$req->Body(true);
       $handler=new Davvag_Order();
+      $results=$body->ExtResults;
+      if($results->data->status!="SUCCESS"){
+        $res->SetError("Transaction Failed.");
+        return;
+      }
+
       switch($body->ExtType){
         case "extern_reciept":
             $results=$body->ExtResults;

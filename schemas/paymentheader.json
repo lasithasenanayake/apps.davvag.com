@@ -124,6 +124,14 @@
             }
         },
         {
+            "fieldName":"advanceAmount",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"advanceUtilized",
+            "dataType":"float"
+        },
+        {
             "fieldName":"paymentAmount",
             "dataType":"float"
         },

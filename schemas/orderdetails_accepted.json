@@ -19,6 +19,13 @@
             "dataType":"int"
         },
         {
+            "fieldName":"invType",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
             "fieldName":"tenant",
             "dataType":"java.lang.String",
             "annotations":{

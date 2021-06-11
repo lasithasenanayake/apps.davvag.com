@@ -48,7 +48,7 @@
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 500,
-                "encoding":"utf8"
+                "encoding":"utf8mb4"
             }
         }
 

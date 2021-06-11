@@ -1,0 +1,101 @@
+<div class="container" @scroll="handleScroll($event)">
+    <div v-if="itemCount>0" class="row">
+        <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+    </div>
+    <div class="row">
+	    <div class="col-12">
+    	    <div id="custom-search-input">
+                <div class="input-group">
+                    <input type="text" class="search-query form-control" placeholder="Search" v-model="q" v-on:keyup="OnkeyEnter"/>
+                    <span class="input-group-btn">
+                        <button type="button" v-on:click="onSearch">
+                            <span class="fa fa-search"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+	</div>
+  <div class="row">
+      <div class="col-md-3 col-sm-6" v-for="item in products">
+          <div class=""></div>
+          <div class="product-grid8 product-wine-image shadow p-3 mb-5 bg-white rounded" style="margin:1px;">
+              <div class="product-image8"> 
+                  <a href="#" aria-disabled="true">
+                      <img class="pic-1" :src="'components/davvag-cms/soss-uploader/service/get/products/'+item.itemid+'-'+item.imgurl">
+                  </a>
+                  <span  class="product-discount-label bg-primary" v-if="item.discountper>0 && item.sellstype!='bi'">-{{ item.discountper }}%</span>
+                  <small  class="product-discount-label bg-primary small-text" v-if="item.sellstype=='bi'">{{ item.bid_enddate | getTimeLeft }} Left</small>
+              </div>
+              <div v-if="item.sellstype!='bi'" class="product-content">
+                <div class="price">Price: {{ item.currencycode }}. {{ item.price-(item.price*(item.discountper/100)) }} <br/>
+                    Average price: <span v-if="item.discountper>0">{{ item.currencycode }}.{{ item.price }}</span>
+                    </div>
+                  <h3 class="title"><a href="#" aria-disabled="true" v-html="item.name">{{ item.name }}</a></h3>
+                  <button class="form-control btn bg-primary-button" v-on:click="downloadapp('davvag-shop-v2','product_app',item,item.name,'components/davvag-cms/soss-uploader/service/get/profile/'+item.storeid)">View</button>
+                  
+              </div>
+              <div v-if="item.sellstype=='bi'" class="product-content">
+                <div class="price"><small>Starting Price: {{ item.currencycode }}. {{ item.bid_start_price }}</small> <br/>
+                    <small> Current Bid: {{ item.currencycode }}.{{ item.current_bid }} </small>
+                    </div>
+                  <h3 class="title"><a href="#" aria-disabled="true" v-html="item.name">{{ item.name }}</a></h3>
+                  <button class="form-control btn bg-primary-button" v-on:click="downloadapp('davvag-shop-v2','product_app',item,item.name,'components/davvag-cms/soss-uploader/service/get/profile/'+item.storeid)">View</button>
+                  
+              </div>
+          </div>
+      </div>
+  </div>
+  
+</div>
+<div v-if="loading" class="row" >    
+    <div class="col-md-4 col-sm-6">
+           
+    </div>
+    <div class="col-md-4 col-sm-6">
+            <div id="custom-search-input">
+                <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
+            </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+            
+    </div>
+           
+</div>
+<div v-if="noproducts" class="row" >
+        <div class="col-md-4 col-sm-6">
+           
+            </div>    
+        
+        <div class="col-md-4 col-sm-6">
+                <h1> No Results for Search Query "{{ q }}" </h1>
+            </div>
+            <div class="col-md-4 col-sm-6">
+           
+                </div>
+</div>
+<div class="modal fade" id="modalappwindow" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+            <div class="modal-header">
+                <div style="width: 40px;">
+                    <div class="profile-userpic">
+                        
+                        
+                    </div>
+                </div>
+                <div class="col">
+                    
+                </div>
+                <div class="col" style="width: 30px;text-align: right;">
+                    <a v-on:click="close">x</a>
+                </div>
+                
+                
+            </div>
+            <div id="appdock" class="modal-body">
+                	
+            </div>
+        </div>
+    </div>
+</div>

@@ -104,7 +104,7 @@
                 "admin": []
             },
             "routes":{
-                "home" : "/home",
+                "home" : "/app/stelup_shop",
                 "notFound": "/notFound",
                 "partials" : {
                     "/" : "partial-album-bg-carousel",

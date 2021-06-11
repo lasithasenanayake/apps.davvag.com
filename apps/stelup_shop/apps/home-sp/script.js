@@ -1,6 +1,6 @@
 WEBDOCK.component().register(function(exports){
     var page=0;
-    var size=40;
+    var size=6;
     var menuhandler,apploader;
     //var q
     //document.body.addEventListener('scroll', loadproducts);
@@ -44,7 +44,8 @@ WEBDOCK.component().register(function(exports){
     }
     //var firstLoad=true;
     function loadproducts(){
-       
+        if(bindData.loading)
+            return;
         var routId   = exports.getShellComponent("soss-routes");
         routeData = routId.getInputData();
         calqty();
@@ -76,12 +77,13 @@ WEBDOCK.component().register(function(exports){
                                 }
                                 //bindData.loading=false;
                                 page=page+bindData.products.length;
+                                bindData.loading=false;
                             }
                             //firstLoad=false;
                         })
                         .error(function(error){
                             //bindData.products=[];
-                            //bindData.loading=false;
+                            bindData.loading=false;
                             bindData.allloaded=false;
                             //page=
                             console.log(error.responseJSON);
@@ -90,13 +92,13 @@ WEBDOCK.component().register(function(exports){
             }catch(e){
                 console.log(e);
             }finally{
-                bindData.loading=false;
+                //bindData.loading=false;
             }
             
         }
     }
     function completeResponce(d){
-        console.log(e);
+        console.log(d);
     }
 
     function goLogin(){

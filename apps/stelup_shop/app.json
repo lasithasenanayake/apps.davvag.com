@@ -76,12 +76,16 @@
         "accepted_proposal":{
             "type":"component",
             "location":"apps"
+        },
+        "product_app":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
         "title": "Stelup App",
         "author":"Davvag",
-        "version":"0.1",
+        "version":"0.3",
         "icon":"appicon.png"
     },
     "tags":["showincms"],

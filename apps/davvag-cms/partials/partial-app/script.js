@@ -51,9 +51,24 @@ WEBDOCK.component().register(function(exports){
             var appObj = apps[appId];
             var startupComponent;
             var renderDiv = $("#" + routeSettings.routes.renderDiv);
+            var loadID=routeSettings.routes.renderDiv+"_app";
             renderDiv.empty();
+            //window[routeSettings.routes.renderDiv]=window[routeSettings.routes.renderDiv]?window[routeSettings.routes.renderDiv]:{apps:{},loading:false};
+            window[loadID]=window[loadID]?window[loadID]:{loading:false,apps:{app:{}}};
+            
+
+            window[loadID].apps[appId]=window[loadID].apps[appId]?window[loadID].apps[appId]:{loading:false,app:{}};
+            var appdock= window[loadID].apps[appId];
+            if(window[loadID].loading){
+                console.log("Already Same component loading.....");
+                return;
+            }
+            if(window[routeSettings.routes.renderDiv])
+                delete(window[routeSettings.routes.renderDiv]);
+            window[loadID].loading=true;
             if(appObj==null){
                 showAPPIssue(renderDiv);
+                window[loadID].loading=false;
                 return;
             }
             if (appObj.config.webdock)
@@ -66,9 +81,22 @@ WEBDOCK.component().register(function(exports){
                 startupComponent = appObj.config.webdock.startupComponent;
             
             
-            
+            appdock.app[startupComponent]=appdock.app[startupComponent]?appdock.app[startupComponent]:{};
+
             showLoadingBar(renderDiv);
-    
+            
+            if(appdock.app[startupComponent].results){
+                try {
+                    
+                    renderApp(appdock.app[startupComponent].results,appdock.app[startupComponent].desc,appdock.app[startupComponent].instance);
+                    window[loadID].loading=false;
+                    return; 
+                } catch (error) {
+                    alert("App not Loaded or permission Issue");
+                }
+                
+            }
+
             WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
                 WEBDOCK.componentManager.downloadComponents(appId, descriptor,function(){
                     WEBDOCK.componentManager.getOnDemand(appId,descriptor, startupComponent, function(results,desc, instance){
@@ -76,6 +104,11 @@ WEBDOCK.component().register(function(exports){
                         if(instance){
                             try {
                                 renderApp(results,desc,instance);
+                                appdock.app[startupComponent].results=results;
+                                appdock.app[startupComponent].desc=desc;
+                                appdock.app[startupComponent].instance=instance;
+                                window[loadID].apps[appId]=appdock;
+                                
                             } catch (error) {
                                 alert("App not Loaded or permission Issue");
                             }
@@ -85,7 +118,7 @@ WEBDOCK.component().register(function(exports){
                             //console.log("Reloading... site please wait.NUll Exception APPID:" +compAppId)
                             //location.reload();
                         }
-                        
+                        window[loadID].loading=false;
                         WEBDOCK.freezeUiComponent("left-menu",false);
                     },appObj.version);
                 },appObj.version);       

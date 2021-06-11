@@ -3,6 +3,7 @@ require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
+require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
 class ProfileService{
     //public var $appname="profileapp";
     private function updateLedger($ledgertran){
@@ -77,10 +78,12 @@ class ProfileService{
         $user= Auth::Autendicate("profile","postInvoiceSave",$res);
         if(!isset($Transaction->email)){
             $res->SetError ("provide email");
+            return;
             
         }
         if(!isset($Transaction->contactno)){
             $res->SetError ("provide contact no");
+            return;
         }
         
         $result = SOSSData::Query ("profile", urlencode("id:".$Transaction->profileId.""));
@@ -336,12 +339,12 @@ class ProfileService{
             $res->SetError ("provide contact no");
         }
         
-        $result = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));
+        //$result = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));
         $payment->collectedByID=$user->userid;
         $payment->collectedBy=$user->email;
+        
         //return $result;
-        if(count($result->result)!=0)
-        {
+        
             $Store_profile= Profile::getProfile(0,0);
             if(isset($Store_profile->profile)){
                 //return $Store_profile->profile;
@@ -354,70 +357,14 @@ class ProfileService{
                 $payment->supplier_country = isset($Store_profile->country)?$Store_profile->country:null;
                 $payment->supplier_email = isset($Store_profile->email)?$Store_profile->email:null;
             }
+            try {
+                $handler =new Davvag_Order();
+                return $handler->SavePayment($payment);
+            } catch (\Throwable $th) {
+                //throw $th;
+            }               
             
-            $result = SOSSData::Insert ("paymentheader", $payment,$tenantId = null);
-            CacheData::clearObjects("paymentheader");
-           
-            if($result->success){
-                $payment->receiptNo = $result->result->generatedId;
-                $ledgertran =new StdClass;
-                $ledgertran->profileid=$payment->profileId;
-                $ledgertran->tranid=$payment->receiptNo;
-                $ledgertran->trantype='receipt';
-                $ledgertran->tranDate=$payment->receiptDate;
-                $ledgertran->description='Invoice No Has been generated';
-                $ledgertran->amount=-1*$payment->paymentAmount;
-                //$result=SOSSData::Insert ("ledger", $ledgertran,$tenantId = null);
-                //return $payment;
-                $this->updateLedger($ledgertran);
-                CacheData::clearObjects("ledger");
-                if($result->success){
-                    $balance=$payment->paymentAmount;
-                    $invUpdate=array();
-                    foreach($payment->InvoiceItems as &$value){
-                        $value->receiptNo=$payment->receiptNo;
-                        $paymentComplete='N';
-                        if($balance!=0){
-                            if($balance>=$value->DueAmount){
-                                $value->PaidAmout=$value->DueAmount;
-                                $balance-=$value->DueAmount;
-                                $value->Balance=0;
-                                $paymentComplete='Y';
-                            }else{
-                                $value->PaidAmout=$balance;
-                                $value->Balance=$value->DueAmount-$balance;
-                                $balance=0;
-                            }
-                            $invDetails=new stdClass();
-                            $invDetails->invoiceNo=$value->transactionid;
-                            $invDetails->paidamount=$value->PaidAmout;
-                            $invDetails->balance=$value->Balance;
-                            $invDetails->PaymentComplete=$paymentComplete;
-                            $result=SOSSData::Update ("orderheader", $invDetails,$tenantId = null);
-                            array_push($invUpdate,$invDetails);
-                        }
-                    }
-                    //return $invUpdate;
-                    $result = SOSSData::Insert ("paymentdetails", $payment->InvoiceItems,$tenantId = null);
-                    CacheData::clearObjects("paymentdetails");
-                    CacheData::clearObjects("orderheader");
-                    //return $result;
-                }else{
-                    $res->SetError ("Erorr");
-                    return $result;
-                }
-                unset($value); 
-                                
-                return $payment;
-            }else{
-                return $result;
-            }
-        }else{
-           //var_dump($result->response[0]->id);
-           //exit();
-           $res->SetError ("Invalied Profile");
-           exit();
-        }
+       
         
         
     }
@@ -428,11 +375,13 @@ class ProfileService{
         if(!isset($profile->email)){
             //http_response_code(500);
             $res->SetError ("provide email");
+            return null;
             
         }
         if(!isset($profile->contactno)){
             //http_response_code(500);
             $res->SetError ("provide contact no");
+            return null;
             
         }
         //var_dump($profile);

@@ -1,0 +1,185 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"bank_code",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50,
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"bank_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"bank_accountno",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"donorId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"currencycode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"contactno",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName":"email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"dipositDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"detailsString",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"status",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"dipositAmount",
+            "dataType":"float"
+        
+        },
+        {
+            "fieldName":"clearedAmount",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"remarks",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },{
+            "fieldName":"recieptid",
+            "dataType":"int"
+        },{
+            "fieldName":"cleared_ref",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"supplier_profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"supplier_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"supplier_city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"supplier_address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"supplier_country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName":"clearedby_profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"clearedby_supplier_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,52 @@
+{
+    "components": {
+        "charge-form": {
+            "type":"component",
+            "location":"apps"
+        },
+        "register-stripe": {
+            "type":"component",
+            "location":"apps"
+        },
+        "app-handler": {
+            "type":"service",
+            "location":"service"
+        },
+        "bank-settings":{
+            "type":"component",
+            "location":"apps"
+        },
+        "bank-all":{
+            "type":"component",
+            "location":"apps"
+        },
+        "bank-diposit-requests":{
+            "type":"component",
+            "location":"apps"
+        }
+    },
+    "description":{
+        "title": "Banking APP",
+        "author":"Davvag",
+        "version":"0.2",
+        "icon":"appicon.png"
+    },
+    "tags":["showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "bank-all",
+            "onLoad": ["app-handler"],
+            "routes":{
+                "partials":{
+                    "/settings":"bank-all",
+                    "/bank":"bank-settings",
+                    "/pendingdiposites":"bank-diposit-requests"
+                }
+            }
+        },"dock":{
+            "subapps":[
+                {"name":"Banks","path":"settings"},{"name":"Pending Diposits","path":"pendingdiposites"}
+            ]
+        }
+    }
+}

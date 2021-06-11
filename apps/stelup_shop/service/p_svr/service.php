@@ -40,6 +40,7 @@ class appService {
         //SOSSData::Insert("products_reviews",array("itemid"=>0,"pid"=>"0"));
         $userprofile=Profile::getUserProfile();
         //return $userprofile;
+        //return $userprofile;
         $id=$userprofile?$userprofile->profile->id:0;
         $profile=Profile::getProfile($_GET["id"],$id);
         if(isset($profile->profile)){

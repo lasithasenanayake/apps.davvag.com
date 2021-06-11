@@ -1,0 +1,39 @@
+<div class="content">
+  <div style="color:black;">
+    <div>
+        <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
+            <a v-on:click="navigate()" class="btn btn-primary">New Bank</a>
+        </div>
+    </div>
+    <br/><br/><br/>
+
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Bank Code</th>
+        <th>Bank Name</th>
+        <th>Account No</th>
+        <th>Account Name</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items">
+        <td>{{ item.bank_code }}</td>
+        <td>{{ item.bank_name }}</td>
+        <td>{{ unescape(item.bank_accountno) }}</td>
+        <td>
+          {{ unescape(item.bank_accountname) }} 
+        </td>
+        <td>
+            <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
+                <a class="btn btn-primary" v-on:click="navigate(item.bank_code)" ><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+                <a class="btn btn-primary" href=""> <span class="glyphicon glyphicon-remove"></span> Delete</a>
+            </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>

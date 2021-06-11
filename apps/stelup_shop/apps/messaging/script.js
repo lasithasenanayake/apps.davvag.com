@@ -67,6 +67,10 @@ WEBDOCK.component().register(function(exports){
 
             
             if(result.success){
+                
+                result.result.forEach(element => {
+                    element.messagetext=b64_to_utf8(element.messagetext);
+                });
                 bindData.messages=result.result;
                 //setTimeout(updateScroll(),5000);
                 
@@ -80,18 +84,28 @@ WEBDOCK.component().register(function(exports){
         });
         
     }
+    function utf8_to_b64( str ) {
+        return encodeURIComponent( str );
+      }
+      
+      function b64_to_utf8( str ) {
+        return decodeURIComponent( str );
+      }
 
     function submit(c_input){
         lockForm();
        
             //data={}
-            data ={id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,messagetype:bindData.messagetype,message:bindData.message}
+            str=utf8_to_b64(bindData.message);
+            data ={id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,messagetype:bindData.messagetype,message:str}
             service_handler.services.SendMessage(data).then(function(result){
                 
                 //console.log(result);
                 
                 if(result.success){
                     bindData.message="";
+                    result.result.messagetext=b64_to_utf8(result.result.messagetext);
+                    //console.log(str);
                     bindData.messages.push(result.result);
                     complete_call(bindData.data);
                 }else{

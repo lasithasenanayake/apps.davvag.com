@@ -97,14 +97,26 @@ WEBDOCK.component().register(function(exports){
             attribute.renderGrid("attr_lbc_entrollments","grid_"+code,[{type:"data",name:"subject_code",displayname:"Code",attributes:[]},
             {type:"data",name:"subject_name",displayname:"Name"},{type:"data",displayname:"Result",function:function(e){
                 //item=e.data;
-                if(e.result>0 && e.result<=45){
+                if(e.result>0 && e.result<50){
                     return "F";
-                }else if (e.result>45 && e.result<=50){
-                    return "S";
-                }else if (e.result>50 && e.result<=60){
-                    return "X";
-                }else if (e.result>60 && e.result<=75){
-                    return "P";
+                }else if (e.result>=50 && e.result<55){
+                    return "C-";
+                }else if (e.result>=55 && e.result<61){
+                    return "C";
+                }else if (e.result>=61 && e.result<67){
+                    return "C+";
+                }else if (e.result>=67 && e.result<73){
+                    return "B-";
+                }else if (e.result>=73 && e.result<79){
+                    return "B";
+                }else if (e.result>=79 && e.result<85){
+                    return "B+";
+                }else if (e.result>=85 && e.result<91){
+                    return "A-";
+                }else if (e.result>=91 && e.result<96){
+                    return "A+";
+                }else if (e.result>=96 && e.result<=100){
+                    return "A+";
                 }
                 return "Not Graded Yet";
             }},

@@ -172,6 +172,7 @@ class appService {
                         SOSSData::Delete("stelup_trade",$trad);
                         Profile::AddNotify($trad->profileId,"stelup_proposal_accepted",$trad);
                         Profile::Send_Notify();
+                        CacheData::clearObjects("products");
                         return $trad;
                     }else{
                         $trad->status="Error";
@@ -261,6 +262,7 @@ class appService {
         //if(isset())
         $summery->imgname=isset($product->imgurl)? $product->imgurl : '';
         //echo "im in"
+        $product->invType="inventry";
         if(!isset($product->itemid)){
             $result=SOSSData::Insert ("products", $product,$tenantId = null);
             //return $result;

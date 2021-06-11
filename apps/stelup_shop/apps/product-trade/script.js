@@ -237,7 +237,7 @@ WEBDOCK.component().register(function(exports){
                 console.log(result);
                 
                 if(result.success){
-                    uploadFile(result.result.itemid,function(){
+                    uploadFile(result.result.id,function(){
                         scope.submitInfo.push("Saved Successfully.");
                         
                         location.href="#/app/stelup_shop";

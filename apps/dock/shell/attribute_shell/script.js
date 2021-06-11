@@ -3,6 +3,7 @@ WEBDOCK.component().register(function(exports){
     var formdata=[];
     var callback;
     var data,primaryData=[],dataTimeInputs=[];
+    var _delete=false;
     
     function renderForm(attributejson,id,_data,cb){
         //var formData = [{"type":"text","label":"Test","name":"temp","req":1},{"type":"textarea","label":"123456789","name":"temp","req":0},{"type":"select","label":"example","req":0,"name":"temp","choices":[{"label":"1","sel":0},{"label":"2","sel":0},{"label":"3","sel":0}]}];
@@ -142,13 +143,7 @@ WEBDOCK.component().register(function(exports){
     }
 
     function getGenrateDateTime(){
-        //$.fn.datepicker.defaults.format = "mm-dd-yyyy";
-        /*
-        for (let index = 0; index < dataTimeInputs.length; index++) {
-            const element = dataTimeInputs[index];
-            $("#"+element).datepicker();
-            
-        }*/
+        var countDownDate = new Date("Jan 5, 2022 15:37:25").getTime();
     }
 
     function SetValue(val,t){
@@ -192,18 +187,8 @@ WEBDOCK.component().register(function(exports){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-9"></div>');
-                    /*
-                    if(obj.valuetype=="java.util.Date"){
-                        dataTimeInputs.push(elementID);
-                        date_time=$('<div id="'+elementID+'" class="input-append date"></div>');
-                        date_time.append('<input type="text"></input>');
-                        //date_time.append('<input type="'+getInputType(obj.valuetype)+'"  size="16" data-format="dd/MM/yyyy hh:mm:ss"  '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+(data[obj.name]?data[obj.name]:'')+'" />');
-                        date_time.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
-                        $txt.append(date_time);
-                    }else{*/
-                        $txt.append('<input class="form-control" type="'+getInputType(obj.valuetype)+'" id="'+elementID+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+SetValue(data[obj.name],obj.valuetype)+'" />');
-
-                    //}
+                    desabled=obj.primary?(data[obj.name]==null?"":"disabled"):"";
+                    $txt.append('<input class="form-control" type="'+getInputType(obj.valuetype)+'" id="'+elementID+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+' value="'+SetValue(data[obj.name],obj.valuetype)+'" '+desabled+'/>');
                     $fieldSet.append($txt); 
                     $formTmp.append($fieldSet);
                     break;

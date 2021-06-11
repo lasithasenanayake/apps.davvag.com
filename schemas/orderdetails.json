@@ -15,6 +15,13 @@
             }
         },
         {
+            "fieldName":"invType",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
             "fieldName":"tid",
             "dataType":"int"
         },

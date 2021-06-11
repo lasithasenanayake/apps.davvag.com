@@ -1,4 +1,5 @@
 <?php 
+require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class Davvag_Order{
 
     public function getOrder($id){
@@ -11,6 +12,96 @@ class Davvag_Order{
             return $order;
         }else{
             return null;
+        }
+    }
+
+    public function DeleteOrder($id,$remark,$cProfileId,$cName,$profileId){
+        $order =$this->getOrder($id);
+        if($order){
+            if($order->status!="deleted"){
+                if(floatval($order->profileId)!=floatval($profileId)){
+                    throw new Exception("This is a invalied request.",1);
+                    return;
+                }
+                if($order->paidamount>0){
+                    //insert Advance;
+                    $advance =new StdClass;
+                    $advance->profileId=$order->profileId;
+                    $advance->paymentType="Cancelation";
+                    $advance->tranDate=date_format(new DateTime(), 'm-d-Y H:i:s');
+                    $advance->description=$remark;
+                    $advance->status="new";
+                    $advance->amount=$order->paidamount;
+                    $advance->balance=$order->paidamount;
+                    $advance->collectedBy=$cName;
+                    $advance->collectedByID=$cProfileId;
+                    $advance->source_id=$order->invoiceNo;
+                    SOSSData::Insert("payment_advance",$advance);
+                }
+                
+                $ledgertran =new StdClass;
+                $ledgertran->profileid=$order->profileId;
+                $ledgertran->tranid=$order->invoiceNo;
+                $ledgertran->trantype='inv-del';
+                $ledgertran->tranDate=date_format(new DateTime(), 'm-d-Y H:i:s');
+                $ledgertran->description='Invoice No '. $order->invoiceNo .' Cancelled';
+                $ledgertran->amount=-1*$order->total;
+                $this->updateLedger($ledgertran);   
+                $profileservices=array();
+                    foreach($order->details as $key=>$value){
+                        if(isset($value->invType)){
+                            //$Transaction->InvoiceItems[$key]->invoiceNo=$Transaction->invoiceNo;
+                            if(strtolower($value->invType)=="service"){
+                                $serviceitems =new StdClass;
+                                $serviceitems->invid=$order->invoiceNo;
+                                $serviceitems->profileId=$order->profileId;
+                                $serviceitems->itemid=$value->itemid;
+                                $serviceitems->name=$value->name;
+                                $serviceitems->purchaseddate=$order->invoiceDate;
+                                $serviceitems->price=$value->total;
+                                $serviceitems->catogory=$value->catogory;
+                                $serviceitems->uom=$value->uom;
+                                $serviceitems->qty=$value->qty;
+                                $serviceitems->status="Removed";
+                                
+                                array_push($profileservices,$serviceitems);
+                            }
+                            $this->updateInventry($value,1);
+                        }
+                    }
+                $order->status="deleted";
+                
+                SOSSData::Delete("orderheader",$order);
+                SOSSData::Delete("orderdetails",$order->details);
+                $order->remarks=$remark;
+                $order->preparedBy=$cProfileId;
+                $order->PreparedByID=$cName;
+                SOSSData::Insert("orderheader_deleted",$order);
+                SOSSData::Insert("orderdetails_deleted",$order->details);
+                switch($order->status){
+                    case "accepted":
+                        SOSSData::Insert("orderheader_accepted",$order);
+                        SOSSData::Insert("orderdetails_accepted",$order->details);
+                    break;
+                    case "rejected":
+                        SOSSData::Insert("orderheader_rejected",$order);
+                        SOSSData::Insert("orderdetails_rejected",$order->details);
+                    break;
+                    case "pending":
+                        SOSSData::Insert("orderheader_pending",$order);
+                        SOSSData::Insert("orderdetails_pending",$order->details);
+                    break;
+                }
+                CacheData::clearObjects("ledger");
+                CacheData::clearObjects("orderheader");
+                CacheData::clearObjects("orderdetails");
+                CacheData::clearObjects("payment_advance");
+                return $order;
+            }else{
+                throw new Exception("Already Deleted.",1);
+            }
+        }else{
+            throw new Exception("Order is not found.",1);
         }
     }
 
@@ -54,18 +145,25 @@ class Davvag_Order{
                 $payment->outstandingAmount=$p->outstandingAmount;
                 $payment->balanceAmount=$p->balanceAmount-$p->amount;
                 $payment->source_id=$p->OnlineTranID;
-                $payment->remark=$p->remarks;
+                $payment->remarks=$p->remarks;
+                $payment->advanceAmount=0;
+                //$payment->advance
                 
                 $amount=$p->amount;
                 $rep=$this->PayforPendingOrders($payment);
-                $p->paymentAmount=$p->amount;
-                $p->outstandingAmount=$p->outstandingAmount;
-                $p->balanceAmount=$p->balanceAmount-$p->amount;
-                $p->recieptid=$rep->receiptNo;
-                $p->status='Paid';
-                SOSSData::Insert("payment_ext_request_confirm",$p);
-                SOSSData::Delete("payment_ext_request",$p);
-            return $rep;
+                if(isset($rep->receiptNo)){
+                    $p->paymentAmount=$p->amount;
+                    $p->outstandingAmount=$p->outstandingAmount;
+                    $p->balanceAmount=$p->balanceAmount-$p->amount;
+                    $p->recieptid=$rep->receiptNo;
+                    $p->status='Paid';
+                    SOSSData::Insert("payment_ext_request_confirm",$p);
+                    SOSSData::Delete("payment_ext_request",$p);
+                    return $rep;
+                }else {
+                    throw new Exception("Payment has not been made.", 1);
+                }
+            
         }else{
             throw new Exception("No External Payment Request found.", 1);
             //return null;
@@ -109,10 +207,9 @@ class Davvag_Order{
                     break;
                 }
             }
-            return $this->SavePayment($payment);
-        }else{
-            return $r;
+            
         }
+        return $this->SavePayment($payment);
     }
 
     public function AcceptOrder($id){
@@ -136,7 +233,7 @@ class Davvag_Order{
     public function PayOrder($id,$amount,$remarks,$paymentType,$online_ref_id){
         $order=$this->getOrder($id);
         if($order!=null){
-            if($order->balance>=$amount){
+            if($order->balance>0){
                
                 $order->PaymentComplete='Y';
                 $order->paidamount=$amount;
@@ -163,7 +260,12 @@ class Davvag_Order{
                 $payment->balanceAmount=$order->balance-$amount;
                 $payment->source_id=$online_ref_id;
                 $payment->remark=$remarks;
-
+                $amountToPay=0;
+                if($amount>$order->balance){
+                    $amountToPay=$order->balance;
+                }else{
+                    $amountToPay=$amount;
+                }
                 $payment->InvoiceItems=[];
                 $invDetails =new stdClass();
                 $invDetails->transactionid=$order->invoiceNo;
@@ -171,8 +273,8 @@ class Davvag_Order{
                 $invDetails->description='Invoice #'.$order->invoiceNo.' Invoiced On '.$order->invoiceDate.'';
                 $invDetails->DueAmount=$order->balance;
                 $invDetails->PaidAmout=$amount;
-                $invDetails->Balance=$order->balance-$amount;
-                $order->balance=$order->balance-$amount;
+                $invDetails->Balance=$order->balance-$amountToPay;
+                $order->balance=$order->balance-$amountToPay;
                 array_push($payment->InvoiceItems,$invDetails);
                 return $this->SavePayment($payment);
                 //$payment->InvoiceSave
@@ -184,7 +286,7 @@ class Davvag_Order{
     
     public function SavePayment($payment)
     {
-        //s$user= Auth::Autendicate("profile","postPaymentSave",$res);
+        //$user= Auth::Autendicate("profile","postPaymentSave",$res);
         
         
         $r = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));
@@ -194,11 +296,29 @@ class Davvag_Order{
         if(count($r->result)!=0)
         {
             
+            $rx = SOSSData::Query ("payment_advance", urlencode("profileId:".$payment->profileId.",status:new"));
+            $advances=$rx->success?$rx->result:[];
+            $payment->advanceAmount=0;
+            $payment->balanceAmount=0;
+            $payment->outstandingAmount=0;
+            $user=Profile::getUserProfile();
+            
+            $payment->collectedBy=$user->profile->id;
+            $payment->collectedByID=$user->profile->name;
+            foreach($advances as $advalue){
+                $payment->advanceAmount+=$advalue->balance;
+            }
+            foreach($payment->InvoiceItems as $value){
+                $payment->outstandingAmount+=$value->DueAmount;
+            }
+            $payment->balanceAmount=$payment->outstandingAmount-$payment->paymentAmount-$payment->advanceAmount;
             $result = SOSSData::Insert ("paymentheader", $payment);
+            $payment->receiptNo = $result->result->generatedId;
             
            
             if($result->success){
-                $payment->receiptNo = $result->result->generatedId;
+                
+                
                 $ledgertran =new StdClass;
                 $ledgertran->profileid=$payment->profileId;
                 $ledgertran->tranid=$payment->receiptNo;
@@ -210,38 +330,131 @@ class Davvag_Order{
                 //return $payment;
                 $this->updateLedger($ledgertran);
                 CacheData::clearObjects("ledger");
+                //$hasInvoiceForAdvance=true;
                 if($result->success){
+                    $advanceUtilized=0;
                     $balance=$payment->paymentAmount;
                     $invUpdate=array();
                     foreach($payment->InvoiceItems as &$value){
-                        $value->receiptNo=$payment->receiptNo;
-                        $paymentComplete='N';
-                        if($balance!=0){
-                            if($balance>=$value->DueAmount){
-                                $value->PaidAmout=$value->DueAmount;
-                                $balance-=$value->DueAmount;
-                                $value->Balance=0;
-                                $paymentComplete='Y';
-                            }else{
-                                $value->PaidAmout=$balance;
-                                $value->Balance=$value->DueAmount-$balance;
-                                $balance=0;
-                            }
-                            $invDetails=new stdClass();
-                            $invDetails->invoiceNo=$value->transactionid;
-                            $invDetails->paidamount=$value->PaidAmout;
-                            $invDetails->balance=$value->Balance;
-                            $invDetails->PaymentComplete=$paymentComplete;
-                            $result=SOSSData::Update ("orderheader", $invDetails,$tenantId = null);
-                            array_push($invUpdate,$invDetails);
-                        }
+                                $value->receiptNo=$payment->receiptNo;
+                        
+                            
+                                $paymentComplete='N';
+                                if($balance!=0){
+                                    if($balance>=$value->DueAmount){
+                                        $value->PaidAmout+=$value->DueAmount;
+                                        $balance-=$value->DueAmount;
+                                        $value->Balance=0;
+                                        $paymentComplete='Y';
+                                    }else{
+                                        $value->PaidAmout+=$balance;
+                                        $value->Balance=$value->DueAmount-$balance;
+                                        $balance=0;
+                                    }
+                                    $invDetails=new stdClass();
+                                    $invDetails->invoiceNo=$value->transactionid;
+                                    $invDetails->paidamount=$value->PaidAmout;
+                                    $invDetails->balance=$value->Balance;
+                                    $invDetails->PaymentComplete=$paymentComplete;
+                                    $result=SOSSData::Update ("orderheader", $invDetails,$tenantId = null);
+                                    array_push($invUpdate,$invDetails); 
+                                }else{
+
+                                }   
+                        
+                        
                     }
+                    if($balance>0){
+                        $advance =new StdClass;
+                        $advance->profileId=$payment->profileId;
+                        $advance->paymentType="Advance";
+                        $advance->tranDate=date_format(new DateTime(), 'm-d-Y H:i:s');
+                        $advance->description='Advanced for Payment Reciept No '.$payment->receiptNo;
+                        $advance->status="new";
+                        $advance->amount=$balance;
+                        $advance->balance=$balance;
+                        $advance->collectedBy=$payment->collectedBy;
+                        $advance->collectedByID=$payment->collectedByID;
+                        $advance->source_id=$payment->receiptNo;
+                        SOSSData::Insert("payment_advance",$advance);
+                    }else{
+                            if($payment->advanceAmount>0){
+                                
+                                $balance=$payment->advanceAmount;
+                                
+                                foreach($payment->InvoiceItems as &$value){
+                                    
+                                    if($invDetails->PaymentComplete!='Y'){
+                                        $value->receiptNo=$payment->receiptNo;
+                                        $paymentComplete='N';
+                                        if($balance!=0){
+                                            if($balance>=$value->DueAmount){
+                                                $value->PaidAmout+=$value->DueAmount;
+                                                $balance-=$value->DueAmount;
+                                                $paymentComplete='Y';
+                                                $advanceUtilized+=$value->Balance;
+                                                $value->Balance=0;
+                                            }else{
+                                                $value->PaidAmout+=$balance;
+                                                $value->Balance=$value->DueAmount-$balance;
+                                                $advanceUtilized+=$balance;
+                                                $balance=0;
+                                            }
+                                            $invDetails=new stdClass();
+                                            $invDetails->invoiceNo=$value->transactionid;
+                                            $invDetails->paidamount=$value->PaidAmout;
+                                            $invDetails->balance=$value->Balance;
+                                            $invDetails->PaymentComplete=$paymentComplete;
+                                            $result=SOSSData::Update ("orderheader", $invDetails,$tenantId = null);
+                                            //sarray_push($invUpdate,$invDetails); 
+                                        }  
+                                    }
+                            
+                            
+                                }
+
+                                $payment->advanceUtilized=$advanceUtilized;
+                                $balance=$advanceUtilized;
+
+                                foreach($advances as &$advalue){
+                                    //$value->receiptNo=$payment->receiptNo;
+                                        $status='new';
+                                        if($balance!=0){
+                                            if($balance>=$advalue->balance){
+                                                $balance-=$advalue->balance;
+                                                $advalue->balance=0;
+                                                $advalue->status='done';
+                                                //$advanceUtilized+=$value->DueAmount;
+                                            }else{
+                                                $advalue->balance-=$balance;
+                                                $balance=0;
+                                            }
+                                            $ad=new stdClass();
+                                            $ad->id=$advalue->id;
+                                            $ad->balance=$advalue->balance;
+                                            $ad->status=$advalue->status;
+                                            //$invDetails->PaymentComplete=$paymentComplete;
+                                            SOSSData::Update("payment_advance",$ad);
+                                        }
+                                }
+                                //return $advances;
+                                $payment->advance=$advances;
+                                //SOSSData::Update("payment_advance",$advances);
+                            
+                            }
+                    }
+                    
                     //return $invUpdate;
                     $result = SOSSData::Insert ("paymentdetails", $payment->InvoiceItems,$tenantId = null);
+                    $result = SOSSData::Update ("paymentheader", $payment,$tenantId = null);
                     CacheData::clearObjects("paymentheader");
                     CacheData::clearObjects("paymentdetails");
+                    //CacheData::clearObjects("orderheader");
+                    CacheData::clearObjects("ledger");
                     CacheData::clearObjects("orderheader");
-                    //return $result;
+                    CacheData::clearObjects("orderdetails");
+                    CacheData::clearObjects("payment_advance");
+                    return $payment;
                 }else{
                     //$res->SetError ("Erorr");
                     throw new Exception("Error Processing Request", 1);
@@ -285,6 +498,9 @@ class Davvag_Order{
                 case "payment":
                     $status->totalPaymentAmount+=$Transaction->amount;
                     break;
+                case "inv-del":
+                    $status->totalInvoicedAmount-=$Transaction->amount;
+                    break;
             }
             $result=SOSSData::Update ("profilestatus", $status,$tenantId = null);
         }else{
@@ -308,8 +524,13 @@ class Davvag_Order{
                 case "payment":
                     $status->totalPaymentAmount+=$Transaction->amount;
                     break;
+                case "inv-del":
+                    $status->totalInvoicedAmount-=$Transaction->amount;
+                    break;
             }
             $result=SOSSData::Insert ("profilestatus", $status,$tenantId = null);
+            CacheData::clearObjects("profilestatus");
+            CacheData::clearObjects("ledger");
                     
         }
     }
@@ -318,11 +539,11 @@ class Davvag_Order{
 
         $user= Auth::Autendicate("profile","postInvoiceSave",$res);
         if(!isset($Transaction->email)){
-            throw new Exception("EmailNot found.");
+            throw new Exception("Email Not found.");
             
         }
         if(!isset($Transaction->contactno)){
-            throw new Exception("EmailNot found.");
+            throw new Exception("Contact No not found.");
         }
         
         $result = SOSSData::Query ("profile", urlencode("id:".$Transaction->profileId.""));
@@ -399,7 +620,7 @@ class Davvag_Order{
 
     private function updateInventry($value,$s){
         if(strtolower($value->invType)=="inventry"){
-            $resultitems = SOSSData::Query ("product_inventrymaster", urlencode("itemid:".$value->itemid.""));//SOSSData::Insert ("", $Transaction,$tenantId = null);
+            $resultitems = SOSSData::Query ("products", urlencode("itemid:".$value->itemid.""));//SOSSData::Insert ("", $Transaction,$tenantId = null);
             if(count($resultitems->result)!=0){
                 $itemInv=$resultitems->result[0];
                 if($s<0){
@@ -407,7 +628,7 @@ class Davvag_Order{
                 }else{
                     $itemInv->qty=$itemInv->qty+$value->qty;
                 }
-                SOSSData::Update ("product_inventrymaster", $itemInv,$tenantId = null);
+                SOSSData::Update ("products", $itemInv,$tenantId = null);
             }else{
                 $itemInv =new StdClass;
                 $itemInv->itemid=$value->itemid;
@@ -417,7 +638,7 @@ class Davvag_Order{
                 }else{
                     $itemInv->qty=$value->qty;
                 }
-                SOSSData::Insert ("product_inventrymaster", $itemInv,$tenantId = null);
+                SOSSData::Insert ("products", $itemInv,$tenantId = null);
             }
         }
     }

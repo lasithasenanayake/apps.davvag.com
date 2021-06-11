@@ -1,5 +1,11 @@
 {
     "apps":{
+        "davvag-sip":{
+            "version":"latest"
+        },
+        "productapp-v2":{
+            "version":"latest"
+        },
         "lbc-dashborad-report":{
             "version":"latest"
         },
@@ -111,6 +117,18 @@
             "version":"latest"
         },
         "davvag-ipg":{
+            "version":"latest"
+        },
+        "davvag-banking":{
+            "version":"latest"
+        },
+        "davvag-banking-settings":{
+            "version":"latest"
+        },
+        "profileapp-admin":{
+            "version":"latest"
+        },
+        "davvag-shop-v2":{
             "version":"latest"
         }
     },

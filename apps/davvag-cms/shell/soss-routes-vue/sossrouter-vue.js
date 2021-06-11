@@ -45,6 +45,7 @@ WEBDOCK.component().register(function(exports){
             } catch (e){
                 console.log ("Error Occured While Loading...");
                 console.log (e);
+                alert("Not Loaded.");
                 cb();
             }
         }

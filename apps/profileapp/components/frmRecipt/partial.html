@@ -103,6 +103,10 @@
             </td>
           </tr>
           <tr>
+            <th class="text-center">Advance Amount</th>
+            <td class="text-center"><input type="number" name='advance_total' placeholder='0.00' class="form-control" id="sub_total" readonly v-model="AdvanceAmount"/></td>
+          </tr>
+          <tr>
             <th class="text-center">Balance</th>
             <td class="text-center"><input type="number" name='total_amount' id="total_amount" placeholder='0.00' class="form-control" readonly  v-model="total"/></td>
           </tr>
@@ -214,6 +218,12 @@
                     
     								<td class="no-line text-left"><strong>Paid Amount</strong></td>
     								<td class="no-line text-right">{{ InvoiceToSave.paymentAmount | currency }}</td>
+                  </tr>
+                  <tr>
+    								<td class="no-line"></td>
+                    
+    								<td class="no-line text-left"><strong>Advance Amount</strong></td>
+    								<td class="no-line text-right">{{ InvoiceToSave.advanceAmount | currency }}</td>
     							</tr>
     							<tr>
     								<td class="no-line"></td>

@@ -43,7 +43,7 @@
     "description":{
         "title": "LBC Study APP",
         "author":"Lasitha Senanayake",
-        "version":"0.1",
+        "version":"0.2",
         "icon":"appicon.png"
     },
     "tags":["showincms","showindock"],

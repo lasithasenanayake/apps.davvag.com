@@ -1,0 +1,92 @@
+<div class="content">
+  <div style="color:black;">
+    
+
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Bank Code</th>
+        <th>Account No</th>
+        <th>Date</th>
+        <th>Remarks</th>
+        <th>Amount</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items">
+        <td>{{ item.bank_code }}</td>
+        <td>{{ item.bank_accountno }}</td>
+        <td>{{ item.dipositDate }}</td>
+        <td>
+          {{ item.remark }} 
+        </td>
+        <td>
+          {{ item.dipositAmount }} 
+        </td>
+        <td>
+            <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
+                <a class="btn btn-primary" v-on:click="open(item)" ><span class="glyphicon glyphicon-pencil"></span> Clear Payment</a>
+                
+            </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
+<div class="modal fade" id="modalappwindow" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+          <div class="modal-header">
+              
+                  Diposit Clearance             
+              
+          </div>
+          <div id="appdock" class="modal-body">
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Bank Name</strong></div>
+              <div class="col-sm-9">{{ data.bank_name }}</div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Account No</strong></div>
+              <div class="col-sm-9">{{ data.bank_accountno }}</div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Name</strong></div>
+              <div class="col-sm-9">{{ data.name}}</div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Contact No</strong></div>
+              <div class="col-sm-9">{{ data.contactno}}</div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Dipist Date</strong></div>
+              <div class="col-sm-9">{{ data.dipositdate}}</div>
+            </div>  
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Dipist Amount</strong></div>
+              <div class="col-sm-9">{{ data.dipositAmount}}</div>
+            </div> 
+            <div class="form-group">
+              <div class="col-sm-3"><strong>Remarks</strong></div>
+              <div class="col-sm-9">{{ data.remarks}}</div>
+            </div>  
+            <div class="form-group">
+              <img :src="data.bank_slip" width="500px">
+            </div> 
+            <div class="form-group">
+              <label>Banked Amount *</label>
+              <input type="number" class="form-control" v-model="data.clearedAmount">
+            </div>
+            <div class="form-group">
+              <label>Reference Number *</label>
+              <input type="text" class="form-control" v-model="data.cleared_ref">
+            </div>
+            <button  class="btn bg-primary-button btn-block" v-on:click="save">Submit</button>
+            <button  class="btn bg-primary-button btn-block" v-on:click="close">Cancel</button>
+          </div>
+      </div>
+  </div>
+</div>

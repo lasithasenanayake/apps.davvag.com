@@ -1,0 +1,30 @@
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Invoice Deletion Request</h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+      <strong>INFO! </strong> {{error}}
+    </div>
+</div>
+<form id="form-1" onsubmit="event.preventDefault();">
+  <div class="form-group">
+    <label for="exampleInputEmail1">Invoice No</label>
+    <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Invoice No" v-model="data.invoiceNo">
+    <small id="emailHelp" class="form-text text-muted">Please Input Invoice Number.</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Profile ID</label>
+    <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Invoice No" v-model="data.profileId">
+    <small id="emailHelp" class="form-text text-muted">The profile ID that has the invoice that you are voiding. </small>
+  </div>
+  <div class="form-group form-check">
+    <label for="address">Remark *</label>
+    <textarea class="form-control deliveryAddress" v-model="data.remarks" placeholder="Why your are deleting the Invoice ?" style="margin-bottom:10px;"></textarea>
+  </div>
+  
+  <button  class="btn bg-danger btn-block" v-on:click="submit">Delete</button>
+</form>
+</div>
