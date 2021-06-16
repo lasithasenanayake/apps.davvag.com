@@ -29,6 +29,9 @@
             "ProductDetails":{
                 "method":"GET",
                 "parameters":["id"]
+            },
+            "SaveBid":{
+                "method":"POST"
             }
             
         }

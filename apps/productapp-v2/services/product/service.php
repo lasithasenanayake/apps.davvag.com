@@ -3,6 +3,8 @@ require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once (PLUGIN_PATH . "/phpcache/cache.php");
 require_once (PLUGIN_PATH . "/auth/auth.php");
 require_once (PLUGIN_PATH_LOCAL . "/davvag-attributes/davvag-attributes.php");
+require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
+
 class ProductService {
     
     private function saveAttributes($product){
@@ -61,7 +63,17 @@ class ProductService {
         //if(isset())
         $summery->imgname=isset($product->imgurl)? $product->imgurl : '';
         //echo "im in"
+        $Store_profile= Profile::getProfile(0,0);
+        $product->storeid=isset($product->storeid)?$product->storeid:0;
+            if($product->storeid==0){
+                if($Store_profile->profile){
+                    $product->storeid=$Store_profile->profile->id;
+                    $product->storename=$Store_profile->profile->name;
+                }
+            }
         if(!isset($product->itemid)){
+            
+            
             $result=SOSSData::Insert ("products", $product,$tenantId = null);
             //return $result;
             //var_dump($result);
@@ -78,6 +90,7 @@ class ProductService {
                 return $res;
             }
         }else{
+            
             $result=SOSSData::Update ("products", $product,$tenantId = null);
             $summery->id=$product->itemid;
             if($result->success){

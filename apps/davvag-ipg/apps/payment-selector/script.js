@@ -58,11 +58,14 @@ WEBDOCK.component().register(function(exports){
             
             if(result.success){
                 bindData.data=result.result.ipgs;
-                
+                ipg=result.result.ipgs?result.result.ipgs:[];
+                if(ipg.length==0){
+                    window.location=bindData.url;
+                }
                 
                 //scope.submitInfo.push("result.result.message");
             }else{
-                scope.submitErrors.push("Error");
+                scope.submitErrors.push("Error Loading Please contact Vender.");
             }
             unlockForm();
         }).error(function(result){

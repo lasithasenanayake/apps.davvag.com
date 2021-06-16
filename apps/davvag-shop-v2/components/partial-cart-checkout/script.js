@@ -72,9 +72,9 @@ WEBDOCK.component().register(function(exports){
             scope.isBusy = false;
             scope.isCompleted = true;
             if(result.success){
-                location.href="#/app/davvag-shop/order-complete";
+                window.location="#/app/davvag-ipg?orderid="+result.result.invoiceNo+"&url="+encodeURI("#/app/davvag-shop-v2/order-complete");
             }else{
-                s
+                
             }
         }).error(function(){
             scope.isBusy = false;

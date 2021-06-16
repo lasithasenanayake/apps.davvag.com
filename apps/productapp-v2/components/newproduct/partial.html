@@ -150,6 +150,10 @@
                       <label>Upload Your File </label>
                       <input type="file" class="form-control" multiple="" @change="onFileMultiChange" v-model="files">
                     </div>
+                    <div class="form-group">
+                      <label>Crop to 350 x 600 </label>
+                      <button class="btn btn-success" v-on:click="crop"> Crop Images</button>
+                    </div>
                     <div>
                         <div class="row">
                             <div class="col-md-3" v-for="(image,index) in p_image">

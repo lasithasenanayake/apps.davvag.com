@@ -31,7 +31,8 @@
 
 
 .id-soss-routes {
-  padding-top: 20px;
+  margin-top:60px !important;
+  padding-top: 20px !important;
   min-height: calc(100vh - 200px) !important;
 }
 
@@ -149,9 +150,7 @@ a:hover{
   }
 } 
   
-  .id-soss-routes{
-      margin-top:54px;
-  }
+  
   
   div.blog-post {
     padding:15px;

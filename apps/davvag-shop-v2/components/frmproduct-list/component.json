@@ -11,13 +11,6 @@
                 "location" : "marketplace.css"
             }
         ],
-        "js":[
-            {
-                "tag": "markedmin",
-                "version" : "latest",
-                "location":"marked.min.js"
-            }
-        ],
         "files":[
             {
                 "type" : "mainScript",

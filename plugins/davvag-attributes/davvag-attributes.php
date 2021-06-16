@@ -17,7 +17,7 @@
                     $data->status=SOSSData::Insert($data->id,$data->data);
                 }
             }else{
-                $res->SetError($result);
+                //$res->SetError($result);
                 return null;
             }
             CacheData::clearObjects($data->id);

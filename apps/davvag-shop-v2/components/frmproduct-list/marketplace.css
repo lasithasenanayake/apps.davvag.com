@@ -35,8 +35,8 @@ h3.h3{text-align:center;margin:1em;text-transform:capitalize;font-size:1.7em;}
 .product-grid8 .product-image8{border:1px solid #e4e9ef;position:relative;transition:all .3s ease 0s}
 .product-grid8:hover .product-image8{box-shadow:0 0 10px rgba(0,0,0,.15)}
 .product-grid8 .product-image8 a{display:block}
-.product-grid8 .product-image8 img{width:auto;height:300px;max-width: 254px;}
-.product-grid8 .pic-1{opacity:1;transition:all .5s ease-out 0s;width: 100%!important;height:300px;max-width:250px;}
+.product-grid8 .product-image8 img{width:auto;max-width: 254px;}
+.product-grid8 .pic-1{opacity:1;transition:all .5s ease-out 0s;width: 100%!important;max-width:250px;}
 .product-grid8:hover .pic-1{opacity:1}
 .product-grid8 .pic-2{opacity:0;position:absolute;top:0;left:0;transition:all .5s ease-out 0s}
 .product-grid8:hover .pic-2{opacity:1}

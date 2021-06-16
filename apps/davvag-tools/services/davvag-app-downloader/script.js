@@ -14,22 +14,59 @@ WEBDOCK.component().register(function(exports, scope){
         errCallback=er;
         completed=cbcompleted;
         data_collected=d;
-        //var leftMenu = exports.getComponent("left-menu");
-        //WEBDOCK.freezeUiComponent("left-menu",true);
-        //leftMenu.getApps(function(apps){
-            var renderDiv = $("#" + id);
-            renderDiv.empty();
-            renderDiv.html("<h1>Please Wait Loading</h1>");
+        var leftMenu = exports.getShellComponent("left-menu");
+        leftMenu.getApps(function(apps){
+            var appObj = apps[appId];
+            
+            var loadID="dft_" + id+"_app0001";
+            window[loadID]=window[loadID]?window[loadID]:{loading:false,apps:{app:{}}};
+            window[loadID].apps[appId]=window[loadID].apps[appId]?window[loadID].apps[appId]:{loading:false,app:{}};
+            //var appdock= window[loadID].apps[appId];
+            if(window[loadID].loading){
+                console.log("Already Same component loading.....");
+                return;
+            }
+
+            window[loadID].loading=true;
+            
+
+            var MemoryApp= WEBDOCK.componentManager.getMemoryApp(appId,startupComponent);
+            if(MemoryApp){
+                try {
+                    
+                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance);
+                    window[loadID].loading=false;
+                    console.log("Memory Loaded..");
+                    return; 
+                } catch (error) {
+                    console.log("Error Loading from Memory");
+                    //alert("App not Loaded or permission Issue");
+                }
+                
+            }
             ver="9.0";
             //var appObj = apps[appId];
             WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
                 WEBDOCK.componentManager.downloadComponents(appId, descriptor,function(){
                     WEBDOCK.componentManager.getOnDemand(appId,descriptor, startupComponent, function(results,desc, instance){
-                        renderApp(results,id,desc,instance);
+                        if(instance){
+                            try {
+                                renderApp(results,id,desc,instance);
+                                
+                            } catch (error) {
+                                alert("App not Loaded or permission Issue");
+                            }
+                            
+                        }else{
+                            alert("App not Loaded or permission Issue");
+                        }
+                        window[loadID].loading=false;
                         
-                    },ver);
-                },ver);       
-            },ver);
+                    },appObj.version);
+                },appObj.version);       
+            },appObj.version);
+
+        });
         //});
     }
 

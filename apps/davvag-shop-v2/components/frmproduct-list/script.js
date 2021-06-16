@@ -15,7 +15,8 @@ WEBDOCK.component().register(function(exports){
         allloaded:false,
         itemCount:0,
         appTitle:"",
-        appIcon:""
+        appIcon:"",
+        showbar:false
     };
 
     var items=[];
@@ -111,6 +112,10 @@ WEBDOCK.component().register(function(exports){
                       additem(d.item,d.isOrder);
                       $('#modalappwindow').modal('toggle');
                       break;
+                case "bid_posted":
+                    //sadditem(d.item,d.isOrder);
+                    $('#modalappwindow').modal('toggle');
+                    break;
             }
         }
         //console.log(e);
@@ -203,17 +208,46 @@ WEBDOCK.component().register(function(exports){
                 }
             }
         },
-        additem:additem
+        additem:additem,
+        gotoshop:function(){
+            window.location="#/app/davvag-shop-v2"
+        }
         },
         data :bindData
         ,
-        onReady: function(s){
+        onReady: function(s,c){
+            if(c.data.size){
+                page=c.data.page;
+                size=c.data.size;
+                bindData.showbar=false;
+            }else{
+                bindData.showbar=true;
+                scroller();
+            }
             exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
                 apploader=_uploader;
                 apploader.initialize();
             });
             loadproducts();
-            window.document.body.onscroll = function(e) {
+               
+            
+        },
+        filters:{
+              dateformate:function(v){
+                  if(!v){
+                      return ""
+                  }else{
+                    return moment(v, "MM-DD-YYYY hh:mm:ss").format('MMMM Do YYYY');
+                  }
+              },
+              getTimeLeft:function(d){
+                  return genDate(d);
+              }
+        }
+    } 
+
+    function scroller(){
+        window.document.body.onscroll = function(e) {
                
             //console.log(window.document.body);
             //console.log("test  " + (window.innerHeight + window.scrollY) +" yo " +document.body.offsetHeight);
@@ -227,27 +261,8 @@ WEBDOCK.component().register(function(exports){
                 }
             }
             //loadproducts();
-            }    
-            
-        },
-        filters:{
-            markeddown: function (value) {
-                if (!value) return ''
-                value = value.toString()
-                return marked(unescape(value));
-              },
-              dateformate:function(v){
-                  if(!v){
-                      return ""
-                  }else{
-                    return moment(v, "MM-DD-YYYY hh:mm:ss").format('MMMM Do YYYY');
-                  }
-              },
-              getTimeLeft:function(d){
-                  return genDate(d);
-              }
-        }
-    } 
+            } 
+    }
 
     function genDate(date){
         s=date.split("-");

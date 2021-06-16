@@ -108,7 +108,7 @@ WEBDOCK.component().register(function(exports){
             },
             checkout: function(store){
                 sessionStorage.tmpstorecheckout = JSON.stringify(store);
-                location.href ="#/app/userapp?u=#/app/stelup_shop/checkout";
+                location.href ="#/app/userapp?u=#/app/davvag-shop-v2/checkout-complete";
             },
             closeModal: function(){
                 $('#idCartLogin').modal('hide');

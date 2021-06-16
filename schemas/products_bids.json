@@ -1,0 +1,30 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },{
+            "fieldName":"bidDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"itemid",
+            "dataType":"int"
+            
+        },
+        {
+            "fieldName":"profileId",
+            "dataType":"int"
+           
+        },
+        {
+            "fieldName":"bid_amount",
+            "dataType":"float"
+        }
+
+    ]
+}

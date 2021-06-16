@@ -2,7 +2,7 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler,attribute;
+    var handler,attribute,cropper1;
     var newfiles;
 
     var bindData = {
@@ -13,7 +13,8 @@ WEBDOCK.component().register(function(exports){
         categories:[],
         uoms: [],
         submitErrors: undefined,
-        p_removed:[]
+        p_removed:[],
+        imageSize:{width:450,hieght:500}
     };
 
     var vueData = {
@@ -28,6 +29,13 @@ WEBDOCK.component().register(function(exports){
             createImage:createImage ,
             removeImage: removeImage,
             changeType:changType,
+            crop:function(){
+                cropper1.crope(bindData.imageSize.width,bindData.imageSize.hieght,function(e){
+                    newfiles=newfiles?newfiles:[];
+                    bindData.p_image.push({id:0,name:e.fileData.name,scr:e.data,file:e.fileData});
+                    newfiles.push(e.fileData);
+                });
+            },
             onFileChange: function(e) {
                 var files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
@@ -88,7 +96,11 @@ WEBDOCK.component().register(function(exports){
         loadValidator();
         
         uploaderInstance = exports.getShellComponent("soss-uploader");
-        
+        exports.getAppComponent("davvag-tools","davvag-img-cropper", function(cropper){
+            cropper.initialize(300,300);
+            cropper1=cropper;
+            $('#carousel-uploader').modal('show');
+        });
         
 
         loadInitialData();
@@ -101,37 +113,21 @@ WEBDOCK.component().register(function(exports){
     var imagecount=0;
     var completed=0;    
     function uploadFile(productId, cb){
-            if(!newfiles){
-                cb();
-                return;
-            }
-            imagecount=newfiles.length;
-            for (var i = 0; i < newfiles.length; i++) {
-                console.log(i);
-
-                        uploaderInstance.services.uploadFile(newfiles[i], "products", productId+"-"+newfiles[i].name )
-                        .then(function(result2){
-                            $.notify("product Image Has been uploaded", "info");
-                            completed++;
-                            if(imagecount==completed){
-                                cb();
-                            }
-                            //cb();
-                        })
-                        .error(function(){
-                            completed++;
-                            $.notify("product Image Has not been uploaded", "error");
-                            //cb();
-                            if(imagecount==completed){
-                                cb();
-                            }
-                        });
-                    
-                    
-                    
-                  
-            }
-            //cb();
+        if(newfiles.length>0){
+            exports.getAppComponent("davvag-tools","davvag-file-uploader", function(_uploader){
+                uploader=_uploader;
+                uploader.initialize();
+                uploader.upload(newfiles, "products", productId,function(r){
+                    $.notify("product Image Has been uploaded", "info");
+                    cb();
+                    newfiles=[];
+                });
+                //bindData.product=r.result;
+            });
+        }else{
+            cb();
+        }
+            
         
     }
 
@@ -167,7 +163,7 @@ WEBDOCK.component().register(function(exports){
     function createImageMulti(files) {
         //console.log(JSON.stringify(files));
         //if(!newfiles){
-        newfiles=[];
+        newfiles=newfiles?newfiles:[];
         //}
         for (var i = 0; i < files.length; i++) {
             newfiles.push(files[i]);

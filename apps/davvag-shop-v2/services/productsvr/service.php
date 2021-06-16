@@ -2,7 +2,7 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
-
+require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class ProductServices {
 
     public function getAllProducts($req){
@@ -26,6 +26,47 @@ class ProductServices {
             $mainObj->error="Invalied Query";
             return $mainObj;
         }
+    }
+
+    public function postSaveBid($req,$res){
+        $bid = $req->Body(true);
+        $userProfile=Profile::getUserProfile();
+        if(isset($userProfile->profile)){
+            $r=SOSSData::Query("attr_bi","itemid:".$bid->itemid);
+            if($r->success && count($r->result)>0){
+                $item=$r->result[0];
+                if($item->profileId==$userProfile->profile->id){
+                    $res->SetError("You have already bided the best amount.");
+                    return null;
+                }
+                if(floatval($item->current_bid)<floatval($bid->bid_amount)){
+                    $upbid=new stdClass();
+                    $upbid->itemid=$bid->itemid;
+                    $upbid->current_bid=$bid->bid_amount;
+                    $upbid->number_of_bids=intval(isset($item->number_of_bids)?$item->number_of_bids:0)+1;
+                    $upbid->profileId=$userProfile->profile->id;
+                    $bid->profileId=$userProfile->profile->id;
+                    SOSSData::Update("attr_bi",$upbid);
+                    SOSSData::Insert("products_bids",$bid);
+                    if(isset($item->profileId)){
+                        Profile::AddNotify($item->profileId,"product_bid_posted",$bid);
+                        Profile::Send_Notify();
+                    }
+
+                    CacheData::clearObjects("products");
+                    return $bid;
+                }else{
+                    $res->SetError("Need to bid over ".$r->result->cuurent_bid);
+
+                }
+            }else{
+                $res->SetError("Bid not found.");
+
+            }
+        }else{
+            $res->SetError("User Not Signed in");
+        }
+
     }
 
     public function getProductDetails($req,$res)

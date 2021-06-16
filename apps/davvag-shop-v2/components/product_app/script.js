@@ -1,7 +1,7 @@
 WEBDOCK.component().register(function(exports){
     var page=0;
     var size=6;
-    var handler,apploader,complete_call,ticker;
+    var handler,apploader,complete_call,ticker,call_handler;
     //var q
     //document.body.addEventListener('scroll', loadproducts);
    
@@ -22,16 +22,72 @@ WEBDOCK.component().register(function(exports){
         imgurl:"",
         timeLeft:"",
         expDate:new Date(),
-        share:false
+        share:false,
+        submitErrors:[],
+        submitInfo:[],
+        message:"",
+        MessagesTitle:"",
+        error:false
     };
     
-    
+    function ShowMessage(message,title,error){
+        $('#info').toast({autohide:false});
+        bindData.message=message?message:"";
+        bindData.error=error?error:false;
+        bindData.MessagesTitle=title?title:(bindData.error?"Error":"Info");
+        
+        $('#info').toast('show');
+    }
     function additem(item,isOrder){
         complete_call({method:"add_item",item:item,isOrder:isOrder});
         
     }
     var vueData =  {
         methods:{
+        login:function(){
+            if(complete_call){
+                complete_call({method:"url_redirect",url:"#/app/userapp"});
+            }
+        },
+        postBid:function(){
+            if(bindData.profile==null){
+                bindData.submitErrors.push("Please Login to proceed.");
+                $('#Login').toast({autohide:false});
+                $('#Login').toast('show');
+                return;
+                //ShowMessage('Please login to Place a bid. <button class="btn btn-success" v-on:click="login">Login</button>');
+            }
+            bindData.submitErrors=[];
+            bindData.submitInfo=[];
+            if(bindData.product.sellstype_attributes.current_bid<bindData.product.sellstype_attributes.bid){
+                //bindData.product.
+                handler.services.SaveBid({itemid:bindData.product.itemid,bid_amount:bindData.product.sellstype_attributes.bid})
+                .then(function(r){
+                    
+                    if(r.success){
+                        //bindData.product=r.result;
+                        if(call_handler.data.notfy){
+                            bindData.submitInfo.push("Bid Placed.")
+                            call_handler.data.notfy.closeapp=true;
+                            complete_call(call_handler.data);
+                        }else{
+                            complete_call({method:"bid_posted"});
+                        }
+                        
+                    }
+                    //bindData.allloaded=false;
+                })
+                .error(function(error){
+                    
+                    bindData.submitErrors.push(error.responseJSON?error.responseJSON.result:error.responseText);
+                    ShowMessage(error.responseJSON?error.responseJSON.result:error.responseText);
+                    //window.scrollTo(0,0);
+            });
+            }else{
+                ShowMessage("Place a Bid more than "+bindData.product.sellstype_attributes.current_bid+ " amount");
+                bindData.submitErrors.push("Place a Bid more than "+bindData.product.sellstype_attributes.current_bid+ " amount");
+            }
+        },
         showPic:function(img){
             bindData.imgurl='components/davvag-cms/soss-uploader/service/get/products/'+bindData.product.itemid+'-'+img;
         },
@@ -40,7 +96,14 @@ WEBDOCK.component().register(function(exports){
             complete_call({method:"app_open",appname:appname,form:form,data:data,apptitle:apptitle,appicon:appicon});
         },close: function(){
             //bindData.product=p;
-            $('#modalappwindow').modal('toggle');
+            if(call_handler.data.notfy){
+                call_handler.data.notfy.closeapp=true;
+                complete_call(call_handler.data);
+            }else{
+                $('#modalappwindow').modal('toggle');
+            }
+           
+            
         },
         additem:additem,addchecout:function(item,isorder){
             additem(item,isorder);
@@ -76,14 +139,11 @@ WEBDOCK.component().register(function(exports){
             }else{
                 alert("Error Not working...")
             }
+            $('#info').toast('hide');
+            $('#Login').toast('hide');
             loadProduct(id);
         },
         filters:{
-            markeddown: function (value) {
-                if (!value) return ''
-                value = value.toString()
-                return marked(unescape(value));
-              },
               currency_formate:function(val){
                 if (!val) return '0.00'
                 return parseFloat(val).toFixed(2);

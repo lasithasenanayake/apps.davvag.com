@@ -2,7 +2,7 @@
     <div v-if="itemCount>0" class="row">
         <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
     </div>
-    <div class="row">
+    <div v-if="showbar" class="row">
 	    <div class="col-12">
     	    <div id="custom-search-input">
                 <div class="input-group">
@@ -45,6 +45,9 @@
               </div>
           </div>
       </div>
+  </div>
+  <div  v-if="!showbar" class="row">
+    <button class="form-control btn btn-light" v-on:click="gotoshop">Show More..</button>
   </div>
   
 </div>

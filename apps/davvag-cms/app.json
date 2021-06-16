@@ -86,6 +86,10 @@
         "qti-home-1":{
             "type":"partial",
             "location":"partials"
+        },
+        "davvag-shop-v2-landing":{
+            "type":"partial",
+            "location":"partials"
         }
 
     },
@@ -104,12 +108,12 @@
                 "admin": []
             },
             "routes":{
-                "home" : "/app/stelup_shop",
+                "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
                     "/" : "partial-album-bg-carousel",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "qti-home-1",
+                    "/home" : "davvag-shop-v2-landing",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

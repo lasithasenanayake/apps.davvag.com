@@ -27,10 +27,6 @@
             "upload_uncompressed" : {
                 "method" : "POST",
                 "route":"/upload_uncompressed/@ns/@name"
-            },
-            "uploadFile" : {
-                "method" : "POST",
-                "route":"/upload/@ns/@name"
             }
 
         }

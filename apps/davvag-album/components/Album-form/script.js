@@ -21,7 +21,7 @@ WEBDOCK.component().register(function(exports){
     //hbkLib.onDomLoaded(nicEditors.allTextAreas);
 						
     var vueData =   {
-        
+         
         methods: {
             submit: submit,
             gotoUom: gotoUom,
@@ -33,11 +33,9 @@ WEBDOCK.component().register(function(exports){
                 if(!newfiles)
                  newfiles=[];
                 cropper1.crope(300,300,function(e){
-                    //console.log(e);
+                    newfiles=newfiles?newfiles:[];
                     bindData.p_image.push({id:0,name:e.fileData.name,scr:e.data,file:e.fileData});
                     newfiles.push(e.fileData);
-                    //bindData.carousel.imgurl=e.data;
-                    //bindData.carousel.newFile=e.fileData;
                 });
             },
             onFileChange: function(e) {
