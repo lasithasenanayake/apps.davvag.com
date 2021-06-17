@@ -208,6 +208,7 @@ class BroadcastService {
             }
         }
         CacheData::clearObjects("domain_permision_e");
+        CacheData::clearObjects("sys_access");
         $tenatjson->webdock=$descObj->webdock;
         file_put_contents(TENANT_RESOURCE_LOCATION ."/$groupid.json",json_encode($tenatjson));
         

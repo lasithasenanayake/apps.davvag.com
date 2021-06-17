@@ -130,6 +130,9 @@
         },
         "davvag-shop-v2":{
             "version":"latest"
+        },
+        "davvag-directpay-lk-settings":{
+            "version":"latest"
         }
     },
     "webdock":{

@@ -263,8 +263,6 @@ WEBDOCK.component().register(function(exports){
         bindData.submitErrors = validator.validate(); 
         if (!bindData.submitErrors){
             bindData.product.caption=$("#txtcaption").data("editor").html(); 
-            bindData.product.caption=bindData.product.caption.split("'").join("~^");
-            bindData.product.caption=bindData.product.caption.split('"').join("~*");
             bindData.product.Images=[];
             bindData.product.sellsInfo_data=attribute.get_data();
             for (var i = 0; i < bindData.p_image.length; i++) {

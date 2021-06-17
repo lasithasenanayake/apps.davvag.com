@@ -85,7 +85,7 @@ class ProductService {
                 SOSSData::Insert ("d_all_summery", $summery,$tenantId = null);
                 //return $product;
             }else{
-                $res->SetError ("Error Saving.");
+                $res->SetError ($result);
                 //exit();
                 return $res;
             }

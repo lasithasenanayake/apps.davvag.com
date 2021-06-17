@@ -16,21 +16,9 @@
         "file": "service.php",
         "class": "DirectPay_IPG",
         "methods" : {
-            "Payment" : {
+            "Save" : {
                 "method" : "POST"
-            },
-            "Order" : {
-                "method" : "GET",
-                "parameters":["id"]
-            },
-            "ExtPaymentRequest":{
-                "method" : "GET",
-                "parameters":["id"]
-            },
-            "PublicToken" : {
-                "method" : "GET",
-                "parameters":["id"]
-            }       
+            } 
         }
     },
     "transformers": {
