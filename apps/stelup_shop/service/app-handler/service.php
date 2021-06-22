@@ -1,6 +1,6 @@
 <?php
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
+require_once(PLUGIN_PATH_LOCAL . "/profile-stelup/profile.php");
 
 class appService {
 

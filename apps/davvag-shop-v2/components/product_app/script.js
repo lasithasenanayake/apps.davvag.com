@@ -9,7 +9,7 @@ WEBDOCK.component().register(function(exports){
     var bindData={
         products:[],
         q:"",
-        loading:false,
+        loading:true,
         noproducts:false,
         allloaded:false,
         a5:0,
@@ -61,9 +61,10 @@ WEBDOCK.component().register(function(exports){
             bindData.submitInfo=[];
             if(bindData.product.sellstype_attributes.current_bid<bindData.product.sellstype_attributes.bid){
                 //bindData.product.
+                bindData.loading=true;
                 handler.services.SaveBid({itemid:bindData.product.itemid,bid_amount:bindData.product.sellstype_attributes.bid})
                 .then(function(r){
-                    
+                    bindData.loading=false;
                     if(r.success){
                         //bindData.product=r.result;
                         if(call_handler.data.notfy){
@@ -78,12 +79,13 @@ WEBDOCK.component().register(function(exports){
                     //bindData.allloaded=false;
                 })
                 .error(function(error){
-                    
+                    bindData.loading=false;
                     bindData.submitErrors.push(error.responseJSON?error.responseJSON.result:error.responseText);
                     ShowMessage(error.responseJSON?error.responseJSON.result:error.responseText);
                     //window.scrollTo(0,0);
             });
             }else{
+                bindData.loading=false;
                 ShowMessage("Place a Bid more than "+bindData.product.sellstype_attributes.current_bid+ " amount");
                 bindData.submitErrors.push("Place a Bid more than "+bindData.product.sellstype_attributes.current_bid+ " amount");
             }
@@ -193,17 +195,19 @@ WEBDOCK.component().register(function(exports){
                             
                             bindData.imgurl='components/davvag-cms/soss-uploader/service/get/products/'+bindData.product.itemid+'-'+bindData.product.imgurl;
                         }
+                        bindData.loading=false;
                         bindData.allloaded=false;
                     })
                     .error(function(error){
                         //bindData.products=[];
-                        //bindData.loading=false;
+                        bindData.loading=false;
                         bindData.allloaded=false;
                         //page=
                         console.log(error.responseJSON);
                 });
             
         }catch(e){
+            bindData.loading=false;
             console.log(e);
         }finally{
             bindData.loading=false;

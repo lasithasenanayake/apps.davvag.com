@@ -1,0 +1,19 @@
+{
+    "rawquery" : {
+        "type":"sql",
+        "parameters" : [],
+        "query": "SELECT attr_bi.*,profile.name as profile_name,products.name FROM attr_bi inner join profile on  attr_bi.profileId=profile.id inner join products on products.itemid=attr_bi.itemid Where attr_bi.status='active';"
+    },
+    "fields":[
+            {"fieldName":"itemid","dataType":"int","annotations":{"isPrimary":true}},
+            {"fieldName":"bid_start_price","dataType":"float","annotations":{}},
+            {"fieldName":"bid_enddate","dataType":"java.util.Date","annotations":{}},
+            {"fieldName":"number_of_bids","dataType":"int","annotations":{}},
+            {"fieldName":"current_bid","dataType":"float","annotations":{}},
+            {"fieldName":"bid_condition","dataType":"java.lang.String","annotations":{"maxLen":"20"}},
+            {"fieldName":"profileId","dataType":"int","annotations":{}},
+            {"fieldName":"status","dataType":"java.lang.String","annotations":{}},
+            {"fieldName":"profile_name","dataType":"java.lang.String","annotations":{}},
+            {"fieldName":"name","dataType":"java.lang.String","annotations":{}}
+        ]
+    }

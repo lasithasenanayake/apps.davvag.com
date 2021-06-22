@@ -2,11 +2,49 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
+require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
+
 class BroadcastService {
 
     function __construct(){
         
     } 
+
+    public function getAllPendingBids($req,$res){
+        //if (isset($_GET["page"]) && isset($_GET["size"])){
+            //require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+
+            $resultObj = SOSSData::ExecuteRaw("product_bid_active", $mainObj);
+            return $resultObj->result;
+    }
+
+    public function postRequestOrderCompletion($req,$res){
+        $body=$req->Body(true);
+        $update = new stdClass();
+        $update->itemid=$body->itemid;
+        $update->status="closed";
+        $r=SOSSData::Update("attr_bi",$update);
+        if($r->success){
+            $profile=Profile::getProfile($body->profileId,0);
+            //return $profile;
+            if($profile->profile){
+                $update->showonstore='N';
+                SOSSData::Update("products",$update);
+                $r=SOSSData::Insert("order_bid_approval_pending",$body);
+                $body->id=$r->result->generatedId;
+                Profile::AddNotify($body->profileId,"davvag-shop-v2-bid-cofirmation",$body);
+                Profile::Send_Notify();
+                return $body;
+            }else{
+                $res->SetError("Profile Not Found.");
+            }
+        }else{
+            $res->SetError($r);
+        }
+
+    }
 
     public function getallPendingOrders($req,$res){
         $allkeys=CacheData::getObjects("all","orderheader_pendings");

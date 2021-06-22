@@ -8,6 +8,10 @@
         "pending-orders":{
             "type":"component",
             "location":"app"
+        },
+        "pending-bids":{
+            "type":"component",
+            "location":"app"
         }
     },
     "description":{
@@ -23,9 +27,14 @@
             "onLoad": ["davvag-order-handler"],
             "routes":{
                 "partials":{
-                    "/keyword" : "pending-orders"
+                    "/pendingorders" : "pending-orders",
+                    "/pendingbids" : "pending-bids"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"Pending Orders","path":"pendingorders"},{"name":"Pending Bids","path":"pendingbids"}
+            ]
         }
     },
     "resources": {

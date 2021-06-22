@@ -16,6 +16,9 @@
         "file": "service.php",
         "class": "BroadcastService",
         "methods" : {
+            "AllPendingBids":{
+                "method":"GET"
+            },
             "allPendingOrders" : {
                 "method" : "GET"
             },"PendingSchedulesBy":{
@@ -26,6 +29,9 @@
                 "method":"POST"
             },
             "RejectOrder":{
+                "method":"POST"
+            },
+            "RequestOrderCompletion":{
                 "method":"POST"
             }
         }

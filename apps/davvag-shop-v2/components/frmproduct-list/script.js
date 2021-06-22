@@ -32,7 +32,7 @@ WEBDOCK.component().register(function(exports){
     
 
     function loadproducts(){
-       
+        if(bindData.loading) return;
         var routId   = exports.getShellComponent("soss-routes");
         routeData = routId.getInputData();
         var menuhandler  = exports.getComponent("productsvr");
@@ -62,12 +62,14 @@ WEBDOCK.component().register(function(exports){
                                     bindData.noproducts=false;
                                 }
                                 //bindData.loading=false;
+                                bindData.loading=false;
                                 page=page+bindData.products.length;
                             }
                         })
                         .error(function(error){
                             //bindData.products=[];
                             //bindData.loading=false;
+                            bindData.loading=false;
                             bindData.allloaded=false;
                             //page=
                             console.log(error.responseJSON);
@@ -76,7 +78,7 @@ WEBDOCK.component().register(function(exports){
             }catch(e){
                 console.log(e);
             }finally{
-                bindData.loading=false;
+                
             }
             
         }

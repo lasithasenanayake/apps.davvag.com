@@ -33,14 +33,17 @@
                     }
                     
                 }else{
-                    $mainObj = new stdClass();
-                    $mainObj->parameters = new stdClass();
-                    $mainObj->parameters->pid = $pid;
-                    $mainObj->parameters->id = $id;
-                    $result = SOSSData::ExecuteRaw("profile_internal", $mainObj);
+                    //$mainObj = new stdClass();
+                    //$mainObj->parameters = new stdClass();
+                    //$mainObj->parameters->pid = $pid;
+                    //$mainObj->parameters->id = $id;
+                    //$result = SOSSData::ExecuteRaw("profile_internal", $mainObj);
+                    $result = SOSSData::Query ("profile", urlencode("id:".$id.""));
+
                 }
                
             }
+            //return $result;
             if($result->success && count($result->result)>0){
                 
                 $profile->profile=$result->result[0];
@@ -59,7 +62,9 @@
                 CacheData::setObjects($userid?$userid:$id."-".$pid,"profile_data",$profile);
                 return $profile;
             }else{
-                return $result;
+                $profile->profile=null;
+                $profile->result=$result;
+                return $profile;
             }
         }
         
@@ -114,10 +119,10 @@
                     //
                     
                 }else{
-                    return null;
+                    return array("success"=>false,"ERROR"=>"ERROR Finding config File.");
                 }
             }else{
-                return null;
+                return array("success"=>false,"ERROR"=>"ERROR Finding Profile.");;
             }
         }
 

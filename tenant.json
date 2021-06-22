@@ -133,6 +133,9 @@
         },
         "davvag-directpay-lk-settings":{
             "version":"latest"
+        },
+        "davvag-email-settings":{
+            "version":"latest"
         }
     },
     "webdock":{

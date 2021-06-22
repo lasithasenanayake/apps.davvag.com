@@ -3,7 +3,7 @@
     class Notify{
       private static $emailconfig;
       private static $globals;
-      public static function sendEmailMessage($name,$email,$className,$data){
+      public static function sendEmailMessage($name,$email,$className,$data,$debug=0){
           if(!isset(self::$emailconfig)){
               if(file_exists(TENANT_RESOURCE_LOCATION."/global/config/emailsmtp.conf")){
                 //echo "im in";
@@ -33,7 +33,7 @@
             $mail = new PHPMailer();
            //echo self::$emailconfig->username."-".self::$emailconfig->host."-".self::$emailconfig->port."-".self::$emailconfig->password."-";
             $mail->IsSMTP(); // set mailer to use SMTP
-            $mail->SMTPDebug  = 0;
+            $mail->SMTPDebug  = $debug;
             $mail->CharSet = 'UTF-8';
             $mail->Host = self::$emailconfig->host; // specify main and backup server
             $mail->SMTPAuth = true; // turn on SMTP authentication

@@ -54,7 +54,7 @@ WEBDOCK.component().register(function(exports, scope){
                 console.log(i);
                         var filename =id!=null?id.toString()+"-"+newfiles[i].name:newfiles[i].name;
                         console.log(filename);
-                        uploaderInstance.services.uploadFile(newfiles[i], classname, filename)
+                        uploaderInstance.services.upload(newfiles[i], classname, filename)
                         .then(function(result2){
                            
                             //$.notify("product Image Has been uploaded", "info");
