@@ -32,6 +32,8 @@ WEBDOCK.component().register(function(exports){
     }
 
     function submit(){
+        alert("This Function is not impletmented");
+        return;
         bindData.data.notfy.closeapp=true;
         complete_call(bindData.data);
     }

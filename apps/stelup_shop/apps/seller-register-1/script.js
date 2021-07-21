@@ -163,14 +163,16 @@ WEBDOCK.component().register(function(exports){
             scope.submitInfo=[];
             bindData.data.catogory="vender";
             bindData.data.attributes=bindData.attributes;
-            service_handler.services.Save(bindData.data).then(function(result){
+            var target ={};
+            Object.assign(target,bindData.data);
+            service_handler.services.Save(target).then(function(result){
                 
                 //console.log(result);
-                localStorage.profile=JSON.stringify(bindData.data);
+                localStorage.profile=JSON.stringify(target);
                 if(result.success){
-                    uploadFile(bindData.data.id,function(){
+                    uploadFile(target.id,function(){
                         scope.submitInfo.push("Saved Successfully.");
-                        localStorage.profile=JSON.stringify(bindData.data);
+                        localStorage.profile=JSON.stringify(target);
                         if(uploader){
                             uploader.close();
                         }

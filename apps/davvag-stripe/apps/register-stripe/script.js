@@ -22,7 +22,8 @@ WEBDOCK.component().register(function(exports){
             if(c.data.css!=null){
                 bindData.css_main=c.data.css;
             }
-            if(c.data!=null){
+            
+            if(c.status=="internalcall"){
                 bindData.data=c.data;
                 
                 bindData.data.courncycode="gbp";
@@ -104,6 +105,7 @@ WEBDOCK.component().register(function(exports){
                     var token = response['id'];
                     console.log(JSON.stringify(response));
                     bindData.data.token=token;
+                    ///data=$.extend(bindData.data);
                     service_handler.services.TestChargeAmountFromCard(bindData.data).then(function(result){
                     
                         console.log(result);
@@ -119,7 +121,7 @@ WEBDOCK.component().register(function(exports){
                         }else{
                             scope.submitErrors.push("Error");
                         }
-                        
+                        unlockForm();
                     }).error(function(result){
                         scope.submitErrors = [];
                         bindData.submitErrors.push("Error");

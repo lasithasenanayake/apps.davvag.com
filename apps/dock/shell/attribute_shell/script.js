@@ -176,6 +176,9 @@ WEBDOCK.component().register(function(exports){
     function createForm(arr,id){
         var $formTmp = $('<form id="'+id+'_form" class="form-horizontal form-bordered"></form>');
         primaryData=[];
+        if(Array.isArray(arr)==false){
+            return;
+        }
         arr.forEach( function(obj, idx) {
             elementID=attrivuteID+"_"+obj.name;
             var $fieldSet,

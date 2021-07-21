@@ -32,6 +32,10 @@
             },
             "SaveBid":{
                 "method":"POST"
+            },
+            "AllProductCatList":{
+                "method":"GET",
+                "parameters":["id"]
             }
             
         }

@@ -113,6 +113,10 @@
             }
         },
         {
+            "fieldName":"catogoryid",
+            "dataType":"int"
+        },
+        {
             "fieldName":"uom",
             "dataType":"java.lang.String",
             "annotations":{

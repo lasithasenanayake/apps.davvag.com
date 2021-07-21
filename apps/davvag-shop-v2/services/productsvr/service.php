@@ -5,6 +5,41 @@ require_once(PLUGIN_PATH . "/auth/auth.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class ProductServices {
 
+
+    public function getAllProductCatList($req){
+        $result= CacheData::getObjects("cat","products");
+        if(isset($result)){
+            return $result;
+        }
+        $r=SOSSData::Query("productcat",null);
+        $items=[];
+        //return $r;
+        if($r->success){
+            $productcat = $r->result;
+            for ($i=0; $i < count($productcat); $i++) { 
+                # code...
+                $mainObj = new stdClass();
+                $mainObj->parameters = new stdClass();
+                $mainObj->parameters->page = 0;
+                $mainObj->parameters->size = 3;
+                $mainObj->parameters->search = "";
+                $mainObj->parameters->rad = '0';
+                $mainObj->parameters->lon = '0';
+                $mainObj->parameters->lan = '0';
+                $mainObj->parameters->cat = $productcat[$i]->name;
+
+                $resultObj = SOSSData::ExecuteRaw("ds_products_v2", $mainObj);
+                if($resultObj->success && ($resultObj->result)>0){
+                    array_push($items,array("name"=>$productcat[$i]->name,"id"=>$productcat[$i]->id,"products"=>$resultObj->result));
+                }
+            }
+            
+        }
+        if(count($items)){
+            CacheData::setObjects("cat","products",$items);
+        }
+        return $items;
+    }
     public function getAllProducts($req){
         if (isset($_GET["page"]) && isset($_GET["size"])){
             require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");

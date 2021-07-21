@@ -35,6 +35,10 @@
         "bid-cofirmation":{
             "type":"component",
             "location":"components"
+        },
+        "product-catogory-list":{
+            "type":"component",
+            "location":"components"
         }
     },
     "description":{
@@ -53,7 +57,8 @@
                     "/checkout" : "partial-cart",
                     "/checkout-complete" : "partial-cart-checkout",
                     "/order-complete" : "order-complete",
-                    "/bid_confirmation":"bid-cofirmation"
+                    "/bid_confirmation":"bid-cofirmation",
+                    "/cat-list":"product-catogory-list"
                 }
             }
         }

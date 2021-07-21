@@ -41,7 +41,7 @@
                 </div>
                 <div class="row" style="margin: 10px;">
                     <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
-                        <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>
+                        <i v-if="product.liked==1" class="fa fa-heart fa-2x" style="color: red;"> </i>
                         <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
                     </a> 
                     <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','messaging',product,'Message','components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid)"><i class="fa fa-envelope-o fa-2x"> </i></a>
@@ -49,7 +49,7 @@
                     <a class="btn btn-default"  aria-label="Settings" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-2x" ></i> </i> </a>
                     <a class="btn btn-default" v-on:click="favorite(product)" aria-label="Settings" style="right: 10px;position: absolute;margin-right: 10px;">
                         <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-2x" > </i> 
-                        <i v-if="product.favorite==1" class="fa fa-plus-square fa-2x" > </i> 
+                        <i v-if="product.favorite==1" class="fa fa-check-square fa-2x" > </i> 
                     </a>
                 </div>
                 <div class="card-body">

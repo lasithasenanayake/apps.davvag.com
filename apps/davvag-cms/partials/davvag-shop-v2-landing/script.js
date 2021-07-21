@@ -55,13 +55,22 @@ WEBDOCK.component().register(function(exports){
             if(a.initialize){
                 apploader=a;
                 apploader.initialize();
-                apploader.downloadAPP("davvag-shop-v2","frmproduct-list","appLoad",function(d){
+                apploader.downloadAPP("davvag-shop-v2","product-catogory-list","appLoad-cat",function(d){
+                    apploader.downloadAPP("davvag-shop-v2","frmproduct-list","appLoad",function(d){
                     
+                    },function(e){
+                        console.log(e);
+                        //bindData.loadingAppError=true;
+                        $("#appLoad").html('<div class="d-flex align-items-center"><strong> Error Loading...</strong><div class="spinner-border ml-auto" role="status" aria-hidden="true"></div></div>')
+                    },completeResponce,{page:0,size:12,searchCondition:""});
                 },function(e){
                     console.log(e);
                     //bindData.loadingAppError=true;
                     $("#appLoad").html('<div class="d-flex align-items-center"><strong> Error Loading...</strong><div class="spinner-border ml-auto" role="status" aria-hidden="true"></div></div>')
                 },completeResponce,{page:0,size:12,searchCondition:""});
+
+               
+                
             }else{
                 alert("Error Loading Componet");
             }

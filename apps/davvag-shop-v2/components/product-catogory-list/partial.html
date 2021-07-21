@@ -1,0 +1,54 @@
+<div class="container" @scroll="handleScroll($event)">
+    <div v-if="itemCount>0" class="row">
+        <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+    </div>
+    
+
+  <div class="row">
+    <div class="col-sm-3" v-for="item in products">
+        <div class="shadow p-3 mb-5 bg-white rounded" style="margin:1px;">
+            <h5 class="card-title textwrap">{{ item.name }}</h5>
+            <div :id="'card_'+item.id" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                  <li :data-target="'card_'+item.id" v-for="(i,index)  in item.products" :data-slide-to="index" :class="index==0?'active':''"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div :class="index==0?'carousel-item active':'carousel-item'" v-for="(i,index) in item.products">
+                        <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+i.itemid+'-'+i.imgurl" alt="..." style="width: 100%;">
+                        <div class="carousel-caption d-none d-md-block">
+                          <h5 class="textwrap3">{{ i.name }}</h5>
+                        </div>
+                      </div>
+                </div>
+                <a class="carousel-control-prev" :href="'#card_'+item.id" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" :href="'#card_'+item.id" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+              </div>
+              <button class="form-control btn bg-primary-button" v-on:click="navigate(item.name)">View</button>
+            </div>
+            
+        </div>
+        
+  </div>
+
+</div>
+<div v-if="loading" class="row" >    
+    <div class="col-md-4 col-sm-6">
+           
+    </div>
+    <div class="col-md-4 col-sm-6">
+            <div id="custom-search-input">
+                <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
+            </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+            
+    </div>
+           
+</div>
+

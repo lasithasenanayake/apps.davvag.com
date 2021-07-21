@@ -250,6 +250,37 @@ class appService {
         }
 
     }
+
+    private function SaveSubProducts($product){
+        $items=array();
+        if($product->groupItems){
+            $result=SOSSData::Query("products_subitems", "itemid:".$product->itemid);
+            $databaseItems=$result->success?$result->result:[];
+            foreach ($product->groupItems as $key => $value) {
+                //$value->
+                $product->groupItems[$key]->storeid=$product->storeid;
+                $product->groupItems[$key]->storename=$product->storename;
+                $product->groupItems[$key]->sellstype=$product->sellstype;
+                $product->groupItems[$key]->showonstore="N";
+                $product->groupItems[$key]->currencycode=$product->currencycode;
+                $product->groupItems[$key]->catogory=$product->catogory;
+                
+                if(isset($value->itemid)){
+                    $result=SOSSData::Update("products",$product->groupItems[$key]);
+                    $product->groupItems[$key]->updateStatus=$result;
+                }else{
+                    $result=SOSSData::Insert("products",$product->groupItems[$key]);
+                    $product->groupItems[$key]->itemid =$result->success? $result->result->generatedId:0;
+                    $product->groupItems[$key]->updateStatus=$result;
+                }
+                array_push($items,array("itemid"=>$product->itemid,"subitemid"=>$product->groupItems[$key]->itemid));
+            }
+            SOSSData::Delete("products_subitems",$databaseItems);
+            SOSSData::Insert("products_subitems",$items);
+        }
+        return $product;
+    }
+
     public function postSaveProduct($req,$res){
         
         $product=$req->Body(true);
@@ -270,7 +301,7 @@ class appService {
             if($result->success){
                 $product->itemid = $result->result->generatedId;
                 $product=$this->saveAttributes($product); 
-                
+                $product=$this->SaveSubProducts($product);
             }else{
                 $res->SetError ("Error Saving.");
                 return $res;
@@ -280,6 +311,7 @@ class appService {
             $summery->id=$product->itemid;
             if($result->success){
                 $product=$this->saveAttributes($product);
+                $product=$this->SaveSubProducts($product);
                 
             }else{
                 $res->SetError ("Error Saving.");
@@ -333,6 +365,39 @@ class appService {
 
         }else{
             return $product;
+        }
+    }
+
+    function getProduct($req){
+        //echo "imain";
+        $data =null;
+        if(isset($_GET["itemid"])){
+            //echo "in here";
+            $result= CacheData::getObjects_fullcache(md5("att-itemid:".$_GET["itemid"]),"products");
+            if(!isset($result)){
+                //echo "in here";
+                $result = SOSSData::Query("products",urlencode("itemid:".$_GET["q"]));
+                //return $result;
+                if($result->success){
+                    //$f->{$s->storename}=$result->result;
+                    if(isset($result->result[0])){
+                        $data= $result->result[0];
+                        $r=SOSSData::Query("products_attributes","itemid:".$data->itemid);
+                        $data->attributes=$r->success?$r->result:null;
+                        $mainObj = new stdClass();
+                        $mainObj->parameters = new stdClass();
+                        $mainObj->parameters->itemid = $data->itemid;
+                        $r=SOSSData::ExecuteRaw("products_subitems_query",$mainObj);
+                        $data->groupItems=$r->success?$r->result:null;
+                        CacheData::setObjects(md5("att-itemid:".$_GET["q"]),"products",$result->result);
+                    }
+                }else{
+                    return null;
+                }
+            }else{
+                return $result;
+            }
+            
         }
     }
 

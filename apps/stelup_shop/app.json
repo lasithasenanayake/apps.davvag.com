@@ -80,6 +80,10 @@
         "product_app":{
             "type":"component",
             "location":"apps"
+        },
+        "product-group-sell":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -104,7 +108,8 @@
                     "/profile":"profile",
                     "/payment-gateway":"",
                     "/order-complete":"order-complete",
-                    "/traditem":"product-trade"
+                    "/traditem":"product-trade",
+                    "/group-sell":"product-group-sell"
 
                 }
             }

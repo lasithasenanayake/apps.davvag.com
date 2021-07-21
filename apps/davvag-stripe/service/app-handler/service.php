@@ -144,10 +144,11 @@ class Stripe_IPG {
     {
         require_once(PLUGIN_PATH_LOCAL . "/davvag-ipg/davvag-ipg.php");
         $cardDetails=$req->Body(true);
+        //return 
         $userprofile=Profile::getUserProfile();
         if($userprofile->profile){
             //$handler=new Davvag_Order();
-            
+            //sreturn $cardDetails;
             $apiKey = $cardDetails->stripeSecretKey;
             $stripeService = new \Stripe\Stripe();
             $stripeService->setVerifySslCerts(false);

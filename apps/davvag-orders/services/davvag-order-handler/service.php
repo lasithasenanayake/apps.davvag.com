@@ -30,11 +30,11 @@ class BroadcastService {
             $profile=Profile::getProfile($body->profileId,0);
             //return $profile;
             if($profile->profile){
-                $update->showonstore='N';
+                $update->showonstore='n';
                 SOSSData::Update("products",$update);
                 $r=SOSSData::Insert("order_bid_approval_pending",$body);
                 $body->id=$r->result->generatedId;
-                Profile::AddNotify($body->profileId,"davvag-shop-v2-bid-cofirmation",$body);
+                Profile::AddNotify($body->profileId,"davvag-shop-v2-bid-confirmation",$body);
                 Profile::Send_Notify();
                 return $body;
             }else{
