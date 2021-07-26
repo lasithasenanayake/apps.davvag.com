@@ -264,6 +264,8 @@ class appService {
                 $product->groupItems[$key]->showonstore="N";
                 $product->groupItems[$key]->currencycode=$product->currencycode;
                 $product->groupItems[$key]->catogory=$product->catogory;
+                $product->groupItems[$key]->uom=$product->uom;
+                $product->groupItems[$key]->invType=$product->invType;
                 
                 if(isset($value->itemid)){
                     $result=SOSSData::Update("products",$product->groupItems[$key]);
@@ -376,12 +378,13 @@ class appService {
             $result= CacheData::getObjects_fullcache(md5("att-itemid:".$_GET["itemid"]),"products");
             if(!isset($result)){
                 //echo "in here";
-                $result = SOSSData::Query("products",urlencode("itemid:".$_GET["q"]));
+                $result = SOSSData::Query("products",urlencode("itemid:".$_GET["itemid"]));
                 //return $result;
                 if($result->success){
                     //$f->{$s->storename}=$result->result;
                     if(isset($result->result[0])){
                         $data= $result->result[0];
+                        //return $data;
                         $r=SOSSData::Query("products_attributes","itemid:".$data->itemid);
                         $data->attributes=$r->success?$r->result:null;
                         $mainObj = new stdClass();
@@ -389,10 +392,11 @@ class appService {
                         $mainObj->parameters->itemid = $data->itemid;
                         $r=SOSSData::ExecuteRaw("products_subitems_query",$mainObj);
                         $data->groupItems=$r->success?$r->result:null;
-                        CacheData::setObjects(md5("att-itemid:".$_GET["q"]),"products",$result->result);
+                        CacheData::setObjects(md5("att-itemid:".$_GET["itemid"]),"products",$data);
+                        return $data;
                     }
                 }else{
-                    return null;
+                    return "null";
                 }
             }else{
                 return $result;

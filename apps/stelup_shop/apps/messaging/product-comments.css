@@ -1,7 +1,7 @@
 .comments-box{
     display: block;
-    max-height: 400px;
-    min-height: 200px;
+    height: calc(100vh - 200px);
+    height: calc(100vh - 200px);
     width: 100%;
     overflow: hidden scroll;
     

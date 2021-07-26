@@ -62,6 +62,7 @@ WEBDOCK.component().register(function(exports){
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }
+        
         data= {id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,page:p.toString(),size:s.toString(),lastid:l.toString()};
         service_handler.services.Messages(data).then(function(result){
 

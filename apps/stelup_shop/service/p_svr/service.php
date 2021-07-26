@@ -103,6 +103,26 @@ class appService {
         }
     }
 
+    public function getMessageInbox($req,$res){
+        $userprofile=Profile::getUserProfile();
+        if($userprofile){
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->profileId =$userprofile->profile->id;
+            $resultObj = SOSSData::ExecuteRaw("messages_inbox_query", $mainObj);
+            //return $resultObj;
+            if($resultObj->success){
+                return $resultObj->result;
+            }else{
+                $res->SetError ($resultObj);
+                return;
+            }
+        }else{
+            $res->SetError ("User Not Authendicated.");
+            return;
+        }
+    }
+
     public function getMessages($req,$res){
         $userprofile=Profile::getUserProfile();
         if($userprofile){

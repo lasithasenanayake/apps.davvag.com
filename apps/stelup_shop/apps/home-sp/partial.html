@@ -61,7 +61,8 @@
                 <div v-if="!isEditable(product)" class="card-body">
                     <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
                     <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
-                    <button type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
+                    <button v-if="product.catogory=='group listing'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">View</button>
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
                     
                 </div>
                 <div v-if="isEditable(product)" class="card-body">

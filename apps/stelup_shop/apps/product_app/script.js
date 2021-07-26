@@ -257,7 +257,19 @@ WEBDOCK.component().register(function(exports){
             call_handler=c;
             complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
             if(c.data){
-                bindData.product=c.data;
+                menuhandler.services.Product({itemid:c.data.itemid}).then(function(r){
+                    if(r.success){
+                        //if(r.result.products!=null){
+                        bindData.product = r.result;
+                        //$("#txtcaption").data("editor").html(bindData.product.caption);
+                    }else{
+                        bindData.product.name="Error Loading Item";
+                    }
+                }).error(function(e){
+                    bindData.product.name="Error Loading Item";
+                    console.log(e);
+                });
+                //bindData.product=c.data;
             }
             
         },

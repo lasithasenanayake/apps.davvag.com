@@ -1,1 +1,1 @@
-copy schemas\*.* D:\xampp\htdocs\git\localhost\schemas\ 
+xcopy schemas\*.* D:\xampp\htdocs\git\localhost\schemas\ /s /e

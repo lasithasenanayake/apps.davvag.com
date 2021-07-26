@@ -12,6 +12,8 @@ WEBDOCK.component().register(function(exports){
         items:[],
         removedItems:[]
     };
+
+    
     
     var vueData =  {
         methods:{
@@ -190,7 +192,7 @@ WEBDOCK.component().register(function(exports){
         if(routeData.id!=null){
             service_handler.services.Product({itemid:routeData.id}).then(function(r){
                 if(r.success){
-                    if(r.result.products!=null){
+                    //if(r.result.products!=null){
                     bindData.data = r.result;
                     //$("#txtcaption").data("editor").html(bindData.product.caption);
                     if(r.result.attributes.length!=0)
@@ -203,7 +205,7 @@ WEBDOCK.component().register(function(exports){
                         bindData.p_image_2="components/dock/soss-uploader/service/get/products/"+bindData.data.itemid.toString()+"_2";
                         bindData.p_image_3="components/dock/soss-uploader/service/get/products/"+bindData.data.itemid.toString()+"_3";
                         bindData.p_image_4="components/dock/soss-uploader/service/get/products/"+bindData.data.itemid.toString()+"_4";
-                    }
+                    //}
 
                 }
             }).error(function(e){
@@ -262,7 +264,7 @@ WEBDOCK.component().register(function(exports){
     }
     function draftDefaults(){
         bindData.data.Images=imageList();
-        bindData.data.catogory="listing";
+        //bindData.data.catogory="listing";
         bindData.data.currencycode="GBP";
         bindData.data.uom="Units";
         bindData.invType="Inventory";

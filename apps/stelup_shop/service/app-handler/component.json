@@ -45,6 +45,10 @@
             },
             "SaveProductProposal":{
                 "method" : "POST"
+            },
+            "Product":{
+                "method":"GET",
+                "parameters":["itemid"]
             }
 
         }

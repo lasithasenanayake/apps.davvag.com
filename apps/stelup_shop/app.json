@@ -84,6 +84,10 @@
         "product-group-sell":{
             "type":"component",
             "location":"apps"
+        },
+        "messages":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -102,14 +106,15 @@
                     "/test":"sample-input-form",
                     "/xplo":"frmproduct-list",
                     "/selleronboard":"seller-register-1",
-                    "/itemonboard":"product-register",
+                    "/itemonboard":"product-group-sell",
                     "/checkout":"cart-checkout",
                     "/checkout-cart":"partial-cart",
                     "/profile":"profile",
                     "/payment-gateway":"",
                     "/order-complete":"order-complete",
                     "/traditem":"product-trade",
-                    "/group-sell":"product-group-sell"
+                    "/group-sell":"product-group-sell",
+                    "/messages":"messages"
 
                 }
             }

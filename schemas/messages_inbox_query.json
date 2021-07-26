@@ -1,0 +1,26 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["profileId"],
+        "query": "SELECT messages.m_from,profile.name,min(messages.m_read) as msgread,max(messages.msgdate) as msgdate FROM messages inner join  profile on messages.m_from = profile.id where messages.m_to=$profileId group by messages.m_from,profile.name;"
+    },
+    "fields" : [
+        {
+            "fieldName":"m_from",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"msgdate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"msgread",
+            "dataType":"int"
+            
+        },{
+            "fieldName":"name",
+            "dataType":"java.lang.String"
+        }        
+
+    ]
+}

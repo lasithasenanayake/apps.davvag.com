@@ -3,12 +3,42 @@
         <div :class="product.qty==0?'watermarked':''">
             <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
         </div>
+        <div v-if="product.groupItems.length!=0" class="row" style="margin: 10px;">
+            
+                <div class="card" v-for="i in product.groupItems" style="width: 100%;">
+                  <div class="card-header">
+                      {{ i.name }}
+                  </div>
+                  <div class="card-body">
+                    <div class="row" style="margin: 10px;">
+                      {{ i.caption }}
+                    </div>
+                    <div class="row" style="margin: 10px;">
+                      <strong>Quantity:</strong> {{ i.qty }}
+                    </div>
+                    <div class="row" style="margin: 10px;">
+                      <strong>Price:</strong> {{ i.price | currency_formate}}
+                    </div>
+                  </div>    
+                  <div class="card-footer">
+                    <div v-if="!isEditable(product)" class="card-body">
+                        <div v-if="i.qty>0">
+                            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(i,true)">Add to cart</button>
+                            <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(i)">Trade</button>
+                            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(i,true)">Buy</button>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              
+        </div>
         <div class="row" style="margin: 10px;">
             <strong>Price:</strong> {{ product.price | currency_formate}}
         </div>
+        
         <div class="row" style="margin: 10px;">
             <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
-                <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>
+                <i v-if="product.liked==1" class="fa fa-heart fa-2x" style="color: red;"> </i>
                 <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
             </a> 
             <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','messaging',product,'Message','components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid)"><i class="fa fa-envelope-o fa-2x"> </i></a>
@@ -16,7 +46,7 @@
             <a class="btn btn-default"  aria-label="Settings" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-2x" ></i> </i> </a>
             <a class="btn btn-default" v-on:click="favorite(product)" aria-label="Settings" style="right: 10px;position: absolute;margin-right: 10px;">
                 <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-2x" > </i> 
-                <i v-if="product.favorite==1" class="fa fa-plus-square fa-2x" > </i> 
+                <i v-if="product.favorite==1" class="fa fa-check-square fa-2x" > </i>  
             </a>
         </div>
         <div class="card-body">

@@ -30,6 +30,10 @@
             },"Messages" : {
                 "method" : "GET",
                 "parameters": ["id","page","size","lastid"]
+            },
+            "MessageInbox": {
+                "method" : "GET",
+                "parameters": []
             }
 
         }

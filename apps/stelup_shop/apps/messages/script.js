@@ -1,0 +1,174 @@
+WEBDOCK.component().register(function(exports){
+    var scope,validator_profile,service_handler,sossrout_handler,call_handler,complete_call,apploader;
+    var p=0;
+    var s=40;
+    var l=0;
+
+    var bindData = {
+        submitErrors : [],submitInfo : [],data:{},messages:[],message:"",messagetype:"text",profile:localStorage.profile?JSON.parse(localStorage.profile):{id:0}
+    };
+    function completeResponce(results){
+        if($('#messagedock').hasClass("profile-content-show")){
+           // bindData.apptitle="Tranaction History";
+            //showTab("#tran");
+            $('#messagedock').removeClass("profile-content-show");
+        }
+        console.log(results);
+    }
+    var vueData =  {
+        methods:{
+            send:submit,
+            scrollToElement() {
+                const el = this.$el.getElementsByClassName('.comments-box')[0];
+            
+                if (el) {
+                  el.scrollIntoView();
+                }
+              },
+            textOnChage:function(){
+                var element = document.getElementById("message_data");
+                $("#message_data").animate({ scrollTop: element.scrollHeight }, 1000);
+            },
+            downloadapp:function(appname,form,data,apptitle){
+                $('#messagedock').addClass("profile-content-show");
+                bindData.loadingApp=false;
+                bindData.appName=apptitle;
+                //showTab("#app");
+                console.log(data);
+                apploader.downloadAPP(appname,form,"messagedock",function(d){
+                    bindData.loadingApp=true;
+                    bindData.loadingAppError=false;
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,{"pid":data.m_from});
+            }
+           
+        },
+        data :bindData,
+        onReady: function(s,c){
+            scope=s;
+            call_handler=c;
+            complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
+            if(c.data){
+                bindData.data=c.data;
+            }
+            exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
+                apploader=_uploader;
+                apploader.initialize();
+                initialize();
+            });
+            
+        },
+        computed:{
+            TextLength:function(){
+                return this.message.length;
+            }
+        },
+        mounted() {
+            //this.scrollToElement();
+        }
+    }
+    scrolled =false;
+    function updateScroll(){
+        if(!scrolled){
+            var element = document.getElementById("message_data");
+            $("#message_data").animate({ scrollTop: element.scrollHeight }, 1000);
+            //element.scrollTop =element.scrollHeight;
+            //element.scrollIntoView();
+            //console.log("S");
+        }
+        
+    }
+
+    
+
+    function initialize(){
+        service_handler = exports.getComponent("p_svr");
+        if(!service_handler){
+            console.log("Service has not Loaded please check.")
+        }
+        //sdata= {id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,page:p.toString(),size:s.toString(),lastid:l.toString()};
+        service_handler.services.MessageInbox().then(function(result){
+
+            
+            if(result.success){
+                
+                
+                bindData.messages=result.result;
+                //setTimeout(updateScroll(),5000);
+                
+            }else{
+                lockForm();
+            }
+            unlockForm();
+        }).error(function(result){
+            console.log(result);
+            
+        });
+        
+    }
+    function utf8_to_b64( str ) {
+        return encodeURIComponent( str );
+      }
+      
+      function b64_to_utf8( str ) {
+        return decodeURIComponent( str );
+      }
+
+    function submit(c_input){
+        lockForm();
+       
+            //data={}
+            str=utf8_to_b64(bindData.message);
+            data ={id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,messagetype:bindData.messagetype,message:str}
+            service_handler.services.SendMessage(data).then(function(result){
+                
+                //console.log(result);
+                
+                if(result.success){
+                    bindData.message="";
+                    result.result.messagetext=b64_to_utf8(result.result.messagetext);
+                    //console.log(str);
+                    bindData.messages.push(result.result);
+                    complete_call(bindData.data);
+                }else{
+                    scope.submitErrors.push("Error");
+                }
+                unlockForm();
+            }).error(function(result){
+                scope.submitErrors = [];
+                bindData.submitErrors.push("Error");
+                unlockForm();
+            });
+
+        //}
+    }
+
+    function navigateBack(){
+
+    }
+
+    
+
+    function lockForm(){
+        $("#form-row :input").prop("disabled", true);
+        $("#form-row :textarea").prop("disabled", true);
+        $("#form-row :button").prop("disabled", true);
+    }
+
+    function unlockForm(){
+        $("#form-row :input").prop("disabled", false);
+        $("#form-row :textarea").prop("disabled", false);
+        $("#form-row :button").prop("disabled", false);
+    }
+
+    
+
+    exports.vue = vueData;
+    exports.onReady = function(element){
+        
+    }
+
+});

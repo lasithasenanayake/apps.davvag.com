@@ -17,7 +17,7 @@ BEGIN
 	else
         SELECT *,(select count(0) from products_likes  where itemid=p.itemid and pid=p_id) as liked,(select count(0) from products_favorites where itemid=p.itemid and pid=p_id)  as favorite From products p inner join products_attributes on p.itemid= products_attributes.itemid where showonstore='y' and p.storeid=r_id Limit param_page, param_size;
     end if;
-END$$
+END
 DELIMITER $$ 
 
 
