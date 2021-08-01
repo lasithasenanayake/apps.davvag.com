@@ -1,20 +1,20 @@
 :root {
-  --backcolor: #ffffff;
-  --backtextcolor:#131212;
-  --backtexthovercolor:#080808;
+  --backcolor: #000000;
+  --backtextcolor: #fffefe;
+  --backtexthovercolor: #bfbcbc;
   --blue: #4679bd;
   --grey: #ddd;
   --textColor:#ddd;
   --ToolBar:#ffffff;
-  --SocialButton:rgb(5, 2, 150);
+  --SocialButton: rgb(255 255 255);
   --FooterColor:var(--backcolor);
   --FooterTextxColor:var(--backtextcolor);
   --FooterLinkColor:#030303;
-  --FooterLinkhoverColor:rgb(55, 4, 104);
+  --FooterLinkhoverColor: rgb(192 186 198);
   --W200: 200px;
   --Lft: left;
   --formBackColor: #f1f8f9;
-  --scrollColor: #f7aeab;
+  --scrollColor: #cbc5c5;
 }
 
 .navbar-dark .navbar-nav .nav-link:hover {

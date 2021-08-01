@@ -248,6 +248,9 @@ WEBDOCK.component().register(function(exports){
         data :bindData
         ,
         onReady: function(s,c){
+            $('thead').on('click', function(){
+                $(this).next('tbody').toggleClass('collapsed');
+            });
             menuhandler  = exports.getComponent("app-handler");
             exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
                 apploader=_uploader;

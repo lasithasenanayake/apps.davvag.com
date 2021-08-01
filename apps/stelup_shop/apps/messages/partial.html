@@ -10,7 +10,7 @@
             <div class="inbox_chat">
               <div :class="m.msgread==0?'chat_list active_chat':'chat_list'" v-for="m in messages" v-on:click="downloadapp('stelup_shop','messaging',m,'Messages')">
                 <div class="chat_people">
-                  <div class="chat_img"> <img :src="'components/dock/soss-uploader/service/get/profile/'+m.m_from" :alt="m.name"> </div>
+                  <div class="chat_img"> <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+m.m_from" :alt="m.name"> </div>
                   <div class="chat_ib">
                     <h5>{{ m.name  }}<span class="chat_date">{{ m.msgdate }}</span></h5>
                   </div>

@@ -93,7 +93,7 @@
     "description":{
         "title": "Stelup App",
         "author":"Davvag",
-        "version":"0.3",
+        "version":"0.4",
         "icon":"appicon.png"
     },
     "tags":["showincms"],
