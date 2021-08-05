@@ -88,6 +88,10 @@
         "messages":{
             "type":"component",
             "location":"apps"
+        },
+        "product_app_checkout":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
