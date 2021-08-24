@@ -14,6 +14,16 @@
   <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name" v-on:focusout="loadvalue(att_info.name);">
   <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
 </div>
+<div class="form-group">
+  <label for="exampleInputEmail1">WorkFflow</label>
+  <select class="form-control" data-placeholder="Choose a Flow..." v-model="att_info.postworkflow">
+    <option value="" >Select Post WorkLow</option>
+    <option value="int" >Integer</option>
+    <option value="float" >Float / Decimal</option>
+    <option value="java.util.Date" >Date</option>
+  </select>
+  <small id="NameHelp" class="form-text text-muted">pick a flow.</small>
+</div>
 <button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
 <hr/>
 <form id="sampleForm">

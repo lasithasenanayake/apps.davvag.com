@@ -1,5 +1,6 @@
 <?php
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
+require_once(PLUGIN_PATH_LOCAL . "/davvag-flow/davvag-flow.php");
 
 
 class appService {
@@ -98,6 +99,11 @@ class appService {
         }
 
         return $schema_Class;
+    }
+
+    public function getWorkFlows(){
+        $df=new Davvag_Flow_Controller();
+        return $df->getFlows("davvag-attributes");
     }
 
     

@@ -25,6 +25,10 @@
             "Atrribute" : {
                 "method" : "GET",
                 "parameters": ["id"]
+            },
+            "WorkFlows":{
+                "method" : "GET",
+                "parameters": []
             }        
         }
     },

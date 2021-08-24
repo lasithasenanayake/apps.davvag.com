@@ -6,7 +6,9 @@ WEBDOCK.component().register(function(exports){
         primary:false,select:{},select_values:[],field:{},fields:[],
         fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],
         fieldType:"text",
-        datasource:0
+        datasource:0,
+        workflows:[],
+        postInput:[]
     };
 
     var vueData =  {
@@ -137,6 +139,7 @@ WEBDOCK.component().register(function(exports){
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }
+        service_handler.services.WorkFlows().then(function(r){bindData.workflows=r.success?r.result:[];}).error(function(e){console.log(e)});
         loadValidator();
         
     }
