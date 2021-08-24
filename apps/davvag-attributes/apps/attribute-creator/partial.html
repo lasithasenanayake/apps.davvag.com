@@ -79,7 +79,13 @@
               </div>
             </div>
             <div v-if="fieldType=='select'" id="frmSelect">
-              <div class="form-group">
+              
+                <div class="form-group form-check">
+                  <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="datasource">
+                  <label class="form-check-label" for="exampleCheck1">Pull from a Data Source</label>
+                </div>
+                
+              <div v-if="datasource==0" class="form-group">
                 <div class="col-md-4">
                   <label for="exampleInputEmail1">Choice Value</label>
                   <input type="text" class="form-control" id="txtValue" aria-describedby="NameHelp" placeholder="Choice Value" v-model="select.value">
@@ -94,7 +100,7 @@
                 </div>
                 
               </div>
-              <div class="form-group">
+              <div v-if="datasource==0" class="form-group">
                 <table class="table">
                   <thead>
                     <tr>
@@ -146,6 +152,26 @@
             <div v-if="autoIncrement" class="form-group form-check">
               <input type="checkbox" class="form-check-input" true-value="true" false-value="false" v-model="field.autoIncrement">
               <label class="form-check-label" for="exampleCheck1">Auto autoIncrement</label>
+            </div>
+            <div v-if="datasource==1" id="frmdatasource">
+              <div class="form-group">
+                <div class="col-md-4">
+                  <label for="exampleInputEmail1">Data Source</label>
+                  <input type="text" class="form-control" id="txtValue" aria-describedby="NameHelp" placeholder="Data Source" v-model="field.datasource">
+                </div>
+                <div class="col-md-4">
+                  <label for="exampleInputEmail1">Query </label>
+                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Query" v-model="field.query">
+                </div>
+                <div class="col-md-2">
+                  <label for="exampleInputEmail1">Value</label>
+                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Value" v-model="field.datavalue">
+                </div>
+                <div class="col-md-2">
+                  <label for="exampleInputEmail1">Caption</label>
+                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Caption" v-model="field.datacaption">
+                </div>
+              </div>
             </div>
           </div>
           

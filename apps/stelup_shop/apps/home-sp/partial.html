@@ -60,13 +60,17 @@
                   
                
                 </div>
-                <div v-if="!isEditable(product)" class="card-body">
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se' && product.catogory!='group listing'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se' && product.catogory=='group listing'" type="button" class="btn bg-primary-button pull-left" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Add to cart</button>
-                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se' && product.catogory!='group listing'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
-                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se' && product.catogory=='group listing'" type="button" class="btn bg-primary-button pull-left" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Trade</button>
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se' && product.catogory!='group listing'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
+                <div v-if="!isEditable(product) && product.catogory!='group listing'" class="card-body">
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
                     
+                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
+                    
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
+                    
+                </div>
+                <div v-if="!isEditable(product) && product.catogory=='group listing'" class="card-body">
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Add to cart</button>
+                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Trade</button>
                 </div>
                 <div v-if="isEditable(product)" class="card-body">
                     <button type="button" class="btn bg-primary-button pull-left"   v-on:click="edit(product)">Edit</button>

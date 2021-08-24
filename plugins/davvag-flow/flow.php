@@ -1,6 +1,7 @@
 <?php
 
 class DavvagFlow {
+    
     public static function Log(&$logObject,$logtype,$message){
         if(!isset($logObject->excutionStack->{$logtype})){
             $logObject->excutionStack->{$logtype}=array();
@@ -26,9 +27,9 @@ class DavvagFlow {
             if(file_exists($filename)){
                 $data=file_get_contents($filename);
                 $workflow =json_decode($data);
-                $excuteData->excutionStack=new stdClass();
-                $excuteData->outData=new stdClass();
-                $excuteData->excutionStack->workFlowId=uniqid();
+                $excuteData->excutionStack=isset($excuteData->excutionStack)?$excuteData->excutionStack:new stdClass();
+                $excuteData->outData=isset($excuteData->outData)?$excuteData->outData:new stdClass();
+                $excuteData->excutionStack->workFlowId=isset($excuteData->excutionStack->workFlowId)?$excuteData->excutionStack->workFlowId:uniqid();
                 $inputData->workflowid=$excuteData->excutionStack->workFlowId;
                 DavvagFlow::Log($excuteData,"debugLog","workflow Initaited id:".$excuteData->excutionStack->workFlowId);
             }else{

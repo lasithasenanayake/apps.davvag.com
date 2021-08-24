@@ -146,7 +146,8 @@ WEBDOCK.component().register(function(exports){
             items=JSON.parse(sessionStorage.items);
         }
         x=0;
-        item.qty=1;
+       
+    if(item.qty>0){
         for(i in items){
             if(items[i].itemid===item.itemid){
                 items[i].qty++;
@@ -164,14 +165,20 @@ WEBDOCK.component().register(function(exports){
             x++;
         }
         //item.qty=1;
-        item.isOrder = isOrder;
-        items.push(item);
+        o = JSON.parse(JSON.stringify(item));
+        o.qty=1;
+        o.aqty=item.qty;
+        o.isOrder = isOrder;
+        items.push(o);
         sessionStorage.items=JSON.stringify(items);
         bindData.a5 =0;
         for (var i=0;i<items.length;i++){
             var it = items[i];
             bindData.a5 += it.qty;
         }
+    }else{
+        alert("Sorry there is no enogh items to be purchased.");
+    }
         //services.topMenu.additems(item,bindData.a5);
         //$('#modalImagePopup').modal('toggle');
     }

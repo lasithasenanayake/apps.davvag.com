@@ -19,6 +19,9 @@
             "Save" : {
                 "method" : "POST"
             },
+            "GetDataSource" : {
+                "method" : "POST"
+            },
             "Atrribute" : {
                 "method" : "GET",
                 "parameters": ["id"]

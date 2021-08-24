@@ -266,7 +266,7 @@ class appService {
                 $product->groupItems[$key]->catogory=$product->catogory;
                 $product->groupItems[$key]->uom=$product->uom;
                 $product->groupItems[$key]->invType=$product->invType;
-                
+                $product->groupItems[$key]->qty=intval($product->groupItems[$key]->grpqty)*intval($product->qty);
                 if(isset($value->itemid)){
                     $result=SOSSData::Update("products",$product->groupItems[$key]);
                     $product->groupItems[$key]->updateStatus=$result;
@@ -275,7 +275,7 @@ class appService {
                     $product->groupItems[$key]->itemid =$result->success? $result->result->generatedId:0;
                     $product->groupItems[$key]->updateStatus=$result;
                 }
-                array_push($items,array("itemid"=>$product->itemid,"subitemid"=>$product->groupItems[$key]->itemid));
+                array_push($items,array("itemid"=>$product->itemid,"subitemid"=>$product->groupItems[$key]->itemid,"grpqty"=>$product->groupItems[$key]->grpqty));
             }
             SOSSData::Delete("products_subitems",$databaseItems);
             SOSSData::Insert("products_subitems",$items);

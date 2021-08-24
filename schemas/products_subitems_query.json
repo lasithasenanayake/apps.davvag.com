@@ -2,7 +2,7 @@
     "rawquery" : {
         "type":"sql",
         "parameters" : ["itemid"],
-        "query": "Select * from products where itemid in(select  subitemid from products_subitems where itemid=$itemid);"
+        "query": "Select * from products inner join  products_subitems on products.itemid=products_subitems.subitemid where products_subitems.itemid=$itemid;"
     },
     "fields" : [
         {
@@ -85,6 +85,10 @@
         },
         {
             "fieldName":"qty",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"grpqty",
             "dataType":"int"
         },
         {

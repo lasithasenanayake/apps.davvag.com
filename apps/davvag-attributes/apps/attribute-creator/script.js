@@ -2,7 +2,11 @@ WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,complete_call;
 
     var bindData = {
-        submitFieldErrors : [],submitErrors : [],submitInfo : [],att_info:{},data:{},valuetype:"",primary:false,select:{},select_values:[],field:{},fields:[],fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],fieldType:"text"
+        submitFieldErrors : [],submitErrors : [],submitInfo : [],att_info:{},data:{},valuetype:"",
+        primary:false,select:{},select_values:[],field:{},fields:[],
+        fieldTypes:["text","textarea","select","checkbox","option","date","fileupload"],
+        fieldType:"text",
+        datasource:0
     };
 
     var vueData =  {
@@ -38,7 +42,7 @@ WEBDOCK.component().register(function(exports){
                 bindData.field={};
                 bindData.primary=false;
                 
-                createForm(bindData.fields,"sampleForm")
+                createForm(bindData.fields,"sampleForm");
                 $('#modalFieldPopup').modal('toggle');
             },
             addValue:function(f){
@@ -230,9 +234,11 @@ WEBDOCK.component().register(function(exports){
            
         // Loop for the select options.
         function addOptions(elem, arr){
-            arr.forEach(function(obj){
-                elem.append('<option value="'+obj.sel+'">'+obj.label+'</option>');              
-            });
+            if(arr){
+                arr.forEach(function(obj){
+                    elem.append('<option value="'+obj.sel+'">'+obj.label+'</option>');              
+                });
+            }
         }
     }
 

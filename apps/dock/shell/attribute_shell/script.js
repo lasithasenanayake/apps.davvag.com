@@ -173,9 +173,11 @@ WEBDOCK.component().register(function(exports){
                 break;
         }
     }
+    
     function createForm(arr,id){
         var $formTmp = $('<form id="'+id+'_form" class="form-horizontal form-bordered"></form>');
         primaryData=[];
+        dataQuery=[];
         if(Array.isArray(arr)==false){
             return;
         }
@@ -207,7 +209,12 @@ WEBDOCK.component().register(function(exports){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-9"></div>');
-                    addOptions($selctOpts, obj.choices);
+                    if(obj.datasource){
+                        dataQuery.push({"elementID":elementID,"obj":obj});
+                        //fillSelectFfromDataSource(elementID,obj);
+                    }else{
+                        addOptions($selctOpts, obj,data);
+                    }
                     $txt.append($selctOpts);
                     $fieldSet.append($txt);                     
                     $formTmp.append($fieldSet);
@@ -243,14 +250,127 @@ WEBDOCK.component().register(function(exports){
         
         $("#" + id).html($formTmp.html())
         getGenrateDateTime();
+        dataQuery.forEach(function(obj){
+            fillSelectFfromDataSource(obj.elementID,obj.obj,data);
+        });
+        // Loop for the select options.
+        function addOptions(elem, field,d){
+            arr=field.choices;
+            value=SetValue(d[field.name],field.valuetype);
+            arr.forEach(function(obj){
+                elem.append('<option value="'+obj.sel+'" '+(value==obj.sel?'selected':'')+'>'+obj.label+'</option>');              
+            });
+        }
+
+        function fillSelectFfromDataSource(elemid,field,d){
+            elem=$("#"+elemid);
+            value=SetValue(d[field.name],field.valuetype);
+            exports.services.GetDataSource(field).then(function(result){
+                if(result.success){
+                    result.result.forEach(function(obj){
+                        elem.append('<option value="'+(obj[field.datavalue]?obj[field.datavalue]:"error")+'" '+(value==obj[field.datavalue]?'selected':'')+'>'+(obj[field.datacaption]?obj[field.datacaption]:"error")+'</option>');              
+                    });
+                }
+            }).error(function(error){
+                elem.append('<option value="error">Error Please Check Console</option>');
+                console.log(JSON.stringify(error));              
+                
+            });
+        }
+    }
+    /*
+    function createForm(arr,id){
+        var $formTmp = $('<form class="form-horizontal form-bordered"></form>');
+        var data ={}; 
+        arr.forEach( function(obj, idx) {
+            var $fieldSet,
+                $selctOpts = $('<select class="form-control" name="" id="'+obj.name+'"></select>'),
+                inputType = obj.type; 
+            data[obj.name]=null;    
+            switch (inputType){
+                case 'text':
+                    $fieldSet = $('<div class="form-group"></div>');
+                    $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
+                    $txt=$('<div class="col-sm-6"></div>');
+                    if ( obj.req === 1) {
+                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'" required>');
+                    } else {
+                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'">');
+                    }
+                    $fieldSet.append($txt); 
+                    $formTmp.append($fieldSet);
+                    break;
+                case 'textarea':
+                    $fieldSet = $('<div class="form-group"></div>');
+                    $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
+                    $txt=$('<div class="col-sm-6"></div>');
+                    $txt.append('<textarea class="form-control" rows="4" cols="50" id="'+obj.name+'"></textarea>');
+                    $fieldSet.append($txt); 
+                    $formTmp.append($fieldSet);
+                    break;
+                case 'select':
+                    $fieldSet = $('<div class="form-group"></div>');
+                    $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
+                    $txt=$('<div class="col-sm-6"></div>');
+                    if(obj.datasource){
+                        fillSelectFfromDataSource($selctOpts,obj);
+                    }else{
+                        addOptions($selctOpts, obj.choices);
+                    }
+                    $txt.append($selctOpts);
+                    $fieldSet.append($txt);                     
+                    $formTmp.append($fieldSet);
+                    break;
+                case 'checkbox':
+                        $fieldSet = $('<div class="form-group"></div>');
+                        $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
+                        $txt=$('<div class="col-sm-6"></div>');
+                        if ( obj.req === 1) {
+                            $txt.append('<input class="form-control" type="checkbox" true-value="'+obj.truevalue+'" false-value="'+obj.falsevalue+'"  id="'+obj.name+'" required>');
+                        } else {
+                            $txt.append('<input class="form-control" type="checkbox" true-value="'+obj.truevalue+'" false-value="'+obj.falsevalue+'"  id="'+obj.name+'">');
+                        }
+                        $fieldSet.append($txt); 
+                        $formTmp.append($fieldSet);
+                        break;  
+                default:
+                    alert('There was no input type found.');
+                    break;
+            }
+            $txt=$('<div class="col-sm-3"></div>'); 
+            
+            $txt.append('<button class="btn btn-danger">Delete</button>');
+            if(obj.primary){
+                $txt.append('<label class=" control-label">Primary </label>');
+            }
+            $fieldSet.append($txt);
+            
+
+        });
+    
+        $("#" + id).html($formTmp.html())
+        return data;  
         // Loop for the select options.
         function addOptions(elem, arr){
             arr.forEach(function(obj){
                 elem.append('<option value="'+obj.sel+'">'+obj.label+'</option>');              
             });
         }
-    }
-    
+
+        function fillSelectFfromDataSource(elem,field){
+            exports.services.GetDataSource(field).then(function(result){
+                if(result.success){
+                    result.result.forEach(function(obj){
+                        elem.append('<option value="'+(obj[field.datavalue]?obj[field.datavalue]:"error")+'">'+(obj[field.datacaption]?obj[field.datacaption]:"error")+'</option>');              
+                    });
+                }
+            }).error(function(error){
+                elem.append('<option value="error">Error Please Check Console</option>');
+                console.log(JSON.stringify(error));              
+                
+            });
+        }
+    }*/
     function data_retrive() {
         for (let index = 0; index < formdata.length; index++) {
             const element = formdata[index];

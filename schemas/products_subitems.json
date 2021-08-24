@@ -13,6 +13,10 @@
             "annotations":{
                 "isPrimary": true
             }
-        }        
+        },
+        {
+            "fieldName":"grpqty",
+            "dataType":"int"
+        }      
     ]
 }

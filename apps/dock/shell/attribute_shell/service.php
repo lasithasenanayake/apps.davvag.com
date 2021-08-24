@@ -1,6 +1,6 @@
 <?php
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-
+require_once(PLUGIN_PATH_LOCAL . "/davvag-flow/flow.php");
 
 class appService {
 
@@ -25,6 +25,12 @@ class appService {
             }else{
                 $data->status=SOSSData::Insert($data->id,$data->data);
             }
+            if($data->status){
+                if(isset($data->flowid)){
+                    $data->workflow=DavvagFlow::Execute($data->ns?$data->ns:null,$data->flowid,$data->data);
+                }
+            }
+            return $data;
         }else{
             $res->SetError($result);
             return null;
@@ -40,7 +46,16 @@ class appService {
         return $data;
     }
 
-    
+    public function postGetDataSource($req,$res){
+        $data=$req->Body(true);
+        $rs=SOSSData::Query($data->datasource,isset($data->query)?$data->query:null);
+        if($rs->success){
+            return $rs->result;
+        }else{
+            $res->SetError($rs);
+            return null;
+        }
+    }
 
 
 }

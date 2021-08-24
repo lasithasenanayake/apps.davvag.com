@@ -7,6 +7,18 @@ class appService {
     function __construct(){
         
     } 
+
+    public function postGetDataSource($req,$res){
+        $data=$req->Body(true);
+        $rs=SOSSData::Query($data->datasource,$data->query?$data->query:"");
+        if($rs->success){
+            return $rs->result;
+        }else{
+            $res->SetError($rs);
+            return null;
+        }
+    }
+    
     public function getAtrribute($req,$res)
     {
         if(isset($_GET["id"])){
@@ -21,6 +33,7 @@ class appService {
                         $data->main_node=$r->result[0]->main_node;
                         $data->name=$r->result[0]->name;
                         $data->atrributeFields=json_decode(file_get_contents("$folder_attributes/$file.json"));
+                        
                         return $data;
                     }else{
                         return null;

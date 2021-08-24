@@ -2,7 +2,7 @@
     "rawquery": {
         "type": "sql",
         "parameters": ["profileId"],
-        "query": "SELECT if(messages.m_from=$profileId,messages.m_to,messages.m_from) as m_from,profile.name,min(messages.m_read) as msgread,max(messages.msgdate) as msgdate FROM messages inner join  profile on messages.m_from = profile.id where messages.m_to=$profileId or messages.m_from=$profileId group by messages.m_from,profile.name;"
+        "query": "SELECT if(messages.m_from=$profileId,messages.m_to,messages.m_from)  m_from,profile.name,min(messages.m_read)  msgread,max(messages.msgdate)  msgdate,0 sysversionid FROM messages inner join  profile on messages.m_from = profile.id where messages.m_to=$profileId or messages.m_from=$profileId group by messages.m_from,profile.name;"
     },
     "fields" : [
         {

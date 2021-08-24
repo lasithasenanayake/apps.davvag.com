@@ -82,7 +82,11 @@ WEBDOCK.component().register(function(exports, scope){
                     $fieldSet = $('<div class="form-group"></div>');
                     $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
                     $txt=$('<div class="col-sm-6"></div>');
-                    addOptions($selctOpts, obj.choices);
+                    if(obj.datasource){
+                        fillSelectFfromDataSource($selctOpts,obj);
+                    }else{
+                        addOptions($selctOpts, obj.choices);
+                    }
                     $txt.append($selctOpts);
                     $fieldSet.append($txt);                     
                     $formTmp.append($fieldSet);
@@ -121,6 +125,20 @@ WEBDOCK.component().register(function(exports, scope){
             arr.forEach(function(obj){
                 elem.append('<option value="'+obj.sel+'">'+obj.label+'</option>');              
             });
+        }
+
+        function fillSelectFfromDataSource(elem,field){
+            service_handler.services.GetDataSource(field).then(function(result){
+                if(result.success){
+                    result.result.forEach(function(obj){
+                        elem.append('<option value="'+(obj[field.datavalue]?obj[field.datavalue]:"error")+'">'+(obj[field.datacaption]?obj[field.datacaption]:"error")+'</option>');              
+                    });
+                }
+            }).error(function(error){
+                elem.append('<option value="error">Error Please Check Console</option>');
+                Consol.log(JSON.stringify(error));              
+                
+            })
         }
     }
 

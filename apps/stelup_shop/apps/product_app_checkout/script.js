@@ -57,7 +57,7 @@ WEBDOCK.component().register(function(exports){
                 bindData.loading=true;
                 menuhandler.services.allProducts({page:page.toString(), size:size.toString(),pid:bindData.profile==null?"0":bindData.profile.id.toString(),q:bindData.q})
                         .then(function(r){
-                            console.log(JSON.stringify(r));
+                           
                             if(r.success){
                                 if(r.result.length==0){
                                     
@@ -262,6 +262,21 @@ WEBDOCK.component().register(function(exports){
                     if(r.success){
                         //if(r.result.products!=null){
                         bindData.product = r.result;
+                        var qty=0;
+                        var grpqty=0;
+                        bindData.product.groupItems.forEach(element => {
+                            qty+=element.qty;
+                            grpqty+=element.grpqty?element.grpqty:0;
+                        });
+                        if(grpqty>0)
+                            lastqty=qty/grpqty;
+                        else
+                            lastqty=0;
+                        
+                        bindData.product.qty=lastqty<1?0:lastqty;
+                        
+
+                        console.log("grpqty" +grpqty.toString() +" qty" +qty.toString());
                         //$("#txtcaption").data("editor").html(bindData.product.caption);
                     }else{
                         bindData.product.name="Error Loading Item";

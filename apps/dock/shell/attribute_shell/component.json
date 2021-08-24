@@ -28,6 +28,9 @@
             "Delete" : {
                 "method" : "POST"
             },
+            "GetDataSource": {
+                "method" : "POST"
+            },
             "uploadFile" : {
                 "method" : "POST",
                 "route":"/upload/@ns/@name"

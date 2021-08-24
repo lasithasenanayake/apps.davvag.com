@@ -5,24 +5,30 @@
             <thead  style="background-color: black;color: white;">
               <tr>
                 <th scope="col">Name</th>
-                <th scope="col" style="width: 25%;text-align: center;">Quantity</th>
+                
+                <th scope="col" style="width: 10%;text-align: center;">Quantity</th>
+                <th scope="col" style="width: 15%;text-align: right;">Amount</th>
                 <th scope="col"></th>
               </tr>
             </thead>
             <tr v-for="i in product.groupItems">
               <td style="width: 40%;">{{ i.name }}</td>
-              <td style="width: 25%;text-align: center;">{{i.qty }}</td>
+              <td style="width: 10%;text-align: center;">{{i.grpqty }}</td>
+              <td style="width: 10%;text-align: center;">{{i.price | currency_formate }}</td>
               <td style="width: 35%;text-align: right;">
                 <div v-if="i.qty>0">
                   <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button" v-on:click="additem(i,true)">Add</button>
                   <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button" v-on:click="trade(i)">Trade</button>
                 </div>
+                <div v-if="i.qty<=0">
+                  OUT OF STOCK
+                </div>
               </td>
             </tr>
           </table>
-       
-        <h6 v-if="product.qty>0" class="card-title" style="color: forestgreen;">Or Click Bellow to buy the whole package</h6>
-        
+       <br/>
+        <h6 v-if="product.qty>0" class="card-title" style="color: forestgreen;">Or you can buy the whole group of Items @ the rate of {{ product.price | currency_formate }}</h6>
+        <h6 v-if="product.qty<=0" class="card-title" style="color:red;">Sorry Group Item Purchase is not avalible</h6>
       
 </div>
 <div v-if="!isEditable(product)" class="modal-footer">
