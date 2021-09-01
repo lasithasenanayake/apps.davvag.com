@@ -1,6 +1,7 @@
 <?php
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-require_once(PLUGIN_PATH_LOCAL . "/davvag-flow/flow.php");
+
+require_once(PLUGIN_PATH_LOCAL . "/davvag-attributes/davvag-attributes.php");
 
 class appService {
 
@@ -10,6 +11,7 @@ class appService {
 
     public function postSave($req,$res){
         $data = $req->Body(true);
+        return Davvag_Attributes::Save($data); 
         $queryStr="";
         for ($i=0; $i < count($data->primary); $i++) { 
             $queryStr.=$data->primary[$i].":".$data->data->{$data->primary[$i]}.",";

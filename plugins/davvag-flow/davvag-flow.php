@@ -19,7 +19,7 @@
                         $workflow->name= preg_replace('/\\.[^.\\s]{3,4}$/', '', $file);
                         $workflow->inputData=isset($workflowData->inputData)?$workflowData->inputData:[];
                         $workflow->startupNode=$workflowData->start_up_node;
-                        $workflow->nodes=
+                        $workflow->nodes=[];
                         array_push($files,$workflow);
                       }
                     }

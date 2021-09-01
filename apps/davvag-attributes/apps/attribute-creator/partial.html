@@ -14,21 +14,44 @@
   <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name" v-on:focusout="loadvalue(att_info.name);">
   <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
 </div>
-<div class="form-group">
-  <label for="exampleInputEmail1">WorkFflow</label>
-  <select class="form-control" data-placeholder="Choose a Flow..." v-model="att_info.postworkflow">
-    <option value="" >Select Post WorkLow</option>
-    <option value="int" >Integer</option>
-    <option value="float" >Float / Decimal</option>
-    <option value="java.util.Date" >Date</option>
-  </select>
-  <small id="NameHelp" class="form-text text-muted">pick a flow.</small>
-</div>
+
 <button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
 <hr/>
 <form id="sampleForm">
   <h2>Input Fields To creation Form</h2>
 </form>
+<hr/>
+<h2>WorkFlow Information</h2>
+<div class="form-group">
+  <label for="exampleInputEmail1">Post Excution Workflow</label>
+  <select class="form-control" data-placeholder="Choose a Flow..." v-model="att_info.postworkflow" @change="populatePostInputs(att_info.postworkflow)">
+    <option value="" >Select Post WorkLow</option>
+    <option :value="w" v-for="w in workflows">{{ w.name }}</option>
+  </select>
+  <small id="NameHelp" class="form-text text-muted">This work flow will be excuted after saving.</small>
+  
+</div>
+<table class="table">
+  <thead>
+    <tr>
+      <td>Input Varibale</td>
+      <td>Input ValueType</td>
+      <td>Mapping Field</td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="input in postInput">
+      <td>{{ input.name }}</td>
+      <td>{{ input.valueType }}</td>
+      <td>
+        <select class="form-control" data-placeholder="Select Mapping Field" v-model="input.mappingfield">
+          <option value="" >Select Mapping Field</option>
+          <option :value="i.name" v-for="i in fields">{{ i.name }}</option>
+        </select>
+      </td>
+    </tr>
+  </tbody>
+</table>
 <button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>
 </div>
 <div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">

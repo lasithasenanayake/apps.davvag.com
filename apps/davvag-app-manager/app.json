@@ -8,6 +8,10 @@
         "apps":{
             "type":"component",
             "location":"app"
+        },
+        "launcher":{
+            "type":"component",
+            "location":"app"
         }
     },
     "description":{
@@ -23,9 +27,14 @@
             "onLoad": ["app-handler"],
             "routes":{
                 "partials":{
-                    "/app" : "apps"
+                    "/app" : "apps",
+                    "/launcher" : "launcher"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"App Permision","path":"apps"},{"name":"Launchers","path":"launcher"}
+            ]
         }
     },
     "schemas":{

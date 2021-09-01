@@ -13,6 +13,10 @@
             "type":"component",
             "location":"apps"
         },
+        "login-handler": {
+            "type":"service",
+            "location":"service"
+        },
         "app-handler": {
             "type":"service",
             "location":"service"
@@ -92,6 +96,10 @@
         "product_app_checkout":{
             "type":"component",
             "location":"apps"
+        },
+        "user-profile":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -104,7 +112,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "home-sp",
-            "onLoad": ["app-handler","p_svr","productsvr"],
+            "onLoad": ["app-handler","p_svr","productsvr","login-handler"],
             "routes":{
                 "partials":{
                     "/test":"sample-input-form",
@@ -118,7 +126,8 @@
                     "/order-complete":"order-complete",
                     "/traditem":"product-trade",
                     "/group-sell":"product-group-sell",
-                    "/messages":"messages"
+                    "/messages":"messages",
+                    "/userprofile":"user-profile"
 
                 }
             }

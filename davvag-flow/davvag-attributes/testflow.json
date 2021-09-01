@@ -1,11 +1,10 @@
 {
     "name":"Workflow -1",
     "start_up_node":"reg-step-1",
-    "inputData":{
-        "profileId":{"datatype":"int"},
-        "textMessage":{"datatype":"string"},
-        "amount":{"datatype":"float"}
-    },
+    "inputData":[
+       {"name":"profileId","datatype":"int"},
+       {"name":"profile","datatype":"string"}
+    ],
     "reg-step-1":{
         "urntype":"class",
         "file":"facebook.php",

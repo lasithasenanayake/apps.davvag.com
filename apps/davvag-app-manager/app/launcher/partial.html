@@ -1,0 +1,74 @@
+<h1>app all</h1>
+<div id="appsgrid">
+  Apps will Load here
+</div>
+
+<div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+        <div class="modal-header">
+            <h1>New Launnher</h1>
+        </div>
+        <div class="modal-body">
+          <div class="input-form">
+            <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Sign in</h1>
+            <hr>
+            <div class="input-error">
+              <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+                <strong>ERROR! </strong> {{error}}
+              </div>
+              <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+                  <strong>INFO! </strong> {{error}}
+                </div>
+            </div>
+            <form id="form-details">
+              <div class="form-group">
+                <label for="exampleInputEmail1">Caption</label>
+                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Caption" v-model="data.caption">
+                <small id="emailHelp" class="form-text text-muted">Caption of the Menu</small>
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Launcher Type</label>
+                  <select class="form-control" data-placeholder="Choose a Flow..." v-model="launchertype">
+                    <option value="app">Application</option>
+                    <option value="weburi" >Web URI</option>
+                  </select>
+              </div>
+              <div v-if="launchertype=='app'" id="frmapp">
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Web URI</label>
+                  <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="URL" v-model="data.weburi">
+                  <small id="emailHelp" class="form-text text-muted">Web URL </small>
+                </div>
+              </div>
+              <div v-if="launchertype=='weburi'" id="frmweburi">
+                <div class="form-group">
+                  <label for="exampleInputPassword1">Applications</label>
+                    <select class="form-control" data-placeholder="Choose a Application" v-model="app" @change="selectApp(app)">
+                      <option value=""></option>
+                      <option :value="a" v-for="a in applicatins">{{ a.name }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">Sub Application</label>
+                    <select class="form-control" data-placeholder="Sub Application" v-model="subapp">
+                      <option value=""></option>
+                      <option :value="s.name" v-for="s in subapps">{{ s.name }}</option>
+                    </select>
+                </div>
+              </div>
+              <button  class="btn bg-primary-button btn-block" v-on:click="submit">Submit</button>
+            </form>
+            </div>
+          
+          
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" v-on:click="submit">Save</button>
+          <button type="button" class="btn btn-warning" >Cancel</button>
+        </div>
+    </div>
+</div>
+</div>
+

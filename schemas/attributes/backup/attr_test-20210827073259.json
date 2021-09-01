@@ -1,0 +1,1 @@
+[{"type":"select","valuetype":"int","primary":false,"autoIncrement":false,"label":"abc","name":"xyz","datasource":"profile","datavalue":"id","datacaption":"name"},{"type":"text","valuetype":"java.lang.String","primary":false,"autoIncrement":false,"label":"Test","name":"abc","maxlen":"100","req":"1"}]

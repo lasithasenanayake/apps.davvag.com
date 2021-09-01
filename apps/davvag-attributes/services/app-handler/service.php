@@ -29,11 +29,17 @@ class appService {
             if($r->success){
                 if(count($r->result)>0){
                     if(file_exists("$folder_attributes/$file.json")){
+                        $tmpData=json_decode(file_get_contents("$folder_attributes/$file.json"));
                         $data=new stdClass();
+                        if(is_array($tmpData)){
+                            $data->Fields=$tmpData;
+                        }else{
+                            $data=$tmpData;
+                        }
                         $data->id=$r->result[0]->id;
                         $data->main_node=$r->result[0]->main_node;
                         $data->name=$r->result[0]->name;
-                        $data->atrributeFields=json_decode(file_get_contents("$folder_attributes/$file.json"));
+                        //$data->Fields=json_decode(file_get_contents("$folder_attributes/$file.json"));
                         
                         return $data;
                     }else{
@@ -67,8 +73,10 @@ class appService {
 
                 file_put_contents("$folder_schemas/backup/$file-$file_date.json",file_get_contents("$folder_schemas/$file.json"));
         }
-        file_put_contents("$folder_attributes/$file.json",json_encode($data->atrributeFields));
         file_put_contents("$folder_schemas/$file.json",json_encode($data->schema));
+        unset($data->schema);
+        file_put_contents("$folder_attributes/$file.json",json_encode($data));
+        
         $r=SOSSData::Query("d_attributes","id:$file"); 
         if($r->success){
             if(count($r->result)==0){
@@ -84,7 +92,7 @@ class appService {
     {
         $schema_Class=new stdClass();
         $schema_Class->fields=[];
-        foreach($obj->atrributeFields as $item){
+        foreach($obj->Fields as $item){
             $field=new stdClass();
             $field->fieldName=$item->name;
             $field->dataType=$item->valuetype;

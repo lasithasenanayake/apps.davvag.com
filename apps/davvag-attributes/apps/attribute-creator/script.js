@@ -36,7 +36,7 @@ WEBDOCK.component().register(function(exports){
                     newField[pname]=bindData.field[pname];
                 }
                 //,"name":f.name,"label":f.label,e,"req":f.req,
-                //s,"autoIncrement":f.autoIncrement?f.autoIncrement:false,"readonly":f.readonly}
+                //s,"fautoIncrement":f.autoIncrement?f.autoIncrement:false,"readonly":f.readonly}
                 if(bindData.valuetype=='java.lang.String')
                     newField.maxlen=f.maxlen
                 
@@ -67,6 +67,13 @@ WEBDOCK.component().register(function(exports){
             },
             removeValue:function(x){
 
+            },
+            populatePostInputs(data){
+                if(data){
+                    bindData.postInput=data.inputData;
+                }else{
+                    bindData.postInput=[]
+                }
             },
             loadvalue:loadvalue
            
@@ -151,7 +158,8 @@ WEBDOCK.component().register(function(exports){
             if(result.success){
                if(result.result!=null){
                    bindData.att_info=result.result;
-                   bindData.fields=bindData.att_info.atrributeFields?bindData.att_info.atrributeFields:[];
+                   bindData.fields=bindData.att_info.Fields?bindData.att_info.Fields:[];
+                   bindData.postInput=bindData.att_info.postworkflow?bindData.att_info.postworkflow.inputData:[];
                    createForm(bindData.fields,"sampleForm");
                }else{
                     //bindData.att_info=result.result;
@@ -264,7 +272,8 @@ WEBDOCK.component().register(function(exports){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            bindData.att_info.atrributeFields=bindData.fields;
+            bindData.att_info.Fields=bindData.fields;
+            //bindData.att_info.postworkflow.inpuData=bindData.postInput;
             service_handler.services.Save(bindData.att_info).then(function(result){
                 
                 if(result.success){

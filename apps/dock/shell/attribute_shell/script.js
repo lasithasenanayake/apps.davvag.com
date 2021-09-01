@@ -10,17 +10,17 @@ WEBDOCK.component().register(function(exports){
         attrivuteID=attributejson;
         data=_data;
         callback=cb;
-        formdata=[];
+        formdata={"Fields":[]};
         exports.getResource("attributes",{file:attributejson},function(formData){
             formdata=formData;
             retriveDataFromServer(_data,function(x){
                 if(x)
                 data=x;
-                createForm(formData,id);
+                createForm(formData.Fields,id);
                 
                 cb(x)
             },function(m){
-                createForm(formData,id);
+                createForm(formData.Fields,id);
                 cb(m);
             })
             //cb();
@@ -372,8 +372,8 @@ WEBDOCK.component().register(function(exports){
         }
     }*/
     function data_retrive() {
-        for (let index = 0; index < formdata.length; index++) {
-            const element = formdata[index];
+        for (let index = 0; index < formdata.Fields.length; index++) {
+            const element = formdata.Fields[index];
             switch (element.type) {
                 case "textarea":
                     data[element.name]=$("#"+attrivuteID+"_"+element.name).val()
@@ -401,13 +401,15 @@ WEBDOCK.component().register(function(exports){
             
             
         }
-        return {id:attrivuteID,data:data,primary:primaryData};
+        //formData.id=attrivuteID;
+        //formData.
+        return {id:attrivuteID,data:data,primary:primaryData,postworkflow:formdata.postworkflow};
     }
 
     function generatePrimary(){
         primaryData=[];
-        for (let index = 0; index < formdata.length; index++) {
-            const element = formdata[index];
+        for (let index = 0; index < formdata.Fields.length; index++) {
+            const element = formdata.Fields[index];
             if(element.primary){
                 primaryData.push(element.name);
             }

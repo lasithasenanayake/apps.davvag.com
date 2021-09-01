@@ -7,6 +7,67 @@ class BroadcastService {
     function __construct(){
         
     } 
+    public function getApps(){
+        $tenantFile = TENANT_RESOURCE_LOCATION . "/tenant.json";
+        $fileToServe;$errorMsg;
+        $apps=array();
+        if (file_exists($tenantFile)){
+            $jsonContents = file_get_contents($tenantFile);
+            $tenantObj = json_decode($jsonContents);
+            //return $tenantObj;
+            if (isset($tenantObj)){
+                foreach ($tenantObj->apps as $appCode => $appData) {
+                    
+                    
+                    $appLocation = TENANT_RESOURCE_LOCATION_APPS . "/$appCode/app.json" ;
+                    if (file_exists($appLocation)){
+                        $jsonObj = json_decode(file_get_contents($appLocation));
+                        //return $tenantObj->apps;
+                        $app=new stdClass();
+                        $app->appCode=$appCode;
+                        $app->Name=$jsonObj->description->title;
+                        $app->Icon=$jsonObj->description->icon;
+                        $app->Services=array();
+                        $app->Apps=array();
+                        $app->Schemas=array();
+                        foreach ($jsonObj->components as $Code => $Data){
+                            $a=new stdClass();
+                            $a->Code=$Code;
+                            $aLocation = TENANT_RESOURCE_LOCATION_APPS . "/$appCode/$Data->location/$Code/component.json";
+                            if (file_exists($aLocation)){
+                                $aObj = json_decode(file_get_contents($aLocation));
+                                
+                                $a->Name=$aObj->name;
+                                $a->Description=$aObj->description;
+                                $a->author=$aObj->author;
+                                $a->version=$aObj->version;
+                                if(isset($jsonObj->configuration->webdock->routes->partials)){
+                                    foreach($jsonObj->configuration->webdock->routes->partials as $pk=>$p){
+                                        if($p==$a->Code){$a->path=$pk;}
+                                    }
+                                }
+                                switch($Data->type){
+                                    case "partial":
+                                        array_push($app->Apps,$a);
+                                    break;
+                                    case "component":
+                                        //$a->selected=$this->Permistion($Group,$app->appCode,"app",$Code,"");
+                                        array_push($app->Apps,$a);
+                                    break;
+                                }
+                            }else{
+                                $app->Error= "This Location '$aLocation' not found.";
+                            }
+                        }
+                        array_push($apps,$app);
+                    }
+                    
+                }
+            }
+        }
+        return $apps;
+
+    }
 
     public function getallApplications($req,$res){
         
