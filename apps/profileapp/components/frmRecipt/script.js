@@ -17,7 +17,8 @@ WEBDOCK.component().register(function(exports){
         supplierData:{},
         submitErrors:[],
         AdvanceBalance:0,
-        AdvanceAmount:0
+        AdvanceAmount:0,
+        Remark:""
     };
 
     function calcTotals(){
@@ -204,6 +205,7 @@ WEBDOCK.component().register(function(exports){
             advanceUtilized:0,
             status:"Approved",
             detailsString:null,
+            remarks:bindData.Remark,
             InvoiceItems:[]
         }
         

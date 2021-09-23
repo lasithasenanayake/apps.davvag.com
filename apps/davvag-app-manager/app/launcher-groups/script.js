@@ -1,36 +1,22 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,attribute,filter,pid=0;
+    var scope,validator_profile,service_handler,sossrout_handler,attribute;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{},launcherType:"",app:{},applications:[],subApps:[],subApp:{},pid:0
+        submitErrors : [],submitInfo : [],data:{},launcherType:"",app:{},applications:[],subApps:[],subApp:{}
     };
-
-    function clearItems(){
-        bindData.data={};
-                 bindData.launcherType="";
-                 bindData.subApp={};
-                 bindData.app={};
-    }
 
     var vueData =  {
         methods:{
-            goBack:function(){
-                //window.location="#/app/davvag-app-manager/launcher";
-                window.history.back();
-            },
             submit:submit,
              selectApp:function(x){
                 bindData.subApps=x.Apps;
              },
              open:function(){
-                 clearItems();
+                 bindData.data={};
                  $("#modalFieldPopup").modal('toggle');//("show");
              },
              close:function(){
                 $("#modalFieldPopup").modal('toggle');//("show");
-             },
-             userPermClose:function(){
-                $("#appPermission").modal('toggle');//("show");
              }
         },
         data :bindData,
@@ -43,21 +29,11 @@ WEBDOCK.component().register(function(exports){
     function initialize(){
         service_handler = exports.getComponent("app-handler");
         attribute=exports.getShellComponent("attribute_shell");
-        sossrout_handler=exports.getShellComponent("soss-routes");
         if(!service_handler){
-            console.log("Service has not Loaded please check.");
+            console.log("Service has not Loaded please check.")
         }
         loadValidator();
         lockForm();
-        //routData=sossrout_handler.getRountData();
-        let routData = sossrout_handler.getInputData();
-        if(routData.id){
-            pid=routData.id;
-            bindData.pid=parseInt(pid);
-            filter="pid:"+routData.id;
-        }else{
-            filter="";
-        }
         service_handler.services.Apps().then(function(result){
             bindData.applications = result.result;
             unlockForm();
@@ -67,7 +43,7 @@ WEBDOCK.component().register(function(exports){
         renderGrid();
     }
 
-    var apps=[];
+    
     function renderGrid() {
         //lockForm(); 
         attribute.renderGrid("davvag_launchers","appsgrid",[{type:"data",name:"bid",displayname:"ID",style:""},
@@ -76,26 +52,8 @@ WEBDOCK.component().register(function(exports){
             
             getData(e.data);
             $("#modalFieldPopup").modal('toggle');
-        }},
-        {type:"button",name:"sublauncher",fn:"function",caption:"Sub App",displayname:"Sub Launchers",function:function(e){
-            window.location="#/app/davvag-app-manager/launcher?id="+e.data.bid.toString();
-            //getData(e.data);
-            //$("#modalFieldPopup").modal('toggle');
-        }},
-        {type:"button",name:"permission",fn:"function",caption:"User Permission",displayname:"User Permission",function:function(e){
-            getData(e.data);
-            $("#appPermission").modal('toggle');
-        }},
-        {type:"button",name:"getapps",fn:"function",caption:"test get",displayname:"get Permission",function:function(e){
-            //getData(e.data);
-            service_handler.services.ApplicationLaunchers({"app":e.data.appcode,"subapp":e.data.subappcode}).then(function(result){
-                apps = result.result;
-                //unlockForm();
-            }).error(function(){
-                //unlockForm();
-            });
         }}],
-        filter,function(i){
+        "",function(i){
             
             
         });
@@ -125,7 +83,6 @@ WEBDOCK.component().register(function(exports){
         }
     }
     function fillData(){
-        bindData.data.pid=pid;
         if(bindData.launcherType=="application"){
             bindData.data.url="/#/"+bindData.app.appCode+"/"+bindData.subApp.path;
             bindData.data.applicationtype=bindData.launcherType;
@@ -151,7 +108,6 @@ WEBDOCK.component().register(function(exports){
                 if(result.success){
                     renderGrid()
                     scope.submitInfo.push("Saved Successfully");
-                    clearItems();
                     $("#modalFieldPopup").modal('toggle');
                 }else{
                     scope.submitErrors.push("Error");

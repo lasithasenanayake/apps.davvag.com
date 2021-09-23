@@ -16,6 +16,9 @@
         "file": "service.php",
         "class": "BroadcastService",
         "methods" : {
+            "SaveLauncher":{
+                "method":"POST"
+            },
             "allApplications" : {
                 "method" : "GET",
                 "parameters":["Group"]
@@ -30,6 +33,10 @@
             "Apps":{
                 "method":"GET",
                 "parameters":[]
+            },
+            "ApplicationLaunchers":{
+                "method":"GET",
+                "parameters":["app","subapp"]
             }
         }
     },

@@ -87,18 +87,21 @@
         },"attribute_shell_popup":{
             "type":"shell",
             "location":"shell"
+        },"app_popup":{
+            "type":"shell",
+            "location":"shell"
         }
     },
     "description":{
         "title": "DAAVG Dock",
         "author":"Daavg",
-        "version":"0.2",
+        "version":"0.3",
         "icon":""
     },
     "configuration":{
         "webdock":{
             "startupComponent" : "product",
-            "onLoad": ["attribute_shell","attribute_shell_popup","dependencies","login-handler", "soss-routes","dynamic-attributes","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
+            "onLoad": ["attribute_shell","app_popup","attribute_shell_popup","dependencies","login-handler", "soss-routes","dynamic-attributes","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
             "firewall" : {
                 "guest" : [],
                 "admin": []

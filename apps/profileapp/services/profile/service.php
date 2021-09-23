@@ -333,10 +333,11 @@ class ProfileService{
         $user= Auth::Autendicate("profile","postPaymentSave",$res);
         if(!isset($payment->email)){
             $res->SetError ("provide email");
-            
+            return;
         }
         if(!isset($payment->contactno)){
             $res->SetError ("provide contact no");
+            return;
         }
         
         //$result = SOSSData::Query ("profile", urlencode("id:".$payment->profileId.""));

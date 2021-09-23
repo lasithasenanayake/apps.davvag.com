@@ -1,7 +1,5 @@
-<h1>Application Launchers</h1>
-<button v-if="pid!=0" class="btn btn-default" v-on:click="goBack">Back to Main App</button>
+<h1>app all</h1>
 <button class="btn btn-default" v-on:click="open">New App Launcher </button>
-
 <div id="appsgrid">
   Apps will Load here
 </div>
@@ -34,7 +32,7 @@
                 <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="2" maxlength="10" placeholder="Caption" v-model="data.shortname">
                 <small id="emailHelp" class="form-text text-muted">A name within 10 charactor</small>
               </div>
-              <div v-if="pid!=0" class="form-group">
+              <div class="form-group">
                 <label for="exampleInputPassword1">Launcher Type</label>
                   <select class="form-control" data-placeholder="Choose a Flow..." v-model="launcherType">
                     <option value="application">Application</option>
@@ -64,23 +62,6 @@
                     </select>
                 </div>
               </div>
-              <div v-if="pid==0" id="frmmain">
-                <h1>The Application Menu is Accessible to</h1>
-                <div class="form-group">
-                  <label for="exampleInputPassword1">Applications</label>
-                    <select class="form-control" data-placeholder="Choose a Application" v-model="app" @change="selectApp(app)">
-                      <option value=""></option>
-                      <option :value="a" v-for="a in applications">{{ a.Name }}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                  <label for="exampleInputPassword1">Sub Application</label>
-                    <select class="form-control" data-placeholder="Sub Application" v-model="subApp">
-                      <option value=""></option>
-                      <option :value="s" v-for="s in subApps"><i class="fa fa-cube" aria-hidden="true"></i> {{ s.Code }} - {{ s.Name }}</option>
-                    </select>
-                </div>
-              </div>
               
             </form>
             
@@ -90,37 +71,6 @@
         <div class="modal-footer">
           <button class="btn btn-primary" v-on:click="submit">Save</button>
           <button type="button" class="btn btn-warning" v-on:click="close">Cancel</button>
-        </div>
-    </div>
-</div>
-</div>
-
-
-<div class="modal fade" id="appPermission" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
-    
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
-        <div class="modal-header">
-            <h1>User Permission </h1>
-        </div>
-        <div class="modal-body">
-          
-            <div class="input-error">
-              <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
-                <strong>ERROR! </strong> {{error}}
-              </div>
-              <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
-                  <strong>INFO! </strong> {{error}}
-                </div>
-            </div>
-            
-            
-          
-          
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" v-on:click="submit">Save</button>
-          <button type="button" class="btn btn-warning" v-on:click="userPermClose">Cancel</button>
         </div>
     </div>
 </div>

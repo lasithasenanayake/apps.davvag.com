@@ -50,7 +50,9 @@
                           <option>Bank Diposit</option>
                           <option>Credit Card</option>
                           <option>Cheque</option>
-                          <option>Pastor</option>
+                          <option>Donation[CASH]</option>
+                          <option>Donation[Bank Diposit]</option>
+                          <option>Donation[Cheque]</option>
                       </select>
                   </td>
               </tr>
@@ -112,6 +114,13 @@
           </tr>
         </tbody>
       </table>
+      
+      
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <textarea class="form-control" rows="3" style="width: 100%;" placeholder="Remarks" v-model="Remark"></textarea>
     </div>
   </div>
   <div class="row clearfix">
@@ -233,7 +242,11 @@
     							</tr>
     						</tbody>
     					</table>
-    				</div>
+            </div>
+            <div class="row">
+              <b>Remarks:</b>
+              <p>{{ InvoiceToSave.remarks }}</p>
+            </div>
     			</div>
     		</div>
     	</div>

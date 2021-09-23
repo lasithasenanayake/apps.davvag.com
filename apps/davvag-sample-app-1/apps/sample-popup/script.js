@@ -1,17 +1,20 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,externdata;
+    var scope,validator_profile,service_handler,sossrout_handler;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{},subjects:[]
+        submitErrors : [],submitInfo : [],data:{}
     };
 
     var vueData =  {
         methods:{
             submit:submit,
-            cancel:function(){
-                window.location="#/app/lbc-study-app/view?id="+bindData.data.profileId.toString();
-            }
-           
+           open:function(){
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("davvag-sample-app-1","sample-input-form",{},function(data){
+                    shellpopup.close();
+                },"popup name");
+
+           }
         },
         data :bindData,
         onReady: function(s){
@@ -24,34 +27,9 @@ WEBDOCK.component().register(function(exports){
         service_handler = exports.getComponent("app-handler");
         if(!service_handler){
             console.log("Service has not Loaded please check.")
-        }else{
-            sossrout_handler=exports.getShellComponent("soss-routes");
-            routData=sossrout_handler.getInputData();
-            id=(routData.id?routData.id:(externdata.id?externdata.id:0));
-            if(routData.id){
-                service_handler.services.Subjects({id:id.toString()}).then(function(r){
-                    if(r.success){
-                        bindData.data=r.result;
-                        bindData.subjects=r.result.subjects;
-
-                    }else{
-                        bindData.submitErrors=[];
-                        bindData.submitErrors.push("Error Loading data");
-                        lockForm();
-                    }
-                }).error(function(x){
-                    bindData.submitErrors=[];
-                    bindData.submitErrors.push("Error Loading data");
-                    lockForm();
-                });
-
-            }
         }
         loadValidator();
     }
-
-
-    
 
     function submit(){
         lockForm();
@@ -61,21 +39,19 @@ WEBDOCK.component().register(function(exports){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            service_handler.services.SaveEntrolSubjects(bindData.data).then(function(result){
+            service_handler.services.Save(bindData.data).then(function(result){
                 
                 console.log(result);
                 
                 if(result.success){
-                    window.location="#/app/lbc-study-app/view?id="+result.result.profileId;
-                    scope.submitInfo.push("Enrolled Successfully.");
+                    scope.submitInfo.push("result.result.message");
                 }else{
                     scope.submitErrors.push("Error");
                 }
                 unlockForm();
             }).error(function(result){
                 scope.submitErrors = [];
-                //console.log(result.responseJSON.result);
-                bindData.submitErrors.push(result.responseJSON.result);
+                bindData.submitErrors.push("Error");
                 unlockForm();
             });
 
@@ -102,7 +78,13 @@ WEBDOCK.component().register(function(exports){
         var validatorInstance = exports.getShellComponent ("soss-validator");
 
         validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.subject",true, "Please Select the Subject");
+        validator_profile.map ("data.email",true, "Please enter your full name");
+        validator_profile.map ("data.password",true, "Please enter your contact number");
+        validator_profile.map ("data.contactno","numeric", "Phone number should only consist of numbers");
+        validator_profile.map ("data.contactno","minlength:9", "Phone number should consit of 10 numbers");
+
+        
+        
     }
 
     exports.vue = vueData;

@@ -1,20 +1,41 @@
 <?php
-require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-require_once(PLUGIN_PATH . "/phpcache/cache.php");
-require_once(PLUGIN_PATH . "/auth/auth.php");
+
 class BroadcastService {
 
-    function __construct(){
+    public function getApplicationLaunchers($req,$res){
+        $app=$_GET["app"];
+        $sub=$_GET["subapp"];
+        $r=SOSSData::Query("davvag_launchers","bid:".(isset($data->bid)?$data->bid:0));
         
-    } 
-    public function getApps(){
+    }
+
+    public function postSaveLauncher($req,$res){
+        $data=$req->Body(true);
+            $r=SOSSData::Query("davvag_launchers","bid:".(isset($data->bid)?$data->bid:0));
+            
+            if($r->success && count($r->result)>0){
+                $data->result= SOSSData::Update("davvag_launchers",$data);
+            }else{
+                $data->result= SOSSData::Insert("davvag_launchers",$data);
+                $data->bid=$data->result->result->generatedId;
+            }
+            CacheData::clearObjects("davvag_launchers");
+            if($data->result->success){
+                return $data;
+            }else{
+                $res->SetError($data->result);
+                return null;
+            }
+    }
+
+    public function getApps($req,$res){
         $tenantFile = TENANT_RESOURCE_LOCATION . "/tenant.json";
         $fileToServe;$errorMsg;
+        
         $apps=array();
         if (file_exists($tenantFile)){
             $jsonContents = file_get_contents($tenantFile);
             $tenantObj = json_decode($jsonContents);
-            //return $tenantObj;
             if (isset($tenantObj)){
                 foreach ($tenantObj->apps as $appCode => $appData) {
                     
@@ -27,9 +48,11 @@ class BroadcastService {
                         $app->appCode=$appCode;
                         $app->Name=$jsonObj->description->title;
                         $app->Icon=$jsonObj->description->icon;
+                        $app->tags=isset($jsonObj->tags)?$jsonObj->tags:[];
                         $app->Services=array();
                         $app->Apps=array();
                         $app->Schemas=array();
+                        $app->UnknownApps=array();
                         foreach ($jsonObj->components as $Code => $Data){
                             $a=new stdClass();
                             $a->Code=$Code;
@@ -46,14 +69,18 @@ class BroadcastService {
                                         if($p==$a->Code){$a->path=$pk;}
                                     }
                                 }
-                                switch($Data->type){
-                                    case "partial":
-                                        array_push($app->Apps,$a);
-                                    break;
-                                    case "component":
-                                        //$a->selected=$this->Permistion($Group,$app->appCode,"app",$Code,"");
-                                        array_push($app->Apps,$a);
-                                    break;
+                                if(isset($a->path)){
+                                    switch($Data->type){
+                                        case "partial":
+                                            array_push($app->Apps,$a);
+                                        break;
+                                        case "component":
+                                            array_push($app->Apps,$a);
+                                        break;
+                                        default:
+                                            array_push($app->UnknownApps,$a);
+                                        break;
+                                    }
                                 }
                             }else{
                                 $app->Error= "This Location '$aLocation' not found.";
@@ -212,7 +239,7 @@ class BroadcastService {
     public function getUserGroups($req,$res){
         return Auth::GetUserGroups();
     }
-
+    
     public function postSetAccess($req,$res){
         $bodyAccess= $req->Body(true);
         $assdata=array();

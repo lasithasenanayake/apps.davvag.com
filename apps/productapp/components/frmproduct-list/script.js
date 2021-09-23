@@ -33,7 +33,7 @@ WEBDOCK.component().register(function(exports){
         handler.services.Delete(e).then(function(result){
             //scope.items = result.result;
             if(result.success){
-                filteredItems = bindData.items.filter(function(item) {
+                let filteredItems = bindData.items.filter(function(item) {
                     if(item.itemid!==result.result.itemid)
                         return item;
                 });

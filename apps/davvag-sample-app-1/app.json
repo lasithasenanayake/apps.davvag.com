@@ -11,6 +11,10 @@
         "test-form":{
             "type":"component",
             "location":"apps"
+        },
+        "sample-popup":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -26,7 +30,8 @@
             "onLoad": ["app-handler"],
             "routes":{
                 "partials":{
-                    "/test":"test-form"
+                    "/test":"test-form",
+                    "/app":"sample-popup"
                 }
             }
         }
