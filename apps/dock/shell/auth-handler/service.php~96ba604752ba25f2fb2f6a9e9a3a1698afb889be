@@ -26,14 +26,9 @@ class LoginService {
     }
 
     public function getLogout($req){
-        unset ($_COOKIE["securityToken"]);
-        unset ($_COOKIE["authData"]);
-        setcookie("securityToken", null, -1, "/");
-        setcookie("authData", null, -1, "/");
-        unset($_SESSION["authData"]);
-        session_regenerate_id();
-        $outObject = new stdClass();
-        return $outObject;
+        $auth=Auth::Autendicate();
+        //Auth::GetLogout($auth->token);
+        return Auth::GetLogout(isset($auth->token)?$auth->token:"");
     }
 
     public function getGetResetToken($req){

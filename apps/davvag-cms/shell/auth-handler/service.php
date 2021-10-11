@@ -22,19 +22,16 @@ class LoginService {
     public function getLogin($req){
         $authObject =  AUTH::Login($_GET["email"], $_GET["password"]);
         
-        $_SESSION["authData"] = json_encode($authObject);
+        
         return $authObject;
     }
 
     public function getLogout($req){
-        unset ($_COOKIE["securityToken"]);
-        unset ($_COOKIE["authData"]);
-        setcookie("securityToken", null, -1, "/");
-        setcookie("authData", null, -1, "/");
-        unset($_SESSION["authData"]);
-        session_regenerate_id();
-        $outObject = new stdClass();
-        return $outObject;
+        $user=Auth::Autendicate();
+        if(isset($user->token)){
+        Auth::GetLogout($user->token);
+        }
+        return true;
     }
 
     public function getGetResetToken($req){

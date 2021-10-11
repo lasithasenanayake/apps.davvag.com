@@ -68,8 +68,9 @@
         }
         
         public static function getUserProfile(){
-            if(isset($_COOKIE["authData"])){
-                $auth= json_decode($_COOKIE["authData"]);
+            $auth=Auth::Autendicate();
+            if(isset($auth->token)){
+                
                 $profile =CacheData::getObjects($auth->userid,"profile_data");
                 if($profile){
                     return $profile;

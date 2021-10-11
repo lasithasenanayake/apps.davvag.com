@@ -36,7 +36,7 @@ class CartService {
         $profile->order->invoiceDate = date("m-d-Y H:i:s");
         $profile->order->invoiceDueDate = date("m-d-Y H:i:s");
         
-       //$authData = json_decode($_COOKIE["authData"]);
+       $authData = Auth::Autendicate();
         $profile->order->email = $profile->email;
 
         for ($i=0;$i<sizeof($profile->items);$i++){

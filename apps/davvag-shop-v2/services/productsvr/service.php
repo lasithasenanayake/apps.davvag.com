@@ -170,7 +170,7 @@ class ProductServices {
         $profile->order->invoiceDate = date("m-d-Y H:i:s");
         $profile->order->invoiceDueDate = date("m-d-Y H:i:s");
         
-       //$authData = json_decode($_COOKIE["authData"]);
+        $authData = Auth::Autendicate();
         $profile->order->email = $profile->email;
         if(!isset($profile->items)){
             $req->SetError("Invalied call");

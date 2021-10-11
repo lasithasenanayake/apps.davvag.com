@@ -102,6 +102,7 @@ class appService {
     public function postSave($req,$res){
         $profile=$req->Body(true);
         $user= Auth::Autendicate("profile","postSave",$res);
+        $groupid="seller";
         if($user->email!=$profile->email){
             $res->SetError ("You do not have permission to update this profile.");
             return;
@@ -136,6 +137,7 @@ class appService {
                     $r = SOSSData::Insert ("profile_attributes", $profile->attributes);
                 }
             }
+            Auth::Join(HOST_NAME,$user->userid,$groupid);
             CacheData::clearObjects("profile");
             CacheData::clearObjects("profile_data");
             return $profile;
@@ -144,6 +146,7 @@ class appService {
             $result = SOSSData::Update("profile", $profile);
             $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
             $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            Auth::Join(HOST_NAME,$user->userid,$groupid);
             CacheData::clearObjects("profile");
             CacheData::clearObjects("profile_data");
             return $profile;

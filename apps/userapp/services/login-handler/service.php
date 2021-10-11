@@ -79,11 +79,8 @@ class LoginService {
 
     public function getLoginState($req,$res){
         //$url = "http://localhost:9000/getsession/$_GET[token]";
-        
-        if(isset($_COOKIE["authData"])){
-            $outObject=json_decode($_COOKIE["authData"]);
-            //echo $outObject->userid;
-            //return $outObject->token;
+        $outObject=Auth::Autendicate();
+        if(isset($outObject->token)){
             $result = CacheData::getObjects($outObject->token,"sessions");
             if(isset($result)){
                 return $result;
@@ -95,6 +92,7 @@ class LoginService {
                 if ($result->success == true){
                     if (sizeof($result->result) > 0){
                         $outObject->profile = $result->result[0];
+                        $_SESSION["authData_Profile"]=$result->result[0];
                     }
                 }
                 CacheData::setObjects($outObject->token,"sessions",$outObject);
@@ -161,10 +159,11 @@ class LoginService {
     }
 
     public function getProfileData($req,$res){
-        //$url = "http://localhost:9000/getsession/$_GET[token]";
+        
         $profile=new stdClass();
-        if(isset($_COOKIE["authData"])){
-            $outObject=json_decode($_COOKIE["authData"]);
+        $outObject=Auth::Autendicate();
+        if(isset($outObject->token)){
+            
             if(isset($outObject->userid)){
                 $result = SOSSData::Query ("profile", urlencode("linkeduserid:".$outObject->userid.""));
 
@@ -379,21 +378,16 @@ class LoginService {
     }
 
     public function getLogin($req){
-        //$url = "http://localhost:9000/login/$_GET[email]/$_GET[password]/$_GET[domain]";
-        //$output = sendRestRequest($url, "GET");
-        
         $outObject = Auth::Login($_GET["email"],$_GET["password"]);
-        //return $outObject
-        $_SESSION["authData"] = json_encode($outObject);
-        setcookie("authData", json_encode($outObject), time() + (86400 * 1), "/"); // 86400 = 1 day
-        setcookie("securityToken", $outObject->token, time() + (86400 * 1), "/");
-        require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
         if(isset($outObject->email)){
             $result = SOSSData::Query ("profile", urlencode("email:".$outObject->email.""));
-
+            //$_SESSION["authData"] = json_encode($outObject);
+            //setcookie("authData", json_encode($outObject), time() + (86400 * 1), "/"); // 86400 = 1 day
+            //setcookie("securityToken", $outObject->token, time() + (86400 * 1), "/");
             if ($result->success == true){
                 if (sizeof($result->result) > 0){
                     $outObject->profile = $result->result[0];
+                    $_SESSION["authData_Profile"]=$result->result[0];
                 }
             }
             CacheData::setObjects($outObject->token,"sessions",$outObject);
@@ -403,18 +397,12 @@ class LoginService {
     }
 
     public function getLogout($req){
-        if(isset($_COOKIE['authData']))
+        $authdata=Auth::Autendicate();
+        if(isset($authdata->token))
         {
-            $authdata=json_decode($_COOKIE['authData']);
             $outObject = Auth::GetLogout($authdata->token);
-                if(!isset($outObject->error)){
-                unset($_SESSION["authData"]);
-                unset($_COOKIE['authData']); 
-                setcookie('authData', null, -1, '/'); 
-                unset($_COOKIE['securityToken']); 
-                setcookie('securityToken', null, -1, '/'); 
-                session_regenerate_id();
-                //$outObject = new stdClass();
+            if(!isset($outObject->error)){
+
                 return true;
             }else{
                 return false;
