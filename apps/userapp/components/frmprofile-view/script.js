@@ -16,7 +16,8 @@ WEBDOCK.component().register(function(exports){
         profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1},
         loadingApp:false,
         loadingAppError:false,
-        submitErrors:[]
+        submitErrors:[],
+        Launchers:[]
     };
     var newFile;
     function completeResponce(results){
@@ -224,7 +225,7 @@ WEBDOCK.component().register(function(exports){
     //var item ={};
     var productHandler;
     var profileHandler;
-    var authhandler;
+    var authhandler,shellLogin;
     var pInstance;
     var apploader,cropper1;
     function initializeComponent(){
@@ -235,6 +236,8 @@ WEBDOCK.component().register(function(exports){
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
         authhandler = exports.getComponent ("login-handler");
+        shellLogin = exports.getShellComponent ("auth-handler");
+        
         //userHandler = exports.getComponent("login-handler");
         exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_uploader){
             apploader=_uploader;
@@ -259,6 +262,15 @@ WEBDOCK.component().register(function(exports){
     function getProfilebyID(id){
         //console.log(bindData.item)
             console.log("items chnaged");
+            shellLogin.services.Launchers({appcode:"userapp",component:"frmprofile-view"})
+            .then(function(r){
+                if(r.success){
+                    bindData.Launchers=r.result;
+                }
+            }).error(function(e){
+
+            });
+
             //bindData.item=response.result[0];
             bindData.image = 'components/dock/soss-uploader/service/get/profile/'+id;
             authhandler.services.ProfileData()

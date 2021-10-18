@@ -1,0 +1,130 @@
+<div class="container" @scroll="handleScroll($event)">
+    <div v-if="a5>0" class="row">
+        <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+    </div>
+  <div class="row" style="margin: auto;">
+        <div class="col-sm-6" v-for="product in products" style="padding-bottom: 10px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div style="width: 40px;">
+                            <div class="profile-userpic">
+                                <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid" class="img-responsive" alt="">
+                                
+                            </div>
+                        </div>
+                        <div class="col">
+                            <a :href="'#/app/stelup_shop/profile?id='+product.storeid">
+                                <h5 v-html="product.storename"></h5>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
+                <div class="row" style="margin: 10px;">
+                    <strong>Price:</strong> {{ product.price | currency_formate}}
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title" v-html="product.name">Card title</h5>
+                  <p class="card-text" v-html="product.caption">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                  <div class="row">
+                    <div class="row">
+                        <div class="col-md-12">
+                          <div class="card-counter primary">
+                            <i class="fa fa-code-fork"></i>
+                            <span class="count-numbers">{{ product.new_Orders }}</span>
+                            <span class="count-name">New Orders</span>
+                          </div>
+                        </div>
+                    
+                        <div class="col-md-12">
+                          <div class="card-counter danger">
+                            <i class="fa fa-ticket"></i>
+                            <span class="count-numbers">{{ product.deleted_Orders }}</span>
+                            <span class="count-name">Deleted Orders</span>
+                          </div>
+                        </div>
+                    
+                        <div class="col-md-12">
+                          <div class="card-counter success">
+                            <i class="fa fa-database"></i>
+                            <span class="count-numbers">0</span>
+                            <span class="count-name">Dispatched</span>
+                          </div>
+                        </div>
+                    
+                        <div class="col-md-12">
+                          <div class="card-counter info">
+                            <i class="fa fa-users"></i>
+                            <span class="count-numbers">{{ product.pending_Orders }}</span>
+                            <span class="count-name">Pending</span>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+                  
+                </div>
+                <div v-if="isEditable(product)" class="card-body">
+                    <button type="button" class="btn bg-primary-button pull-left"   v-on:click="edit(product)">Edit</button>
+                    <button type="button" class="btn bg-primary-button pull-right"   v-on:click="marksold(product)">Unlist</button>
+                    
+                </div>
+              </div>
+        </div>
+        
+  </div>
+  
+</div>
+<div v-if="loading" class="row" >    
+    <div class="col-md-4 col-sm-6">
+           
+    </div>
+    <div class="col-md-4 col-sm-6">
+            <div id="custom-search-input">
+                <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
+            </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+            
+    </div>
+           
+</div>
+<div v-if="noproducts" class="row" >
+        <div class="col-md-4 col-sm-6">
+           
+            </div>    
+        
+        <div class="col-md-4 col-sm-6">
+                <h1> No Results for Search Query "{{ q }}" </h1>
+            </div>
+            <div class="col-md-4 col-sm-6">
+           
+                </div>
+</div>
+
+<div class="modal fade" id="modalappwindow" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+            <div class="modal-header">
+                <div style="width: 40px;">
+                    <div class="profile-userpic">
+                        <img :src="appIcon" class="img-responsive" alt="">
+                        
+                    </div>
+                </div>
+                <div class="col">
+                    <h6>{{ appTitle }}</h6>
+                </div>
+                <div class="col" style="width: 30px;text-align: right;">
+                    <a v-on:click="close">x</a>
+                </div>
+                
+                
+            </div>
+            <div id="appdock" class="modal-body">
+                	
+            </div>
+        </div>
+    </div>
+</div>

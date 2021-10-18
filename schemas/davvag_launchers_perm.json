@@ -1,0 +1,20 @@
+{
+    
+    "fields" : [
+        {
+            "fieldName":"bid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"groupid",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "isPrimary": true
+            }
+        }
+    ]
+}

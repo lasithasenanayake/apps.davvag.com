@@ -113,13 +113,17 @@
                   <strong>INFO! </strong> {{error}}
                 </div>
             </div>
-            
+            <div class="form-group">
+              <ul>
+                <li v-for="a in userGroups"><input type="checkbox" true-value="Y" false-value="N" v-model="a.selected"> <b>{{ a.groupid }}</b></li>
+              </ul>
+            </div>
             
           
           
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" v-on:click="submit">Save</button>
+          <button class="btn btn-primary" v-on:click="SaveUserGroups">Save</button>
           <button type="button" class="btn btn-warning" v-on:click="userPermClose">Cancel</button>
         </div>
     </div>

@@ -180,6 +180,27 @@ class appService {
         }
     }
 
+    public function getSellerProducts($req,$res){
+        $userprofile=Profile::getUserProfile();
+        if (isset($userprofile)){
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->pid = $userprofile->profile->id;
+            $resultObj = SOSSData::ExecuteRaw("products_stelup_3", $mainObj);
+            if($resultObj->success){
+                return $resultObj->result;
+            }else{
+                $res->SetError ($resultObj);
+                return $resultObj;
+            }
+        } else {
+            
+            $mainObj = new stdClass();
+            $mainObj->error="Invalied Query";
+            return $mainObj;
+        }
+    }
+
     
 
 

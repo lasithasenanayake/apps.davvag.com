@@ -37,6 +37,17 @@
             "ApplicationLaunchers":{
                 "method":"GET",
                 "parameters":["app","subapp"]
+            },
+            "UserGroupsByLauncher":{
+                "method":"GET",
+                "parameters":["p_appid"]
+            },
+            "UserGroupsLancherAccess":{
+                "method":"GET",
+                "parameters":["appid"]
+            },
+            "SaveLauncherUserPerm":{
+                "method":"POST"
             }
         }
     },

@@ -56,6 +56,49 @@ class LoginService {
         }
     }
 
+    public function getLaunchers($req,$res){
+        $appCode=$_GET["appcode"];
+        $component=$_GET["component"];
+        $groupId=GROUPID;
+        $idKey=$appCode."-".$component."-".$groupId;
+        $data=CacheData::getObjects($idKey,"davvag_launchers");
+        if(isset($data)){
+            return $data;
+        }else{
+            $data = $this->getAppLaunchers($appCode,$component,$groupId,0);
+            CacheData::setObjects($idKey,"davvag_launchers",$data);
+            return $data;
+        }
+    }
+
+    private function getAppLaunchers($appcode,$component,$groupId,$pid){
+        $data=[];
+        $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            
+            $mainObj->parameters->groupId = $groupId;
+            $mainObj->parameters->bid = $pid;
+            
+            if(isset($appcode)){
+                $mainObj->parameters->appcode = $appcode;
+                $mainObj->parameters->component = $component;
+                $resultObj = SOSSData::ExecuteRaw("davvag_launchers_query", $mainObj);
+            }else{
+                $resultObj = SOSSData::ExecuteRaw("davvag_launchers_subquery", $mainObj);
+            }
+            if($resultObj->success){
+                foreach ($resultObj->result as $key => $value) {
+                    # code...
+                    $value->Launchers=$this->getAppLaunchers(null,null,$groupId,$value->bid);
+                    array_push($data,$value);
+                }
+            }else{
+                return $resultObj;
+            }
+       
+        return $data;
+    }
+
     public function getClearNotiifcatiion($req,$res){
         $userprofile=Profile::getUserProfile();
         $result = SOSSData::Query("profile_notify_u","id:".$_GET["id"]);

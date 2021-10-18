@@ -152,7 +152,7 @@ WEBDOCK.component().register(function(exports){
             if (data[i].object.type === "mainView")
                 view = data[i].object.view;
 
-           
+            //instance.AppDescripter=desc;
             //renderDiv.append("<div class='modal fade' id='appPopup0001' role='dialog' tabindex='-1'  style='overflow-x: auto;overflow-y: auto;width:100%;'><div class='modal-dialog modal-dialog-centered' role='document'><div class='modal-content' style='overflow-x: auto;overflow-y: auto;'><div class='modal-header'><h1>Appname</h1></div><div id='appbody' class='modal-body'>{{appbody}}}</div></div>");
             if (!instance)
                 return;
@@ -160,7 +160,9 @@ WEBDOCK.component().register(function(exports){
 
             if (instance.onLoad)
                 instance.onLoad(instance);
-            
+            instance.GetLaunchers=function(call){
+                
+            }
             renderDiv.html(view);
             renderDiv.attr("style", "animation: fadein 0.2s;padding-top: 0px;");
             var canCallOnReady = true;
@@ -170,7 +172,7 @@ WEBDOCK.component().register(function(exports){
 
                 instance.vue.el = '#' + $(renderDiv).attr('id');
                 new Vue(instance.vue);
-                scope = instance.vue.data;
+                let scope = instance.vue.data;
                 canCallOnReady = false;
 
                 if (instance.vue.onReady){

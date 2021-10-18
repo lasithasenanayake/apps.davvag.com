@@ -100,6 +100,10 @@
         "user-profile":{
             "type":"component",
             "location":"apps"
+        },
+        "seller-product-admin":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -127,7 +131,8 @@
                     "/traditem":"product-trade",
                     "/group-sell":"product-group-sell",
                     "/messages":"messages",
-                    "/userprofile":"user-profile"
+                    "/userprofile":"user-profile",
+                    "/selleradmin":"seller-product-admin"
 
                 }
             }

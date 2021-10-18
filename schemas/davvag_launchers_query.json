@@ -1,0 +1,87 @@
+{
+    "rawquery" : {
+        "type":"sql",
+        "parameters" : ["appcode","component","groupId","bid"],
+        "query": "SELECT * FROM davvag_launchers  inner join  davvag_launchers_perm on davvag_launchers.bid =davvag_launchers_perm.bid where  davvag_launchers.pid=$bid and davvag_launchers.appcode='$appcode' and   davvag_launchers.subappcode='$component' and davvag_launchers_perm.groupid ='$groupId';"
+    },
+    "fields" : [
+        {
+            "fieldName":"bid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"shortname",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"tag",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"imgurl",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName":"imgurltype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"url",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName":"applicationtype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 150
+            }
+        },
+        {
+            "fieldName":"appcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"subappcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"pid",
+            "dataType":"int"
+        }
+    ]
+}

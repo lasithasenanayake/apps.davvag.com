@@ -42,6 +42,10 @@
             "ClearNotiifcatiion":{ 
                 "method" : "GET",
                 "parameters": ["id"]
+            },
+            "Launchers":{
+                "method" : "GET",
+                "parameters": ["appcode","component"]
             }
         }
     },

@@ -9,6 +9,46 @@ class BroadcastService {
         
     }
 
+    public function postSaveLauncherUserPerm($req,$res){
+        $data=$req->Body(true);
+        $alreadySaved= SOSSData::Query("davvag_launchers_perm","bid:".(isset($data->bid)?$data->bid:0));
+        if(count($alreadySaved->result)>0){
+            SOSSData::Delete("davvag_launchers_perm",$alreadySaved->result);
+        }
+        foreach ($data->UserGroups as $key => $value) {
+            # code...
+            if((isset($value->selected)?$value->selected:"N")=="Y"){
+                $item=new stdClass();
+                $item->bid=$data->bid;
+                $item->groupid=$value->groupid;
+                SOSSData::Insert("davvag_launchers_perm",$item);
+
+            }
+        }
+        CacheData::clearObjects("davvag_launchers_perm");
+        CacheData::clearObjects("davvag_launchers");
+
+        return $data;
+
+    }
+
+    public function getUserGroupsByLauncher($req,$res){
+        $pid=$_GET["p_appid"];
+        if($pid==0){
+            //$data=SOSSData::Query("");
+            return Auth::getUserGroups();
+        }else{
+            $alreadySaved= SOSSData::Query("davvag_launchers_perm","bid:".$pid);
+            return $alreadySaved->result;
+        }
+    }
+
+    public function getUserGroupsLancherAccess($req,$res){
+        $pid=$_GET["appid"];
+        $alreadySaved= SOSSData::Query("davvag_launchers_perm","bid:".$pid);
+        return $alreadySaved->result;
+    }
+    
     public function postSaveLauncher($req,$res){
         $data=$req->Body(true);
             $r=SOSSData::Query("davvag_launchers","bid:".(isset($data->bid)?$data->bid:0));
@@ -17,8 +57,9 @@ class BroadcastService {
                 $data->result= SOSSData::Update("davvag_launchers",$data);
             }else{
                 $data->result= SOSSData::Insert("davvag_launchers",$data);
-                $data->bid=$data->result->result->generatedId;
+                $data->bid=isset($data->result->result->generatedId)?$data->result->result->generatedId:0;
             }
+            CacheData::clearObjects("davvag_launchers_perm");
             CacheData::clearObjects("davvag_launchers");
             if($data->result->success){
                 return $data;

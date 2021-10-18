@@ -16,8 +16,15 @@ WEBDOCK.component().register(function(exports, scope){
         data_collected=d;
         var leftMenu = exports.getShellComponent("left-menu");
         leftMenu.getApps(function(apps){
+            var renderDiv = $("#" + id);
+            renderDiv.empty();
             var appObj = apps[appId];
-            
+            if(appObj==null){
+                console.log("Error Downloading Application (Check Permission).....");
+                //var renderDiv = $("#" + id);
+                renderDiv.html('<h2 class="alert-danger">Error Downloading Application</h2><div class="alert alert-danger" role="alert">App Null Exception.</div>');
+                return;
+            }
             var loadID="dft_" + id+"_app0001";
             window[loadID]=window[loadID]?window[loadID]:{loading:false,apps:{app:{}}};
             window[loadID].apps[appId]=window[loadID].apps[appId]?window[loadID].apps[appId]:{loading:false,app:{}};
@@ -39,7 +46,9 @@ WEBDOCK.component().register(function(exports, scope){
                     console.log("Memory Loaded..");
                     return; 
                 } catch (error) {
-                    console.log("Error Loading from Memory");
+                    renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">Error Loading from Memory.</div>');
+
+                    //console.log("Error Loading from Memory");
                     //alert("App not Loaded or permission Issue");
                 }
                 
@@ -54,11 +63,15 @@ WEBDOCK.component().register(function(exports, scope){
                                 renderApp(results,id,desc,instance);
                                 
                             } catch (error) {
-                                alert("App not Loaded or permission Issue");
+                                renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">App not Loaded or permission Issue.</div>');
+
+                                //alert("App not Loaded or permission Issue");
                             }
                             
                         }else{
-                            alert("App not Loaded or permission Issue");
+                            renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">App not Loaded or permission Issue.</div>');
+
+                            //alert("App not Loaded or permission Issue");
                         }
                         window[loadID].loading=false;
                         
