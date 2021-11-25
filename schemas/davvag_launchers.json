@@ -78,6 +78,10 @@
         {
             "fieldName":"pid",
             "dataType":"int"
+        },
+        {
+            "fieldName":"order_no",
+            "dataType":"int"
         }
     ]
 }

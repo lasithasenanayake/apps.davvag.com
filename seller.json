@@ -1,0 +1,1 @@
+{"apps":{"stelup_shop":{"version":"latest"},"dock":{"version":"latest"},"davvag-cms":{"version":"latest"},"userapp":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms"}}}}

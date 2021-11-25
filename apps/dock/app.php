@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET"){
 
 function login($username, $password){
     //require_once(PLUGIN_PATH . "/auth/auth.php");
-    $loginResult = Auth::Login($username,$password, $_SERVER["HTTP_HOST"]);
+    $loginResult = Auth::Login($username,$password, AUTH_DOMAIN);
 
     if (isset($loginResult)){
         $token = $loginResult->token;

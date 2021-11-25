@@ -212,21 +212,25 @@
               </a>
               <div id="profile-setting-appcollapse" class="collapse" aria-labelledby="profile-setting-helpheading" data-parent="#profile-setting-accordion">
                   <div class="card-body">
-
                       <div>
                           <ul  v-for="app in Launchers">
                             <li style="cursor:pointer" v-for="subapp in app.Launchers">
-                              <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp(subapp.appcode,subapp.subappcode,item,subapp.name)"> {{ subapp.name }}</a></h5>
+                              <h5 class="font-size-13 mb-0"><a v-if="subapp.applicationtype=='application'" v-on:click="downloadapp(subapp.appcode,subapp.subappcode,item,subapp.name)"> {{ subapp.name }}</a>
+                                <a v-if="subapp.applicationtype!='application'" :href="subapp.url"> {{ subapp.name }}</a>
+                              </h5>
                               <ul v-if="subapp.Launchers.length!=0">
                                 <li style="cursor:pointer" v-for="subapp1 in subapp.Launchers">
-                                 <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp(subapp1.appcode,subapp1.subappcode,item,subapp1.name)"> {{ subapp1.name }}</a></h5>
-                                </li>
+                                 <h5 class="font-size-13 mb-0">
+                                   <a v-if="subapp.applicationtype=='application'" v-on:click="downloadapp(subapp1.appcode,subapp1.subappcode,item,subapp1.name)"> {{ subapp1.name }}</a>
+                                   <a v-if="subapp.applicationtype!='application'" :href="subapp1.url"> {{ subapp1.name }}</a></h5>
+                                  
+                                  </h5>
+                                
+                                  </li>
                               </ul>
                             </li>
                           </ul>
-                          <div class="py-3 border-top">
-                              <h5 class="font-size-13 mb-0"><a v-on:click="downloadapp('userapp','terms-conditions',item,'Terms & Conditions')"> Terms & Conditions</a></h5>
-                          </div>
+                          
                       </div>
                   </div>
               </div>

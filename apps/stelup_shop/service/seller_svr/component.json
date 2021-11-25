@@ -1,5 +1,5 @@
 {
-    "name" : "app-handler",
+    "name" : "seller Service",
     "description":"Vue.JS Plugin for Soss Router",
     "author":"Lasitha Senanayake",
     "version" : "0.1",
@@ -14,11 +14,21 @@
     },
     "serviceHandler" : {
         "file": "service.php",
-        "class": "davvag_sample_app_1\\appService",
+        "class": "seller_svr",
         "methods" : {
-            "Save" : {
-                "method" : "POST"
-            }        
+            "Orders":{
+                "method":"GET",
+                "parameters":["type"]
+            },
+            "OrderDetails":{
+                "method":"GET",
+                "parameters":["id"]
+            },
+            "UpdateOrder":{
+                "method":"GET",
+                "parameters":["id","status"]
+            }
+
         }
     },
     "transformers": {

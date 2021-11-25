@@ -1,7 +1,7 @@
 {
-    "name" : "app-handler",
-    "description":"Vue.JS Plugin for Soss Router",
-    "author":"Lasitha Senanayake",
+    "name" : "dynamic-attributes",
+    "description":"WEBDOCK Router",
+    "author":"Supun Dissanayake",
     "version" : "0.1",
     "gitUrl" : "",
     "resources": {
@@ -14,15 +14,15 @@
     },
     "serviceHandler" : {
         "file": "service.php",
-        "class": "davvag_sample_app_1\\appService",
+        "class": "appService",
         "methods" : {
             "Save" : {
                 "method" : "POST"
-            }        
+            },
+            "uploadFile" : {
+                "method" : "POST",
+                "route":"/upload/@ns/@name"
+            }
         }
-    },
-    "transformers": {
-        
     }
-    
 }

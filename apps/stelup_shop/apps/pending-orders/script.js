@@ -2,12 +2,43 @@ WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,attribute;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{}
+        submitErrors : [],submitInfo : [],data:[],type:"new",order:{},orderDetails:[]
     };
 
     var vueData =  {
         methods:{
             submit:submit,
+            view:function(i){
+                bindData.order=i;
+                service_handler.services.OrderDetails({"id":bindData.order.invoiceNo.toString()}).then(function(r){
+                    $("#appPermission").modal('toggle');
+                    bindData.orderDetails=r.result;
+                }).error(function(e){
+                    bindData.submitErrors.push("Error Loading Orders");
+                });
+                
+            },
+            dispatch:function(i){
+                bindData.order=i;
+                att_popup=exports.getShellComponent("attribute_shell_popup");
+                att_popup.open("attr_stelup_dispatch",bindData.order,function(data){
+                    loadOrders();
+                    $("#appPermission").modal('toggle'); 
+
+                });
+                //bindData.order=i;
+                /*
+                service_handler.services.UpdateOrder({"id":bindData.order.invoiceNo.toString(),"status":"dispatch"}).then(function(r){
+                    //$("#appPermission").modal('toggle');
+                    loadOrders();
+                    $("#appPermission").modal('toggle');
+                }).error(function(e){
+                    bindData.submitErrors.push("Error Loading Orders");
+                });*/
+                
+            },userPermClose:function(){
+                $("#appPermission").modal('toggle');//("show");
+             },
             load:function(){
                 bindData.data=attribute.get_data();
                 
@@ -15,13 +46,6 @@ WEBDOCK.component().register(function(exports){
                     console.log(JSON.stringify(r));
                 }).error(function(e){
                     console.log(JSON.stringify(e));
-                });
-            },
-            popup:function(){
-                att_popup=exports.getShellComponent("attribute_shell_popup");
-                att_popup.open("attr_lasitha_form",{admin:"0"},function(data){
-                    renderDrid(); 
-
                 });
             }
            
@@ -36,30 +60,24 @@ WEBDOCK.component().register(function(exports){
     
 
     function initialize(){
-        service_handler = exports.getComponent("app-handler");
+        service_handler = exports.getComponent("seller_svr");
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }
-        
+        pInstance = exports.getShellComponent("soss-routes");
+        routeData = pInstance.getInputData();
         attribute=exports.getShellComponent("attribute_shell");
-        renderDrid();
+        let type=routeData.t?routeData.t:"new"
+        bindData.type=type;
+        loadOrders();
         loadValidator();
     }
 
-    function renderDrid() {
-        lockForm(); 
-        attribute.renderGrid("attr_lasitha_form","sampleform",[{type:"data",name:"admin",displayname:"ID",style:""},
-        {type:"data",name:"name",displayname:"yo man"},
-        {type:"button",name:"openalert",fn:"function",caption:"Execute Command",displayname:"Edit",function:function(e){
-            item=e.data;
-            att_popup=exports.getShellComponent("attribute_shell_popup");
-            att_popup.open(e.id,item,function(_d){
-                console.log(_d);
-            });
-        }}],
-        "",function(i){
-            
-            
+    function loadOrders(){
+        service_handler.services.Orders({"type":bindData.type}).then(function(r){
+            bindData.data=r.result;
+        }).error(function(e){
+            bindData.submitErrors.push("Error Loading Orders");
         });
     }
 

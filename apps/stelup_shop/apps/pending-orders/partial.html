@@ -1,13 +1,100 @@
-<div class="input-form">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Sign in</h1>
-<hr>
-<div id="sampleform">
-  Attribute Form will be Loaded here
-  ddddddd
+<div v-if="data.length==0" class="row" style="margin: auto;padding-top: 10px;">
+    <h1>No Orders Found</h1>
 </div>
-<div class="row">
-  <button class="btn btn-success pull-right" v-on:click="load">Save</button>
-  <button class="btn btn-success pull-right" v-on:click="popup">Open</button>
+<div class="row" style="margin: auto;padding-top: 10px;">
+    <div class="col-sm-4" v-for="product in data" style="padding-bottom: 5px">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div style="width: 40px;">
+                        <div class="profile-userpic">
+                            <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.profileId" class="img-responsive" alt="">
+                            
+                        </div>
+                    </div>
+                    <div class="col">
+                        <a :href="'#/app/stelup_shop/profile?id='+product.profileId">
+                            <h5 v-html="product.name"></h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <div class="card-body">
+                <strong>Date:</strong> {{ product.invoiceDate }}<br/>
+                <strong>Invoice No:</strong> {{ product.invoiceNo }}<br/>
+                <strong>Address:</strong> {{ product.address }}<br/>
+                <strong>City:</strong> {{ product.city }}<br/>
+                <strong>Country:</strong> {{ product.country }}<br/>
+                <strong>Contact No:</strong> {{ product.contactno }}<br/>
+                <strong>Invoiced value:</strong> {{ product.total }}<br/>
+                <strong>Paid value:</strong> {{ product.paidamount }}<br/>
+                <strong>balance value:</strong> {{ product.balance }}<br/>
+              
+              
+              
+            </div>
+            <div  class="card-footer">
+                <button type="button" class="form-control btn bg-primary-button"   v-on:click="view(product)">View</button>
+                <button  type="button" class="form-control btn bg-primary-button"   v-on:click="marksold(product)">Send Message</button>
+            </div>
+          </div>
+    </div>
+    
 </div>
-</div>
+<div class="modal fade" id="appPermission" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+          <div class="modal-header">
+              <h1>Order Details </h1>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                <strong>Date:</strong> {{ order.invoiceDate }}<br/>
+                <strong>Invoice No:</strong> {{ order.invoiceNo }}<br/>
+                <strong>Address:</strong> {{ order.address }}<br/>
+                <strong>City:</strong> {{ order.city }}<br/>
+                <strong>Country:</strong> {{ order.country }}<br/>
+                <strong>Contact No:</strong> {{ order.contactno }}<br/>
+                <strong>Invoiced value:</strong> {{ order.total }}<br/>
+                <strong>Paid value:</strong> {{ order.paidamount }}<br/>
+                <strong>balance value:</strong> {{ order.balance }}<br/>
+              </div>
+              <div class="row" style="margin: auto;">
+                <div class="col-sm-6" v-for="product in orderDetails" style="padding-bottom: 10px;">
+                    <div class="card">
+                        <div class="card-header">
+                            {{ product.name }}
+                        </div>
+                        
+                        
+                        
+                        
+                        <div class="card-body">
+                            
+                            
+                            <strong>Unit Price:</strong> {{ product.price }}<br/>
+                            <strong>Quantity:</strong> {{ product.qty }}<br/>
+                            <strong>Total:</strong> {{ product.total }}<br/>
+                                
+                            
+                          
+                       
+                        </div>
+                      </div>
+                </div>
+                
+          </div>
+            
+            
+          </div>
+          <div class="modal-footer">
+            <button v-if="type=='accepted'" type="button" class="btn bg-primary-button"   v-on:click="dispatch(order)">Dispatch Order</button>
+            <button v-if="type=='accepted'" type="button" class="btn bg-primary-button"   v-on:click="marksold(product)">Refund and reject</button>
+            <button type="button" class="btn btn-warning" v-on:click="userPermClose">Cancel</button>
+          </div>
+      </div>
+  </div>
+  </div>
 

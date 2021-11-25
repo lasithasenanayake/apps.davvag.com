@@ -1,8 +1,6 @@
 <?php
-namespace davvag_sample_app_1;
-
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-
+require_once(PLUGIN_PATH_LOCAL . "/davvag-attributes/davvag-attributes.php");
 
 class appService {
 
@@ -12,7 +10,7 @@ class appService {
 
     public function postSave($req,$res){
         $data = $req->Body(true);
-        return $data; 
+        return Davvag_Attributes::Save($data); 
     }
 
     

@@ -20,14 +20,14 @@ class Davvag_Order{
         if($order){
             if($order->status!="deleted"){
                 if(floatval($order->profileId)!=floatval($profileId)){
-                    throw new Exception("This is a invalied request.",1);
+                    throw new Exception("This is a invalid request.",1);
                     return;
                 }
                 if($order->paidamount>0){
                     //insert Advance;
                     $advance =new StdClass;
                     $advance->profileId=$order->profileId;
-                    $advance->paymentType="Cancelation";
+                    $advance->paymentType="Cancellation";
                     $advance->tranDate=date_format(new DateTime(), 'm-d-Y H:i:s');
                     $advance->description=$remark;
                     $advance->status="new";
@@ -224,6 +224,23 @@ class Davvag_Order{
             SOSSData::Delete("orderheader_pending",$result->result);
             $r = SOSSData::Query ("orderdetails_pending", urlencode("invoiceno:".$id.""));
             SOSSData::Delete("orderdetails_pending",$r->result);
+
+        }
+
+    }
+
+    public function DispatchOrder($id){
+        $result = SOSSData::Query ("orderheader_accepted", urlencode("invoiceno:".$id.""));
+        if($result->success && count($result->result)>0){
+            $order=$this->getOrder($id);
+            $order->status='dispatched';
+            SOSSData::Insert("orderheader_dispatched",$order);
+            SOSSData::Insert("orderheader_dispatched",$order->details);
+            SOSSData::Update("orderheader",$order);
+            
+            SOSSData::Delete("orderheader_accepted",$result->result);
+            $r = SOSSData::Query ("orderdetails_accepted", urlencode("invoiceno:".$id.""));
+            SOSSData::Delete("orderdetails_accepted",$r->result);
 
         }
 

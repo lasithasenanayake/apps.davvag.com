@@ -1,18 +1,5 @@
 {
     "components": {
-        "sample-input-form": {
-            "type":"component",
-            "location":"apps"
-        },
-        "seller-register-1":{
-            "type":"component",
-            "location":"apps"
-        }
-        ,
-        "product-register":{
-            "type":"component",
-            "location":"apps"
-        },
         "login-handler": {
             "type":"service",
             "location":"service"
@@ -29,6 +16,24 @@
             "type":"service",
             "location":"service"
         },
+        "seller_svr":{
+            "type":"service",
+            "location":"service"
+        },
+        "sample-input-form": {
+            "type":"component",
+            "location":"apps"
+        },
+        "seller-register-1":{
+            "type":"component",
+            "location":"apps"
+        }
+        ,
+        "product-register":{
+            "type":"component",
+            "location":"apps"
+        },
+        
         "frmproduct-list":{
             "type":"component",
             "location":"apps"
@@ -104,6 +109,10 @@
         "seller-product-admin":{
             "type":"component",
             "location":"apps"
+        },
+        "pending-orders":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -116,7 +125,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "home-sp",
-            "onLoad": ["app-handler","p_svr","productsvr","login-handler"],
+            "onLoad": ["app-handler","p_svr","productsvr","login-handler","seller_svr"],
             "routes":{
                 "partials":{
                     "/test":"sample-input-form",
@@ -132,7 +141,8 @@
                     "/group-sell":"product-group-sell",
                     "/messages":"messages",
                     "/userprofile":"user-profile",
-                    "/selleradmin":"seller-product-admin"
+                    "/selleradmin":"seller-product-admin",
+                    "/orders":"pending-orders"
 
                 }
             }

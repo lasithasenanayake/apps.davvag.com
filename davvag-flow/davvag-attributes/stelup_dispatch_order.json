@@ -1,0 +1,45 @@
+{
+    "name":"Stelup Order Dispatch Workflow v1",
+    "start_up_node":"reg-step-0",
+    "inputData":[
+       {"name":"invoiceNo","datatype":"int"},
+       {"name":"profileId","datatype":"int"},
+       {"name":"shipping_details","datatype":"string"},
+       {"name":"comments","datatype":"string"}
+    ],
+    "reg-step-0":{
+        "urntype":"service",
+        "appCode":"stelup_shop",
+        "componentCode":"seller_svr",
+        "method":{
+            "type":"get",
+            "name":"UpdateOrder",
+            "params":[{"name":"id","type":"object","value":"inputData.invoiceNo"},{"name":"status","value":"dispatch"}],
+            "return":true,
+            "returnobj":"order_dispatch"
+        },
+        "fail":"nodefail"
+    },"reg-step-1":{
+        "urntype":"service",
+        "appCode":"stelup_shop",
+        "componentCode":"seller_svr",
+        "method":{
+            "type":"get",
+            "name":"Orders",
+            "params":[{"name":"type","value":"accepted"}],
+            "return":true,
+            "returnobj":"fbresp2"
+        },
+        "fail":"nodefail"
+    },"nodefail":{
+        "urntype":"class",
+        "file":"test.php",
+        "class":"test",
+        "method":{
+            "name":"fail",
+            "params":[{"name":"type","type":"object","value":"scopData.fbresp2"}],
+            "return":true,
+            "returnobj":"failed"
+        }
+    }
+}

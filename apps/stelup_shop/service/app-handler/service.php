@@ -139,18 +139,22 @@ class appService {
                 }
             }
             if(GROUPID=="web_user"){
-                Auth::Join(HOST_NAME,$user->userid,$groupid);
+                Auth::Join(AUTH_DOMAIN,$user->userid,$groupid);
             }
             CacheData::clearObjects("profile");
             CacheData::clearObjects("profile_data");
             return $profile;
         }else{
-            $profile->attributes->id=$profile->id;
+            if(isset($profile->attributes)){
+                $profile->attributes->id=$profile->id;
+                $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
+                $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            }
+            
             $result = SOSSData::Update("profile", $profile);
-            $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
-            $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            
             if(GROUPID=="web_user"){
-                Auth::Join(HOST_NAME,$user->userid,$groupid);
+                Auth::Join(AUTH_DOMAIN,$user->userid,$groupid);
             }
             CacheData::clearObjects("profile");
             CacheData::clearObjects("profile_data");

@@ -28,6 +28,13 @@
             "type":"shell",
             "location":"shell"
         },
+        "attribute_shell_popup": {
+            "type":"shell",
+            "location":"shell"
+        },"attribute_shell": {
+            "type":"shell",
+            "location":"shell"
+        },
         "Artical-list": {
             "type":"component",
             "location":"components"
@@ -39,7 +46,7 @@
             "type":"component",
             "location":"components"
         },
-        "headerbar_usertab": {
+        "headerbar_launcher": {
             "type":"component",
             "location":"components"
         },
@@ -102,7 +109,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "product",
-            "onLoad": ["dependencies", "soss-routes","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
+            "onLoad": ["dependencies", "soss-routes","attribute_shell","attribute_shell_popup","soss-routes-vue", "soss-uploader","soss-validator", "auth-handler","soss-data"],
             "firewall" : {
                 "guest" : [],
                 "admin": []

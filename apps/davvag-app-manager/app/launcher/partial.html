@@ -26,13 +26,18 @@
             <form id="form-details">
               <div class="form-group">
                 <label for="exampleInputEmail1">Caption</label>
-                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="10" maxlength="100" placeholder="Caption" v-model="data.name">
+                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="10" maxlength="100" placeholder="Caption" v-model="data.name">
                 <small id="emailHelp" class="form-text text-muted">Caption of the Menu</small>
               </div>
               <div class="form-group">
                 <label for="exampleInputEmail1">Short Name</label>
-                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="2" maxlength="10" placeholder="Caption" v-model="data.shortname">
+                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="2" maxlength="10" placeholder="Caption" v-model="data.shortname">
                 <small id="emailHelp" class="form-text text-muted">A name within 10 charactor</small>
+              </div>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Order</label>
+                <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"  placeholder="order" v-model="data.order_no">
+                <small id="emailHelp" class="form-text text-muted">Please Input the Order</small>
               </div>
               <div v-if="pid!=0" class="form-group">
                 <label for="exampleInputPassword1">Launcher Type</label>

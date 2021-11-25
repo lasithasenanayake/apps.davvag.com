@@ -1,0 +1,1 @@
+{"fields":[{"fieldName":"invoiceNo","dataType":"int","annotations":{"isPrimary":true}},{"fieldName":"name","dataType":"java.lang.String","annotations":{"maxLen":"100"}},{"fieldName":"shipping_details","dataType":"java.lang.String","annotations":{"maxLen":"500"}},{"fieldName":"comments","dataType":"java.lang.String","annotations":{"maxLen":"1000"}}]}

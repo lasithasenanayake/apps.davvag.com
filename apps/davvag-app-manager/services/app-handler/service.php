@@ -110,7 +110,7 @@ class BroadcastService {
                                         if($p==$a->Code){$a->path=$pk;}
                                     }
                                 }
-                                if(isset($a->path)){
+                                //if(!isset($a->path)){
                                     switch($Data->type){
                                         case "partial":
                                             array_push($app->Apps,$a);
@@ -118,11 +118,12 @@ class BroadcastService {
                                         case "component":
                                             array_push($app->Apps,$a);
                                         break;
+                                        
                                         default:
                                             array_push($app->UnknownApps,$a);
                                         break;
                                     }
-                                }
+                                //}
                             }else{
                                 $app->Error= "This Location '$aLocation' not found.";
                             }
