@@ -242,7 +242,7 @@ WEBDOCK.component().register(function(exports){
         },
         additem:additem,addchecout:function(item,isorder){
             additem(item,isorder);
-            window.location="#/app/stelup_shop/checkout";
+            complete_call({method:"url_redirect",url:"#/app/stelup_shop/checkout"});
         }
         },
         data :bindData
