@@ -46,6 +46,10 @@
                 "method":"GET",
                 "parameters":["appid"]
             },
+            "LauncherParentApp":{
+                "method":"GET",
+                "parameters":["bid"]
+            },
             "SaveLauncherUserPerm":{
                 "method":"POST"
             }

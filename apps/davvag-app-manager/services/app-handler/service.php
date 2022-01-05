@@ -69,6 +69,32 @@ class BroadcastService {
             }
     }
 
+    public function getLauncherParentApp($req,$res){
+        $bid =$_GET["bid"];
+        $r=SOSSData::Query("davvag_launchers","bid:".$bid);
+        if($r->success && count($r->result)>0){
+            $pid=isset($r->result[0]->pid)?$r->result[0]->pid:0;
+            $data=$r->result[0];
+            //$subappcode=$r->result[0]->subappcode;
+            while($pid!=0){
+                $r2=SOSSData::Query("davvag_launchers","bid:".$pid);
+                if($r2->success && count($r2->result)>0){
+                    $pid=isset($r->result[0]->pid)?$r->result[0]->pid:0;
+                    $data=$r->result[0];
+                }else{
+                    $res->SetError($r2);
+                    $pid=0;
+                    return 0;
+                }
+            }
+            return $data;
+        }else{
+            $res->SetError($r);
+            $pid=0;
+            return 0;
+        }
+    }
+
     public function getApps($req,$res){
         $tenantFile = TENANT_RESOURCE_LOCATION . "/tenant.json";
         $fileToServe;$errorMsg;
@@ -105,6 +131,8 @@ class BroadcastService {
                                 $a->Description=$aObj->description;
                                 $a->author=$aObj->author;
                                 $a->version=$aObj->version;
+                                $a->outputData=isset($aObj->outputData)?$aObj->outputData:null;
+                                $a->inputData=isset($aObj->inputData)?$aObj->inputData:null;
                                 if(isset($jsonObj->configuration->webdock->routes->partials)){
                                     foreach($jsonObj->configuration->webdock->routes->partials as $pk=>$p){
                                         if($p==$a->Code){$a->path=$pk;}

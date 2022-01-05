@@ -46,6 +46,7 @@
                     <option value="weburi" >Web URI</option>
                   </select>
               </div>
+
               <div v-if="launcherType=='weburi'" id="frmapp">
                 <div class="form-group">
                   <label for="exampleInputEmail1">Web URI</label>
@@ -63,11 +64,32 @@
                 </div>
                 <div class="form-group">
                   <label for="exampleInputPassword1">Sub Application</label>
-                    <select class="form-control" data-placeholder="Sub Application" v-model="subApp">
+                    <select class="form-control" data-placeholder="Sub Application" v-model="subApp" @change="selectSubApp(subApp)">
                       <option value=""></option>
                       <option :value="s" v-for="s in subApps"><i class="fa fa-cube" aria-hidden="true"></i> {{ s.Code }} - {{ s.Name }}</option>
                     </select>
                 </div>
+                <table v-if="pid!=0" class="table">
+                  <thead>
+                    <tr>
+                      <td>Input Variables</td>
+                      <td>Input ValueType</td>
+                      <td>Mapping Field</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="input in inputData">
+                      <td>{{ input.name }}</td>
+                      <td>{{ input.datatype }}</td>
+                      <td>
+                        <select class="form-control" data-placeholder="Select Mapping Field" v-model="input.mappingfield">
+                          <option value="" >Select Mapping Field</option>
+                          <option :value="i.name" v-for="i in fields">{{ i.name }} <span style="color: blue;">({{ i.datatype }}) </span></option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               <div v-if="pid==0" id="frmmain">
                 <h1>The Application Menu is Accessible to</h1>
@@ -85,6 +107,7 @@
                       <option :value="s" v-for="s in subApps"><i class="fa fa-cube" aria-hidden="true"></i> {{ s.Code }} - {{ s.Name }}</option>
                     </select>
                 </div>
+                
               </div>
               
             </form>

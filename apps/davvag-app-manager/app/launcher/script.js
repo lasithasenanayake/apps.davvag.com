@@ -2,7 +2,12 @@ WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,attribute,filter,pid=0;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{},launcherType:"",app:{},applications:[],subApps:[],subApp:{},pid:0,userGroups:[],tmpUserGroups:[]
+        submitErrors : [],submitInfo : [],
+        data:{},launcherType:"",app:{},
+        applications:[],subApps:[],subApp:{},
+        pid:0,userGroups:[],tmpUserGroups:[],
+        fields:[],
+        inputData:[]
     };
 
     function clearItems(){
@@ -21,6 +26,11 @@ WEBDOCK.component().register(function(exports){
             submit:submit,
              selectApp:function(x){
                 bindData.subApps=x.Apps;
+                //bindData.inputData=bindData.subApps.inputData;
+             },
+             selectSubApp:function(x){
+                //bindData.subApps=x.Apps;
+                bindData.inputData=x.inputData;
              },
              open:function(){
                  clearItems();
@@ -71,7 +81,7 @@ WEBDOCK.component().register(function(exports){
             filter="pid:0";
         }
 
-        
+            
         service_handler.services.UserGroupsByLauncher({p_appid:pid.toString()}).then(function(d){
             bindData.userGroups = d.result;
             bindData.tmpUserGroups=d.result;
@@ -81,6 +91,22 @@ WEBDOCK.component().register(function(exports){
         });
         service_handler.services.Apps().then(function(result){
             bindData.applications = result.result;
+            service_handler.services.LauncherParentApp({bid:pid.toString()}).then(function(r){
+                console.log(JSON.stringify(r));
+                //bindData.applications[r.result.appcode]
+                bindData.applications.forEach(a => {
+                    if(a.appCode==r.result.appcode){
+                        a.Apps.forEach(s => {
+                            if(s.Code==r.result.subappcode)
+                            {
+                                bindData.fields=s.outputData?s.outputData:[];
+                            }
+                        });
+                    }
+                });
+            }).error(function(e){
+    
+            });
             unlockForm();
         }).error(function(){
             unlockForm();
@@ -145,18 +171,22 @@ WEBDOCK.component().register(function(exports){
         if(bindData.data){
             //bindData.data.url="/#/"+bindData.app.appCode+"/"+bindData.subApp.path;
             bindData.launcherType=bindData.data.applicationtype;
+            bindData.inputData=JSON.parse(bindData.data.inputData?bindData.data.inputData:"[]");
             bindData.applications.forEach(element => {
                 if(element.appCode==bindData.data.appcode){
                     bindData.app=element;
                     bindData.subApps=element.Apps;
+                    
                     element.Apps.forEach(subapp => {
                         
                         if(subapp.Code==bindData.data.subappcode){
                             bindData.subApp=subapp;
+                            
                         }
                     });
                 }
             });
+            
             
         }
     }
@@ -171,6 +201,7 @@ WEBDOCK.component().register(function(exports){
             bindData.data.applicationtype=bindData.launcherType;
             bindData.data.appcode=bindData.app.appCode;
             bindData.data.subappcode=bindData.subApp.Code;
+            bindData.data.inputData=JSON.stringify(bindData.inputData);
         }
     }
     function submit(){
@@ -183,7 +214,8 @@ WEBDOCK.component().register(function(exports){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            
+            bindData.data.applicationtype=bindData.launcherType;
+
             service_handler.services.SaveLauncher(bindData.data).then(function(result){
                 
                 console.log(result);
