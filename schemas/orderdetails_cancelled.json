@@ -60,6 +60,10 @@
             "dataType":"float"
         },
         {
+            "fieldName":"subtotal",
+            "dataType":"float"
+        },
+        {
             "fieldName":"discount_percentage",
             "dataType":"float"
         },

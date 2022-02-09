@@ -79,8 +79,8 @@ class BroadcastService {
             while($pid!=0){
                 $r2=SOSSData::Query("davvag_launchers","bid:".$pid);
                 if($r2->success && count($r2->result)>0){
-                    $pid=isset($r->result[0]->pid)?$r->result[0]->pid:0;
-                    $data=$r->result[0];
+                    $pid=isset($r2->result[0]->pid)?(int)$r2->result[0]->pid:0;
+                    $data=$r2->result[0];
                 }else{
                     $res->SetError($r2);
                     $pid=0;
@@ -89,9 +89,9 @@ class BroadcastService {
             }
             return $data;
         }else{
-            $res->SetError($r);
+            //$res->SetError($r);
             $pid=0;
-            return 0;
+            return [];
         }
     }
 

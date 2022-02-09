@@ -1,6 +1,7 @@
 
 WEBDOCK.component().register(function(exports, scope){
     var $progress,$progressBar,$closebutton,$modal;
+    
     exports.initialize = function(){
         
         //clearCeate();
@@ -8,8 +9,122 @@ WEBDOCK.component().register(function(exports, scope){
     var callback;
     var errCallback,completed,data_collected;
 
+    exports.launchApp=function(launcherInfo,cb,er,cbcompleted,data){
+        let launcher_data=GetLauncherData(launcherInfo,data);
+        window.launcher_data=window.launcher_data?window.launcher_data:{};
+        //{:launcher_data}
+        let id=launcherInfo.appcode+"_"+launcherInfo.subappcode;
+        window.launcher_data[id]=launcher_data;
+        if(launcherInfo.applicationtype=="application"){
+            switch(launcherInfo.window_type){
+                case "popup":
+                    popup_small(id,launcherInfo.name);
+                    Popup(id,launcherInfo.appcode,launcherInfo.subappcode,cb,er,cbcompleted,launcher_data);
+                    break;
+                case "popup-lock":
+                    popup_small(id,launcherInfo.name);
+                    Popup_lock(id,launcherInfo.appcode,launcherInfo.subappcode,cb,er,cbcompleted,launcher_data);
+                    break;
+                case "popup-large":
+                    popup_large(id,launcherInfo.name);
+                    Popup(id,launcherInfo.appcode,launcherInfo.subappcode,cb,er,cbcompleted,launcher_data);
+                    break;
+                case "popup-lock-large":
+                    popup_large(id,launcherInfo.name);
+                    Popup_lock(id,launcherInfo.appcode,launcherInfo.subappcode,cb,er,cbcompleted,launcher_data);
+                    break;
+                case "web-uri-new-window":
+                    window.open(
+                        window.location.protocol+'//'+window.location.host+window.location.pathname+"#/app/"+launcherInfo.appcode+"/"+launcherInfo.subappcode,
+                        '_blank' // <- This is what makes it open in a new window.
+                    );
+                    break;
+                default:
+                    window.location="#/app/"+launcherInfo.appcode+"/"+launcherInfo.subappcode;
+                    break;
+
+            }
+        }else{
+            window.location=launcherInfo.url;
+        }
+    }
+
+    function RenderHTML(element,Completed,Error,appComplete,_data){
+        
+        element.find("[webdock-component]").each(function(i,el){
+            var component = $(this).attr("webdock-component");
+            var app=$(this).attr("webdock-app");
+            var data=$(this).attr("webdock-data")?JSON.parse(btoa($(this).attr("webdock-data"))):_data;
+            var element_id=app+"-"+component+(new Date()).getTime();
+            $(this).attr('id', element_id);
+            //$(this).prop("id",element_id);
+            
+            RenderApplication(app,component,element_id,Completed,Error,appComplete,data);
+        });
+    }
+
+    function popup_large(id,title){
+        wa= document.getElementById(id+"_popup");
+        if(wa){
+            wa.remove();
+        }
+        bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+    }
+
+    function popup_small(id,title){
+        wa= document.getElementById(id+"_popup");
+        if(wa){
+            wa.remove();
+        }
+        bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+    }
+
+    function Popup(id,appId,startupComponent,cb,er,cbcompleted,data){
+        popup_real(id,appId,startupComponent,cb,er,cbcompleted,data);
+        $("#"+id+'_popup').modal('show');
+        //modal
+    }
+
+    function Popup_lock(id,appId,startupComponent,cb,er,cbcompleted,data){
+        popup_real(id,appId,startupComponent,cb,er,cbcompleted,data);
+        $("#"+id+'_popup').modal({backdrop: 'static', keyboard: false});
+        
+    }
+
+    function popup_real(id,appId,startupComponent,cb,er,cbcompleted,data){
+        
+        RenderApplication(appId,startupComponent,id+"_window",cb,er,function(d){
+            $modal=$("#"+id+'_popup');
+            $modal.on('hidden.bs.modal', function () {
+                if(cbcompleted)
+                    cbcompleted(d);
+            });
+            $modal.modal('toggle');
+
+            
+        },data);
+    }
+
+    function GetLauncherData(launcher,data){
+        try{
+            let data_interpreter=JSON.parse(launcher.inputData);
+            let returnData={}
+            //{"name":"comments","datatype":"string","mappingfield":""}]
+            data_interpreter.forEach(element => {
+                returnData[element.name]=data[element.mappingfield]?data[element.mappingfield]:null;
+            });
+            return returnData;
+        }catch(e){
+            console.log(e);
+            return null;
+        }
+    }
     
-    exports.downloadAPP=function(appId,startupComponent,id,cb,er,cbcompleted,d){
+    
+    
+    function RenderApplication(appId,startupComponent,id,cb,er,cbcompleted,d){
         callback=cb;
         errCallback=er;
         completed=cbcompleted;
@@ -105,7 +220,7 @@ WEBDOCK.component().register(function(exports, scope){
             var canCallOnReady = true;
             if (instance.vue){
                 if (!$(renderDiv).attr('id'))
-                    $(renderDiv).attr('id', "sossroutes_" + (new Date()).getTime() );
+                    $(renderDiv).attr('id', "davvag_app_" + (new Date()).getTime() );
 
                 instance.vue.el = '#' + $(renderDiv).attr('id');
                 new Vue(instance.vue);
@@ -126,12 +241,15 @@ WEBDOCK.component().register(function(exports, scope){
             if (canCallOnReady && instance.onReady)
                 instance.onReady(renderDiv);
             
-            callback(desc);
+                callback(desc);
         } catch (e){
             console.log ("Error Occured While Loading...");
             console.log (e);
-            errCallback(e);
+            if(errCallback)
+                errCallback(e);
         }
     }
+    exports.RenderHTML=RenderHTML;
+    exports.downloadAPP=RenderApplication;
 
 });

@@ -80,6 +80,16 @@ WEBDOCK.component().register(function(exports){
                     console.log(e);
                     bindData.loadingAppError=true;
                 },completeResponce,data);
+            },
+            appLauncher:function(launcher,data){
+                apploader.launchApp(launcher,function(d){
+                    bindData.loadingApp=true;
+                    bindData.loadingAppError=false;
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,data);
             },close: function(){
                 //bindData.product=p;
                 $('#notifyappwindow').modal('toggle');

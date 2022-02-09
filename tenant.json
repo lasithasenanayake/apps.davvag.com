@@ -1,5 +1,8 @@
 {
     "apps":{
+        "davvag-hosting-console":{
+            "version":"latest"
+        },
         "davvag-sip":{
             "version":"latest"
         },

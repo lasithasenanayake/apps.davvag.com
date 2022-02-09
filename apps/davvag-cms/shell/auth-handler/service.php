@@ -44,7 +44,7 @@ class LoginService {
 
     public function getNotification($req){
         $userprofile=Profile::getUserProfile();
-        if($userprofile->profile){
+        if(isset($userprofile->profile)){
             $result = SOSSData::Query("profile_notify_u","pid:".$userprofile->profile->id);
             if($result->success){
                 return $result->result;

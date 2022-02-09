@@ -84,7 +84,7 @@
             "fieldName":"catogory",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 10
+                "maxLen": 200
             }
         },
         {

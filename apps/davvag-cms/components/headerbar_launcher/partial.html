@@ -7,9 +7,9 @@
     <ul  v-for="app in Launchers" class="navbar-nav mr-auto">
       <li :class="subapp.Launchers.length!=0?'nav-item dropdown':'nav-item'" v-for="subapp in app.Launchers">
         <a v-if="subapp.Launchers.length!=0" class="nav-link dropdown-toggle" :id="'drp'+subapp.bid.toString()" :href="subapp.url" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> {{ subapp.name }}</a>
-        <a v-if="subapp.Launchers.length==0" class="nav-link"  :href="subapp.url"> {{ subapp.name }}</a>
+        <a v-if="subapp.Launchers.length==0" class="nav-link"  v-on:click="appLauncher(subapp,{})"> {{ subapp.name }}</a>
         <div class="dropdown-menu" :aria-labelledby="'drp'+subapp.bid.toString()">
-          <a v-for="subapp1 in subapp.Launchers" class="dropdown-item" :href="subapp1.url"> {{ subapp1.name }}</a>
+          <a v-for="subapp1 in subapp.Launchers" class="dropdown-item"  v-on:click="appLauncher(subapp,{})"> {{ subapp1.name }}</a>
         </div>
         </ul>
       </li>

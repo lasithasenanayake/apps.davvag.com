@@ -54,7 +54,9 @@
             <th class="text-center"> Product </th>
             <th class="text-center"> UOM </th>
             <th class="text-center"> Qty </th>
+            <th class="text-center"> Discount % </th>
             <th class="text-center"> Price </th>
+            <th class="text-center"> Discount </th>
             <th class="text-center"> Total </th>
           </tr>
         </thead>
@@ -75,7 +77,14 @@
             </td>
             <td> {{ item.uom }}</td>
             <td><input type="number" v-model="item.qty" placeholder='Enter Qty' class="form-control qty" step="0" min="0" v-on:change="itemsQtyChange(item)"/></td>
+            <td>
+              <div class="input-group mb-2 mb-sm-0">
+                <input type="number" v-model="item.discount_percentage" placeholder='Enter Discount' class="form-control qty" step="0" min="0" v-on:change="itemsQtyChange(item)"/>
+                <div class="input-group-addon">%</div>
+              </div>
+            </td>
             <td><input type="number" v-model="item.price" placeholder='Enter Unit Price' class="form-control price" step="0.00" min="0"/></td>
+            <td><input type="number" v-model="item.discount" placeholder='0.00' class="form-control total" readonly/></td>
             <td><input type="number" v-model="item.total" placeholder='0.00' class="form-control total" readonly/></td>
           </tr>
         </tbody>
@@ -90,6 +99,10 @@
           <tr>
             <th class="text-center">Sub Total</th>
             <td class="text-center"><input type="number" name='sub_total' placeholder='0.00' class="form-control" id="sub_total" readonly v-model="subtotal"/></td>
+          </tr>
+          <tr>
+            <th class="text-center">Discount Total</th>
+            <td class="text-center"><input type="number" name='discount' placeholder='0.00' class="form-control" id="sub_total" readonly v-model="discount"/></td>
           </tr>
           <tr>
             <th class="text-center">Tax</th>
@@ -186,7 +199,9 @@
         							<td><strong>Item</strong></td>
                       <td class="text-center"><strong>Price</strong></td>
                       <td class="text-center"><strong>UOM</strong></td>
+                      <th class="text-center"> Discount % </th>
         							<td class="text-center"><strong>Quantity</strong></td>
+                      <th class="text-center"> Discount </th>
         							<td class="text-right"><strong>Totals</strong></td>
                       </tr>
     						</thead>
@@ -196,18 +211,33 @@
     								<td>{{ invoiceitem.name }}</td>
     								<td class="text-center">{{ invoiceitem.price }}</td>
                     <td class="text-center">{{ invoiceitem.uom }}</td>
+                    <td class="text-center">{{ invoiceitem.discount_percentage }}%</td>
                     <td class="text-center">{{ invoiceitem.qty }}</td>
+                    <td class="text-center">{{ invoiceitem.discount }}</td>
     								<td class="text-right">{{ invoiceitem.total }}</td>
     							</tr>
     							<tr>
     								<td class="thick-line"></td>
                     <td class="thick-line"></td>
                     <td class="thick-line"></td>
+                    <td class="thick-line"></td>
+                    <td class="thick-line"></td>
     								<td class="thick-line text-left"><strong>Subtotal</strong></td>
     								<td class="thick-line text-right">{{ InvoiceToSave.subtotal }}</td>
     							</tr>
+                  <tr>
+    								<td class="no-line"></td>
+                    <td class="no-line"></td>
+                    <td class="no-line"></td>
+                    <td class="no-line"></td>
+                    <td class="no-line"></td>
+    								<td class="no-line text-left"><strong>Tax Amount</strong></td>
+    								<td class="no-line text-right">{{ InvoiceToSave.discount }}</td>
+    							</tr>
     							<tr>
     								<td class="no-line"></td>
+                    <td class="no-line"></td>
+                    <td class="no-line"></td>
                     <td class="no-line"></td>
                     <td class="no-line"></td>
     								<td class="no-line text-left"><strong>Tax Amount</strong></td>
@@ -215,6 +245,8 @@
     							</tr>
     							<tr>
     								<td class="no-line"></td>
+                    <td class="no-line"></td>
+                    <td class="no-line"></td>
                     <td class="no-line"></td>
                     <td class="no-line"></td>
     								<td class="no-line text-left"><strong>Total</strong></td>

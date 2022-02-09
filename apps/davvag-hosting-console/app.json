@@ -1,0 +1,47 @@
+{
+    "components": {
+        "console": {
+            "type":"component",
+            "location":"apps"
+        },
+        "backup-app": {
+            "type":"component",
+            "location":"apps"
+        },
+        "backup-files": {
+            "type":"component",
+            "location":"apps"
+        },
+        "hosting-handler": {
+            "type":"service",
+            "location":"service"
+        },
+        "test-form":{
+            "type":"component",
+            "location":"apps"
+        },
+        "sample-popup":{
+            "type":"component",
+            "location":"apps"
+        }
+    },
+    "description":{
+        "title": "Hosting Manager",
+        "author":"Davvag",
+        "version":"0.1",
+        "icon":"appicon.png"
+    },
+    "tags":["showincms","showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "console",
+            "onLoad": ["hosting-handler"],
+            "routes":{
+                "partials":{
+                    "/test":"test-form",
+                    "/app":"sample-popup"
+                }
+            }
+        }
+    }
+}

@@ -73,11 +73,13 @@
     				<div class="table-responsive">
     					<table class="table table-condensed">
     						<thead>
-                    <tr>
+                    	<tr>
         							<td><strong>Item</strong></td>
-                      <td class="text-center"><strong>Price</strong></td>
-                      <td class="text-center"><strong>UOM</strong></td>
+									<td class="text-center"><strong>Price</strong></td>
+									<td class="text-center"><strong>UOM</strong></td>
+									<th class="text-center"> Discount % </th>
         							<td class="text-center"><strong>Quantity</strong></td>
+									<th class="text-center"> Discount </th>
         							<td class="text-right"><strong>Totals</strong></td>
                       </tr>
     						</thead>
@@ -86,28 +88,45 @@
     							<tr v-for="invoiceitem in InvoiceToSave.InvoiceItems">
     								<td>{{ invoiceitem.name }}</td>
     								<td class="text-center">{{ invoiceitem.price }}</td>
-                    <td class="text-center">{{ invoiceitem.uom }}</td>
-                    <td class="text-center">{{ invoiceitem.qty }}</td>
+									<td class="text-center">{{ invoiceitem.uom }}</td>
+									<td class="text-center">{{ invoiceitem.discount_percentage }}%</td>
+									<td class="text-center">{{ invoiceitem.qty }}</td>
+									<td class="text-center">{{ invoiceitem.discount }}</td>
     								<td class="text-right">{{ invoiceitem.total }}</td>
     							</tr>
     							<tr>
     								<td class="thick-line"></td>
-                    <td class="thick-line"></td>
-                    <td class="thick-line"></td>
+                    				<td class="thick-line"></td>
+                    				<td class="thick-line"></td>
+									<td class="thick-line"></td>
+                    				<td class="thick-line"></td>
     								<td class="thick-line text-left"><strong>Subtotal</strong></td>
     								<td class="thick-line text-right">{{ InvoiceToSave.subtotal }}</td>
     							</tr>
+								<tr>
+    								<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+    								<td class="no-line text-left"><strong>Discount</strong></td>
+    								<td class="no-line text-right">{{ InvoiceToSave.discount }}</td>
+    							</tr>
     							<tr>
     								<td class="no-line"></td>
-                    <td class="no-line"></td>
-                    <td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
     								<td class="no-line text-left"><strong>Tax Amount</strong></td>
     								<td class="no-line text-right">{{ InvoiceToSave.taxamount }}</td>
     							</tr>
     							<tr>
     								<td class="no-line"></td>
-                    <td class="no-line"></td>
-                    <td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
+									<td class="no-line"></td>
     								<td class="no-line text-left"><strong>Total</strong></td>
     								<td class="no-line text-right">{{ InvoiceToSave.total }}</td>
     							</tr>

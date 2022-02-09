@@ -83,6 +83,16 @@ WEBDOCK.component().register(function(exports){
                 bindData.appName=title;
                 showTab(tab);
             },
+            appLauncher:function(launcher,data){
+                apploader.launchApp(launcher,function(d){
+                    bindData.loadingApp=true;
+                    bindData.loadingAppError=false;
+                    
+                },function(e){
+                    console.log(e);
+                    bindData.loadingAppError=true;
+                },completeResponce,data);
+            },
             downloadapp:function(appname,form,data,apptitle){
                 $('#decker1100').addClass("profile-content-show");
                 bindData.loadingApp=false;

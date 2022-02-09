@@ -90,6 +90,17 @@
                     </tr>
                   </tbody>
                 </table>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">Window Type</label>
+                    <select class="form-control" data-placeholder="Sub Application" v-model="data.window_type">
+                      <option value="popup">Popup Window</option>
+                      <option value="popup-lock">Popup Window - Lock</option>
+                      <option value="popup-large">Popup Window Large</option>
+                      <option value="popup-lock-large">Popup Window - Lock Large</option>
+                      <option value="web-uri">Web Uri</option>
+                      <option value="web-uri-new-window">Web Uri - New Window</option>
+                    </select>
+                </div>
               </div>
               <div v-if="pid==0" id="frmmain">
                 <h1>The Application Menu is Accessible to</h1>

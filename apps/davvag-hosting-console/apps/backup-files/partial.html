@@ -1,0 +1,33 @@
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Backup Files</h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+      <strong>INFO! </strong> {{error}}
+    </div>
+</div>
+<form id="form-details">
+  <table class="table table-condensed">
+    <thead>
+      <tr>
+        <td>Name</td>
+        <td>Size</td>
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="file in files">
+        <td>{{ file.name }}</td>
+        <td>{{ file.size }}</td>
+        <td><button  class="btn btn-danger btn-block" v-on:click="backup_data">Backup Database</button>
+          <button  class="btn btn-primary btn-block" v-on:click="backup_system">Backup System</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+</form>
+</div>

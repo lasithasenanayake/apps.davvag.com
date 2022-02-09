@@ -82,6 +82,24 @@
         {
             "fieldName":"pid",
             "dataType":"int"
+        },
+        {
+            "fieldName":"order_no",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"inputData",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen":2000
+            }
+        },
+        {
+            "fieldName":"window_type",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen":50
+            }
         }
     ]
 }

@@ -147,15 +147,20 @@ WEBDOCK.component().register(function(exports){
         if(bindData.data){
             service_handler.services.UserGroupsLancherAccess({appid:data.bid.toString()}).then(function(d){
                 let GrList= d.result;
+                
                 for (let i = 0; i < bindData.userGroups.length; i++) {
                     bindData.userGroups[i].selected="N";
+                    Vue.set(bindData.userGroups, i, bindData.userGroups[i]);
+                    
                 }
 
                 for (let i = 0; i < GrList.length; i++) {
                   
                     for (let x = 0; x < bindData.userGroups.length; x++) {
-                        if(bindData.userGroups[x].groupid==GrList[i].groupid)
+                        if(bindData.userGroups[x].groupid==GrList[i].groupid){
                             bindData.userGroups[x].selected="Y";
+                            Vue.set(bindData.userGroups, i, bindData.userGroups[i]);
+                        }
                     }
                 }
                 

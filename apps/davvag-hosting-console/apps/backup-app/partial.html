@@ -1,0 +1,17 @@
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Backup Console</h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+      <strong>INFO! </strong> {{error}}
+    </div>
+</div>
+<form id="form-details">
+  
+  <button  class="btn bg-primary-button btn-block" v-on:click="backup_data">Backup Database</button>
+  <button  class="btn bg-primary-button btn-block" v-on:click="backup_system">Backup System</button>
+</form>
+</div>

@@ -4,6 +4,7 @@ WEBDOCK.component().register(function(exports){
         InvItems:[{itemid:0,name:"",uom:"",qty:0,price:parseFloat("0").toFixed(2),total:parseFloat("0").toFixed(2),selected:null,invtype:"",catogory:""}],
         products:[],
         subtotal:0,
+        discount:0,
         tax:0,
         taxamount:0,
         total:0,
@@ -17,12 +18,14 @@ WEBDOCK.component().register(function(exports){
     function calcTotals(){
         removerow();
         bindData.subtotal=parseFloat(0.00);
+        bindData.discount=parseFloat(0.00);
         bindData.InvItems.forEach(element => {
-            bindData.subtotal+=parseFloat(element.total);
+            bindData.subtotal+=parseFloat(element.subtotal?element.subtotal:0);
+            bindData.discount+=parseFloat(element.discount?element.discount:0);
         });
         bindData.subtotal=parseFloat(bindData.subtotal).toFixed(2);
         bindData.taxamount=parseFloat(parseFloat(bindData.subtotal)*(parseFloat(bindData.tax)/100)).toFixed(2);
-        bindData.total= parseFloat(parseFloat(bindData.subtotal)+parseFloat(bindData.taxamount)).toFixed(2);
+        bindData.total= parseFloat(parseFloat(bindData.subtotal)+parseFloat(bindData.taxamount)).toFixed(2)-parseFloat(bindData.discount).toFixed(2);
        
     }
 
@@ -63,10 +66,14 @@ WEBDOCK.component().register(function(exports){
             itemselect:function(item){
                 console.log(JSON.stringify(item));
                 if(item.selected!==""){ 
+                    var subtotal=parseFloat(item.price)*parseFloat(item.qty);
                     item.itemid=item.selected.itemid;
                     item.name=item.selected.name;
                     item.qty=parseFloat(1);
                     item.price=parseFloat(item.selected.price).toFixed(2);
+                    item.subtotal=subtotal;
+                    item.discount_percentage=0;
+                    item.discount= subtotal*item.discount_percentage/100;
                     item.uom=item.selected.uom;
                     item.total=parseFloat(item.price*item.qty).toFixed(2);
                     item.invtype=item.selected.invType;
@@ -81,14 +88,19 @@ WEBDOCK.component().register(function(exports){
                     item.total=0;
                     item.invtype="";
                     item.catogory="";
+                    item.subtotal=0;
+                    item.discount_percentage=0;
+                    item.discount= 0;
                 }
 
                calcTotals();
                 
             },
             itemsQtyChange:function(item){
-                
-               item.total=parseFloat(item.price)*parseFloat(item.qty);
+                var subtotal=parseFloat(item.price)*parseFloat(item.qty);
+               item.subtotal=subtotal;
+               item.discount= subtotal*item.discount_percentage/100;
+               item.total=subtotal-item.discount;
                calcTotals();
                 
             }
@@ -210,6 +222,7 @@ WEBDOCK.component().register(function(exports){
             total:bindData.total,
             tax:bindData.tax,
             taxamount:bindData.taxamount,
+            discount:bindData.discount,
             paidamount:0,
             status:"Approved",
             detailsString:null,
@@ -225,6 +238,9 @@ WEBDOCK.component().register(function(exports){
                         name:element.name,
                         uom:element.uom,qty:element.qty,
                         price:element.price,
+                        subtotal:element.subtotal,
+                        discount_percentage:element.discount_percentage,
+                        discount:element.discount,
                         total:element.total,
                         invType:element.invtype,
                         catogory:element.catogory
