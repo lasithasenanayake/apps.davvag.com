@@ -38,7 +38,7 @@
             "onLoad": ["hosting-handler"],
             "routes":{
                 "partials":{
-                    "/test":"test-form",
+                    "/test":"backup-files",
                     "/app":"sample-popup"
                 }
             }

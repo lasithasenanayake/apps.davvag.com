@@ -9,7 +9,7 @@
       <strong>INFO! </strong> {{error}}
     </div>
 </div>
-<form id="form-details">
+
   <table class="table table-condensed">
     <thead>
       <tr>
@@ -20,14 +20,12 @@
     </thead>
     <tbody>
       <tr v-for="file in files">
-        <td>{{ file.name }}</td>
+        <td><a :href="'components/davvag-hosting-console/hosting-handler/service/File?file='+file.name"> {{ file.name }}</a></td>
         <td>{{ file.size }}</td>
-        <td><button  class="btn btn-danger btn-block" v-on:click="backup_data">Backup Database</button>
-          <button  class="btn btn-primary btn-block" v-on:click="backup_system">Backup System</button>
+        <td><button  class="btn btn-danger btn-block" v-on:click="delete_file(file)">Delete</button>
+          <button  class="btn btn-primary btn-block" v-on:click="download(file)">Download</button>
         </td>
       </tr>
     </tbody>
   </table>
-  
-</form>
 </div>

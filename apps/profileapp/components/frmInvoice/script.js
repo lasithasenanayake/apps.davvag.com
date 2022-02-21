@@ -63,19 +63,27 @@ WEBDOCK.component().register(function(exports){
                 handler1 = exports.getShellComponent("soss-routes");
                 handler1.appNavigate("..");
             },
+            itemLeave:calcTotals,
+            itemsDiscount:function(item){
+                var subtotal=parseFloat(item.price)*parseFloat(item.qty);
+               item.subtotal=subtotal;
+               item.discount_percentage=(item.discount/item.subtotal)*100;
+               item.total=subtotal-item.discount;
+               calcTotals();
+            },
             itemselect:function(item){
-                console.log(JSON.stringify(item));
+                //console.log(JSON.stringify(item));
                 if(item.selected!==""){ 
                     var subtotal=parseFloat(item.price)*parseFloat(item.qty);
                     item.itemid=item.selected.itemid;
                     item.name=item.selected.name;
-                    item.qty=parseFloat(1);
+                    item.qty=0;
                     item.price=parseFloat(item.selected.price).toFixed(2);
-                    item.subtotal=subtotal;
+                    item.subtotal=subtotal;                    
                     item.discount_percentage=0;
                     item.discount= subtotal*item.discount_percentage/100;
                     item.uom=item.selected.uom;
-                    item.total=parseFloat(item.price*item.qty).toFixed(2);
+                    
                     item.invtype=item.selected.invType;
                     item.catogory=item.selected.catogory;
                     

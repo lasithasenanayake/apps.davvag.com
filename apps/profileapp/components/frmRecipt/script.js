@@ -34,7 +34,7 @@ WEBDOCK.component().register(function(exports){
         bindData.subtotal=parseFloat(bindData.subtotal).toFixed(2);
         bindData.AdvanceAmount=parseFloat(bindData.AdvanceAmount).toFixed(2);
         //bindData.taxamount=parseFloat(parseFloat(bindData.subtotal)*(parseFloat(bindData.tax)/100)).toFixed(2);
-        bindData.total= parseFloat(parseFloat(bindData.subtotal)-parseFloat(bindData.paidamount)).toFixed(2);
+        bindData.total= parseFloat(parseFloat(bindData.subtotal)-parseFloat(bindData.paidamount)).toFixed(2)-bindData.AdvanceAmount;
        
     }
 

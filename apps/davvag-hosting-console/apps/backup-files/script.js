@@ -7,8 +7,8 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
         methods:{
-            backup_system:backup_system,
-            backup_data:backup_data,
+            download:download,
+            delete_file:delete_data,
            
         },
         data :bindData,
@@ -27,20 +27,16 @@ WEBDOCK.component().register(function(exports){
         loadValidator();
     }
 
-    function backup_data(){
-        lockForm();
-        scope.submitErrors = [];
-        scope.submitErrors = validator_profile.validate(); 
-        if (!scope.submitErrors){
+    function delete_data(file){
+      
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
-            service_handler.services.BackupDatabase().then(function(result){
+            service_handler.services.DeleteFile(file).then(function(result){
                 backup_files();
-                console.log(result);
                 
                 if(result.success){
-                    scope.submitInfo.push("Data backed up");
+                    scope.submitInfo.push("File deleted");
                 }else{
                     scope.submitErrors.push("Error");
                 }
@@ -51,34 +47,11 @@ WEBDOCK.component().register(function(exports){
                 unlockForm();
             });
 
-        }
+        
     }
 
-    function backup_system(){
-        lockForm();
-        scope.submitErrors = [];
-        scope.submitErrors = validator_profile.validate(); 
-        if (!scope.submitErrors){
-            lockForm();
-            scope.submitErrors = [];
-            scope.submitInfo=[];
-            service_handler.services.BackupSystem().then(function(result){
-                
-                backup_files();
-                
-                if(result.success){
-                    scope.submitInfo.push("System Backed up");
-                }else{
-                    scope.submitErrors.push("Error");
-                }
-                unlockForm();
-            }).error(function(result){
-                scope.submitErrors = [];
-                bindData.submitErrors.push("Error");
-                unlockForm();
-            });
-
-        }
+    function download(file){
+        window.open("components/davvag-hosting-console/hosting-handler/service/File?file="+file.name)
     }
 
     function backup_files(){

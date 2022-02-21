@@ -38,6 +38,42 @@ class hostingService {
         return $files;
     }
 
+    public function postDeleteFile($req,$res){
+        $data = $req->Body(true);
+        $backup_location=TENANT_RESOURCE_LOCATION. "/apps/davvag-hosting-console/backups/";
+        if(file_exists($backup_location.$data->name)){
+            unlink($backup_location.$data->name);
+            return $data;
+        }else{
+            throw new Exception("File dose not exist.");
+        }
+    }
+
+    public function getFile(){
+        $name = $_GET["file"];
+        header("Cache-Control: private, max-age=10800, pre-check=10800");
+            header("Pragma: private");
+            header("Expires: " . date(DATE_RFC822,strtotime("+2 day")));
+            header('Content-disposition: inline; filename="'.$name.'"');
+            
+            $folder =TENANT_RESOURCE_LOCATION. "/apps/davvag-hosting-console/backups/";
+            //echo "im here";
+            //echo "$folder/$name";
+            if(!file_exists("$folder/$name")){
+                $name="0";
+                //echo "im here in no file";
+                //return 0;
+            }
+            if(file_exists("$folder/$name")){
+                $type=mime_content_type("$folder/$name");
+                header("Content-Type: $type");
+                echo file_get_contents("$folder/$name");
+                exit();
+            }else{
+                return "Error Procesing";
+            }
+    }
+
     
 
 

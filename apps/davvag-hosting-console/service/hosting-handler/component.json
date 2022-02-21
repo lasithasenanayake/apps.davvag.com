@@ -33,6 +33,13 @@
             },
             "DataBackupFiles":{
                 "method" : "GET"
+            },
+            "DeleteFile":{
+                "method":"POST"
+            },
+            "File":{
+                "method":"GET",
+                "parameters":["file"]
             }           
         }
     },

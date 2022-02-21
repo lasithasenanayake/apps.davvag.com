@@ -1,7 +1,8 @@
 
 WEBDOCK.component().register(function(exports, scope){
     var $progress,$progressBar,$closebutton,$modal;
-    
+    var applist=[];
+    var AppIndex=0;
     exports.initialize = function(){
         
         //clearCeate();
@@ -50,17 +51,35 @@ WEBDOCK.component().register(function(exports, scope){
     }
 
     function RenderHTML(element,Completed,Error,appComplete,_data){
+        AppIndex=0;
+        applist=[];
         
-        element.find("[webdock-component]").each(function(i,el){
+        element.find("[webdock-app]").each(function(i,el){
+           
             var component = $(this).attr("webdock-component");
             var app=$(this).attr("webdock-app");
             var data=$(this).attr("webdock-data")?JSON.parse(btoa($(this).attr("webdock-data"))):_data;
             var element_id=app+"-"+component+(new Date()).getTime();
             $(this).attr('id', element_id);
-            //$(this).prop("id",element_id);
-            
-            RenderApplication(app,component,element_id,Completed,Error,appComplete,data);
+            applist.push({"component":component,"app":app,"data":data,"element_id":element_id,
+            "Completed":Completed,"Error":Error,"appComplete":appComplete});
         });
+
+        loadApp();
+    }
+
+    function loadApp(){
+        RenderApplication(applist[AppIndex].app,applist[AppIndex].component,applist[AppIndex].element_id,function(r){
+            AppIndex++;
+            if(applist.length>AppIndex){
+                loadApp();
+            }
+        },function(e){
+            AppIndex++;
+            if(applist.length>AppIndex){
+                loadApp();
+            }
+        },applist[AppIndex].appComplete,applist[AppIndex].data);
     }
 
     function popup_large(id,title){
