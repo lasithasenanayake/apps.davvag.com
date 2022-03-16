@@ -23,7 +23,8 @@ class hostingService {
     }
 
     public function getDataBackupFiles(){
-        $backup_location=TENANT_RESOURCE_LOCATION. "/apps/davvag-hosting-console/backups/";
+        $backup_location = MEDIA_FOLDER . "/backup/".  DATASTORE_DOMAIN . "/";
+        
         $scanned_directory = array_diff(scandir($backup_location), array('..', '.'));
         $files=[];
         foreach ($scanned_directory as $key => $value) {
@@ -40,7 +41,7 @@ class hostingService {
 
     public function postDeleteFile($req,$res){
         $data = $req->Body(true);
-        $backup_location=TENANT_RESOURCE_LOCATION. "/apps/davvag-hosting-console/backups/";
+        $backup_location = MEDIA_FOLDER . "/backup/".  DATASTORE_DOMAIN . "/";
         if(file_exists($backup_location.$data->name)){
             unlink($backup_location.$data->name);
             return $data;
@@ -54,8 +55,7 @@ class hostingService {
         header("Cache-Control: private, max-age=10800, pre-check=10800");
             header("Pragma: private");
             header('Content-disposition: inline; filename="'.$name.'"');
-            
-            $folder =TENANT_RESOURCE_LOCATION. "/apps/davvag-hosting-console/backups/";
+            $folder = MEDIA_FOLDER . "/backup/".  DATASTORE_DOMAIN . "/";
             //echo "im here";
             //echo "$folder/$name";
             if(!file_exists("$folder/$name")){
