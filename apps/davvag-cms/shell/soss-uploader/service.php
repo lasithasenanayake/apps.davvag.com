@@ -121,6 +121,7 @@ class UploaderService {
                 header("Content-Type: $type");
                 header("Content-Length: " . filesize("$folder/$name"));
                 // dump the picture and stop the script
+                $fp = fopen("$folder/$name", 'rb');
                 fpassthru($fp);
                 exit();
             }else{
