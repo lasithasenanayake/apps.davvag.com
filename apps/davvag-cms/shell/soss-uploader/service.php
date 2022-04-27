@@ -119,7 +119,9 @@ class UploaderService {
             if(file_exists("$folder/$name")){
                 $type=mime_content_type("$folder/$name");
                 header("Content-Type: $type");
-                echo file_get_contents("$folder/$name");
+                header("Content-Length: " . filesize("$folder/$name"));
+                // dump the picture and stop the script
+                fpassthru($fp);
                 exit();
             }else{
                 return "Error Procesing";
