@@ -1,8 +1,8 @@
 {
     "variables":{
         "MAIN_STORE_DOMAIN":"ardemo.davvag.com",
-        "AUTH_DOMAIN":"gg.com",
-        "DATASTORE_DOMAIN":"gg.com",
+        "AUTH_DOMAIN":"localhost",
+        "DATASTORE_DOMAIN":"localhost",
         "MAPS_APIKEY":"AIzaSyCKsfJwJG7pfmMPXYXZyex8gtj_dw2mqro",
         "FBLAPP_ID":"1495359210619523",
         "FBLAPP_S":"58222a1cf78f04e2073173f480a5b40b",

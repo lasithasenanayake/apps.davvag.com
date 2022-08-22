@@ -426,19 +426,19 @@
 </section>
 
 
-<script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/jquery-migrate-1.2.1.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/modernizr.min.js"></script>
-<script src="js/jquery.sparkline.min.js"></script>
-<script src="js/jquery.cookies.js"></script>
+<script src="assets/dock/js/jquery-1.11.1.min.js"></script>
+<script src="assets/dock/js/jquery-migrate-1.2.1.min.js"></script>
+<script src="assets/dock/js/bootstrap.min.js"></script>
+<script src="assets/dock/js/modernizr.min.js"></script>
+<script src="assets/dock/js/jquery.sparkline.min.js"></script>
+<script src="assets/dock/js/jquery.cookies.js"></script>
 
-<script src="js/toggles.min.js"></script>
-<script src="js/retina.min.js"></script>
+<script src="assets/dock/js/toggles.min.js"></script>
+<script src="assets/dock/js/retina.min.js"></script>
 
-<script src="js/select2.min.js"></script>
+<script src="assets/dock/js/select2.min.js"></script>
 
-<script src="js/custom.js"></script>
+<script src="assets/dock/js/custom.js"></script>
 <script>
     jQuery(document).ready(function(){
         

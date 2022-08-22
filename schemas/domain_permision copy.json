@@ -1,7 +1,7 @@
 {
     "fields" : [
         {
-            "fieldName":"userid",
+            "fieldName":"key",
             "dataType":"java.lang.String",
             "annotations":{
                 "isPrimary": true,
@@ -9,36 +9,25 @@
             }
         },
         {
-            "fieldName":"email",
+            "fieldName":"userid",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen":255
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"username",
+            "fieldName":"domain",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen":255
+                "maxLen": 100
             }
         },
         {
-            "fieldName":"name",
+            "fieldName":"group",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen":255
+                "maxLen": 100
             }
-        },
-        {
-            "fieldName":"password",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen":255
-            }
-        },
-        {
-            "fieldName":"otherdata",
-            "dataType":"java.lang.String"
         }
     ]
 }
