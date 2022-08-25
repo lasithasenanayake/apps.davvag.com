@@ -16,28 +16,31 @@
         "allUom": {
             "method": "GET",
             "route": "/all",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/uom"
+            "destMethod": "query",
+            "namespace":"uom",
+            "destUrl" : "SOSSData"
         },
         "insertUom": {
             "method": "POST",
             "route": "/insert",
-            "destMethod": "POST",
-            "destUrl" : "http://localhost:9000/data/uom",
-            "bodyTemplate" : "{\"object\":@@body@@}"
+            "destMethod": "insert",
+            "namespace":"uom",
+            "destUrl" : "SOSSData"
         },
         "updateUom": {
             "method": "POST",
             "route": "/update",
-            "destMethod": "PUT",
-            "destUrl" : "http://localhost:9000/data/uom",
-            "bodyTemplate" : "{\"object\":@@body@@}"
+            "destMethod": "update",
+            "namespace":"uom",
+            "destUrl" : "SOSSData"
         },
         "getUomById": {
             "method": "GET",
             "route": "/byid/@catid",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/uom?query=id:@catid"
+            "query":"id:@catid",
+            "destMethod": "query",
+            "namespace":"uom",
+            "destUrl" : "SOSSData"
         }
         
     }

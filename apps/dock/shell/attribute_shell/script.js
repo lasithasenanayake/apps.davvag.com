@@ -372,6 +372,9 @@ WEBDOCK.component().register(function(exports){
         }
     }*/
     function data_retrive() {
+        if(formdata==null || formdata.Fields==null){
+            return;
+        }
         for (let index = 0; index < formdata.Fields.length; index++) {
             const element = formdata.Fields[index];
             switch (element.type) {
@@ -408,6 +411,9 @@ WEBDOCK.component().register(function(exports){
 
     function generatePrimary(){
         primaryData=[];
+        if(formdata==null || formdata.Fields==null){
+            return;
+        }
         for (let index = 0; index < formdata.Fields.length; index++) {
             const element = formdata.Fields[index];
             if(element.primary){

@@ -1,0 +1,68 @@
+{
+    "fields" : [
+        {
+            "fieldName":"key",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "isPrimary": true,
+                "maxLen":50
+            }
+        },
+        {
+            "fieldName":"groupid",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"domain",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"appCode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"type",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"code",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName":"description",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName":"uri",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"operation",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        }
+    ]
+}

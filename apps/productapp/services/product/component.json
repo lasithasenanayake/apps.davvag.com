@@ -41,100 +41,120 @@
         "allProducts": {
             "method": "GET",
             "route": "/all",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/products"
+            "destMethod": "query",
+            "namespace":"products",
+            "destUrl" : "SOSSData"
         },
         "insertProduct": {
             "method": "POST",
             "route": "/insert",
-            "destMethod": "POST",
-            "destUrl" : "http://localhost:9000/data/products",
+            "destMethod": "insert",
+            "namespace":"products",
+            "destUrl" : "SOSSData",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "updateProduct": {
             "method": "POST",
             "route": "/update",
-            "destMethod": "PUT",
-            "destUrl" : "http://localhost:9000/data/products",
+            "destMethod": "update",
+            "namespace":"products",
+            "destUrl" : "SOSSData",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "deleteProduct": {
             "method": "POST",
             "route": "/delete",
-            "destMethod": "DELETE",
-            "destUrl" : "http://localhost:9000/data/products",
+            "destMethod": "delete",
+            "namespace":"products",
+            "destUrl" : "SOSSData",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "getByCategory": {
             "method": "GET",
             "route": "/bycat/@catid",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/products?query=catogory:@catid"
+            "destMethod": "query",
+            "query":"catogory:@catid",
+            "namespace":"products",
+            "destUrl" : "SOSSData"
         },
         "getById": {
             "method": "GET",
             "route": "/byid/@iid",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/products?query=itemid:@iid"
+            "destMethod": "query",
+            "namespace":"products",
+            "query":"itemid:@iid",
+            "destUrl" : "SOSSData"
         },
         "allCategories": {
             "method": "GET",
             "route": "/categories/all",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/productcat"
+            "destMethod": "query",
+            "namespace":"productcat",
+            "destUrl" : "SOSSData"
         },
         "insertCategory": {
             "method": "POST",
             "route": "/categories/insert",
-            "destMethod": "POST",
-            "destUrl" : "http://localhost:9000/data/productcat",
+            "destMethod": "insert",
+            "destUrl" : "SOSSData",
+            "namespace":"productcat",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "deleteCategory": {
             "method": "POST",
             "route": "/categories/delete",
-            "destMethod": "DELETE",
-            "destUrl" : "http://localhost:9000/data/productcat",
+            "destMethod": "delete",
+            "destUrl" : "SOSSData",
+            "namespace":"productcat",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "updateCategory": {
             "method": "POST",
             "route": "/categories/update",
-            "destMethod": "PUT",
-            "destUrl" : "http://localhost:9000/data/productcat",
+            "destMethod": "update",
+            "destUrl" : "SOSSData",
+            "namespace":"productcat",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "getCategoryById": {
             "method": "GET",
             "route": "/categories/byid/@catid",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/productcat?query=id:@catid"
+            "destMethod": "query",
+            "namespace":"productcat",
+            "query":"id:@catid",
+            "destUrl" : "SOSSData"
         },
         "getStoreMappings": {
             "method": "GET",
             "route": "/storemappings/get/@storeid",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/storeproductmapping?query=storeid:@storeid"
+            "destMethod": "query",
+            "namespace":"storeproductmapping",
+            "query":"storeid:@storeid",
+            "destUrl" : "SOSSData"
         },
         "createStoreMappings": {
             "method": "POST",
             "route": "/storemappings/create",
-            "destMethod": "POST",
-            "destUrl" : "http://localhost:9000/data/storeproductmapping",
+            "destMethod": "insert",
+            "namespace":"storeproductmapping",
+            "destUrl" : "SOSSData",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "deleteStoreMappings": {
             "method": "POST",
             "route": "/storemappings/delete",
-            "destMethod": "DELETE",
-            "destUrl" : "http://localhost:9000/data/storeproductmapping",
+            "destMethod": "delete",
+            "namespace":"storeproductmapping",
+            "destUrl" : "SOSSData",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },
         "getImagesById": {
             "method": "GET",
             "route": "/Imgsbyid/@catid",
             "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/products_image?query=articalid:@catid"
+            "namespace":"products_image",
+            "destUrl" : "SOSSData",
+            "query":"articalid:@catid"
         }
         
     }
