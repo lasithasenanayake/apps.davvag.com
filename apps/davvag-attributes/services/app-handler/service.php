@@ -45,6 +45,24 @@ class appService {
                     }else{
                         return null;
                     }
+                }else{
+                    if(file_exists("$folder_attributes/$file.json")){
+                        $tmpData=json_decode(file_get_contents("$folder_attributes/$file.json"));
+                        $data=new stdClass();
+                        if(is_array($tmpData)){
+                            $data->Fields=$tmpData;
+                        }else{
+                            $data=$tmpData;
+                        }
+                        $data->id=$file;
+                        $data->main_node=substr($file,0,strpos($file,"_"));
+                        $data->name=substr($file,strpos($file,"_")+1,strlen($file)-strpos($file,"_"));
+                        //$data->Fields=json_decode(file_get_contents("$folder_attributes/$file.json"));
+                        
+                        return $data;
+                    }else{
+                        return null;
+                    }
                 }
             }
             

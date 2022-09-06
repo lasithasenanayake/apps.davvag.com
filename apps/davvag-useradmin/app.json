@@ -20,7 +20,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "users",
-            "onLoad": ["user-handler"],
+            "onLoad": ["user-handler","showincms"],
             "routes":{
                 "partials":{
                     "/keyword" : "users"

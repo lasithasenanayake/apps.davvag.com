@@ -1,7 +1,7 @@
 {
     "fields" : [
         {
-            "fieldName":"key",
+            "fieldName":"keyid",
             "dataType":"java.lang.String",
             "annotations":{
                 "isPrimary": true,
@@ -26,21 +26,21 @@
             "fieldName":"appCode",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 10
+                "maxLen": 100
             }
         },
         {
             "fieldName":"type",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 10
+                "maxLen": 100
             }
         },
         {
             "fieldName":"code",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 50
+                "maxLen": 100
             }
         },
         {
@@ -54,14 +54,14 @@
             "fieldName":"uri",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 10
+                "maxLen": 100
             }
         },
         {
             "fieldName":"operation",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 50
+                "maxLen": 100
             }
         }
     ]
