@@ -237,7 +237,7 @@ WEBDOCK.component().register(function(exports){
         filters:{
               dateformate:function(v){
                   if(!v){
-                      return ""
+                      return "";
                   }else{
                     return moment(v, "MM-DD-YYYY hh:mm:ss").format('MMMM Do YYYY');
                   }
@@ -267,6 +267,9 @@ WEBDOCK.component().register(function(exports){
     }
 
     function genDate(date){
+        if(date==undefined){
+            return "EXPIRED{Date Not Difined}";
+        }
         s=date.split("-");
         year =s[2].split(" ");
         expDate=new Date(year[0],parseInt(s[0])-1,s[1]);
