@@ -92,7 +92,7 @@ class ProductServices {
             $result = SOSSData::Insert ("orderdetails_pending", $order->InvoiceItems,$tenantId = null);
             return $order;
         }catch(Exception $e){
-            $req->SetError($e);
+            $res->SetError($e->getMessage());
         }
     }
 
