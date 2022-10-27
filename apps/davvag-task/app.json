@@ -1,0 +1,27 @@
+{
+    "components": {
+       
+    },
+    "description":{
+        "title": "Davvag Task",
+        "author":"Davvag",
+        "version":"0.8",
+        "icon":"appicon.png"
+    },
+    "tags":["showincms,showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "frmproduct-list",
+            "onLoad": ["productsvr"],
+            "routes":{
+                "partials":{
+                    "/checkout" : "partial-cart",
+                    "/checkout-complete" : "partial-cart-checkout",
+                    "/order-complete" : "order-complete",
+                    "/bid_confirmation":"bid-cofirmation",
+                    "/cat-list":"product-catogory-list"
+                }
+            }
+        }
+    }
+}
