@@ -1,6 +1,17 @@
 {
     "components": {
-       
+        "TestApp":{
+            "type":"component",
+            "location":"apps"
+        },
+        "viewObject":{
+            "type":"component",
+            "location":"apps"
+        },
+        "taskapi":{
+            "type":"service",
+            "location":"service"
+        }
     },
     "description":{
         "title": "Davvag Task",
@@ -8,14 +19,14 @@
         "version":"0.8",
         "icon":"appicon.png"
     },
-    "tags":["showincms,showindock"],
+    "tags":["showincms","showindock"],
     "configuration":{
         "webdock":{
-            "startupComponent" : "frmproduct-list",
-            "onLoad": ["productsvr"],
+            "startupComponent" : "TestApp",
+            "onLoad": ["askapi"],
             "routes":{
                 "partials":{
-                    "/checkout" : "partial-cart",
+                    "/viewObject" : "viewObject",
                     "/checkout-complete" : "partial-cart-checkout",
                     "/order-complete" : "order-complete",
                     "/bid_confirmation":"bid-cofirmation",

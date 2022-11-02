@@ -1,0 +1,26 @@
+{
+    "name" : "Task Api",
+    "description":"Stripe IPG Hangler",
+    "author":"Lasitha Senanayake",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "TaskApi",
+        "methods" : {
+            
+        }
+    },
+    "transformers": {
+        
+    }
+    
+}
