@@ -12,6 +12,9 @@ WEBDOCK.component().register(function(exports){
             addItem:function(){
               bindData.items.push({"item_type":bindData.item_type,"item_permision":bindData.item_permision,"item_value":bindData.item_value});
             },
+            loadVlues:function(){
+
+            },
             submit:function(){alert("test");}
            
         },
@@ -24,7 +27,7 @@ WEBDOCK.component().register(function(exports){
 
     function initialize(){
         
-        autocomplete(document.getElementById("myInput"), countries);
+        //autocomplete(document.getElementById("myInput"), bindData.item_values);
        // autocomplete(document.getElementById("test"), countries);
     }
     
@@ -49,14 +52,14 @@ WEBDOCK.component().register(function(exports){
             /*for each item in the array...*/
             for (i = 0; i < arr.length; i++) {
               /*check if the item starts with the same letters as the text field value:*/
-              if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+              if (arr[i].text.substr(0, val.length).toUpperCase() == val.toUpperCase()) {
                 /*create a DIV element for each matching element:*/
                 b = document.createElement("DIV");
                 /*make the matching letters bold:*/
                 b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                b.innerHTML += arr[i].substr(val.length);
+                b.innerHTML += arr[i].text.substr(val.length);
                 /*insert a input field that will hold the current array item's value:*/
-                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                b.innerHTML += "<input type='hidden' value='" + arr[i].val + "'>";
                 /*execute a function when someone clicks on the item value (DIV element):*/
                 b.addEventListener("click", function(e) {
                     /*insert the value for the autocomplete text field:*/

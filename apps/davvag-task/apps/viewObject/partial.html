@@ -15,21 +15,19 @@
         <thead>
           <tr>
              <td>
-              <select name="item_type" class="form-contdol"  id="item_type" placeholder="select type" v-model="item_type">
+              <select name="item_type" class="form-contdol"  id="item_type" placeholder="select type" v-model="item_type" v-on:change="loadVlues();">
                 <option value="user">User</option>
                 <option value="group">Group</option>
               </select>
               </td>
               <td> <select name="item_permision" class="form-contdol" id="item_permision" placeholder="select Permision" v-model="item_permision">
-                <option value="user">View</option>
-                <option value="group">Edit</option>
-                <option value="group">Full</option>
+                <option value="View">View</option>
+                <option value="Edit">Edit</option>
+                <option value="Full">Full</option>
               </select></td>
               <td>
                 <select name="item_value" class="form-contdol" id="item_value" placeholder="-" v-model="item_value">
-                  <option value="user">View</option>
-                  <option value="group">Edit</option>
-                  <option value="group">Full</option>
+                  <option v-bind:value="v.value" v-for="v in item_values">{{ v.text }}</option>
                 </select>
               </td>
               <td>
