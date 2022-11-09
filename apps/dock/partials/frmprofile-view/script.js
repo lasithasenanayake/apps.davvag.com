@@ -98,7 +98,6 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
 
     function initializeComponent(){
-        profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
         uploaderInstance = exports.getComponent ("soss-uploader");
         //localStorage.profile

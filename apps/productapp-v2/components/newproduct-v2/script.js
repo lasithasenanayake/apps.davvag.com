@@ -171,7 +171,6 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
-        uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         attribute=exports.getShellComponent("attribute_shell");
         editor=$("#txtcaption").Editor();

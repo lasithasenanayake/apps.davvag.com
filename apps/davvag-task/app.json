@@ -11,6 +11,10 @@
         "taskapi":{
             "type":"service",
             "location":"service"
+        },
+        "viewObjectAPI":{
+            "type":"service",
+            "location":"service"
         }
     },
     "description":{
@@ -23,7 +27,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "TestApp",
-            "onLoad": ["askapi"],
+            "onLoad": ["askapi","viewObjectAPI"],
             "routes":{
                 "partials":{
                     "/viewObject" : "viewObject",

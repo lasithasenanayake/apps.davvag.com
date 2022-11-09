@@ -1,0 +1,37 @@
+{
+    "name" : "View Object Api",
+    "description":"This allows to set permision to a record.",
+    "author":"Lasitha Senanayake",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "ViewObjectApi",
+        "methods" : {
+            "PermisionValues" : {
+                "method" : "GET",
+                "parameters": ["item_type"]
+            },
+            "Save":{
+                "method":"POST"
+            },
+            "UserVieObjects":{
+                "method":"GET",
+                "parameters":[]
+            }
+
+        }
+    },
+    "transformers": {
+        
+    }
+    
+}

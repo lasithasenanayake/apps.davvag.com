@@ -54,7 +54,13 @@ class ProductServices {
             $mainObj->parameters->cat = isset($_GET["cat"]) ? $_GET["cat"] : "";
 
             $resultObj = SOSSData::ExecuteRaw("ds_products_v2", $mainObj);
-            return $resultObj->result;
+            if($resultObj->success){
+                return $resultObj->result;
+            }else{
+                if(strpos($resultObj->message,"attr_bi")!==false){
+                    SOSSData::Query("attr_bi","");
+                }
+            }
         } else {
             
             $mainObj = new stdClass();

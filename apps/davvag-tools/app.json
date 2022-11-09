@@ -11,6 +11,13 @@
         "davvag-app-downloader":{
             "type":"service",
             "location":"services"
+        },"viewObject":{
+            "type":"component",
+            "location":"apps"
+        },
+        "viewObjectAPI":{
+            "type":"service",
+            "location":"services"
         }
     },
     "description":{

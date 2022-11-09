@@ -12,7 +12,8 @@
   <form id="form-details">
     <div class="form-group">
       <label for="exampleInputEmail1">Project Name</label>
-      <input type="text" class="form-control" id="test" aria-describedby="emailHelp" placeholder="Enter Project Name" v-model="data.projectName">
+      <input type="text" class="form-control" id="test" aria-describedby="emailHelp" placeholder="Enter Project Name" v-model="data.projectName"><div class="dropdown ml-2"><button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-light btn-sm dropdown-toggle w-sm">
+        Everyone <i class="mdi mdi-chevron-down"></i></button> <div id="dr-status" class="dropdown-menu dropdown-menu-right show" x-placement="top-end" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(-70px, -195px, 0px);" x-out-of-boundaries=""><a class="dropdown-item">Everyone</a> <a class="dropdown-item">Nobody</a> <a class="dropdown-item">Followers</a></div></div>
       <small id="emailHelp" class="form-text text-muted">Project Name.</small>
     </div>
     <div class="form-group">

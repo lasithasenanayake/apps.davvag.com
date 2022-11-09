@@ -1,0 +1,26 @@
+{
+    "fields" : [
+        {
+            "fieldName":"viewObjectID",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        }, 
+        {
+            "fieldName":"keyValue",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"owner",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        }
+    ]
+}

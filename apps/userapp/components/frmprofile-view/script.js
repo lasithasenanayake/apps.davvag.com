@@ -243,7 +243,6 @@ WEBDOCK.component().register(function(exports){
             cropper.initialize(300,300);
             cropper1=cropper;
         });
-        profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-data");
         authhandler = exports.getComponent ("login-handler");
         shellLogin = exports.getShellComponent ("auth-handler");
