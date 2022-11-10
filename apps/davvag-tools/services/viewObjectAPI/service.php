@@ -20,25 +20,13 @@ class ViewObjectApi {
                 $header=$d->result[0];
             }
         }
-        $admin=false;
+        
         foreach ($data as $key => $value) {
             # code...
-            if($value->item_type=="user" && $value->item_value==$user->userid){
-                $admin=true;
-            }
             array_push($keySort,$value->item_value."-".$value->item_permision);
             
         }
-        if(!$admin){
-            $uprm =new stdClass();
-            $uprm->item_type="user";
-            $uprm->item_permision="full";
-            $uprm->item_value=$user->userid;
-            $uprm->item_text=$user->email;
-            array_push($keySort,$user->userid."-full");
-            array_push($data,$uprm);
-
-        }
+        
         asort($keySort);
         
         $keyValue=md5(implode("_",$keySort));
