@@ -8,12 +8,12 @@ WEBDOCK.component().register(function(exports){
     var vueData =  {
         methods:{
             sellersiginup:function(){
-                scope.submitErrors = [];
-                scope.submitErrors = validator_profile.validate();
-                if(!scope.submitErrors){ 
+                //bindData.submitErrors = [];
+                //bindData.submitErrors = validator_profile.validate();
+                //if(!bindData.submitErrors){ 
                     $("#form-details-2").toggle();
                     $("#form-details-1").toggle();
-                }
+                //}
             },
             biosiginup:function(){
                 $("#form-details-2").toggle();

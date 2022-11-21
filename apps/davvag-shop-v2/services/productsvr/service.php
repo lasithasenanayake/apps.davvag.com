@@ -194,6 +194,7 @@ class ProductServices {
             $detail->name = $item->name;
             $detail->uom = $item->uom;
             $detail->qty = $item->qty;
+            $detail->catogory=$item->catogory;
             $detail->price = $item->price-($item->price*($item->discountper/100));
             $detail->total = $item->qty * $detail->price;
             $profile->order->total += ($detail->total);

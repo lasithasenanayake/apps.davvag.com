@@ -5,7 +5,7 @@ WEBDOCK.component().register(function(exports){
         },
         data :bindData,
         onReady: function(s){
-            var menuhandler  = exports.getComponent("soss-data");
+            var menuhandler  = exports.getShellComponent("soss-data");
             if(sessionStorage.blogheader){
     
                 //document.title=JSON.parse(sessionStorage.blogheader).name;

@@ -599,7 +599,7 @@ class Davvag_Order{
                             $serviceitems->name=$value->name;
                             $serviceitems->purchaseddate=$Transaction->invoiceDate;
                             $serviceitems->price=$value->total;
-                            $serviceitems->catogory=$value->catogory;
+                            $serviceitems->catogory=isset($value->catogory)?$value->catogory:"unset";
                             $serviceitems->uom=$value->uom;
                             $serviceitems->qty=$value->qty;
                             $serviceitems->status="ToBeActive";

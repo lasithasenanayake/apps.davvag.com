@@ -26,9 +26,16 @@
         "version":"0.1",
         "icon":""
     },
-    "tags":[],
+    "tags":["showincms","showindock"],
     "configuration":{
+        
         "webdock":{
+            "onLoad": ["viewObjectAPI"],
+            "routes":{
+                "partials":{
+                    "/viewObject" : "viewObject"
+                }
+            }
         }
     }
 }

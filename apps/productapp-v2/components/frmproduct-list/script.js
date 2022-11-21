@@ -13,6 +13,27 @@ WEBDOCK.component().register(function(exports){
         },
         data:bindData,
         methods: {
+            ChangePermision:function(item){
+                
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("davvag-tools","viewObject",item.sysviewobject,function(data){
+                    //console.log(JSON.stringify(data));
+                    item.sysviewobject=data;
+                    var handler = exports.getComponent("product");
+                    var promiseObj = handler.services.Save(item);
+           
+            
+
+                    promiseObj
+                    .then(function(result){
+                        alert("Product has been updated");
+                    })
+                    .error(function(){
+                        alert("Error changing record permision");
+                    });
+                    shellpopup.close();
+                },"Change Record Permision",false,true);
+            },
             searchItems:searchItems,
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");

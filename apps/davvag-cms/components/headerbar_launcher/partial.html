@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <a class="navbar-brand" :href="url" v-if="headerdata.icon==''">{{ name }}</a>
-  <a class="navbar-brand" :href="url" v-if="headerdata.icon!=''"><img :src="headerdata.icon" height="40px"></a>
+  <a class="navbar-brand" :href="url" v-if="headerdata.icon!=''"><img :alt="name" :src="headerdata.icon" height="40px"></a>
 
   
   <div class="collapse navbar-collapse" id="navbarColor01">
@@ -9,7 +9,7 @@
         <a v-if="subapp.Launchers.length!=0" class="nav-link dropdown-toggle" :id="'drp'+subapp.bid.toString()" :href="subapp.url" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> {{ subapp.name }}</a>
         <a v-if="subapp.Launchers.length==0" class="nav-link"  v-on:click="appLauncher(subapp,{})"> {{ subapp.name }}</a>
         <div class="dropdown-menu" :aria-labelledby="'drp'+subapp.bid.toString()">
-          <a v-for="subapp1 in subapp.Launchers" class="dropdown-item"  v-on:click="appLauncher(subapp,{})"> {{ subapp1.name }}</a>
+          <a v-for="subapp1 in subapp.Launchers" class="dropdown-item"  v-on:click="appLauncher(subapp1,{})"> {{ subapp1.name }}</a>
         </div>
         </ul>
       </li>
@@ -17,7 +17,7 @@
     
     
     <form class="form-inline my-2 my-lg-0" v-if="searchbar">
-      <input class="form-control mr-sm-2" type="text" place holder="Search">
+      <input class="form-control mr-sm-2" type="text" placeholder="Search">
       <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
     </form>
   </div>

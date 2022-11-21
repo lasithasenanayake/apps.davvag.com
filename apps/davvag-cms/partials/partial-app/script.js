@@ -176,6 +176,11 @@ WEBDOCK.component().register(function(exports){
                 canCallOnReady = false;
 
                 if (instance.vue.onReady){
+                    instance.Complete=function(data){
+                        instance.onStatusChange(data);
+                        //alert("Complete");
+                    };
+                    instance.renderDiv=renderDiv;
                     instance.vue.onReady(scope,renderDiv);
                 }
             }

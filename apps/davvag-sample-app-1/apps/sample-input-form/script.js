@@ -22,6 +22,7 @@ WEBDOCK.component().register(function(exports){
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }
+        exports.Complete({});
         loadValidator();
     }
 
@@ -38,6 +39,7 @@ WEBDOCK.component().register(function(exports){
                 console.log(result);
                 
                 if(result.success){
+                    exports.Complete(result.result);
                     scope.submitInfo.push("result.result.message");
                 }else{
                     scope.submitErrors.push("Error");

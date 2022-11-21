@@ -11,6 +11,7 @@ WEBDOCK.component().register(function(exports){
            open:function(){
                 let shellpopup =exports.getShellComponent("app_popup");
                 shellpopup.open("davvag-sample-app-1","sample-input-form",{},function(data){
+                    console.log(JSON.stringify(data));
                     shellpopup.close();
                 },"popup name");
 

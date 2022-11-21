@@ -43,7 +43,14 @@ WEBDOCK.component().register(function(exports){
               service_handler.services.Save(bindData.items).then(function(result){ 
                 if(result.success){
                     bindData.items=result.result;
-                    
+                    if(bindData.items.length>0){
+                      exports.Complete(bindData.items[0].viewObjectID);
+                    }else{
+                      if(exports.dataObject!=null)
+                        exports.Complete(exports.dataObject);
+                      else
+                        exports.Complete(0);
+                    }
                 }else{
                     bindData.submitErrors.push("Error");
                 }

@@ -62,7 +62,7 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         profileHandler = exports.getShellComponent("soss-data");
         //profileHandler = exports.getShellComponent("soss-data");
-        uploaderInstance = exports.getComponent ("soss-uploader");
+        uploaderInstance = exports.getShellComponent ("soss-uploader");
         if(routeData.tid!=null){
             var query=[{storename:"orderheader",search:"invoiceNo:"+routeData.tid},{storename:"orderdetails",search:"invoiceNo:"+routeData.tid}];
                     profileHandler.services.q(query)

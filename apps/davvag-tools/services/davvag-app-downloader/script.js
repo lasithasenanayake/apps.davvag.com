@@ -10,6 +10,7 @@ WEBDOCK.component().register(function(exports, scope){
     var callback;
     var errCallback,completed,data_collected;
 
+
     exports.launchApp=function(launcherInfo,cb,er,cbcompleted,data){
         let launcher_data=GetLauncherData(launcherInfo,data);
         window.launcher_data=window.launcher_data?window.launcher_data:{};
@@ -250,8 +251,15 @@ WEBDOCK.component().register(function(exports, scope){
                     if(completed){
                         var obj={};
                         Object.assign(obj,data_collected);
+                        instance.dataObject=obj;
+                        instance.Complete=completed;
+                        instance.renderDiv=renderDiv;
                         instance.vue.onReady(scope,{status:"internalcall",data:obj,completedEvent:completed,renderDiv:renderDiv});
                     }else{
+                        instance.Complete=function(data){
+                            instance.onStatusChange(data);
+                        };
+                        instance.renderDiv=renderDiv;
                         instance.vue.onReady(scope,renderDiv);
                     }
                 }
