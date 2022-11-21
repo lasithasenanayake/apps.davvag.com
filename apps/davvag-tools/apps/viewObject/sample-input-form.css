@@ -1,10 +1,11 @@
 .input-form {
-    padding-top: 20px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 20px;
+    padding-top: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 10px;
     margin: auto;
-    width: 480px;
+    width: 570px;
+    height: 100%;
     border: var(--backcolor);
     margin:10vh auto;
     background-color:var(--formBackColor);

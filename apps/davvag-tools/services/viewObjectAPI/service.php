@@ -65,7 +65,11 @@ class ViewObjectApi {
             $res->SetError($r);
             return $r;
        }
+    }
 
+    public function getFindObject($req,$res){
+        $r=SOSSData::Query("user_view_objects","viewObjectID:".$req->Query()->objectID);
+        return $r->result;
     }
 
     public function getUserVieObjects($req,$res){

@@ -26,6 +26,10 @@
             "UserVieObjects":{
                 "method":"GET",
                 "parameters":[]
+            },
+            "FindObject":{
+                "method":"GET",
+                "parameters":["objectID"]
             }
 
         }

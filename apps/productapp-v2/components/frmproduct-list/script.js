@@ -105,7 +105,8 @@ WEBDOCK.component().register(function(exports){
                             description:element.description,
                             price:element.price,
                             imgurl:element.imgurl,
-                            uom:element.uom
+                            uom:element.uom,
+                            sysviewobject:element.sysviewobject
                         })
                     });
                     

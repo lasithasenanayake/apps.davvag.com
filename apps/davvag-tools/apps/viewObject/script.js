@@ -76,6 +76,19 @@ WEBDOCK.component().register(function(exports){
       if(!service_handler){
           console.log("Service has not Loaded please check.")
       }
+      if(exports.dataObject){
+        service_handler.services.FindObject({objectID:exports.dataObject}).then(function(result){ 
+          if(result.success){
+              bindData.items=result.result;
+          }else{
+              bindData.submitErrors.push("Error");
+          }
+        }).error(function(result){
+            bindData.submitErrors = [];
+            bindData.submitErrors.push("Error");
+            
+        });
+      }
         //autocomplete(document.getElementById("myInput"), bindData.item_values);
        // autocomplete(document.getElementById("test"), countries);
     }

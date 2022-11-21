@@ -251,10 +251,10 @@ WEBDOCK.component().register(function(exports, scope){
                     if(completed){
                         var obj={};
                         Object.assign(obj,data_collected);
-                        instance.dataObject=obj;
+                        instance.dataObject=data_collected;
                         instance.Complete=completed;
                         instance.renderDiv=renderDiv;
-                        instance.vue.onReady(scope,{status:"internalcall",data:obj,completedEvent:completed,renderDiv:renderDiv});
+                        instance.vue.onReady(scope,{status:"internalcall",data:data_collected,completedEvent:completed,renderDiv:renderDiv});
                     }else{
                         instance.Complete=function(data){
                             instance.onStatusChange(data);
