@@ -84,15 +84,22 @@ WEBDOCK.component().register(function(exports){
             //routeData = pInstance.getInputData();
             //handler = exports.getShellComponent("soss-routes");
             //handler.appNavigate(id ? "/uom?uomid=" + id : "/uom");
-            if(bindData.isLoggedIn){
-                if(sessionStorage.redirecturl){
-                    scope.isBusy=false;
-                    location.href=sessionStorage.redirecturl;
-                }else{
-                    pInstance.appNavigate("../profile");
-
+            var handler = exports.getComponent("login-handler");
+            handler.services.LoginState().then(function(result){
+                if (result.result){
+                    localStorage.loginData = JSON.stringify(result.result);
+                    localStorage.profile = JSON.stringify(result.result.profile);
+                    if(sessionStorage.redirecturl){
+                        location.href=sessionStorage.redirecturl;
+                    }else{
+                        location.href="#/app/userapp/profile";
+                    }
                 }
-            }
+            }).error(function(result){
+                localStorage.clear();
+                sessionStorage.clear();
+                //pInstance.appNavigate("/login");
+            });
         }
     } 
 
