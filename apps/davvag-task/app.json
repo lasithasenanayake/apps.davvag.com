@@ -4,6 +4,10 @@
             "type":"component",
             "location":"apps"
         },
+        "tasks":{
+            "type":"component",
+            "location":"apps"
+        },
         "viewObject":{
             "type":"component",
             "location":"apps"
@@ -30,13 +34,14 @@
             "onLoad": ["askapi","viewObjectAPI"],
             "routes":{
                 "partials":{
-                    "/viewObject" : "viewObject",
-                    "/checkout-complete" : "partial-cart-checkout",
-                    "/order-complete" : "order-complete",
-                    "/bid_confirmation":"bid-cofirmation",
-                    "/cat-list":"product-catogory-list"
+                    "/tasks" : "tasks",
+                    "/projects" : "projects"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"Task","path":"tasks"},{"name":"Projects","path":"projects"}
+            ]
         }
     }
 }

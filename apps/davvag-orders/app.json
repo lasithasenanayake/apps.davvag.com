@@ -20,7 +20,7 @@
         "version":"0.1",
         "icon":"appicon.png"
     },
-    "tags":["showindock"],
+    "tags":["showindock","showincms"],
     "configuration":{
         "webdock":{
             "startupComponent" : "pending-orders",

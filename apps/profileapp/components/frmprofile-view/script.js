@@ -89,7 +89,6 @@ WEBDOCK.component().register(function(exports){
     function initializeComponent(){
         profileHandler = exports.getComponent("profile");
         pInstance = exports.getShellComponent("soss-routes");
-        uploaderInstance = exports.getComponent ("soss-uploader");
         routeData = pInstance.getInputData();
         if(routeData!=null){
             getProfilebyID(routeData.id)
