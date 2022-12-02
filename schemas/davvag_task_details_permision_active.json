@@ -35,6 +35,10 @@
         {
             "fieldName":"durationInMinutes",
             "dataType":"int"
+        },
+        {
+            "fieldName":"progress",
+            "dataType":"int"
         }
 
     ]
