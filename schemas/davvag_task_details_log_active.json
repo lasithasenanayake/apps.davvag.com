@@ -1,41 +1,46 @@
+
 {
     "fields" : [
         {
-            "fieldName":"taskID",
+            "fieldName":"logid",
             "dataType":"int",
             "annotations":{
-                "isPrimary": true
-            }
-        }, 
-        {
-            "fieldName":"item_value",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 100,
-                "isPrimary": true
+                "isPrimary": true,
+                "autoIncrement": true
             }
         },
         {
-            "fieldName":"item_type",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 10,
-                "isPrimary": true
-            }
+            "fieldName":"taskId",
+            "dataType":"int"
+           
         }, 
         {
-            "fieldName":"access_type",
-            "dataType":"java.lang.String",
-            "annotations":{
-                "maxLen": 10
-            }
-        }, 
-        {
-            "fieldName":"item_text",
+            "fieldName":"comments",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 255
             }
+        },
+        {
+            "fieldName":"logDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"startDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"endDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"durationInMinutes",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"progress",
+            "dataType":"int"
         }
+
     ]
 }
