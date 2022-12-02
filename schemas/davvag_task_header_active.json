@@ -1,0 +1,58 @@
+{
+    "fields" : [
+        {
+            "fieldName":"taskId",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName":"wieght",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"progress",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"parentId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"taskDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"startDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"endDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"topic",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"description",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"status",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 20
+            }
+        }
+        
+    ]
+}

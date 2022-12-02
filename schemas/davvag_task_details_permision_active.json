@@ -1,0 +1,41 @@
+{
+    "fields" : [
+        {
+            "fieldName":"logid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName":"taskId",
+            "dataType":"int"
+           
+        }, 
+        {
+            "fieldName":"comments",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"logDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"startDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"endDate",
+            "dataType":"java.util.Date"
+        },
+        {
+            "fieldName":"durationInMinutes",
+            "dataType":"int"
+        }
+
+    ]
+}
