@@ -16,6 +16,31 @@
         "file": "service.php",
         "class": "TaskApi",
         "methods" : {
+            "SaveTask" : {
+                "method" : "POST"
+            },
+            "SaveProject" : {
+                "method" : "POST"
+            },
+            "SaveType" : {
+                "method" : "POST"
+            },
+            "AllTypes" : {
+                "method" : "GET",
+                "parameters":["fromPage"]
+            },
+            "AllPrjects" : {
+                "method" : "GET",
+                "parameters":["fromPage"]
+            },
+            "TypeByID" : {
+                "method" : "GET",
+                "parameters":["typeId"]
+            },
+            "ProjectByID" : {
+                "method" : "GET",
+                "parameters":["projectId"]
+            }
             
         }
     },

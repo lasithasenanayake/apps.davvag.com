@@ -14,12 +14,12 @@ class ViewObjectApi {
         $keySort=array();
         $header=new stdClass();
         $user=AUTH::Autendicate();
-        if(isset($data[0]->viewObjectID)){
+        /*if(isset($data[0]->viewObjectID)){
             $d =SOSSData::Query("user_object","viewObjectID:".$data[0]->viewObjectID);
             if(count($d->result)>0){
                 $header=$d->result[0];
             }
-        }
+        }*/
         
         foreach ($data as $key => $value) {
             # code...
@@ -31,13 +31,13 @@ class ViewObjectApi {
         
         $keyValue=md5(implode("_",$keySort));
         if(!isset($header->viewObjectID)){
-            $d =SOSSData::Query("user_object","keyValue:".$keyValue);
+            $d =SOSSData::Query("user_object","keyValue:".$keyValue.",owner:".$user->userid);
             if(count($d->result)>0){
                 $header=$d->result[0];
             }
         }
-        $header->keyvalue=$keyValue;
-
+        $header->keyValue=$keyValue;
+        $can =false;
         if(isset($header->viewObject)){
             SOSSData::Update("user_object",$header);
         }else{
@@ -45,6 +45,7 @@ class ViewObjectApi {
            $result =SOSSData::Insert("user_object",$header);
            if($result->success){
                 $header->viewObjectID=$result->result->generatedId;
+                $can=true;
            }
         }
 
@@ -52,19 +53,17 @@ class ViewObjectApi {
             # code...
             $data[$i]->viewObjectID=$header->viewObjectID;
         }
-
-        $r=SOSSData::Query("user_view_objects","viewObjectID:".$header->viewObjectID);
-        if(count($r->result)>0){
-            SOSSData::Delete("user_view_objects",$r->result);
+        if($can){
+            $r= SOSSData::Insert("user_view_objects",$data);
+            if($r->success){
+                return $data;
+               }else{
+                    $res->SetError($r);
+                    return $r;
+               }
+        }else{
+            return $data;
         }
-
-       $r= SOSSData::Insert("user_view_objects",$data);
-       if($r->success){
-        return $data;
-       }else{
-            $res->SetError($r);
-            return $r;
-       }
     }
 
     public function getFindObject($req,$res){
