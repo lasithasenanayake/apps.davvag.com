@@ -1,6 +1,7 @@
 {
     "components": {
-        "TestApp":{
+        "projects-list":{"type":"component","location":"apps"},
+        "projects":{
             "type":"component",
             "location":"apps"
         },
@@ -31,11 +32,11 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "TestApp",
-            "onLoad": ["askapi","viewObjectAPI"],
+            "onLoad": ["taskapi","viewObjectAPI"],
             "routes":{
                 "partials":{
                     "/tasks" : "tasks",
-                    "/projects" : "projects"
+                    "/projects" : "projects-list"
                 }
             }
         },"dock":{

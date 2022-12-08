@@ -1,0 +1,45 @@
+<nav class="navbar  navbar-dark bg-dark">
+    
+    <div class="form-inline">
+      <button class="btn btn-outline-success my-2 my-sm-0" v-on:click="view(null)">New Project</button>
+      <input class="form-control mr-sm-2"  placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-success my-2 my-sm-0">Search</button>
+    </div>
+
+  </nav>
+<div v-if="data.length==0" class="row" style="margin: auto;padding-top: 10px;">
+    <h1>No Projects Found</h1>
+</div>
+<div class="row" style="margin: auto;padding-top: 10px;">
+    <div class="col-sm-4" v-for="product in data" style="padding-bottom: 5px">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div style="width: 40px;">
+                        <div class="profile-userpic">
+                            <img :src="'components/davvag-cms/soss-uploader/service/get/davvag-tasks-prjects/'+product.profileId" class="img-responsive" alt="">
+                            
+                        </div>
+                    </div>
+                    <div class="col">
+                        <a :href="'#/app/stelup_shop/profile?id='+product.profileId">
+                            <h5 v-html="product.name"></h5>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <div class="card-body" v-html="product.description">
+              
+            </div>
+            <div  class="card-footer">
+                <button type="button" class="form-control btn bg-primary-button"   v-on:click="view(product)">Edit</button>
+                <button  type="button" class="form-control btn bg-primary-button"   v-on:click="changeAccess(product)">Change Access</button>
+            </div>
+          </div>
+    </div>
+    
+</div>
+
+
