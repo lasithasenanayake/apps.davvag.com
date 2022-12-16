@@ -20,6 +20,10 @@
         "viewObjectAPI":{
             "type":"service",
             "location":"service"
+        },
+        "project-type":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{

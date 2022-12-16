@@ -1,4 +1,4 @@
-<div class="input-form">
+<div>
   <div class="input-error">
     <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
       <strong>ERROR! </strong> {{error}}
@@ -13,18 +13,18 @@
         <thead>
           <tr>
              <td>
-              <select name="item_type" class="form-contdol"  id="item_type" placeholder="select type" v-model="item_type" v-on:change="loadVlues();">
+              <select name="item_type" title="type" class="form-contdol"  id="item_type" placeholder="select type" v-model="item_type" v-on:change="loadVlues();">
                 <option value="user">User</option>
                 <option value="group">Group</option>
               </select>
               </td>
-              <td> <select name="item_permision" class="form-contdol" id="item_permision" placeholder="select Permision" v-model="item_permision">
+              <td> <select name="item_permision" title="Permision" class="form-contdol" id="item_permision" placeholder="select Permision" v-model="item_permision">
                 <option value="View">View</option>
                 <option value="Edit">Edit</option>
                 <option value="Full">Full</option>
               </select></td>
               <td>
-                <select name="item_value" class="form-contdol" id="item_value" placeholder="-" v-model="item_value">
+                <select name="item_value" class="form-contdol" title="Permision Value" id="item_value" placeholder="-" v-model="item_value">
                   <option v-bind:value="v" v-for="v in item_values">{{ v.text }}</option>
                 </select>
               </td>

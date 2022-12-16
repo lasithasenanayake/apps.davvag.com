@@ -1,4 +1,4 @@
-<nav class="navbar  navbar-dark bg-dark">
+<nav class="navbar">
     
     <div class="form-inline">
       <button class="btn btn-outline-success my-2 my-sm-0" v-on:click="view(null)">New Project</button>
@@ -30,8 +30,8 @@
             </div>
             
             
-            <div class="card-body" v-html="product.description">
-              
+            <div class="card-body" >
+              <div class="project_descriptions" v-html="product.description"></div>
             </div>
             <div  class="card-footer">
                 <button type="button" class="form-control btn bg-primary-button"   v-on:click="view(product)">Edit</button>

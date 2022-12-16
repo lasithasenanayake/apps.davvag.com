@@ -3,7 +3,7 @@ WEBDOCK.component().register(function(exports){
     
     var bindData = {
         data:{},
-        submitErrors : [],submitInfo : [],data:{},types:[]
+        submitErrors : [],submitInfo : [],data:{}
     };
 
     var vueData =  {
@@ -11,21 +11,10 @@ WEBDOCK.component().register(function(exports){
             submit:submit,
             cancel:function(){
                 if(exports.dataObject!=null)
-                    exports.Complete(exports.dataObject);
+                exports.Complete(exports.dataObject);
                 else{
                     exports.Complete(null);
                 }
-            },
-            UpdateTask:function(i){
-                openAppPopup("davvag-task","project-type",(i==null?{projectId:bindData.data.projectId,sysviewobject:bindData.data.sysviewobject}:i),function(data,form){
-                    if(i==null){
-                        bindData.types=bindBind.types!=null?bindBind.types:[];
-                        bindData.types.push(data);
-                    }else{
-                        i=data;
-                    }
-                    form.close();
-                },i==null?"New Task Type":"Task Type["+i.name+"]",false,true);
             }
            
         },
@@ -63,7 +52,7 @@ WEBDOCK.component().register(function(exports){
       if (!scope.submitErrors){
           scope.submitErrors = [];
           scope.submitInfo=[];
-          service_handler.services.SaveProject(bindData.data).then(function(result){
+          service_handler.services.SaveType(bindData.data).then(function(result){
               if(result.success){
                   exports.Complete(result.result);  
                   //alert("Project Updated.");

@@ -21,14 +21,12 @@
   <meta name="author" content="">
   <link rel="icon" href="assets/davvag-cms/images/favicon.png" type="image/png">
   <title><?php echo DOMAINNAME; ?></title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-  <link href="assets/davvag-cms/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/davvag-cms/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link href="assets/davvag-cms/css/dockanimation.css" rel="stylesheet">
   <link href="assets/davvag-cms/css/custom.css" rel="stylesheet">
   <link href="assets/davvag-cms/css/style.loaders.css" rel="stylesheet">
+  <link href="assets/davvag-cms/css/font-awesome.min.css" integrity="sha256-3dkvEK0WLHRJ7/Csr0BZjAWxERc5WH7bdeUya2aXxdU= sha512-+L4yy6FRcDGbXJ9mPG8MT/3UCDzwR9gPeyFNMCtInsol++5m3bk2bXWKdZjvybmohrAsn3Ua5x8gfLnbE1YkOg==" rel="stylesheet">
   
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha256-3dkvEK0WLHRJ7/Csr0BZjAWxERc5WH7bdeUya2aXxdU= sha512-+L4yy6FRcDGbXJ9mPG8MT/3UCDzwR9gPeyFNMCtInsol++5m3bk2bXWKdZjvybmohrAsn3Ua5x8gfLnbE1YkOg==" crossorigin="anonymous">
 </head>
 
 <body>

@@ -8,7 +8,7 @@ class TaskApi {
 
     public function postSaveTask($req,$res){
         $data=$req->Body(true);
-        $r=SOSSData::Query("davvag_task_header_active","taskId:".isset($data->taskId)?$data->taskId:0);
+        $r=SOSSData::Query("davvag_task_header_active","taskId:".(isset($data->taskId)?$data->taskId:0));
         if(count($r->result)>0){
            $result= SOSSData::Update("davvag_task_header_active",$data);
         }else{
@@ -16,7 +16,7 @@ class TaskApi {
         }
 
         if($result->success){
-            $data->taskId=isset($result->generatedId)?$result->generatedId:$data->taskId;
+            $data->taskId=isset($result->result->generatedId)?$result->result->generatedId:$data->taskId;
             return $data;
         }else{
             $res->SetError($result);
@@ -25,7 +25,7 @@ class TaskApi {
 
     public function postSaveProject($req,$res){
         $data=$req->Body(true);
-        $r=SOSSData::Query("davvag_task_projects","projectId:".isset($data->projectId)?$data->projectId:0);
+        $r=SOSSData::Query("davvag_task_projects","projectId:".(isset($data->projectId)?$data->projectId:0));
         if(count($r->result)>0){
             $result= SOSSData::Update("davvag_task_projects",$data);
          }else{
@@ -33,7 +33,7 @@ class TaskApi {
          }
  
          if($result->success){
-             $data->projectId=isset($result->generatedId)?$result->generatedId:$data->projectId;
+             $data->projectId=isset($result->result->generatedId)?$result->result->generatedId:$data->projectId;
              return $data;
          }else{
              $res->SetError($result);
@@ -42,7 +42,7 @@ class TaskApi {
 
     public function postSaveType($req,$res){
         $data=$req->Body(true);
-        $r=SOSSData::Query("davvag_task_project_types","tyepId:".isset($data->typeId)?$data->typeId:0);
+        $r=SOSSData::Query("davvag_task_project_types","typeId:".(isset($data->typeId)?$data->typeId:0));
         if(count($r->result)>0){
             $result= SOSSData::Update("davvag_task_project_types",$data);
          }else{
@@ -50,7 +50,7 @@ class TaskApi {
          }
  
          if($result->success){
-             $data->typeId=isset($result->generatedId)?$result->generatedId:$data->typeId;
+             $data->typeId=isset($result->result->generatedId)?$result->result->generatedId:$data->typeId;
              return $data;
          }else{
              $res->SetError($result);

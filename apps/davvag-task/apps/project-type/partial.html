@@ -9,7 +9,7 @@
   </div>
   <form id="form-details" onsubmit="event.preventDefault();">
     <div class="form-group">
-      <label for="project_name">Project Name</label>
+      <label for="project_name">Name</label>
       <input type="text" class="form-control" id="test" aria-describedby="projectHelp" placeholder="Enter Project Name" v-model="data.name">
       <small id="projectHelp" class="form-text text-muted">This is where you can define a Project Name.</small>
     </div>
@@ -18,13 +18,12 @@
       <textarea id="txtcaption" class="form-control" aria-describedby="projectDescHelp" placeholder="Enter Project Name" rows="3"></textarea>
       <small id="projectDescHelp" class="form-text text-muted">Say somthing about your porject.</small>
     </div>
-    <div class="project_types">
-               
-      <ul class="form-group">
-        <li class="list-group-item"><button type="button" class="form-control btn bg-primary-button"   v-on:click="UpdateTask(null)">Add New Task Type</button></li>
-        <li class="list-group-item" v-for="type in types" :style="'color:'+type.color+';'"> {{ type.name }} <span class="badge badge-primary badge-pill">14</span></li>
-      </ul>
+    <div class="form-group">
+      <label for="type_color">Color</label>
+      <input type="color" class="form-control"  aria-describedby="projectHelpcolor" placeholder="Pick Color" v-model="data.color">
+      <small id="projectHelpcolor" class="form-text text-muted">Pick Task Type Color.</small>
     </div>
+    
     <button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>
     <button  class="btn bg-primary-button btn-block" v-on:click="cancel">Cancel</button>
   </form>
