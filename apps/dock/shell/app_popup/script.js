@@ -53,39 +53,29 @@ WEBDOCK.component().register(function(exports){
     function openPopupForm(appName,appComponent,data,cb,dialogName,popupLarg,popupLock){
         popupLarg=popupLarg==null?false:popupLarg;
         popupLock=popupLock==null?true:popupLock;
-        popupName=appName+"-"+appComponent;
-        popupDialog=appName+"-"+appComponent+"dialog";
-        //let popup=document.getElementById(popupDialog);
+        let _popupName=appName+"-"+appComponent;
+        let _popupDialog=appName+"-"+appComponent+"dialog";
         callback=cb;
-        /*if(popup==null){
-            
-            let bodyEt=$("body");
-                bodyEt.append("<div id='"+popupDialog+"' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='exampleModalLabel' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'>"+
-                "<div class='modal-header'> <h5 class='modal-title'>"+dialogName+"</h5></div>"+
-                "<div id='"+popupName+"' class='modal-body'>Loading...</div>"+
-                "<div class='modal-footer'></div></div></div></div>");
-        }*/
 
         if(popupLarg){
-            popup_large(popupDialog,dialogName);
+            popup_large(_popupDialog,dialogName);
         }else{
-            popup_small(popupDialog,dialogName);
+            popup_small(_popupDialog,dialogName);
         }
 
-        appLoader.downloadAPP(appName,appComponent,popupDialog+"_window",function(d){
+        appLoader.downloadAPP(appName,appComponent,_popupDialog+"_window",function(d){
                     
         },function(e){
             console.log(e);
-            $("#"+popupName).html("<h1>Error</h1><p></p>");
-            //bindData.loadingAppError=truae;
+            $("#"+_popupName).html("<h1>Error</h1><p></p>");
         },function(_data){
-            //$("#"+popupDialog).modal('toggle');
-            callback(_data,exports);    
+            app={id:"#"+popupDialog+"_popup",close:function(){$("#"+_popupDialog+"_popup").modal('toggle');}}
+            callback(_data,app);    
         },data);
         if(popupLock){
-            $("#"+popupDialog+"_popup").modal({backdrop: 'static', keyboard: false});
+            $("#"+_popupDialog+"_popup").modal({backdrop: 'static', keyboard: false});
         }else{
-            $("#"+popupDialog+"_popup").modal('show'); 
+            $("#"+_popupDialog+"_popup").modal('show'); 
         }
 
     }

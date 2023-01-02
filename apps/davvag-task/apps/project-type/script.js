@@ -46,7 +46,7 @@ WEBDOCK.component().register(function(exports){
 
     function submit(){
       lockForm();
-      bindData.data.description=$("#txtcaption").data("editor").html(); 
+      bindData.data.description=$("#txttypecaption").data("editor").html(); 
       scope.submitErrors = [];
       scope.submitErrors = form_validator.validate(); 
       if (!scope.submitErrors){
@@ -72,7 +72,7 @@ WEBDOCK.component().register(function(exports){
 
 
     function initialize(){
-      editor=$("#txtcaption").Editor();
+      editor=$("#txttypecaption").Editor();
       loadValidator(); 
       service_handler = exports.getComponent("taskapi");
       if(!service_handler){
@@ -80,7 +80,7 @@ WEBDOCK.component().register(function(exports){
       }
       if(exports.dataObject!=null){
         bindData.data=exports.dataObject;
-        $("#txtcaption").data("editor").html(bindData.data.description);
+        $("#txttypecaption").data("editor").html(bindData.data.description);
       }
     }
     
