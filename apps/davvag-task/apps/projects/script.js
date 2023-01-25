@@ -89,10 +89,16 @@ WEBDOCK.component().register(function(exports){
       if(!service_handler){
           console.log("Service has not Loaded please check.")
       }
+      
       if(exports.dataObject!=null){
         bindData.data=exports.dataObject;
         $("#txtcaption").data("editor").html(bindData.data.description);
       }
+      service_handler.services.TypesForProject({"projectId":bindData.data.projectId?bindData.data.projectId:0}).then(function(results){
+        bindData.types=results.success?results.result:[];
+      }).error(function(err){
+        console.log(err);
+      })
     }
     
 

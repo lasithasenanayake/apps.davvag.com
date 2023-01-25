@@ -40,6 +40,10 @@
             "ProjectByID" : {
                 "method" : "GET",
                 "parameters":["projectId"]
+            },
+            "TypesForProject":{
+                "method" : "GET",
+                "parameters":["projectId"]
             }
             
         }

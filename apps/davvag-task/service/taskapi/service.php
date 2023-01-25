@@ -66,6 +66,15 @@ class TaskApi {
         
     }
 
+    public function getTypesForProject($req,$res){
+        $query=$req->Query();
+        $projectId=$query->projectId;
+        $pagesize=50;
+        $r=SOSSData::Query("davvag_task_project_types","projectId:".$projectId);
+        return $r->result;
+        
+    }
+
     public function getAllProjects($req,$res){
         $query=$req->Query();
         $fromPage=$query->fromPage;
