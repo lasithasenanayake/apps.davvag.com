@@ -24,6 +24,13 @@
             }
         },
         {
+            "fieldName":"color",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
             "fieldName":"description",
             "dataType":"java.lang.String",
             "annotations":{

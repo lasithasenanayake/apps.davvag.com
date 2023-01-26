@@ -90,7 +90,7 @@ WEBDOCK.component().register(function(exports){
             }
             unlockForm();
         }).error(function(result){
-            scope.submitErrors = [];
+            bindData.submitErrors = [];
             bindData.submitErrors.push("Error Saving the Project");
             unlockForm();
         });
@@ -112,7 +112,7 @@ WEBDOCK.component().register(function(exports){
               }
               unlockForm();
           }).error(function(result){
-              scope.submitErrors = [];
+                bindData.submitErrors = [];
               bindData.submitErrors.push("Error Saving the Project");
               //alert("Error Updating.");
               unlockForm();
