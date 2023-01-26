@@ -22,7 +22,19 @@
                
       <ul class="form-group">
         <li class="list-group-item"><button type="button" class="form-control btn bg-primary-button"   v-on:click="UpdateTask(null)">Add New Task Type</button></li>
-        <li class="list-group-item" v-for="type in types" :style="'color:'+type.color+';'"> {{ type.name }} <span class="badge badge-primary badge-pill">14</span></li>
+        <li class="list-group-item" v-for="type in types" :style="'color:'+type.color+';'"> {{ type.name }} 
+          <a  class="badge badge-pill" v-on:click="changeAccessTask(type)" aria-label="Edit Task Type">
+            <i  class="fa fa-globe fa-1x"> </i>
+          </a> 
+          <a  class="badge badge-danger badge-pill" v-on:click="delete(type)" aria-label="Remove Task Type">
+            <i  class="fa fa-remove fa-1x"> </i>
+          </a> 
+          <a  class="badge badge-success badge-pill" v-on:click="UpdateTask(type)" aria-label="Edit Task Type">
+            <i  class="fa fa-pencil fa-1x"> </i>
+          </a> 
+          
+          <span class="badge badge-primary badge-pill">14</span>
+        </li>
       </ul>
     </div>
     <button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>

@@ -16,11 +16,23 @@ WEBDOCK.component().register(function(exports){
                     exports.Complete(null);
                 }
             },
+            delete:function(t){
+
+            },
+            changeAccessTask:function(i){
+                openViewObject(i.sysviewobject,function(newId,form){
+                    if(i.sysviewobject!=newId){
+                        i.sysviewobject=newId;
+                        submitTask(i);
+                        form.close();
+                    }
+                });
+                
+            },
             UpdateTask:function(i){
                 openAppPopup("davvag-task","project-type",(i==null?{projectId:bindData.data.projectId,sysviewobject:bindData.data.sysviewobject}:i),function(data,form){
                     if(i==null){
-                        bindData.types=bindData.types!=null?bindData.types:[];
-                        bindData.types.push(data);
+                        UpdateTaskList(data);
                     }else{
                         i=data;
                     }
@@ -55,6 +67,36 @@ WEBDOCK.component().register(function(exports){
       form_validator.map ("data.description",true, "Please enter the Description of The Project");
   }
 
+    function UpdateTaskList(i){
+        var newTask=true;
+        bindData.types=bindData.types!=null?bindData.types:[];
+        bindData.types.forEach(element => {
+            if(element.typeId==i.typeId){
+                newTask=false;
+                element=i;
+            }
+        });
+        if(newTask){
+            bindData.types.push(i);
+        }
+    }
+
+    function submitTask(i){
+        service_handler.services.SaveTask(i).then(function(result){
+            if(result.success){
+                //exports.Complete(result.result);  
+                //alert("Project Updated.");
+            }else{
+              bindData.submitErrors.push("Error Saving the Project");
+            }
+            unlockForm();
+        }).error(function(result){
+            scope.submitErrors = [];
+            bindData.submitErrors.push("Error Saving the Project");
+            //alert("Error Updating.");
+            unlockForm();
+        });
+    }
     function submit(){
       lockForm();
       bindData.data.description=$("#txtcaption").data("editor").html(); 

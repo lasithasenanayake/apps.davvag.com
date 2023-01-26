@@ -5,22 +5,22 @@ WEBDOCK.component().register(function(exports){
     function popup_large(id,title){
         wa= document.getElementById(id+"_popup");
         if(wa){
-            //wa.remove();
-        }else{
-            bodyEt=$("body");
-            bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+            wa.remove();
         }
+        bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        
        
     }
 
     function popup_small(id,title){
         wa= document.getElementById(id+"_popup");
         if(wa){
-            //wa.remove();
-        }else{
-            bodyEt=$("body");
-            bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+            wa.remove();
         }
+        bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        
         
     }
 
@@ -69,7 +69,9 @@ WEBDOCK.component().register(function(exports){
             console.log(e);
             $("#"+_popupName).html("<h1>Error</h1><p></p>");
         },function(_data){
-            app={id:"#"+popupDialog+"_popup",close:function(){$("#"+_popupDialog+"_popup").modal('toggle');}}
+            app={id:"#"+popupDialog+"_popup",close:function(){
+                $("#"+_popupDialog+"_popup").modal('toggle');
+            }}
             callback(_data,app);    
         },data);
         if(popupLock){

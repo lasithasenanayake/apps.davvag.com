@@ -81,8 +81,8 @@
                                 <div class="row" style="margin-top: 10px;">
                                     <strong>Price:</strong> {{ product.price | currency_formate }}
                                 </div>
-                                <div class="row" style="margin-top: 10px;">
-                                    <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
+                                <div class="row" style="margin-top: 10px;" id="Settings">
+                                    <a  class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
                                         <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>
                                         <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
                                     </a> 
