@@ -82,10 +82,9 @@ WEBDOCK.component().register(function(exports){
     }
 
     function submitTask(i){
-        service_handler.services.SaveTask(i).then(function(result){
+        service_handler.services.SaveType(i).then(function(result){
             if(result.success){
-                //exports.Complete(result.result);  
-                //alert("Project Updated.");
+                UpdateTaskList(result.result);
             }else{
               bindData.submitErrors.push("Error Saving the Project");
             }
@@ -93,7 +92,6 @@ WEBDOCK.component().register(function(exports){
         }).error(function(result){
             scope.submitErrors = [];
             bindData.submitErrors.push("Error Saving the Project");
-            //alert("Error Updating.");
             unlockForm();
         });
     }
