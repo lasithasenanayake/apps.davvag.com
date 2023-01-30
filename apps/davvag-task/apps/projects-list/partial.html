@@ -35,7 +35,10 @@
             </div>
             <div  class="card-footer">
                 <button type="button" class="form-control btn bg-primary-button"   v-on:click="view(product)">Edit</button>
-                <button  type="button" class="form-control btn bg-primary-button"   v-on:click="changeAccess(product)">Change Access</button>
+                <button  type="button" class="form-control btn bg-primary-button"   v-on:click="changeAccess(product)">
+                    <i v-if="product.sysviewobject==0" class="fa fa-globe fa-1x"> </i>
+                    <i v-if="product.sysviewobject!=0" class="fa fa-gear fa-1x"> </i> Change Access
+                </button>
             </div>
           </div>
     </div>

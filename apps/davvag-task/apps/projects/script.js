@@ -24,8 +24,9 @@ WEBDOCK.component().register(function(exports){
                     if(i.sysviewobject!=newId){
                         i.sysviewobject=newId;
                         submitTask(i);
-                        form.close();
+                        
                     }
+                    form.close();
                 });
                 
             },

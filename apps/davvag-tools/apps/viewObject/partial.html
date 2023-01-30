@@ -7,9 +7,15 @@
         <strong>INFO! </strong> {{error}}
       </div>
   </div>
+  <div id="form-details-top">
+    <input type="radio" id="one" value="public" v-model="custom" />
+    <label for="one">Public <i class="fa fa-globe fa-1x"> </i></label>
+    <input type="radio" id="two" value="custom" v-model="custom" />
+    <label for="two">Custom <i class="fa fa-gear fa-1x"> </i></label>
+  </div>
   <div id="form-details">
     <div class="form-group">
-      <table style="width: 100%;">
+      <table v-if="custom=='custom'" style="width: 100%;">
         <thead>
           <tr>
              <td>

@@ -4,7 +4,7 @@ WEBDOCK.component().register(function(exports){
 
     var bindData = {
         data:{},
-        submitErrors : [],submitInfo : [],items:[],item_type:"",item_permision:"",item_value:"",item_values:[]
+        submitErrors : [],submitInfo : [],items:[],item_type:"",item_permision:"",item_value:"",item_values:[],custom:"public"
     };
 
     var vueData =  {
@@ -40,6 +40,10 @@ WEBDOCK.component().register(function(exports){
               });
             },
             submit:function(){
+              if(bindData.custom=='public'){
+                exports.Complete(0);
+                return;
+              }
               service_handler.services.Save(bindData.items).then(function(result){ 
                 if(result.success){
                     bindData.items=result.result;
@@ -60,7 +64,12 @@ WEBDOCK.component().register(function(exports){
                   
               });
             },
-            cancel:function(){alert("cancel");}
+            cancel:function(){
+              if(exports.dataObject)
+                exports.Complete(exports.dataObject);
+              else
+                exports.Complete(0);
+            }
 
            
         },
@@ -77,6 +86,11 @@ WEBDOCK.component().register(function(exports){
           console.log("Service has not Loaded please check.")
       }
       if(exports.dataObject){
+        if(exports.dataObject==0){
+          bindData.custom='public';
+        }else{
+          bindData.custom='custom';
+        }
         service_handler.services.FindObject({objectID:exports.dataObject}).then(function(result){ 
           if(result.success){
               bindData.items=result.result;
@@ -88,9 +102,9 @@ WEBDOCK.component().register(function(exports){
             bindData.submitErrors.push("Error");
             
         });
+      }else{
+        bindData.custom='public';
       }
-        //autocomplete(document.getElementById("myInput"), bindData.item_values);
-       // autocomplete(document.getElementById("test"), countries);
     }
     
 
