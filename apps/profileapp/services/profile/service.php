@@ -153,10 +153,10 @@ class ProfileService{
                     //return $profileservices;
                     foreach ($Transaction->InvoiceItems as $key => $value) {
                         # code...
-                        $Transaction->InvoiceItems->results = SOSSData::Insert ("orderdetails", $value);
+                        $value->results = SOSSData::Insert ("orderdetails", $value);
                     }
                     
-                    $Transaction->DetailsError=$result;
+                    //$Transaction->DetailsError=$result;
                     if(count($profileservices)!=0){
                         $result = SOSSData::Insert ("profileservices", $profileservices,$tenantId = null);
                         CacheData::clearObjects("profileservices");
