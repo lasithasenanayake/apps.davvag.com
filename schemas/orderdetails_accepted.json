@@ -15,10 +15,6 @@
             }
         },
         {
-            "fieldName":"tid",
-            "dataType":"int"
-        },
-        {
             "fieldName":"invType",
             "dataType":"java.lang.String",
             "annotations":{
@@ -31,6 +27,11 @@
             "annotations":{
                 "maxLen": 255
             }
+        }
+        ,
+        {
+            "fieldName":"tid",
+            "dataType":"int"
         },
         {
             "fieldName":"tenant",
@@ -47,15 +48,15 @@
             "fieldName":"uom",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 100,
-                "encoding":"utf8"
+                "maxLen": 100
             }
         },
         {
             "fieldName":"name",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 200
+                "maxLen": 500,
+                "encoding":"utf8"
             }
         },
         {

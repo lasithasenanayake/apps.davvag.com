@@ -151,7 +151,12 @@ class ProfileService{
                         $this->updateInventry($value,-1);
                     }
                     //return $profileservices;
-                    $result = SOSSData::Insert ("orderdetails", $Transaction->InvoiceItems,$tenantId = null);
+                    foreach ($Transaction->InvoiceItems as $key => $value) {
+                        # code...
+                        $Transaction->InvoiceItems->results = SOSSData::Insert ("orderdetails", $value);
+                    }
+                    
+                    $Transaction->DetailsError=$result;
                     if(count($profileservices)!=0){
                         $result = SOSSData::Insert ("profileservices", $profileservices,$tenantId = null);
                         CacheData::clearObjects("profileservices");

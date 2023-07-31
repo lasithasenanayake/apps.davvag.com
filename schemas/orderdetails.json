@@ -55,7 +55,7 @@
             "fieldName":"name",
             "dataType":"java.lang.String",
             "annotations":{
-                "maxLen": 200,
+                "maxLen": 500,
                 "encoding":"utf8"
             }
         },

@@ -2,14 +2,27 @@ WEBDOCK.component().register(function(exports){
     var scope,Rini;
     var page=0;
     var pagesize=40;
+    var loading =false;
     
-    function allloadkeyword(category, skip, take){
+    function allloadkeyword(){
         var handler = exports.getComponent("rpt-handler");
 
         handler.services.allOutstandingProfiles({page:page.toString(),size:pagesize.toString()}).then(function(result){
-            scope.items = result.result;
+            //scope.items = result.result;
+            var i;
+            for (i = 0; i < result.result.length; i++) {
+                //text += cars[i] + "<br>";
+                scope.items.push(result.result[i]);
+            }
+            //scope.items = result.result;
+            loading=false;
+            if(result.result.length==0){
+                loading=true;
+            }else{
+                page+=result.result.length;
+            }
         }).error(function(){
-            
+            loading=false;
         });
     }
 
@@ -25,8 +38,20 @@ WEBDOCK.component().register(function(exports){
         },
         onReady: function(s){
             scope = s;
-            allloadkeyword(undefined,0,100);
+            allloadkeyword();
             Rini = exports.getShellComponent("soss-routes");
+            $(".contentpanel").scroll(function(e){
+                if ((e.currentTarget.clientHeight + e.currentTarget.scrollTop+30) >= e.currentTarget.scrollHeight) {
+                    // you're at the bottom of the page
+                    //console.log($("#mainBody").outerHeight());
+                    console.log("In the event ...");
+                    if(!loading){
+                        //page=page+size;
+                        allloadkeyword();
+                        //console.log("Bottom of the page products " +bindData.products.length +" pageNumber "+page);
+                    }
+                }
+              });
             routeData = Rini.getInputData();
             if(routeData){
                 
