@@ -111,7 +111,7 @@ WEBDOCK.component().register(function(exports){
         //console.log(encodeURI(columncode+":"+columnvalue))
         WEBDOCK.freezeUiComponent("soss-routes",true); 
         bindData.Message="Searching Profiles Please wait....";
-        profileHandler.services.Search({q:encodeURI(columncode+":"+columnvalue+"")})
+        profileHandler.services.SearchV1({column:columncode,value:columnvalue})
         .then(function(response){
             console.log(JSON.stringify(response));
             if(response.success){

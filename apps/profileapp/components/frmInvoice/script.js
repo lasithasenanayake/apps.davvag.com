@@ -251,7 +251,8 @@ WEBDOCK.component().register(function(exports){
                         discount:element.discount,
                         total:element.total,
                         invType:element.invtype,
-                        catogory:element.catogory
+                        catogory:element.catogory,
+                        notes:element.notes
                     }
                 )
             }

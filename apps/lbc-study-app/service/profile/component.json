@@ -20,6 +20,10 @@
                 "method" : "GET",
                 "parameters": ["q"]
             },
+            "SearchV1":{
+                "method" : "GET",
+                "parameters": ["column","value"]
+            },
             "ByID" :{
                 "method" : "GET",
                 "parameters": ["id"]

@@ -26,6 +26,13 @@
             }
         },
         {
+            "fieldName":"notes",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
             "fieldName":"tenant",
             "dataType":"java.lang.String",
             "annotations":{

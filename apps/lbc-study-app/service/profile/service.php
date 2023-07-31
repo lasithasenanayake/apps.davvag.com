@@ -6,6 +6,31 @@ require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 class ProfileService{
     
 
+    public function getSearchV1($req,$res){
+        $s  =null;
+        if(isset($req->Query()->column)){
+            $search  =$req->Query()->column."_".$req->Query()->value;
+        }
+        $result= CacheData::getObjects(md5($search),"profiles_search_1");
+        if(!isset($result)){
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->column = $req->Query()->column;
+            $mainObj->parameters->value = $req->Query()->value;
+            //$mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
+            $result =SOSSData::ExecuteRaw("profiles_search_1",$mainObj);
+            //$result = SOSSData::Query ("profile",urlencode($search),$mainObj);
+            if($result->success){
+                if(isset($result->result)){
+                    CacheData::setObjects(md5($search),"profiles_search_1",$result->result);
+                }
+            }
+            return $result->result;
+        }else{
+            return $result;
+        }
+    }
+    
     public function getSearch($req){
         $s  =null;
         if(isset($_GET["q"])){

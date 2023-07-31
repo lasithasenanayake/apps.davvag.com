@@ -60,8 +60,8 @@
             <th class="text-center"> Total </th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="item in InvItems">
+        <tbody v-for="item in InvItems">
+          <tr >
             <td>{{ item.itemid }}</td>
             <td>
                 <div class="row">
@@ -86,6 +86,9 @@
             <td><input type="number" v-model="item.price" placeholder='Enter Unit Price' class="form-control price" step="0.00" min="0"/></td>
             <td><input type="number" v-model="item.discount" placeholder='0.00' class="form-control total" min="0" :max="item.price" v-on:change="itemsDiscount(item)"/></td>
             <td><input type="number" v-model="item.total" placeholder='0.00' class="form-control total" readonly/></td>
+          </tr>
+          <tr>
+            <td colspan="8"><input type="Text" v-model="item.notes" placeholder='Enter Notes' class="form-control"  min="0"/></td>
           </tr>
         </tbody>
       </table>
@@ -205,9 +208,9 @@
         							<td class="text-right"><strong>Totals</strong></td>
                       </tr>
     						</thead>
-    						<tbody>
+                 <tbody v-for="invoiceitem in InvoiceToSave.InvoiceItems">
     							<!-- foreach ($order->lineItems as $line) or some such thing here -->
-    							<tr v-for="invoiceitem in InvoiceToSave.InvoiceItems">
+    							<tr >
     								<td>{{ invoiceitem.name }}</td>
     								<td class="text-center">{{ invoiceitem.price }}</td>
                     <td class="text-center">{{ invoiceitem.uom }}</td>
@@ -216,6 +219,11 @@
                     <td class="text-center">{{ invoiceitem.discount }}</td>
     								<td class="text-right">{{ invoiceitem.total }}</td>
     							</tr>
+                  <tr>
+                    <td colspan="7">{{ invoiceitem.notes }}</td>
+                  </tr>
+                </tbody>
+                  <tbody>
     							<tr>
     								<td class="thick-line"></td>
                     <td class="thick-line"></td>

@@ -33,6 +33,13 @@
             }
         },
         {
+            "fieldName":"notes",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
             "fieldName":"transactionid",
             "dataType":"int"
         },
