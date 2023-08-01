@@ -23,7 +23,7 @@
                 //sreturn $data->status;
                 if($data->status->success){
                     //echo "im in";
-                    if($data->postworkflow){
+                    if(isset($data->postworkflow)){
                         //echo "im in";
                         
                         $data->workflow_log= DavvagFlow::Execute("davvag-attributes",$data->postworkflow->name,self::getInputData($data));
