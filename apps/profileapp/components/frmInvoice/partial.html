@@ -61,7 +61,7 @@
           </tr>
         </thead>
         <tbody v-for="item in InvItems">
-          <tr >
+          <tr :id="'item_'+item.itemid">
             <td>{{ item.itemid }}</td>
             <td>
                 <div class="row">

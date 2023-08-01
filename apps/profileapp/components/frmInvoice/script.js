@@ -141,7 +141,6 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         profileHandler = exports.getComponent("profile");
         sossdata = exports.getShellComponent("soss-data");
-        uploaderInstance = exports.getComponent ("soss-uploader");
         profileHandler.services.SupplierData().then(
             function(r){
                 if(r.success){
@@ -212,55 +211,93 @@ WEBDOCK.component().register(function(exports){
         return datestring;
     }
 
-    function savePreview(){
-        //var d = ;
-
-        bindData.InvoiceToSave={
-            invoiceNo:0,
-            invoiceDate:fDate(bindData.date),
-            invoiceDueDate:fDate(bindData.duedate),
-            profileId:bindData.i_profile.id,
-            email:bindData.i_profile.email,
-            contactno:bindData.i_profile.contactno,
-            name:bindData.i_profile.name,
-            address:bindData.i_profile.address,
-            city:bindData.i_profile.city,
-            country:bindData.i_profile.country,
-            subtotal:bindData.subtotal,
-            total:bindData.total,
-            tax:bindData.tax,
-            taxamount:bindData.taxamount,
-            discount:bindData.discount,
-            paidamount:0,
-            status:"Approved",
-            detailsString:null,
-            InvoiceItems:[]
-        }
+    function validate(){
+        valItem=[];
+        val=true;
+        
         bindData.InvItems.forEach(element => {
             if(element.itemid!=0){
-                console.log(JSON.stringify(element));
-                bindData.InvoiceToSave.InvoiceItems.push(
-                    {
-                        invoiceNo:0,
-                        itemid:element.itemid,
-                        name:element.name,
-                        uom:element.uom,qty:element.qty,
-                        price:element.price,
-                        subtotal:element.subtotal,
-                        discount_percentage:element.discount_percentage,
-                        discount:element.discount,
-                        total:element.total,
-                        invType:element.invtype,
-                        catogory:element.catogory,
-                        notes:element.notes
-                    }
-                )
-            }
-        });
+                $("#item_"+element.itemid).attr("class","");
+                if(element.qty<=0){
+                    $.notify("Error! '"+element.name+"' Quantity is not Valied", "error");
+                    element.validate=false;
+                    $("#item_"+element.itemid).attr("class","has-error");
+                    val=false;
+                }
+                if(element.discount_percentage>100){
+                    $.notify("Error! '"+element.name+"' Discount is not valied", "error");
+                    element.validate=false;
+                    $("#item_"+element.itemid).attr("class","has-error");
+                    val=false;
+                }
+                if(valItem.indexOf(element.itemid) >= 0){
+                    //alert("Duplicate Items Found");
+                    $.notify("Error! '"+element.name+"' Duplicate Item Found", "error");
+                    element.validate=false;
+                    $("#item_"+element.itemid).attr("class","has-error");
+                    val=false;
+                }
 
-        bindData.InvItems.detailsString=JSON.stringify(bindData.InvoiceToSave.InvoiceItem);
-        console.log(JSON.stringify(bindData.InvoiceToSave));
-        bindData.invoiceSave=true;
+                valItem.push(element.itemid);
+            }
+
+
+
+        });
+        return val;
+    }
+
+    function savePreview(){
+        //var d = ;
+        
+        if(validate()){
+            bindData.InvoiceToSave={
+                invoiceNo:0,
+                invoiceDate:fDate(bindData.date),
+                invoiceDueDate:fDate(bindData.duedate),
+                profileId:bindData.i_profile.id,
+                email:bindData.i_profile.email,
+                contactno:bindData.i_profile.contactno,
+                name:bindData.i_profile.name,
+                address:bindData.i_profile.address,
+                city:bindData.i_profile.city,
+                country:bindData.i_profile.country,
+                subtotal:bindData.subtotal,
+                total:bindData.total,
+                tax:bindData.tax,
+                taxamount:bindData.taxamount,
+                discount:bindData.discount,
+                paidamount:0,
+                status:"Approved",
+                detailsString:null,
+                InvoiceItems:[]
+            }
+            bindData.InvItems.forEach(element => {
+                if(element.itemid!=0){
+                    console.log(JSON.stringify(element));
+                    bindData.InvoiceToSave.InvoiceItems.push(
+                        {
+                            invoiceNo:0,
+                            itemid:element.itemid,
+                            name:element.name,
+                            uom:element.uom,qty:element.qty,
+                            price:element.price,
+                            subtotal:element.subtotal,
+                            discount_percentage:element.discount_percentage,
+                            discount:element.discount,
+                            total:element.total,
+                            invType:element.invtype,
+                            catogory:element.catogory,
+                            notes:element.notes
+                        }
+                    )
+                }
+            });
+
+            bindData.InvItems.detailsString=JSON.stringify(bindData.InvoiceToSave.InvoiceItem);
+            console.log(JSON.stringify(bindData.InvoiceToSave));
+            bindData.invoiceSave=true;
+        }
     }
     function saveInvoice(){
         $('#send').prop('disabled', true);
