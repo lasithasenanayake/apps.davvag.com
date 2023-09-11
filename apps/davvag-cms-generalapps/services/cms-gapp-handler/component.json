@@ -49,24 +49,24 @@
         "allArticals": {
             "method": "GET",
             "route": "/all",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_artical_v1"
         },
         "allalbums": {
             "method": "GET",
             "route": "/allalbums",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_album_v1"
         },"allButtons": {
             "method": "GET",
             "route": "/allButtons",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_buttons_v1"
         },"allByBType": {
-            "method": "GET",
+            "method": "query",
             "route": "/allBType/@catid",
             "destMethod": "GET",
             "destUrl" : "SOSSData",
@@ -75,7 +75,7 @@
         },"getButtonbyid": {
             "method": "GET",
             "route": "/getButtonbyid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_buttons_v1",
             "query":"id:@catid"
@@ -83,7 +83,7 @@
         "insertButton": {
             "method": "POST",
             "route": "/insertBtn",
-            "destMethod": "POST",
+            "destMethod": "insert",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_buttons_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -91,20 +91,20 @@
         "updateButton": {
             "method": "POST",
             "route": "/updateBtn",
-            "destMethod": "PUT",
+            "destMethod": "update",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_buttons_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },"allCards": {
             "method": "GET",
             "route": "/allCards",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cards_v1"
         },"getCardbyid": {
             "method": "GET",
             "route": "/getCardbyid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cards_v1",
             "query":"id:@catid"
@@ -112,7 +112,7 @@
         "insertCards": {
             "method": "POST",
             "route": "/insertCards",
-            "destMethod": "POST",
+            "destMethod": "insert",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cards_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -120,28 +120,28 @@
         "updateCards": {
             "method": "POST",
             "route": "/updateCards",
-            "destMethod": "PUT",
+            "destMethod": "update",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cards_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },"getcatbyid": {
             "method": "GET",
             "route": "/getcatbyid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cat_v1",
             "query":"id:@catid"
         },"allcat": {
             "method": "GET",
             "route": "/allcat",
-            "destMethod": "GET",
+            "destMethod": "query",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cat_v1"
         },
         "insertCat": {
             "method": "POST",
             "route": "/insertCat",
-            "destMethod": "POST",
+            "destMethod": "insert",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cat_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -149,7 +149,7 @@
         "updateCat": {
             "method": "POST",
             "route": "/updateCat",
-            "destMethod": "PUT",
+            "destMethod": "update",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_cat_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -157,7 +157,7 @@
         "insertArtical": {
             "method": "POST",
             "route": "/insertArtical",
-            "destMethod": "POST",
+            "destMethod": "insert",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_artical_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -165,7 +165,7 @@
         "updateArtical": {
             "method": "POST",
             "route": "/updateArtical",
-            "destMethod": "PUT",
+            "destMethod": "update",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_artical_v1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -173,14 +173,14 @@
         "insertArticalImage": {
             "method": "POST",
             "route": "/insertArticalImage",
-            "destMethod": "POST",
+            "destMethod": "insert",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_artical_imagev1",
             "bodyTemplate" : "{\"object\":@@body@@}"
         },"updateArticalImage": {
             "method": "POST",
             "route": "/updateArticalImage",
-            "destMethod": "PUT",
+            "destMethod": "update",
             "destUrl" : "SOSSData",
             "namespace":"d_cms_artical_imagev1",
             "bodyTemplate" : "{\"object\":@@body@@}"
@@ -188,7 +188,7 @@
         "getArticalById": {
             "method": "GET",
             "route": "/byid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "namespace":"d_cms_artical_v1",
             "query":"id:@catid",
             "destUrl" : "SOSSData"
@@ -196,7 +196,7 @@
         "getImagesByArticalId": {
             "method": "GET",
             "route": "/Imgsbyid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "namespace":"d_cms_artical_imagev1",
             "query":"articalid:@catid",
             "destUrl" : "SOSSData"
@@ -204,7 +204,7 @@
         "getImagesByAlbumId": {
             "method": "GET",
             "route": "/AlbumImgsbyid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "namespace":"d_cms_album_imagev1",
             "query":"articalid:@catid",
             "destUrl" : "SOSSData"
@@ -212,9 +212,9 @@
         "getAlbumById": {
             "method": "GET",
             "route": "/byalbumid/@catid",
-            "destMethod": "GET",
+            "destMethod": "query",
             "namespace":"d_cms_album_v1",
-            "query":"query=id:@catid",
+            "query":"id:@catid",
             "destUrl" : "SOSSData"
         }
         
