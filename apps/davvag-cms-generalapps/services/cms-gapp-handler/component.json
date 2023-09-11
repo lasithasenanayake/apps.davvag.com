@@ -189,25 +189,33 @@
             "method": "GET",
             "route": "/byid/@catid",
             "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/d_cms_artical_v1?query=id:@catid"
+            "namespace":"d_cms_artical_v1",
+            "query":"id:@catid",
+            "destUrl" : "SOSSData"
         },
         "getImagesByArticalId": {
             "method": "GET",
             "route": "/Imgsbyid/@catid",
             "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/d_cms_artical_imagev1?query=articalid:@catid"
+            "namespace":"d_cms_artical_imagev1",
+            "query":"articalid:@catid",
+            "destUrl" : "SOSSData"
         },
         "getImagesByAlbumId": {
             "method": "GET",
             "route": "/AlbumImgsbyid/@catid",
             "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/d_cms_album_imagev1?query=articalid:@catid"
+            "namespace":"d_cms_album_imagev1",
+            "query":"articalid:@catid",
+            "destUrl" : "SOSSData"
         },
         "getAlbumById": {
             "method": "GET",
             "route": "/byalbumid/@catid",
             "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/data/d_cms_album_v1?query=id:@catid"
+            "namespace":"d_cms_album_v1",
+            "query":"query=id:@catid",
+            "destUrl" : "SOSSData"
         }
         
     }

@@ -37,7 +37,7 @@ class SearchServices {
                 }else{
                     $f->{$s->storename}= $result;
                 }
-                json_encode()
+                
             }catch(Exception $ex){
                 $f->{$s->storename}=array("success"=>false,"result"=>$ex);
 
