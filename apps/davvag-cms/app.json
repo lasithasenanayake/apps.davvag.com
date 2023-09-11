@@ -122,9 +122,9 @@
                 "home" : "/home",
                 "notFound": "/notFound",
                 "partials" : {
-                    "/" : "partial-album-bg-carousel",
+                    "/" : "partial-homeblog-bg",
                     "/app/@appName/*appRoute" : "partial-app",
-                    "/home" : "davvag-shop-v2-landing",
+                    "/home" : "partial-homeblog",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",
                     "/account": "partial-account",

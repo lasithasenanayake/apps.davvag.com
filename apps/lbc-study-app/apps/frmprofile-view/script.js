@@ -170,8 +170,8 @@ WEBDOCK.component().register(function(exports){
                     bindData.item=response.result[0];
                     bindData.image = 'components/dock/soss-uploader/service/get/profile/'+bindData.item.id;
                     
-                    var query=[{storename:"lbc_course_entrolments_active",search:"profileid:"+id},
-                                {storename:"lbc_course_entrolments_history","search":"profileid:"+id}];
+                    var query=[{storename:"lbc_course_entrolments_active",search:"profileId:"+id},
+                                {storename:"lbc_course_entrolments_history","search":"profileId:"+id}];
                     profileHandler.services.q(query)
                     .then(function(r){
                         console.log(JSON.stringify(r));
