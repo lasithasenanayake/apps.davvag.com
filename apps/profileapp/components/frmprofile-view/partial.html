@@ -82,7 +82,8 @@
           <h5 class="subtitle">Enrolments</h5>
           <div class="row">
             <div class="col-sm-6" v-for="itm in items">
-              <div class="media">
+                
+                <div class="media">
                
                 <img class="pull-left media-object" :src="'components/dock/soss-uploader/service/get/products/'+itm.itemid" alt="100x120" width="0" height="0" style="width: 100px; height: 120px;">
                 
@@ -93,9 +94,11 @@
                   <p><strong>Unit Of Mesure: </strong>{{ itm.uom }} | <strong>Quantity: </strong>{{ itm.qty }} | <strong>Total Charged: </strong>{{ itm.price }}</p>
                   
                   
-                  <span :class="'pull-right label label-'+status(itm.status)">{{ itm.status }}</span>
+                  <span :class="'pull-right label label-'+status(itm.status)"  >{{ itm.status }}</span>
+                  <button type="button"  title="open" v-on:click="openAttribuePopup(itm)">action</button>
                 </div>
-              </div><!-- media -->
+                </div><!-- media -->
+              
             </div><!-- col-sm-6 -->
             
             

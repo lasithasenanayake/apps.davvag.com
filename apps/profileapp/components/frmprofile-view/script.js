@@ -33,6 +33,12 @@ WEBDOCK.component().register(function(exports){
                     handler.appNavigate("/"+pagev);
                 }
             },
+            openAttribuePopup:function(item){
+                attribute=exports.getShellComponent("attribute_shell_popup");
+                attribute.open("attr_profile_service_activation",item,function(data){
+                    item.status=data.status;
+                });
+            },
             navigatepage: function(pagev,p){
                 //console.log(p);
                 //addProfileToTmp(p);
@@ -117,7 +123,7 @@ WEBDOCK.component().register(function(exports){
                     
                     var query=[{storename:"profilestatus",search:"profileid:"+id},
                                 {storename:"ledger","search":"profileid:"+id},
-                                {storename:"profileservices","search":"profileid:"+id}];
+                                {storename:"profileservices","search":"profileId:"+id}];
                     profileHandler.services.q(query)
                     .then(function(r){
                         console.log(JSON.stringify(r));
