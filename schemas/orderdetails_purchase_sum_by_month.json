@@ -1,0 +1,29 @@
+{
+    "rawquery" : {
+        "type":"sql",
+        "parameters" : ["startdate","enddate"],
+        "query": "SELECT 0 sysversionid,DATE_FORMAT(oh.invoiceDate, '%m-%Y') as month,pd.name,SUM(od.qty) as qty,SUM(od.total) total,count(DISTINCT(p.id)) numberofCustomers FROM `orderdetails` od INNER JOIN orderheader oh on od.invoiceNo=oh.invoiceNo INNER JOIN profile p on oh.profileId=p.id INNER JOIN products pd on od.itemid=pd.itemid Where oh.invoiceDate between '$startdate' and '$enddate' GROUP by DATE_FORMAT(oh.invoiceDate, '%M-%Y'),pd.name"
+    },
+    "fields" : [
+        {
+            "fieldName":"month",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"qty",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"numberofCustomers",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"total",
+            "dataType":"float"
+        }
+    ]
+}

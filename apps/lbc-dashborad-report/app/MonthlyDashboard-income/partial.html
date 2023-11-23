@@ -1,0 +1,64 @@
+<div style="color:black;">
+    <div>
+      <div class="row" aria-label="..." style="margin: 10px;">
+        <b>From:</b> <input type="text"  id="startDatePicker" data-date-format="mm-dd-yyyy"/><b> To :</b><input type="text" id="endDatePicker" data-date-format="mm-dd-yyyy"/> <button type="button" v-on:click="refreshData">Search</button>
+
+      </div>
+    </div>
+    <br/><br/><br/>
+
+<div v-for="i in Object.keys(items)">
+  <h1>{{ i }} Total Expected Income</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>January</th>
+        <th>February</th>
+        <th>March</th>
+        <th>April</th>
+        <th>May</th>
+        <th>June</th>
+        <th>July</th>
+        <th>August</th>
+        <th>September</th>
+        <th>October</th>
+        <th>November</th>
+        <th>December</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items[i]">
+        <td>{{ item.name }}</td>
+        <td class="text-right">{{ item.January.total | currency}}</td>
+        <td class="text-right">{{ item.February.total | currency }}</td>
+        <td class="text-right">{{ item.March.total | currency }}</td>
+        <td class="text-right">{{ item.April.total | currency }}</td>
+        <td class="text-right">{{ item.May.total | currency }}</td>
+        <td class="text-right">{{ item.June.total | currency }}</td>
+        <td class="text-right">{{ item.July.total | currency }}</td>
+        <td class="text-right">{{ item.August.total | currency }}</td>
+        <td class="text-right">{{ item.September.total | currency }}</td>
+        <td class="text-right">{{ item.October.total | currency }}</td>
+        <td class="text-right">{{ item.November.total | currency }}</td>
+        <td class="text-right">{{ item.December.total | currency }}</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td class="text-right">{{ sumFloat(i,'January','total') | currency }}</td>
+        <td class="text-right">{{ sumFloat(i,'February','total') | currency }}</td>
+        <td class="text-right">{{ sumFloat(i,'March','total') | currency }}</td>
+        <td class="text-right">{{ sumFloat(i,'April','total')  | currency }}</td>
+        <td class="text-right">{{ sumFloat(i,'May','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'June','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'July','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'August','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'September','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'October','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'November','total') | currency  }}</td>
+        <td class="text-right">{{ sumFloat(i,'December','total') | currency  }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>

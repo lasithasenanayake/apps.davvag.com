@@ -16,7 +16,7 @@
             "type":"component",
             "location":"components"
         },
-        "frmInvoice-view": {
+        "frmInvoice-view-print": {
             "type":"component",
             "location":"components"
         },
@@ -24,7 +24,7 @@
             "type":"component",
             "location":"components"
         },
-        "frmRecipt-view": {
+        "frmRecipt-view-print": {
             "type":"component",
             "location":"components"
         }
@@ -63,8 +63,8 @@
                     "/inv" : "frmInvoice",
                     "/rpt" : "frmRecipt",
                     "/po" : "frmPO",
-                    "/receipt" : "frmRecipt-view",
-                    "/invoice":"frmInvoice-view",
+                    "/receipt" : "frmRecipt-view-print",
+                    "/invoice":"frmInvoice-view-print",
                     "/change":"frmprofile-change-status"
                 }
             }

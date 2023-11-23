@@ -9,6 +9,14 @@
             "type":"component",
             "location":"app"
         },
+        "MonthlyDashboard":{
+            "type":"component",
+            "location":"app"
+        },
+        "MonthlyDashboard-income":{
+            "type":"component",
+            "location":"app"
+        },
         "Profilelist-Report":{
             "type":"component",
             "location":"app"
@@ -32,12 +40,16 @@
                 "partials":{
                     "/collection" : "Collection-Report",
                     "/allprofiles" : "Profilelist-Report",
-                    "/all":"Profilelist-Report-all"
+                    "/all":"Profilelist-Report-all",
+                    "/rpt-monthly-dashboard":"MonthlyDashboard",
+                    "/rpt-monthly-dashboard-income":"MonthlyDashboard-income"
+
                 }
             }
         },"dock":{
             "subapps":[
-                {"name":"Outstanding Report","path":"collection"},{"name":"All Profiles","path":"allprofiles"},{"name":"All","path":"all"}
+                {"name":"Outstanding Report","path":"collection"},{"name":"All Profiles","path":"allprofiles"},{"name":"All","path":"all"},{"name":"Dashboard Enrolment","path":"rpt-monthly-dashboard"}
+                ,{"name":"Dashboard Income","path":"rpt-monthly-dashboard-income"}
             ]
         }
     },

@@ -1,0 +1,64 @@
+<div style="color:black;">
+    <div>
+        <div class="row" aria-label="..." style="margin: 10px;">
+          <b>From:</b> <input type="text"  id="startDatePicker" data-date-format="mm-dd-yyyy"/><b> To :</b><input type="text" id="endDatePicker" data-date-format="mm-dd-yyyy"/> <button type="button" v-on:click="refreshData">Search</button>
+
+        </div>
+    </div>
+    <br/><br/><br/>
+
+  <div v-for="i in Object.keys(items)">
+  <h1>{{ i }} Number of Enrolment</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>January</th>
+        <th>February</th>
+        <th>March</th>
+        <th>April</th>
+        <th>May</th>
+        <th>June</th>
+        <th>July</th>
+        <th>August</th>
+        <th>September</th>
+        <th>October</th>
+        <th>November</th>
+        <th>December</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items[i]">
+        <td>{{ item.name }}</td>
+        <td class="text-right">{{ item.January.customers }}</td>
+        <td class="text-right">{{ item.February.customers }}</td>
+        <td class="text-right">{{ item.March.customers }}</td>
+        <td class="text-right">{{ item.April.customers }}</td>
+        <td class="text-right">{{ item.May.customers }}</td>
+        <td class="text-right">{{ item.June.customers }}</td>
+        <td class="text-right">{{ item.July.customers }}</td>
+        <td class="text-right">{{ item.August.customers }}</td>
+        <td class="text-right">{{ item.September.customers }}</td>
+        <td class="text-right">{{ item.October.customers }}</td>
+        <td class="text-right">{{ item.November.customers }}</td>
+        <td class="text-right">{{ item.December.customers }}</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td class="text-right">{{ sum(i,'January','customers') }}</td>
+        <td class="text-right">{{ sum(i,'February','customers') }}</td>
+        <td class="text-right">{{ sum(i,'March','customers') }}</td>
+        <td class="text-right">{{ sum(i,'April','customers') }}</td>
+        <td class="text-right">{{ sum(i,'May','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'June','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'July','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'August','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'September','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'October','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'November','customers')  }}</td>
+        <td class="text-right">{{ sum(i,'December','customers')  }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>

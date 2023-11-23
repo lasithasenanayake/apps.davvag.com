@@ -23,6 +23,9 @@
             "allProfiles" : {
                 "method" : "GET",
                 "parameters":["page","size"]
+            },"CustomerEnrolment" : {
+                "method" : "GET",
+                "parameters":["startdate","enddate"]
             },"allProfiles_withoutfilter":{
                 "method":"GET",
                 "parameters":["page","size"]
