@@ -61,7 +61,7 @@ class rptService {
                 for ($i=1; $i < 13; $i++) { 
                    $dateObj   = DateTime::createFromFormat('!m', $i);
                    $monthName = $dateObj->format('F'); // March
-                   $row->{$monthName}=$month==$i?array("customers"=>$value->numberofCustomers,"qty"=>$value->qty,"total"=>$value->total):array("customers"=>0,"qty"=>0,"total"=>0);
+                   $row->{$monthName}=$month==$i?array("customers"=>$value->numberofCustomers,"qty"=>$value->qty,"total"=>$value->total,"cusids"=>$value->cusids):array("customers"=>0,"qty"=>0,"total"=>0,"cusids"=>"");
                   // $row->{$monthName."_customers"}+=$month==$i?$value->numberofCustomers:0;
                     //array_push($data[$year],)
                     # code...

@@ -17,6 +17,10 @@
             "type":"component",
             "location":"app"
         },
+        "customers":{
+            "type":"component",
+            "location":"app"
+        },
         "Profilelist-Report":{
             "type":"component",
             "location":"app"

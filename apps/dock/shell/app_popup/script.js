@@ -69,7 +69,14 @@ WEBDOCK.component().register(function(exports){
             console.log(e);
             $("#"+_popupName).html("<h1>Error</h1><p></p>");
         },function(_data){
-            app={id:"#"+popupDialog+"_popup",close:function(){
+            app={id:"#"+popupDialog+"_popup",close:function(cb){
+                
+                $("#"+_popupDialog+"_popup").on('hidden.bs.modal', function () {
+                   if(cb){
+                    cb();
+                   }
+                });
+
                 $("#"+_popupDialog+"_popup").modal('toggle');
             }}
             callback(_data,app);    
@@ -82,8 +89,10 @@ WEBDOCK.component().register(function(exports){
 
     }
 
-    function close() {
+    function close(cb) {
         $("#"+popupDialog+"_popup").modal('toggle');
+
+        
     }
 
     function initiate() {

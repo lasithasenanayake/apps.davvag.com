@@ -15,6 +15,10 @@
             "type":"component",
             "location":"apps"
         },
+        "capture":{
+            "type":"component",
+            "location":"apps"
+        },
         "viewObjectAPI":{
             "type":"service",
             "location":"services"

@@ -30,18 +30,18 @@
     <tbody>
       <tr v-for="item in items[i]">
         <td>{{ item.name }}</td>
-        <td class="text-right">{{ item.January.customers }}</td>
-        <td class="text-right">{{ item.February.customers }}</td>
-        <td class="text-right">{{ item.March.customers }}</td>
-        <td class="text-right">{{ item.April.customers }}</td>
-        <td class="text-right">{{ item.May.customers }}</td>
-        <td class="text-right">{{ item.June.customers }}</td>
-        <td class="text-right">{{ item.July.customers }}</td>
-        <td class="text-right">{{ item.August.customers }}</td>
-        <td class="text-right">{{ item.September.customers }}</td>
-        <td class="text-right">{{ item.October.customers }}</td>
-        <td class="text-right">{{ item.November.customers }}</td>
-        <td class="text-right">{{ item.December.customers }}</td>
+        <td class="text-right"><a v-on:click="showCustomers(item.January);" style="cursor: pointer;">{{ item.January.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.February);" style="cursor: pointer;">{{ item.February.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.March);" style="cursor: pointer;">{{ item.March.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.April);" style="cursor: pointer;">{{ item.April.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.May);" style="cursor: pointer;">{{ item.May.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.June);" style="cursor: pointer;">{{ item.June.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.July);" style="cursor: pointer;">{{ item.July.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.August);" style="cursor: pointer;">{{ item.August.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.September);" style="cursor: pointer;">{{ item.September.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.October);" style="cursor: pointer;">{{ item.October.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.November);" style="cursor: pointer;">{{ item.November.customers }}</a></td>
+        <td class="text-right"><a v-on:click="showCustomers(item.December);" style="cursor: pointer;">{{ item.December.customers }}</a></td>
       </tr>
       <tr>
         <td>Total</td>

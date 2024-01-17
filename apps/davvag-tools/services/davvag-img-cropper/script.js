@@ -35,6 +35,9 @@ WEBDOCK.component().register(function(exports, scope){
         //if(cropperdiv==null){
             bodyEt=$("body");
             bodyEt.append("<div id='imagecroper' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='exampleModalLabel' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 class='modal-title' id='modalLabel'>Crop the image</h5></div><div class='modal-body'><div class='img-container'><img id='imagetocrop'></div><input type='file' id='filecropper' style='display:none'></div><div class='modal-footer'><button type='button' class='btn btn-secondary' data-dismiss='modal'>Cancel</button><button id='btncrop' type='button' class='btn btn-primary' id='crop'>Crop</button></div></div></div></div>");
+
+            var button = document.getElementById('btncrop');
+            button.addEventListener("click", complete)
         //}
         
         
@@ -46,8 +49,7 @@ WEBDOCK.component().register(function(exports, scope){
         inputElement.addEventListener("change", callback)
         inputElement.accept = accept;
         inputElement.click(); 
-        var button = document.getElementById('btncrop');
-        button.addEventListener("click", complete)
+       
     }
 
     function complete(){
@@ -84,43 +86,66 @@ WEBDOCK.component().register(function(exports, scope){
         
     }
     
-    exports.crope = function(width,height,cb){
+    exports.crope = function(width,height,cb,blob=null){
         clearCeate();
-        openFileDialog("image/*",function(e){
-            var files = e.target.files || e.dataTransfer.files;
-            if(files.length!=0){
-                cropComplete=cb;
-                var reader = new FileReader();
+        if(blob==null){
+            openFileDialog("image/*",function(e){
+                var files = e.target.files || e.dataTransfer.files;
+                if(files.length!=0){
+                    cropComplete=cb;
+                    var reader = new FileReader();
 
-                reader.onload = function (e2) {
-                   
-                    img = document.getElementById('imagetocrop');
-                    img.src = e2.target.result;
-                    $('#imagecroper').on('shown.bs.modal', function () {
+                    reader.onload = function (e2) {
+                    
                         img = document.getElementById('imagetocrop');
-                        cropper1 = new Cropper(img, {aspectRatio: width / height,viewMode: 1,
-                          ready: function () {
-                            //Should set crop box data first here
-                           
-                            cropper1.setCropBoxData(cropBoxData).setCanvasData(canvasData);
-                          }
+                        img.src = e2.target.result;
+                        $('#imagecroper').on('shown.bs.modal', function () {
+                            img = document.getElementById('imagetocrop');
+                            cropper1 = new Cropper(img, {aspectRatio: width / height,viewMode: 1,
+                            ready: function () {
+                                //Should set crop box data first here
+                            
+                                cropper1.setCropBoxData(cropBoxData).setCanvasData(canvasData);
+                            }
+                            });
+                        }).on('hidden.bs.modal', function () {
+                            //cropBoxData = cropper1.getCropBoxData();
+                            //canvasData = cropper1.getCanvasData();
+                            //cropper1.destroy();
                         });
-                      }).on('hidden.bs.modal', function () {
-                        //cropBoxData = cropper1.getCropBoxData();
-                        //canvasData = cropper1.getCanvasData();
-                        //cropper1.destroy();
-                      });
+                        
+                        $('#imagecroper').modal({backdrop: 'static', keyboard: false});
+                        //cropper1 = new Cropper(img, {aspectRatio: width / height,imgStyle:{width:"200px",height:"200px"},containerStyle:{width:"300px",height:"300px"}});
+                        
+                    };
+                    flk.name=files[0].name;
                     
-                    $('#imagecroper').modal({backdrop: 'static', keyboard: false});
-                    //cropper1 = new Cropper(img, {aspectRatio: width / height,imgStyle:{width:"200px",height:"200px"},containerStyle:{width:"300px",height:"300px"}});
-                    
-                };
-                flk.name=files[0].name;
-                 
-                reader.readAsDataURL(files[0]);
-            }
+                    reader.readAsDataURL(files[0]);
+                }
+                
+            });
+        }else{
+            img = document.getElementById('imagetocrop');
+            img.src = blob;
+            cropComplete=cb;
+            $('#imagecroper').on('shown.bs.modal', function () {
+                img = document.getElementById('imagetocrop');
+                cropper1 = new Cropper(img, {aspectRatio: width / height,viewMode: 1,
+                ready: function () {
+                    //Should set crop box data first here
+                
+                    cropper1.setCropBoxData(cropBoxData).setCanvasData(canvasData);
+                }
+                });
+            }).on('hidden.bs.modal', function () {
+                //cropBoxData = cropper1.getCropBoxData();
+                //canvasData = cropper1.getCanvasData();
+                //cropper1.destroy();
+            });
             
-        });
+            $('#imagecroper').modal({backdrop: 'static', keyboard: false});
+            flk.name="imagecapture";
+        }
         
     }
 

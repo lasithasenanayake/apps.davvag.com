@@ -4,6 +4,15 @@
     "author":"Laistha Senanayake",
     "version" : "0.1",
     "gitUrl" : "",
+    "inputData":[
+        {"name":"id","datatype":"int"}
+    ],
+    "outputData":[
+            {"name":"passportno","datatype":"String"},
+            {"name":"country","datatype":"String"},
+            {"name":"occupation","datatype":"string"},
+            {"name":"id","datatype":"int"}
+    ],
     "resources": {
         "files":[
             {

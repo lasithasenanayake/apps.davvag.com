@@ -20,6 +20,20 @@ WEBDOCK.component().register(function(exports){
         data:bindData,
         methods: {
             save:saveProfile,
+            capture:function(){
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("davvag-tools","capture",{},function(data,app){
+                    app.close(function(){
+                        cropper1.crope(1,1,function(e){
+                            //console.log(e);
+                            bindData.p_image=e.data;
+                            newFile=e.fileData;
+                        },data);
+                    });
+                    
+                    
+                },"Capture",true,false);
+            },
             clear:clearProfile,
             getProfilebyID:getProfilebyID,
             searchItems:searchItems,
@@ -67,7 +81,7 @@ WEBDOCK.component().register(function(exports){
 
     function initializeComponent(){
         WEBDOCK.freezeUiComponent("soss-routes",true); 
-        productHandler = exports.getComponent("product");
+        //productHandler = exports.getComponent("product");
         profileHandler = exports.getComponent("profile");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         pInstance = exports.getShellComponent("soss-routes");

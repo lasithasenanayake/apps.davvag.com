@@ -4,7 +4,7 @@
             "type":"service",
             "location":"services"
         },
-        "frmproduct-list": {
+        "frmproduct-list-V1": {
             "type":"component",
             "location":"components"
         },
@@ -29,7 +29,7 @@
     "tags":["showindock"],
     "configuration":{
         "webdock":{
-            "startupComponent" : "frmproduct-list",
+            "startupComponent" : "frmproduct-list-V1",
             "onLoad": ["product"],
             "routes":{
                 "partials":{

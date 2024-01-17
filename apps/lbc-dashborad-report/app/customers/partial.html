@@ -1,0 +1,27 @@
+<div>
+  
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Profile ID</th>
+        <th>Category</th>
+        <th>Name</th>
+        <th>Contact No</th>
+        <th>Organization</th>
+        <th>Status</th>
+        <th>Viwe Profile</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in items">
+        <td>{{ item.id }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.catogory }}</td>
+        <td>{{ item.contactno }}</td>
+        <td>{{ item.organization }}</td>
+        <td><span :class="'label label-'+status(item.Status)">{{ item.Status }}</span></td>
+        <td><a class="btn btn-info" v-on:click="navigate(item)">view</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

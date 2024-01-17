@@ -20,6 +20,14 @@ WEBDOCK.component().register(function(exports){
 
     var vueData = {
         methods:{
+            showCustomers:function(item){
+                //alert(item.cusids);
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("lbc-dashborad-report","customers",item,function(data){
+                    console.log(JSON.stringify(data));
+                    shellpopup.close();
+                },"Customer List",true,false);
+            },
             refreshData:function(){
                 allloadkeyword();
             },

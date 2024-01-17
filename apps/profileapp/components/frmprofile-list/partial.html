@@ -1,3 +1,6 @@
+<style>
+
+</style>
 <div class="contentpanel">
   <div class="row row-pad-12">
     <div class="col-lg-4">
@@ -53,17 +56,19 @@
                 <li><button class="btn btn-default btn-xs" v-on:click="navigate('inv',profile)">Invoice</button></li>
                 <li><button class="btn btn-default btn-xs" v-on:click="navigate('rpt',profile)">Payment</button></li>
                 <li><button class="btn btn-default btn-xs" v-on:click="navigate('po',profile)">Purchase Order</button></li>
+                
               </ul>
-              <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Actions
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                  <button class="dropdown-item" type="button">Action</button>
-                  <button class="dropdown-item" type="button">Another action</button>
-                  <button class="dropdown-item" type="button">Something else here</button>
-                </div>
-              </div>
+                <ul  v-for="app in Launchers" class="social-list">
+                  <li :class="subapp.Launchers.length!=0?'nav-item dropdown':'nav-item'" v-for="subapp in app.Launchers">
+                    <a v-if="subapp.Launchers.length!=0" class="nav-link dropdown-toggle" :id="'drp'+subapp.bid.toString()" :href="subapp.url" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> {{ subapp.name }}</a>
+                    <a v-if="subapp.Launchers.length==0" class="nav-link"  v-on:click="appLauncher(subapp,{})"> {{ subapp.name }}</a>
+                    <div class="dropdown-menu" :aria-labelledby="'drp'+subapp.bid.toString()">
+                      <a v-for="subapp1 in subapp.Launchers" class="dropdown-item"  v-on:click="appLauncher(subapp1,{})"> {{ subapp1.name }}</a>
+                    </div>
+                    </ul>
+                  </li>
+                </ul>
+                
             </div>
           </div>
         </div>

@@ -28,6 +28,9 @@
             },
             "ProductToStore" : {
                 "method" : "POST"
+            },
+            "ProductSearch":{
+                "method" : "POST"
             }
         }
     },

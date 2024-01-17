@@ -20,7 +20,7 @@
                 "method" : "GET",
                 "parameters": ["email","password","domain"]
             },
-            "logout" : {
+            "Logout" : {
                 "method" : "GET"
             },
             "Session":{
@@ -34,18 +34,6 @@
             "getResetToken":{
                 "method" : "GET",
                 "parameters": ["email"]
-            },
-            "Notification":{
-                "method" : "GET",
-                "parameters": []
-            },
-            "ClearNotiifcatiion":{ 
-                "method" : "GET",
-                "parameters": ["id"]
-            },
-            "Launchers":{
-                "method" : "GET",
-                "parameters": ["appcode","component"]
             }
         }
     },

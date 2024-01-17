@@ -26,6 +26,35 @@ class ProductService {
             return $product;
         }
     }
+
+    public function postProductSearch($req,$res){
+        $product=$req->Body(true);
+        $s  =null;
+        
+        if(isset($product->column)){
+            $search  =$product->column."_".$product->value;
+        }
+        $result= CacheData::getObjects(md5($search),"product_search_1");
+        if(!isset($result)){
+            $mainObj = new stdClass();
+            $mainObj->parameters = new stdClass();
+            $mainObj->parameters->column = $product->column;
+            $mainObj->parameters->value = $product->value;
+            //$mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
+            $result =SOSSData::ExecuteRaw("product_search_1",$mainObj);
+            //$result = SOSSData::Query ("profile",urlencode($search),$mainObj);
+            if($result->success){
+                if(isset($result->result)){
+                    CacheData::setObjects(md5($search),"product_search_1",$result->result);
+                }
+            }
+            return $result->result;
+        }else{
+            return $result;
+        }
+    }
+
+
     public function postDelete($req,$res){
         $product=$req->Body(true);
         if(isset($product->itemid)){
