@@ -19,6 +19,9 @@
             "Save" : {
                 "method" : "POST"
             },
+            "DipositSave":{
+                "method" : "POST"
+            },
             "InvoiceSave" : {
                 "method" : "POST"
             },"POSave" : {

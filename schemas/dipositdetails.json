@@ -1,0 +1,87 @@
+{
+    "fields" : [
+        {
+            "fieldName":"TranNo",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"itemid",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true
+            }
+        },
+        {
+            "fieldName":"TranType",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName":"notes",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        }
+        ,
+        {
+            "fieldName":"tid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"tenant",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"transactionid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"uom",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"qty",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"price",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"subtotal",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"discount_percentage",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"discount",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"total",
+            "dataType":"float"
+        }
+    ]
+}

@@ -1,0 +1,34 @@
+{
+    "fields" : [
+{
+    "fieldName":"profileid",
+    "dataType":"int",
+    "annotations":{
+        "isPrimary": true
+    }
+},
+{
+    "fieldName":"outstanding",
+    "dataType":"float"
+},
+{
+    "fieldName":"currencycode",
+    "dataType":"java.lang.String",
+    "annotations":{
+        "maxLen": 30
+    }
+},
+{
+    "fieldName":"CashInHand",
+    "dataType":"float"
+},
+{
+    "fieldName":"totalRecived",
+    "dataType":"float"
+},
+{
+    "fieldName":"totalGiven",
+    "dataType":"float"
+}
+
+]}

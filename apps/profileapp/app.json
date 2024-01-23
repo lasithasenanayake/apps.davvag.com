@@ -12,6 +12,14 @@
             "type":"component",
             "location":"components"
         },
+        "frmDiposit": {
+            "type":"component",
+            "location":"components"
+        },
+        "frmDiposit-view-print": {
+            "type":"component",
+            "location":"components"
+        },
         "frmPO": {
             "type":"component",
             "location":"components"
@@ -61,10 +69,12 @@
                     "/view" : "frmprofile-view",
                     "/edit" : "frmProfile",
                     "/inv" : "frmInvoice",
+                    "/dip" : "frmDiposit",
                     "/rpt" : "frmRecipt",
                     "/po" : "frmPO",
                     "/receipt" : "frmRecipt-view-print",
                     "/invoice":"frmInvoice-view-print",
+                    "/diposit":"frmDiposit-view-print",
                     "/change":"frmprofile-change-status"
                 }
             }

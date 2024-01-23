@@ -64,12 +64,125 @@ class ProfileService{
         }
     }
 
+    private function updateInternalLedger($ledgertran){
+        $Transaction=$ledgertran;
+        $result=SOSSData::Insert ("internal_ledger", $ledgertran,$tenantId = null);
+        $result = SOSSData::Query ("internal_profilestatus", urlencode("profileid:".$Transaction->profileid.""));
+        CacheData::clearObjects("internal_profilestatus");
+        CacheData::clearObjects("internal_ledger");
+        
+        if(count($result->result)!=0){
+            $status= $result->result[0];
+            $status->outstanding+=$Transaction->amount;
+            if(defined("CURRENCY_CODE")){
+                $status->currencycode=CURRENCY_CODE;
+            }
+            switch(strtolower($ledgertran->trantype)){
+                case "invoice":
+                    $status->totalInvoicedAmount+=$Transaction->amount;
+                    break;
+                case "receipt":
+                    $status->totalPaidAmount+=$Transaction->amount;
+                    break;
+                case "grn":
+                    $status->totalGRNAmount+=$Transaction->amount;
+                    break;
+                case "payment":
+                    $status->totalPaymentAmount+=$Transaction->amount;
+                    break;
+            }
+            $result=SOSSData::Update ("internal_profilestatus", $status,$tenantId = null);
+        }else{
+            $status=new stdClass();
+            $status->profileid=$Transaction->profileid;
+            $status->outstanding=$Transaction->amount;
+            $status->totalInvoicedAmount=0;
+            $status->totalPaidAmount=0;
+            $status->totalGRNAmount=0;
+            $status->totalPaymentAmount=0;
+            if(defined("CURRENCY_CODE")){
+                $status->currencycode=CURRENCY_CODE;
+            }
+            switch(strtolower($ledgertran->trantype)){
+                case "invoice":
+                    $status->totalInvoicedAmount+=$Transaction->amount;
+                    break;
+                case "receipt":
+                    $status->totalPaidAmount+=$Transaction->amount;
+                    break;
+                case "grn":
+                    $status->totalGRNAmount+=$Transaction->amount;
+                    break;
+                case "payment":
+                    $status->totalPaymentAmount+=$Transaction->amount;
+                    break;
+            }
+            $result=SOSSData::Insert ("internal_profilestatus", $status,$tenantId = null);
+                    
+        }
+    }
+
     public function getSupplierData($req,$res){
         
         $Store_profile= Profile::getProfile(0,0);
         if(isset($Store_profile->profile)){
             return $Store_profile->profile;
         }else{return null;}
+    }
+
+    public function postDipositSave($req,$res){
+        
+        $Transaction=$req->Body(true);
+        $user= Auth::Autendicate("profile","postInvoiceSave",$res);
+        if(!isset($Transaction->email)){
+            $res->SetError ("provide email");
+            return;
+            
+        }
+        if(!isset($Transaction->contactno)){
+            $res->SetError ("provide contact no");
+            return;
+        }
+        
+        $result = SOSSData::Query ("profile", urlencode("id:".$Transaction->profileId.""));
+        $Transaction->status="new";
+        //return $result;
+        if(count($result->result)!=0)
+        {
+            $Store_profile= Profile::getUserProfile();
+            if(isset($Store_profile->profile)){
+                //return $Store_profile->profile;
+                $Store_profile=$Store_profile->profile;
+                $Transaction->supplier_profileId = $Store_profile->id; 
+                $Transaction->supplier_name = $Store_profile->name;
+                $Transaction->supplier_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
+                $Transaction->supplier_address = isset($Store_profile->address)?$Store_profile->address:null;
+                $Transaction->supplier_city = isset($Store_profile->city)?$Store_profile->city:null;
+                $Transaction->supplier_country = isset($Store_profile->country)?$Store_profile->country:null;
+                $Transaction->supplier_email = isset($Store_profile->email)?$Store_profile->email:null;
+            }
+            $Transaction->preparedByID=$user->userid;
+            $Transaction->preparedBy=$user->email;
+            $Transaction->PaymentComplete="N";
+            $Transaction->balance=$Transaction->total;
+            if(defined("CURRENCY_CODE")){
+                $Transaction->currencycode=CURRENCY_CODE;
+            }
+            try {
+                $handler =new Davvag_Order();
+                return $handler->DipostSave($Transaction);
+            } catch (\Throwable $th) {
+                //throw $th;
+                $res->SetError ("Error Saving Profile");
+            }
+        }else{
+           //var_dump($result->response[0]->id);
+           //exit();
+           $res->SetError ("Invalied Profile");
+           exit();
+        }
+        
+        
     }
 
     public function postInvoiceSave($req,$res){

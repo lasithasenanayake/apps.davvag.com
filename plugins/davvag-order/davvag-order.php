@@ -346,6 +346,9 @@ class Davvag_Order{
                 //$result=SOSSData::Insert ("ledger", $ledgertran,$tenantId = null);
                 //return $payment;
                 $this->updateLedger($ledgertran);
+                if(in_array($payment->paymenttype,["Cash","Donation[CASH]"])){
+                    $this->updateInternalCashLedger($user->profile->id,"receipt",$payment->receiptNo,'Payment Collected',(-1*$payment->paymentAmount));
+                }
                 CacheData::clearObjects("ledger");
                 //$hasInvoiceForAdvance=true;
                 if($result->success){
@@ -492,6 +495,8 @@ class Davvag_Order{
         
     }
 
+    
+
     private function updateLedger($ledgertran){
         $Transaction=$ledgertran;
         $result=SOSSData::Insert ("ledger", $ledgertran,$tenantId = null);
@@ -548,6 +553,46 @@ class Davvag_Order{
             $result=SOSSData::Insert ("profilestatus", $status,$tenantId = null);
             CacheData::clearObjects("profilestatus");
             CacheData::clearObjects("ledger");
+                    
+        }
+    }
+
+    private function updateInternalCashLedger($profileId,$tranType,$TranID,$Description,$Amount){
+        $Transaction=new stdClass();
+        $Transaction->profileid=$profileId;
+        $Transaction->tranid=$TranID;
+        $Transaction->trantype=$tranType;
+        $Transaction->tranDate=date("m-d-Y H:i:s");
+        $Transaction->amount=$Amount;
+
+        $result=SOSSData::Insert ("internal_ledger", $Transaction,$tenantId = null);
+        $result = SOSSData::Query ("internal_profilestatus", urlencode("profileid:".$Transaction->profileid.""));
+        CacheData::clearObjects("internal_profilestatus");
+        CacheData::clearObjects("internal_ledger");
+        
+        if(count($result->result)!=0){
+            $status= $result->result[0];
+            $status->CashInHand+=$Transaction->amount;
+            if($Transaction->amount>0){
+                $status->totalRecived+=$Transaction->amount;
+            }else{
+                $status->totalGiven+=(-1*$Transaction->amount);
+            }
+            $result=SOSSData::Update ("internal_profilestatus", $status,$tenantId = null);
+        }else{
+            $status=new stdClass();
+            $status->profileid=$Transaction->profileid;
+            $status->CashInHand=$Transaction->amount;
+            $status->totalRecived=0;
+            $status->totalGiven=0;
+            if($Transaction->amount>0){
+                $status->totalRecived+=$Transaction->amount;
+            }else{
+                $status->totalGiven+=$Transaction->amount;
+            }
+            $result=SOSSData::Insert ("internal_profilestatus", $status,$tenantId = null);
+            CacheData::clearObjects("internal_profilestatus");
+            CacheData::clearObjects("internal_ledger");
                     
         }
     }
@@ -618,6 +663,63 @@ class Davvag_Order{
                     //return $result;
                     
                     CacheData::clearObjects("orderdetails");
+                }else{
+                    throw new Exception(json_encode($result));
+                }
+                //unset($value); 
+                
+                
+                return $Transaction;
+            }else{
+                throw new Exception(json_encode($result));
+            }
+        }else{
+            throw new Exception("Profile Not Found.");
+        }
+        
+        
+    }
+
+    public function DipostSave($Transaction,$res=null){
+
+        $user=Profile::getUserProfile();
+        if(!isset($Transaction->email)){
+            throw new Exception("Email Not found.");
+            
+        }
+        if(!isset($Transaction->contactno)){
+            throw new Exception("Contact No not found.");
+        }
+        
+        $result = SOSSData::Query ("profile", urlencode("id:".$Transaction->profileId.""));
+        $Transaction->status="new";
+        //return $result;
+        if(count($result->result)!=0)
+        {
+            //$Transaction->preparedByID=$user->userid;
+            //$Transaction->preparedBy=$user->email;
+            //$Transaction->PaymentComplete="N";
+            $Transaction->balance=$Transaction->total;
+            $result = SOSSData::Insert ("dipositheader", $Transaction,$tenantId = null);
+            CacheData::clearObjects("dipositheader");
+            if($result->success){
+               $Transaction->TranNo = $result->result->generatedId;
+               if($Transaction->paymenttype=="Cash"){
+                    $this->updateInternalCashLedger($user->profile->id,"dipoist",$Transaction->TranNo,'Cash Diposit',$Transaction->total);
+               } 
+                if($result->success){
+                
+                    $profileservices=array();
+                    foreach($Transaction->InvoiceItems as $key=>$value){
+                        $Transaction->InvoiceItems[$key]->TranNo=$Transaction->TranNo;
+                        
+                    }
+                    //return $profileservices;
+                    $result = SOSSData::Insert ("dipositdetails", $Transaction->InvoiceItems,$tenantId = null);
+                    
+                    //return $result;
+                    
+                    CacheData::clearObjects("dipositdetails");
                 }else{
                     throw new Exception(json_encode($result));
                 }
