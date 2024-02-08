@@ -632,6 +632,7 @@ class ProfileService{
                     }
                 }else{
                     $f->{$s->storename}=null;
+                    $f->{$s->storename."_error"}=$result;
                 }
             }else{
                 $f->{$s->storename}= $result;

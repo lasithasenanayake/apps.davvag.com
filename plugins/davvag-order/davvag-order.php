@@ -347,7 +347,7 @@ class Davvag_Order{
                 //return $payment;
                 $this->updateLedger($ledgertran);
                 if(in_array($payment->paymenttype,["Cash","Donation[CASH]"])){
-                    $this->updateInternalCashLedger($user->profile->id,"receipt",$payment->receiptNo,'Payment Collected',(-1*$payment->paymentAmount));
+                    $this->updateInternalCashLedger($user->profile->id,"receipt",$payment->receiptNo,'Payment Collected',($payment->paymentAmount));
                 }
                 CacheData::clearObjects("ledger");
                 //$hasInvoiceForAdvance=true;
