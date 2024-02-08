@@ -23,6 +23,9 @@
             "logout" : {
                 "method" : "GET"
             },
+            "Profile":{
+                "method" : "GET"
+            },
             "Session":{
                 "method" : "GET",
                 "parameters": ["token"]

@@ -7,6 +7,8 @@ WEBDOCK.component().register(function(exports){
         Activities:[],
         Transaction:[],
         Summary:{},
+        CashTransaction:[],
+        CashSummary:{},
         profile:{},
         showSearch:false,
         image:'components/dock/soss-uploader/service/get/profile/1'
@@ -55,7 +57,8 @@ WEBDOCK.component().register(function(exports){
                 //addProfileToTmp(p);
                 handler = exports.getShellComponent("soss-routes");
                 if(p!=null){
-                    handler.appNavigate("../"+pagev+"?tid=" + p);
+                    window.location="#/app/profileapp/"+pagev+"?tid=" + p;
+                    //handler.appNavigate("../"+pagev+"?tid=" + p);
                 }else{
                     handler.appNavigate("/"+pagev);
                 }
@@ -108,6 +111,23 @@ WEBDOCK.component().register(function(exports){
             profile =JSON.parse(localStorage.profile);
             //console.log(profile);
             getProfilebyID(profile.id)
+        }else{
+            var handler  = exports.getComponent("auth-handler");
+            handler.services.Profile().then(function(result){
+                if(result.result){  
+                    localStorage.profile=JSON.stringify(result.result.profile);
+                    profile =JSON.parse(localStorage.profile);
+                    //console.log(profile);
+                    getProfilebyID(profile.id)
+                   // console.log(result);
+                }else{
+                    alert ("error");
+                }
+            }).error(function(result){
+                //$("#form-reset :input").prop("disabled", false);
+    
+                alert ("error");
+            });
         }
         //console.log(routeData);
     }
@@ -130,17 +150,23 @@ WEBDOCK.component().register(function(exports){
             var query=[{storename:"profilestatus",search:"profileid:"+id},
                         {storename:"profile","search":"id:"+id},
                         {storename:"ledger","search":"profileid:"+id},
-                        {storename:"profileservices","search":"profileid:"+id}];
+                        {storename:"profileservices","search":"profileid:"+id},
+                        {storename:"internal_ledger","search":"profileid:"+id},
+                        {storename:"internal_profilestatus","search":"profileid:"+id}];
                         pInstance.services.q(query)
             .then(function(r){
                 console.log(JSON.stringify(r));
                 if(r.success){
                     bindData.Transaction=r.result.ledger;
+                    bindData.CashTransaction=r.result.internal_ledger;
                     if(r.result.profilestatus.length!=0){
                         bindData.Summary=r.result.profilestatus[0];
                     }
                     if(r.result.profile.length!=0){
                         bindData.item=r.result.profile[0];
+                    }
+                    if(r.result.internal_profilestatus.length!=0){
+                        bindData.CashSummary=r.result.internal_profilestatus[0];
                     }
                     bindData.items=r.result.profileservices;
                 }

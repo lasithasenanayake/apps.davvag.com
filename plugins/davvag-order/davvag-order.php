@@ -704,8 +704,12 @@ class Davvag_Order{
             CacheData::clearObjects("dipositheader");
             if($result->success){
                $Transaction->TranNo = $result->result->generatedId;
+               if($Transaction->vault==1){
+                    $this->updateInternalCashLedger($Transaction->profileId,"diposit_tr",$Transaction->TranNo,'Cash Diposit Tranfer',-1*$Transaction->total);
+
+               }
                if($Transaction->paymenttype=="Cash"){
-                    $this->updateInternalCashLedger($user->profile->id,"dipoist",$Transaction->TranNo,'Cash Diposit',$Transaction->total);
+                    $this->updateInternalCashLedger($user->profile->id,"diposit",$Transaction->TranNo,'Cash Diposit',$Transaction->total);
                } 
                 if($result->success){
                 

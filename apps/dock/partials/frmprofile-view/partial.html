@@ -31,9 +31,11 @@
       <!-- END SIDEBAR BUTTONS -->
       <!-- SIDEBAR MENU -->
       <div class="profile-usermenu">
+        
         <ul class="nav">
             <li class="active"><a href="#tran" data-toggle="tab"><strong>Trasaction History</strong></a>|</li>
             <li><a href="#events" data-toggle="tab"><strong> Orders</strong></a> </li>
+            <li><a href="#cash" data-toggle="tab"><strong> Cash Balance</strong></a> </li>
         </ul>
       </div>
       <!-- END MENU -->
@@ -42,6 +44,7 @@
   <div class="col-md-9">
           <div class="profile-content">
             <!-- Tab panes -->
+            <div class=""></div>
             <div class="tab-content">
               
               <div class="tab-pane active" id="tran">
@@ -107,6 +110,36 @@
                   </div>
                   
                 </div><!-- events -->
+              </div>
+              <div class="tab-pane" id="cash">
+                <h1>Cash Transaction History</h1>
+                <table class="table mb30">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>#</th>
+                      <th>Date</th>
+                      <th>Amout</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="t in CashTransaction">
+                      <td>{{ t.trantype }}</td>
+                      <td>{{ t.tranid }}</td>
+                      <td>{{ t.tranDate }}</td>
+                      <td>{{ t.amount | currency }}</td>
+                      <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td>{{ CashSummary.CashInHand | currency }}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div><!-- tab-content -->
           </div>

@@ -20,7 +20,7 @@ WEBDOCK.component().register(function(exports){
 
     function signout(){
         var handler  = exports.getComponent("auth-handler");
-        handler.services.Logout().then(function(result){
+        handler.services.logout().then(function(result){
             if(result.result){  
                 localStorage.clear();
                 sessionStorage.clear();

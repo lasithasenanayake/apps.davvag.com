@@ -75,6 +75,7 @@
                     "/receipt" : "frmRecipt-view-print",
                     "/invoice":"frmInvoice-view-print",
                     "/diposit":"frmDiposit-view-print",
+                    "/diposit_tr":"frmDiposit-view-print",
                     "/change":"frmprofile-change-status"
                 }
             }

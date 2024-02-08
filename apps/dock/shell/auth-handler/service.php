@@ -19,6 +19,11 @@ class LoginService {
         }
     }
 
+    public function getProfile($req,$res){
+        $user=Profile::getUserProfile();
+        return $user;
+    }
+
     public function getLogin($req){
         $authObject =  AUTH::Login($_GET["email"], $_GET["password"]);
         

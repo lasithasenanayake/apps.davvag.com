@@ -13,7 +13,9 @@ WEBDOCK.component().register(function(exports){
         invoiceSave:false,
         InvoiceToSave:{},
         supplierData:{},
-        paymenttype:"Cash"
+        paymenttype:"Cash",
+        profile_vault:{CashInHand:0},
+        vault:false
     };
 
     function calcTotals(){
@@ -250,6 +252,10 @@ WEBDOCK.component().register(function(exports){
 
     function savePreview(){
         //var d = ;
+        if(bindData.profile_vault.CashInHand<bindData.total){
+            alert("Vault Balance is not enogh.")
+            return;
+        }
         
         if(validate()){
             bindData.InvoiceToSave={
@@ -269,6 +275,7 @@ WEBDOCK.component().register(function(exports){
                 tax:bindData.tax,
                 taxamount:bindData.taxamount,
                 discount:bindData.discount,
+                vault:bindData.vault?1:0,
                 paidamount:0,
                 status:"Approved",
                 detailsString:null,
@@ -331,6 +338,9 @@ WEBDOCK.component().register(function(exports){
     }
 
     function getProfilebyID(id){
+
+        
+
         profileHandler.services.Search({q:"id:"+id})
         .then(function(response){
             console.log(JSON.stringify(response));
@@ -344,6 +354,24 @@ WEBDOCK.component().register(function(exports){
                     bindData.i_profile=response.result[0];
                     bindData.p_image = 'components/dock/soss-uploader/service/get/profile/'+bindData.i_profile.id;
                     console.log( bindData.p_image);
+                    var query=[{storename:"internal_profilestatus","search":"profileid:"+id}];
+                    //productHandler = exports.getComponent("product");
+                    sossdata.services.q(query)
+                                .then(function(r){
+                                    console.log(JSON.stringify(r));
+                                    if(r.success){
+                                        if(r.result.internal_profilestatus.length!=0){
+                                            bindData.profile_vault=r.result.internal_profilestatus[0];
+                                        
+                                        }
+                                        return;
+                                        //calcTotals();
+                                        
+                                    }
+                                })
+                                .error(function(error){
+                                    console.log(error.responseJSON);
+                        });
                     //image
                 }else{
                     clearProfile();

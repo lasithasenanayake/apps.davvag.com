@@ -203,6 +203,7 @@ WEBDOCK.component().register(function(exports){
             paymentAmount:bindData.paidamount,
             advanceAmount:bindData.AdvanceAmount,
             advanceUtilized:0,
+            paymenttype:bindData.paymenttype,
             status:"Approved",
             detailsString:null,
             remarks:bindData.Remark,
@@ -284,8 +285,8 @@ WEBDOCK.component().register(function(exports){
                         console.log(JSON.stringify(r));
                         if(r.success){
 
-                            bindData.InvItems=r.result.orderheader;
-                            bindData.Advance=r.result.payment_advance;
+                            bindData.InvItems=r.result.orderheader?r.result.orderheader:[];
+                            bindData.Advance=r.result.payment_advance?r.result.payment_advance:[];
                             calcTotals();
                             
                         }

@@ -23,6 +23,10 @@
                 <th>Country</th>
                 <td> {{ i_profile.country }}</td>
             </tr>
+            <tr>
+              <th>Collect From Vault</th>
+              <td> <input type="checkbox" id="Y" value="true" v-model="vault">{{  vault }}</td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -86,7 +90,7 @@
             </td>
             <td> {{ item.uom }}</td>
             <td><input type="number" v-model="item.qty" placeholder='Enter Qty' class="form-control qty" step="0" min="0" v-on:change="itemsQtyChange(item)"/></td>
-            <td><input type="number" v-model="item.price" placeholder='Enter Unit Price' class="form-control price" step="0.00" min="0"/></td>
+            <td><input type="number" v-model="item.price" placeholder='Enter Unit Price' class="form-control price" step="0.00" min="0" v-on:change="itemsQtyChange(item)"/></td>
             
             <td><input type="number" v-model="item.total" placeholder='0.00' class="form-control total" readonly/></td>
           </tr>
@@ -102,6 +106,13 @@
     <div class="pull-right col-md-4">
       <table class="table table-bordered table-hover" id="tab_logic_total">
         <tbody>
+          <tr v-show="vault">
+          
+      
+            
+            <td class="text-center"><strong>Vault Balance</strong></td>
+            <td class="text-center">{{ profile_vault.CashInHand }}</td>
+          </tr>
           <tr>
             <th class="text-center">Sub Total</th>
             <td class="text-center"><input type="number" name='sub_total' placeholder='0.00' class="form-control" id="sub_total" readonly v-model="subtotal"/></td>
@@ -208,6 +219,15 @@
                   </tr>
                 </tbody>
                   <tbody>
+                    <tr v-show="vault">
+                      <td class="thick-line"></td>
+                      <td class="thick-line"></td>
+                      <td class="thick-line"></td>
+                
+                      
+                      <td class="thick-line text-left"><strong>Vault Balance</strong></td>
+                      <td class="thick-line text-right">{{ profile_vault.CashInHand }}</td>
+                    </tr>
     							<tr>
     								<td class="thick-line"></td>
                     <td class="thick-line"></td>
