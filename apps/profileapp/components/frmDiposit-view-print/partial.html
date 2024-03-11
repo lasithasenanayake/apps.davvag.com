@@ -3,6 +3,7 @@
         <div class="col-md-12">
           <button  class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.invoiceNo != 0 ? true : false">Back</button>
           <button  class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.invoiceNo != 0 ? true : false">Print</button>
+		  <button  class="pull-right btn btn-default" v-on:click="Delete" v-show="InvoiceToSave.status!='cancelled'">Delete</button>
         </div>
       </div>
     <div id="printcontent" >
@@ -10,17 +11,19 @@
     <div class="row">
         <div class="col-xs-12">
     		<div class="invoice-title">
-				<img title="Diposit Profile Image" :src="'components/dock/soss-uploader/service/get/profile/'+InvoiceToSave.supplier_profileId" width="100px" class="pull-right" v-show="InvoiceToSave.TranNo != 0 ? true : false"/><br/>
-				  <h2 v-show="InvoiceToSave.vault==0">Diposit Slip</h2>
-				  <h2 v-show="InvoiceToSave.vault==1">Diposit Vault Tranfer Slip</h2>
+				<img :src="'components/dock/soss-uploader/service/get/profile/'+InvoiceToSave.company_profileId" width="100px" class="pull-right" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/><br/>
+				  <h2 v-show="InvoiceToSave.vault==0">Deposit Slip</h2>
+				  <h2 v-show="InvoiceToSave.vault==1">Deposit Vault Tranfer Slip</h2>
+				  <h2 style="color: red;"  v-show="InvoiceToSave.status=='cancelled'">This Deposit Slip has been cancelled</h2>
 				</div>
 				<hr>
     		<hr>
     		<div class="row">
     			<div class="col-xs-6">
     				<address>
-			<h3>Diposit # {{ InvoiceToSave.TranNo }}</h3>
-            <strong>Diposited By:</strong><br>
+			<h3>Deposit # {{ InvoiceToSave.TranNo }}</h3>
+			<h3>Type : {{ InvoiceToSave.paymenttype }}</h3>
+            <strong>Deposited By:</strong><br>
             <strong>ID:</strong>{{ InvoiceToSave.profileId }}<br>
     					{{ InvoiceToSave.name }}<br>
     					{{ InvoiceToSave.address }}<br>
@@ -31,12 +34,16 @@
     			<div class="col-xs-6 text-right">
             
     				<address>
-        			<strong>Diposit Recieved By:</strong><br>
-					{{ InvoiceToSave.supplier_name }}<br>
-					<address>{{ InvoiceToSave.supplier_address }}</address><br>
-					{{ InvoiceToSave.supplier_city }}<br>
-					{{ InvoiceToSave.supplier_country }}
+        			<strong>Deposit To:</strong><br>
+					{{ InvoiceToSave.company_name }}<br>
+					<address>{{ InvoiceToSave.company_address }}</address><br>
+					{{ InvoiceToSave.company_city }}<br>
+					{{ InvoiceToSave.company_country }}
     				</address>
+					<address>
+						<strong>Recieved By:</strong><br>
+						{{ InvoiceToSave.supplier_name }}<br>
+					</address>
     			</div>
     		</div>
     		<div class="row">
@@ -55,7 +62,7 @@
 						<strong>Conatct Details:</strong><br>
     					{{ InvoiceToSave.supplier_contactno }}<br>
               			{{ InvoiceToSave.supplier_email }}<br>
-    					<strong>Diposit Date:</strong><br>
+    					<strong>Deposit Date:</strong><br>
               {{ InvoiceToSave.invoiceDate }}<br>
               
     				</address>
@@ -68,7 +75,7 @@
     	<div class="col-md-12">
     		<div class="panel panel-default">
     			<div class="panel-heading">
-    				<h3 class="panel-title"><strong>Diposit Information</strong></h3>
+    				<h3 class="panel-title"><strong>Deposit Information</strong></h3>
     			</div>
     			<div class="panel-body">
     				<div>

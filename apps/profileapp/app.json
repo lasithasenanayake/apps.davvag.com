@@ -76,6 +76,10 @@
                     "/invoice":"frmInvoice-view-print",
                     "/diposit":"frmDiposit-view-print",
                     "/diposit_tr":"frmDiposit-view-print",
+                    "/deposit":"frmDiposit-view-print",
+                    "/deposit_tr":"frmDiposit-view-print",
+                    "/deposit_de":"frmDiposit-view-print",
+                    "/deposit_dv":"frmDiposit-view-print",
                     "/change":"frmprofile-change-status"
                 }
             }

@@ -252,9 +252,11 @@ WEBDOCK.component().register(function(exports){
 
     function savePreview(){
         //var d = ;
-        if(bindData.profile_vault.CashInHand<bindData.total){
-            alert("Vault Balance is not enogh.")
-            return;
+        if(bindData.vault){
+            if(bindData.profile_vault.CashInHand<bindData.total){
+                alert("Vault Balance is not enogh.")
+                return;
+            }
         }
         
         if(validate()){

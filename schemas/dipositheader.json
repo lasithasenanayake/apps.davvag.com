@@ -70,6 +70,44 @@
             }
         },
         {
+            "fieldName":"company_profileId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"company_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },{
+            "fieldName":"company_email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"company_city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"company_address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName":"company_country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30
+            }
+        },
+        {
             "fieldName":"supplier_profileId",
             "dataType":"int"
         },

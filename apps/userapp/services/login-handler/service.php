@@ -12,7 +12,7 @@ class LoginService {
     public function postSave($req,$res){
         $profile=$req->Body(true);
         $user= Auth::Autendicate("profile","postSave",$res);
-        if($user->email!=$profile->email){
+        if($user->userid!=$profile->linkeduserid){
             $res->SetError ("You do not have permission to update this profile.");
             return;
         }
@@ -34,6 +34,10 @@ class LoginService {
         //return urlencode("id:".$profile->id."");
         if(count($result->result)==0)
         {
+            if($user->userid!=$result->result[0]->linkeduserid){
+                $res->SetError ("You do not have permission to update this profile.");
+                return;
+            }
             $profile->createdate=date_format(new DateTime(), 'm-d-Y H:i:s');
             $profile->userid=$user->userid;
             $profile->status="tobeactivated";
@@ -176,14 +180,14 @@ class LoginService {
                         $profile->profilestatus=sizeof($result->result) > 0?$result->result[0]:null;
                         $result = SOSSData::Query ("ledger", urlencode("profileid:".$profile->id.""));
                         $profile->ledger=$result->result;
-                        $result = SOSSData::Query ("orderheader_pending", urlencode("profileid:".$profile->id.""));
+                        $result = SOSSData::Query ("orderheader_pending", urlencode("profileId:".$profile->id.""));
                         $profile->order_pending=$result->result;
-                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
+                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileId:".$profile->id.""));
                         $profile->order_rejected=$result->result;
-                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
-                        $profile->order_rejected=$result->result;
-                        $result = SOSSData::Query ("orderheader_accepted", urlencode("profileid:".$profile->id.""));
-                        $profile->orders=$result->result;
+                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileId:".$profile->id.""));
+                        $profile->order_rejected=isset($result->result)?$result->result:$result;
+                        $result = SOSSData::Query ("orderheader_accepted", urlencode("profileId:".$profile->id.""));
+                        $profile->orders=isset($result->result)?$result->result:$result;
                         //$outObject->profile = $result->result[0];
                         return $profile;
                     }else{

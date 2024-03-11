@@ -33,6 +33,31 @@ WEBDOCK.component().register(function(exports){
                 WinPrint.document.close();
                 WinPrint.focus();
                 setTimeout(function(){ WinPrint.print();WinPrint.close(); }, 3000);
+            },
+            Delete:function(){
+                profileHandler.services.DepositCancelation({id:bindData.InvoiceToSave.TranNo})
+                .then(function(response){
+                    //console.log(JSON.stringify(response));
+                    
+                    if(response.success){
+                        //console
+                        $.notify("Diposit Has been cancelled", "success");
+                        bindData.InvoiceToSave=response.result;
+                        handler1 = exports.getShellComponent("soss-routes");
+                        //handler1.appNavigate("../diposit?tid="+bindData.InvoiceToSave.TranNo);
+                        
+                    }else{
+                        $.notify("Error! Cancelling Error", "error");
+                        console.log(JSON.stringify(response.result));
+                        $('#send').prop('disabled', false);
+                        //alert (response.result.error);
+                    }
+                })
+                .error(function(error){
+                    $.notify("Error! Savining Error please check your intenet connection", "error");
+                    console.log(JSON.stringify(error));
+                    $('#send').prop('disabled', false);
+                });
             }
         }
     }

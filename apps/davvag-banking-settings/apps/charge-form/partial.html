@@ -9,7 +9,7 @@
   </div>
   <form v-if="data.id" id="maindisplay" class="activeForm" onsubmit="event.preventDefault();">
     <p style="text-align: justify;">
-      You have submited a bank diposit or tranfer slip and it is in 
+      You have submited a bank deposit or tranfer slip and it is in 
       <strong style="color:darkblue;">"{{ data.status }}"</strong> status. 
       As soon as we varify from the bank we will credit the amount of {{ data.currencycode }}.{{ data.dipositAmount }} to your account. if there is a change need to be made please click 
       <strong style="color:darkred;">"Delete this Request"</strong> and you will be able to resend the request to us.
@@ -47,17 +47,17 @@
       <span>{{ bank.bank_swift_code }}</span>
     </div>
     <div class="form-group">
-      <small id="Help2" class="form-text text-muted">Use above bank details and Tranfer or diposit and submit the following information to us.</small>
+      <small id="Help2" class="form-text text-muted">Use above bank details and Tranfer or deposit and submit the following information to us.</small>
     </div>
     <div v-if="bank.qr_code" class="form-group">
       <img :src="bank.qr_code" width="350px">
       <small id="Help2" class="form-text text-muted">Scan QR Code to tranfer from your banking APP.</small>
     </div>
-    <button  class="btn bg-primary-button btn-block" v-on:click="submition">Submit Tranfer or Diposit Infomation</button>
+    <button  class="btn bg-primary-button btn-block" v-on:click="submition">Submit Tranfer or Deposit Infomation</button>
     <button  class="btn bg-primary-button btn-block" v-on:click="back">Back</button>
   </form>
   <form id="banksubmition" class="inactiveForm" onsubmit="event.preventDefault();">
-    <h2 style="text-align: center;">Diposit Details</h2>
+    <h2 style="text-align: center;">Deposit Details</h2>
     <div class="form-group">
       <label for="name">Name *</label>
       <input type="text" id="name" class="form-control"  aria-describedby="emailHelp" placeholder="Enter Name" v-model="data.name">
@@ -77,11 +77,11 @@
       <textarea class="form-control deliveryAddress" v-model="data.remarks" style="margin-bottom:10px;"></textarea>
     </div>
     <div class="form-group">
-      <label for="exampleInputPassword1">Diposit Amount *</label>
+      <label for="exampleInputPassword1">Deposit Amount *</label>
       <input type="number" class="form-control" v-model="data.dipositAmount">
     </div>
     <div class="form-group">
-      <small id="Help2" class="form-text text-muted">If you do have a diposit slip or Tranferslip attach bellow.</small>
+      <small id="Help2" class="form-text text-muted">If you do have a deposit slip or Tranferslip attach bellow.</small>
     </div>
     <div class="form-group">
       <label for="exampleInputFile" class="col-md-1s2"></label>

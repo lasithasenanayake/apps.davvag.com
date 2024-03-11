@@ -149,10 +149,22 @@ class ProfileService{
         //return $result;
         if(count($result->result)!=0)
         {
+            $Store_profile= Profile::getProfile(0,0);
+            if(isset($Store_profile->profile)){
+                //return $Store_profile->profile;
+                $Store_profile= Profile::getProfile(0,0)->profile;//$Store_profile->profile;
+                $Transaction->company_profileId = $Store_profile->id; 
+                $Transaction->company_name = $Store_profile->name;
+                $Transaction->company_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
+                $Transaction->company_address = isset($Store_profile->address)?$Store_profile->address:null;
+                $Transaction->company_city = isset($Store_profile->city)?$Store_profile->city:null;
+                $Transaction->company_country = isset($Store_profile->country)?$Store_profile->country:null;
+                $Transaction->company_email = isset($Store_profile->email)?$Store_profile->email:null;
+            }
             $Store_profile= Profile::getUserProfile();
             if(isset($Store_profile->profile)){
                 //return $Store_profile->profile;
-                $Store_profile=$Store_profile->profile;
+                $Store_profile= $Store_profile->profile;//$Store_profile->profile;
                 $Transaction->supplier_profileId = $Store_profile->id; 
                 $Transaction->supplier_name = $Store_profile->name;
                 $Transaction->supplier_contactno = isset($Store_profile->contactno)?$Store_profile->contactno:null;
@@ -183,6 +195,17 @@ class ProfileService{
         }
         
         
+    }
+
+    public function getDepositCancelation($req,$res){
+        $query=$req->Query();
+        $handler =new Davvag_Order();
+        try{
+            return $handler->DipostCancel($query->id);
+        }catch(Exception $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
     }
 
     public function postInvoiceSave($req,$res){

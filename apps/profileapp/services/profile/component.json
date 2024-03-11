@@ -21,6 +21,9 @@
             },
             "DipositSave":{
                 "method" : "POST"
+            },"DepositCancelation" : {
+                "method" : "GET",
+                "parameters": ["id"]
             },
             "InvoiceSave" : {
                 "method" : "POST"

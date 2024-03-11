@@ -705,11 +705,11 @@ class Davvag_Order{
             if($result->success){
                $Transaction->TranNo = $result->result->generatedId;
                if($Transaction->vault==1){
-                    $this->updateInternalCashLedger($Transaction->profileId,"diposit_tr",$Transaction->TranNo,'Cash Diposit Tranfer',-1*$Transaction->total);
+                    $this->updateInternalCashLedger($Transaction->profileId,"deposit_tr",$Transaction->TranNo,'Cash Deposit Tranfer',-1*$Transaction->total);
 
                }
                if($Transaction->paymenttype=="Cash"){
-                    $this->updateInternalCashLedger($user->profile->id,"diposit",$Transaction->TranNo,'Cash Diposit',$Transaction->total);
+                    $this->updateInternalCashLedger($user->profile->id,"deposit",$Transaction->TranNo,'Cash Deposit',$Transaction->total);
                } 
                 if($result->success){
                 
@@ -738,6 +738,33 @@ class Davvag_Order{
             throw new Exception("Profile Not Found.");
         }
         
+        
+    }
+
+    
+
+    public function DipostCancel($tid,$res=null){
+
+        $tran=SOSSData::Query("dipositheader","TranNo:".$tid);
+        if($tran->success && count($tran->result)!=0){
+            $Transaction=$tran->result[0];
+            $Transaction->status="cancelled";
+            $r=SOSSData::Update("dipositheader",$Transaction);
+            if($r->success){
+                if($Transaction->paymenttype=="Cash"){
+                    $this->updateInternalCashLedger($Transaction->supplier_profileId,"deposit_de",$Transaction->TranNo,'Cash Deposit Cancelation',-1*$Transaction->total);
+                }
+                if($Transaction->vault==1){
+                    $this->updateInternalCashLedger($Transaction->profileId,"deposit_dv",$Transaction->TranNo,'Cash Deposit Cancelation',$Transaction->total);
+
+                }
+                CacheData::clearObjects("dipositheader");
+            }
+            
+            return $Transaction;
+        }else{
+            throw new Exception("Invalied Deposit");
+        }
         
     }
 

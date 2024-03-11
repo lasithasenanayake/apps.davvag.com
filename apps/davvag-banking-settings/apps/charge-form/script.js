@@ -157,7 +157,7 @@ WEBDOCK.component().register(function(exports){
             });
             
         }else{
-            bindData.submitErrors.push("Error Retriving Diposit information")
+            bindData.submitErrors.push("Error Retriving Deposit information")
             return null;
             lockForm();
         }
