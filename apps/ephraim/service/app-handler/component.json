@@ -19,7 +19,7 @@
             "Save" : {
                 "method" : "POST"
             },
-            "PDF" : {
+            "RegxForm" : {
                 "method" : "GET"
             },
             "CSV" : {

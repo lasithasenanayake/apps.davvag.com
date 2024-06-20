@@ -85,7 +85,7 @@ class appService {
             $mpdf->charset_in='windows-1252';
             $mpdf->WriteHTML(mb_convert_encoding($html,"UTF-8", "windows-1252"));
             
-            $pagecount=$mpdf->SetSourceFile(dirname(__FILE__)."\\Instruction_manual.pdf");
+            $pagecount=$mpdf->SetSourceFile(dirname(__FILE__)."/Instruction_manual.pdf");
             for ($i = 1; $i <= $pagecount; $i++) {
                 $mpdf->WriteHTML('<pagebreak />');
                 $tplId = $mpdf->ImportPage($i); // in mPdf v8 should be 'importPage($i)'

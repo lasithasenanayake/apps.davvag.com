@@ -76,6 +76,10 @@
     <td class="tg-0pky-value" colspan="2"> Ella Train Station</td>
   </tr>
   <tr>
+    <td class="tg-0pky-name">Medical Health Condition</td>
+    <td class="tg-0pky-value" colspan="2"> <?=$data->medicremarks?></td>
+  </tr>
+  <tr>
     <td class="tg-0pky-name">Contact Person</td>
     <td class="tg-0pky-value" colspan="2"><?php $res=SOSSData::Query("profile","id:".$data->referelid);
     if(count($res->result)>0)

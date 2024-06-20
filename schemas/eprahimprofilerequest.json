@@ -107,6 +107,13 @@
         {
             "fieldName":"productid",
             "dataType":"int"
+        },
+        {
+             "fieldName":"medicremarks",
+             "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1000
+            }
         }
     ]
 }
