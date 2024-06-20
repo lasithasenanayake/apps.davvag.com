@@ -1,0 +1,73 @@
+<div class="input-form">
+
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  
+</div>
+<form id="form-details-1" class="activeForm" onsubmit="return false;">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Embark on Adventure: Register Now for the Ephraim Ella Expedition! / වික්‍රමය ආරම්භ කරන්න: එප්‍රායීම් ඇල්ල ගවේෂණය සඳහා දැන්ම ලියාපදිංචි වන්න! </h1>
+<h2> Register Before 26th June | ලියාපදිංචි කිරීම් ජූනි 26 දිනෙන් අවසන් වේ</h2>
+<div class="TimeLeft">
+  Days Left : {{ day }}
+  
+</div>
+  <div class="form-group">
+    <label for="Name">Name / නම</label>
+    <input type="text" class="form-control" id="Name" aria-describedby="NameHelp" placeholder="Enter Name" v-model="data.name">
+    <small id="NameHelp" class="form-text text-muted">Your Full name Here. / ඔබගේ සම්පූර්ණ නම සදහන් කරන්න.</small>
+  </div>
+  <div class="form-group">
+    <label for="NIC">NIC or Passport Number / ජාතික හැඳුනුම්පත හෝ විදේශ ගමන් බලපත්‍ර අංකය</label>
+    <input type="text" class="form-control" id="NIC" aria-describedby="NICHelp" placeholder="Enter NIC" v-model="data.id_number">
+    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number./කරුණාකර ජාතික හැඳුනුම්පත් අංකය ලබා දෙන්න.</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address / ඊතැපැල් ලිපිනය</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email"   v-model="data.email">
+    <small id="emailHelp" class="form-text text-muted">Instructions will be emailed to you. / උපදෙස් ඔබට විද්‍යුත් තැපෑලෙන් එවනු ලැබේ.</small>
+  </div>
+  <div class="form-group">
+    <label for="contactno"> Contact No /දුරකථන  අංකය</label>
+    <input type="tel" class="form-control" id="contactno" aria-describedby="ContactHelp" placeholder="Enter Contact #"  v-model="data.contactno">
+    <small id="ContactHelp" class="form-text text-muted">Please Provide Your Contact No. / කරුණාකර ඔබගේ දුරකථන අංකය ලබා දෙන්න.</small>
+  </div>
+
+  <div class="form-group">
+   
+    <label for="contact_gno">Guardian Contact No /භාරකරු  දුරකථන  අංකය</label>
+    <input type="tel" class="form-control" id="contact_gno" aria-describedby="ContactgHelp" placeholder="Enter Contact #"  v-model="data.contactgno">
+    <small id="ContactgHelp" class="form-text text-muted">If Emergancy this Contact No used to Contact. / හදිසි අවස්ථාවකදී මෙම දුරකථන අංකය සම්බන්ධ කර ගැනීමට භාවිතා කරයි.</small>
+  </div>
+  <div class="form-group">
+    <label for="address">Address / ලිපිනය</label>
+    <textarea class="form-control deliveryAddress" v-model="data.address" placeholder="Enter Your Address" style="margin-bottom:10px;"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="city">City / නගරය</label>
+    <input type="text" class="form-control" id="city" aria-describedby="cityHelp" placeholder="Enter Name" v-model="data.city">
+    <small id="cityHelp" class="form-text text-muted">From which city your travelling from. / ඔබ ගමන් කරන්නේ කුමන නගරයේ සිටද?</small>
+  </div>
+  <div class="form-group">
+    <label for="medic">Medical Health Condition we should know of / අප දැනගත යුතු වෛද්‍ය සෞඛ්‍ය තත්ත්වය</label>
+    <textarea class="form-control deliveryAddress" v-model="data.medicremarks" placeholder="Enter Your Address" style="margin-bottom:10px;"></textarea>
+  </div>
+  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Register / ලියාපදිංචිවෙන්න </button>
+</form>
+<form id="form-details-2" class="inactiveForm" onsubmit="return false;">
+  <h4>You Have Successfully Registered / ඔබ සාර්ථකව ලියාපදිංචි වී ඇත</h4>
+  <p>
+    Please download the <b>Instruction Manual</b> and Registration form for your reference. Everything you need to know is detailed in this PDF document. Should you require further clarification, feel free to contact us using the number provided in the registration form.
+  </p>
+  <p>
+    කරුණාකර ඔබේ යොමුව සඳහා උපදෙස් අත්පොත සහ ලියාපදිංචි කිරීමේ පෝරමය බාගන්න. ඔබ දැනගත යුතු සියල්ල මෙම PDF ලේඛනයේ විස්තර කර ඇත. ඔබට වැඩිදුර පැහැදිලි කිරීමක් අවශ්‍ය නම්, ලියාපදිංචි කිරීමේ පෝරමයේ දක්වා ඇති අංකය භාවිතා කර අප හා සම්බන්ධ වීමට ඔබට පුළුවන්.
+  </p>
+  <a class="red-button" :href="'components/ephraim/app-handler/service/RegxForm?ref='+data.id">Click Here To Download / බාගත කිරීමට මෙතන ක්ලික් කරන්න</a>
+</form>
+<form id="form-details-3" class="inactiveForm" onsubmit="return false;">
+  <h4>Registration Expired / ලියාපදිංචිය කල් ඉකුත් විය</h4>
+ 
+</form>
+</div>

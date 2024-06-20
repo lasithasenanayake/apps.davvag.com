@@ -1,0 +1,39 @@
+{
+    "components": {
+        "enrole": {
+            "type":"component",
+            "location":"apps"
+        },
+        "app-handler": {
+            "type":"service",
+            "location":"service"
+        },
+        "test-form":{
+            "type":"component",
+            "location":"apps"
+        },
+        "sample-popup":{
+            "type":"component",
+            "location":"apps"
+        }
+    },
+    "description":{
+        "title": "QIB App",
+        "author":"Lasitha",
+        "version":"0.1",
+        "icon":"appicon.png"
+    },
+    "tags":["showincms","showindock"],
+    "configuration":{
+        "webdock":{
+            "startupComponent" : "enrole",
+            "onLoad": ["app-handler"],
+            "routes":{
+                "partials":{
+                    "/test":"test-form",
+                    "/app":"sample-popup"
+                }
+            }
+        }
+    }
+}

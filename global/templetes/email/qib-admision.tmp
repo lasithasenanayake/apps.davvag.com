@@ -1,0 +1,8 @@
+#subject{Please Download your Admision}#subject;
+#body{ 
+Dear @name,<br/>
+Please You Have Successfully Registered For Scholarship Admission<br/>
+<a href="https://scholarships.qibcampus.com/components/qib-reg-app/app-handler/service/PDF?ref=@id">Click Here To Download</a><br/><br/>
+Regards,<br/>
+IHESC Scholarship Admission
+}#body;

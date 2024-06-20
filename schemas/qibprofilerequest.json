@@ -1,0 +1,102 @@
+{
+    "fields" : [
+        {
+            "fieldName":"id",
+            "dataType":"int",
+            "annotations":{
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName":"name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 60,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"contactno",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 20
+            }
+        },
+        {
+            "fieldName":"email",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"organization",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"address",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 255,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"city",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"country",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 30,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"countrycode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 3,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"center",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
+            "fieldName":"id_number",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 20,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"referelid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"regdate",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"profileid",
+            "dataType":"int"
+        }
+
+    ]
+}

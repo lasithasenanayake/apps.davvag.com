@@ -82,6 +82,9 @@
         "facebooktest":{
             "version":"latest"
         },
+        "qib-reg-app":{
+            "version":"latest"
+        },
         "riders":{
             "version":"latest"
         },
@@ -141,6 +144,9 @@
             "version":"latest"
         },
         "davvag-email-settings":{
+            "version":"latest"
+        },
+        "ephraim":{
             "version":"latest"
         }
     },

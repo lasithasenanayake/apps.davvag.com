@@ -48,6 +48,13 @@
             $mail->IsHTML(true); 
             $mail->addAddress($email, $name);
             $mail->Body = $body;
+            $debug = '';
+            $mail->Debugoutput = function($str, $level) {
+            $GLOBALS['debug'] .= "$level: $str\n";
+            };
+            //...later
+            $mail->Send();
+            echo $debug;
             return $mail->Send();
           }
           return false;

@@ -52,13 +52,24 @@ class appService {
     public function getTestMail($req,$res){
         $profile=Profile::getUserProfile();
         if($profile->profile){
-            return Notify::sendEmailMessage($profile->profile->name,$profile->profile->email,"test_mail",$profile->profile);
+            return Notify::sendEmailMessage($profile->profile->name,$profile->profile->email,"test_mail",$profile->profile,4);
         }else{
             $res->SetError("Error retriving user");
         }
     }
 
-    
+    public function getTest(){
+        $to = "lasitha.senanayake@gmail.com";
+        $subject = "Another Test!";
+        $txt = "Hello world!";
+        $headers = "From: admission@qibcampus.com\r\n";
+
+        if (mail($to, $subject, $txt, $headers)) {
+            echo "Email sent successfully!";
+        } else {
+            echo "Email delivery failed.";
+        }
+    }
 
 
 }

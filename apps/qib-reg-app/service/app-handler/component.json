@@ -19,15 +19,12 @@
             "Save" : {
                 "method" : "POST"
             },
-            "Settings":{
-                "method":"GET"
+            "PDF" : {
+                "method" : "GET"
             },
-            "TestMail":{
-                "method":"GET"
-            },
-            "Test":{
-                "method":"GET"
-            }                 
+            "CSV" : {
+                "method" : "GET"
+            }           
         }
     },
     "transformers": {

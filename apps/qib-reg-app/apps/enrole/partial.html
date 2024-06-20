@@ -1,0 +1,79 @@
+<h1 style="text-align: center;">Welcome to International Higher Education Scholar Centre</h1>
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Register for IHESC Scholarship Admission </h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  
+</div>
+<form id="form-details-1" class="activeForm" onsubmit="return false;">
+  <div class="form-group">
+    <label for="Name">Name</label>
+    <input type="text" class="form-control" id="Name" aria-describedby="NameHelp" placeholder="Enter Name" v-model="data.name">
+    <small id="NameHelp" class="form-text text-muted">Your Full name Here.</small>
+  </div>
+  <div class="form-group">
+    <label for="NIC">NIC / Passport Number</label>
+    <input type="text" class="form-control" id="NIC" aria-describedby="NICHelp" placeholder="Enter NIC" v-model="data.id_number">
+    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number.</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email"   v-model="data.email">
+    <small id="emailHelp" class="form-text text-muted">Copy of the admission shall be emailed to you.</small>
+  </div>
+  <div class="form-group">
+    <label for="contactno">Contact No</label>
+    <input type="tel" class="form-control" id="contactno" aria-describedby="ContactHelp" placeholder="Enter Contact #"  v-model="data.contactno">
+    <small id="ContactHelp" class="form-text text-muted">Please Provide Your Contact No.</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Preferred Country Of Study *</label>
+    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="data.countrycode">
+            <option value="">Choose a Country...</option>
+            <optgroup label="Only Medicine">
+              <option value="161">Armenia</option>
+            </optgroup>
+            <optgroup label="All Other Countries">
+              <option value="105">Australia</option>
+              <option value="125">Canada</option>
+              <option value="026">France</option>
+              <option value="053">Germany</option>
+              <option value="071">Hungary</option>
+              <option value="035">Malta</option>
+              <option value="017">Netherlands</option>
+              <option value="116">New Zealand</option>
+              <option value="044">Poland</option>
+              <option value="134">Singapore</option>
+              <option value="062">Spain</option>
+              <option value="143">Sri Lanka</option>
+              <option value="080">Switzerland</option>
+              <option value="152">UK</option>
+            </optgroup>
+          </select>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Preferred Exam Center </label>
+    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="data.center">
+            <option value="">Choose a Exam Center...</option>
+              <option value="Anuradhapura">Anuradhapura</option>
+              <option value="Badulla">Badulla</option>
+              <option value="Batticaloa">Batticaloa</option>
+              <option value="Chilaw">Chilaw</option>
+              <option value="Colombo">Colombo</option>
+              <option value="Galle">Galle</option>
+              <option value="Jaffna">Jaffna</option>
+              <option value="Kalmunai">Kalmunai</option>
+              <option value="Kandy">Kandy</option>
+              <option value="Vavuniya">Vavuniya</option>
+          </select>
+  </div>
+  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Register</button>
+</form>
+<form id="form-details-2" class="inactiveForm" onsubmit="return false;">
+  <h4>You Have Successfully Registered For Scholarship Admission</h4>
+  <a :href="'components/qib-reg-app/app-handler/service/PDF?ref='+data.id">Click Here To Download</a>
+</form>
+</div>
