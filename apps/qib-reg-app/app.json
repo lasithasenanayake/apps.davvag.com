@@ -8,11 +8,15 @@
             "type":"service",
             "location":"service"
         },
-        "test-form":{
+        "result-upload":{
             "type":"component",
             "location":"apps"
         },
         "sample-popup":{
+            "type":"component",
+            "location":"apps"
+        },
+        "result":{
             "type":"component",
             "location":"apps"
         }
@@ -30,8 +34,8 @@
             "onLoad": ["app-handler"],
             "routes":{
                 "partials":{
-                    "/test":"test-form",
-                    "/app":"sample-popup"
+                    "/result-upload":"result-upload",
+                    "/result":"result"
                 }
             }
         }

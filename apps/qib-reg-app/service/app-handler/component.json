@@ -24,6 +24,18 @@
             },
             "CSV" : {
                 "method" : "GET"
+            },
+            "Results" : {
+                "method" : "GET",
+                "parameters": ["refid"]
+            },
+            "ResultPDF":{
+                "method" : "GET",
+                "parameters": ["ref"]
+            }
+            ,
+            "UploadExcel":{
+                "method" : "POST"
             }           
         }
     },

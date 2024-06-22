@@ -1,13 +1,19 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,attribute;
+    var scope,validator_profile,service_handler,sossrout_handler,attribute,newFile;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{}
+        submitErrors : [],submitInfo : [],data:{},image:null
     };
 
     var vueData =  {
         methods:{
             submit:submit,
+            onFileChange: function(e) {
+                var files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                createImage(files[0]);
+            },
             load:function(){
                 bindData.data=attribute.get_data();
                 
@@ -33,7 +39,17 @@ WEBDOCK.component().register(function(exports){
         }
     }
 
-    
+    function createImage(file) {
+        newFile = file;
+        var image = new Image();
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            bindData.image = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    }
 
     function initialize(){
         service_handler = exports.getComponent("app-handler");
@@ -65,29 +81,27 @@ WEBDOCK.component().register(function(exports){
 
     function submit(){
         lockForm();
-        scope.submitErrors = [];
-        scope.submitErrors = validator_profile.validate(); 
-        if (!scope.submitErrors){
-            lockForm();
-            scope.submitErrors = [];
-            scope.submitInfo=[];
-            service_handler.services.Save(bindData.data).then(function(result){
+        bindData.submitErrors=[];
+            service_handler.services.Results({"refid":bindData.data.id_number}).then(function(result){
                 
                 console.log(result);
                 
                 if(result.success){
-                    scope.submitInfo.push("result.result.message");
+                    bindData.data=result.result;
+                    scope.submitInfo.push("Your Results are in.");
+                    $("#form-details-2").toggle();
+                    $("#form-details-1").toggle();
                 }else{
-                    scope.submitErrors.push("Error");
+                    scope.submitErrors.push("Invalid NIC or Passport");
                 }
                 unlockForm();
             }).error(function(result){
                 scope.submitErrors = [];
-                bindData.submitErrors.push("Error");
+                bindData.submitErrors.push("Invalid NIC or Passport");
                 unlockForm();
             });
 
-        }
+        
     }
 
     function navigateBack(){

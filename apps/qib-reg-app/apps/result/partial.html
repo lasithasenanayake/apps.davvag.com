@@ -1,0 +1,22 @@
+<h1 style="text-align: center;">Welcome to International Higher Education Scholar Centre</h1>
+<div class="input-form">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> GET IQ TEST Result for IHESC Scholarship Admission </h1>
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  
+</div>
+<form id="form-details-1" class="activeForm" onsubmit="return false;">
+  <div class="form-group">
+    <label for="NIC">NIC / Passport Number</label>
+    <input type="text" class="form-control" id="NIC" aria-describedby="NICHelp" placeholder="Enter NIC" v-model="data.id_number">
+    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number.</small>
+  </div>
+  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Check Results</button>
+</form>
+<form id="form-details-2" class="inactiveForm" onsubmit="return false;">
+  <h4>Your IQ Test results are ready! Please download them from the link below.</h4>
+  <a :href="'components/qib-reg-app/app-handler/service/ResultPDF?ref='+data.id">Click Here To Download</a>
+</form>

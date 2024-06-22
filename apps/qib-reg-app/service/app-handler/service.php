@@ -5,6 +5,8 @@ require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH . "/mpdf/mpdf.php");
 require_once(PLUGIN_PATH . "/notify/notify.php");
 
+
+//use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 class appService {
 
     function __construct(){
@@ -39,6 +41,60 @@ class appService {
         return $out;
     }
 
+    public function postUploadExcel($req,$res){
+        $rawInput = fopen('php://input', 'r');
+        $tempStream = fopen('php://temp', 'r+');
+        stream_copy_to_stream($rawInput, $tempStream);
+        rewind($tempStream);
+        $excel= stream_get_contents($tempStream);
+        $ns="_tmpexcelUploads";
+        $name=time()."_";
+
+        $folder = MEDIA_FOLDER . "/".  DATASTORE_DOMAIN . "/$ns";
+        if (!file_exists($folder))
+            mkdir($folder, 0777, true);
+        file_put_contents("$folder/$name", $excel);
+        $file = fopen("$folder/$name","r");
+        //$lines = file('myCSVFile.csv', FILE_IGNORE_NEW_LINES);
+        $worksheet_arr =array();
+        while (($result = fgetcsv($file)) !== false)
+        {
+            $worksheet_arr[] = $result;
+        }
+         
+        $header=$worksheet_arr[0];
+        unset($worksheet_arr[0]);
+        $dataList=array();
+        foreach($worksheet_arr as $row){
+            $item =new stdClass();
+            $itemNumber=0;
+            foreach($header as $hvalue){
+                if(isset($hvalue))
+                $item->{$hvalue}=$row[$itemNumber];
+                $itemNumber++;
+            } 
+            array_push($dataList,$item);
+        }
+        foreach($dataList as $dataObj){
+            $rec=SOSSData::Query("qibprofilerequest_results",urlencode("id_number:".$dataObj->id_number));
+            if(count($rec->result)>0){
+                $data=$rec->result[0];
+                foreach ($dataObj as $key => $value) {
+                    # code...
+                    $data->{$key}=$value;
+                }
+                $r=SOSSData::Update("qibprofilerequest_results",$data);
+            }else{
+                $r=SOSSData::Insert("qibprofilerequest_results",$dataObj);
+            }
+
+        }
+        
+        unlink("$folder/$name");
+        return $dataList;
+    }
+
+
     public function postSave($req,$res){
         $data = $req->Body(true);
         $data->regdate=time();
@@ -71,6 +127,32 @@ class appService {
         $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
         return $data; 
     }
+
+    public function getResults($req,$res){
+        $id=$_GET["refid"];
+        $rec=SOSSData::Query("qibprofilerequest_results",urlencode("id_number:".$id));
+        if(count($rec->result)>0){
+            return $rec->result[0];
+        }else{
+            $res->SetError($rec);
+            exit;
+        }
+    }
+
+    public function getResultPDF($req,$res){
+        $id=$_GET["ref"];
+        $rec=SOSSData::Query("qibprofilerequest_results","id:".$id);
+        if(count($rec->result)>0){
+             $html=$this->getRenderedHTML("result.php",array("data"=>$rec->result[0]));
+             $mpdf = new \Mpdf\Mpdf();
+            // echo $html;
+             $mpdf->WriteHTML($html);
+             $mpdf->Output("result.pdf",\Mpdf\Output\Destination::DOWNLOAD);
+             exit();
+         }else{
+             echo "<h1>Error: Invalid Request</h1><br>We apologize, but the request you submitted is invalid. Please review the information provided and try again.";
+         }
+     }
 
     public function getPDF($req,$res){
        $id=$_GET["ref"];
