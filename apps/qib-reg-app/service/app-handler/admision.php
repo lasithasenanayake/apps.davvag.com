@@ -40,7 +40,7 @@
 <tbody>
   <tr>
     <td class="tg-black-left" colspan="3">IQSL24 0858</td>
-    <td class="tg-0pky" rowspan="7">
+    <td class="tg-0pky" rowspan="3">
       <img src="https://scholarships.qibcampus.com/assets/qib-reg-app/side.png" width="150px">
 
     </td>

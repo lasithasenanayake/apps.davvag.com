@@ -43,9 +43,9 @@ class appService {
         $data = $req->Body(true);
         $data->regdate=time();
         //$data->country=$this->getCountries()[$data->countrycode];
-        $rec=SOSSData::Query("profile",urlencode("id_number:".$data->id_number));
+        $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
             $data->profileid=0;
-            if(!count($rec->result)>0){
+            if(!count($rec->result)>0 && !$this->CheckPro($rec->result[0],$data)){
                 $new=new stdClass();
                 $new->name=$data->name;
                 $new->email=$data->email;
@@ -56,13 +56,18 @@ class appService {
             }else{
                 $data->profileid=$rec->result[0]->id;
             }
-
+        
         $rec=SOSSData::Query("eprahimprofilerequest",urlencode("email:".$data->email));
         if(count($rec->result)>0){
-            $data->id=$rec->result[0]->id;
-            $r=SOSSData::Update("eprahimprofilerequest",$data);
-            $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
-            return $data;
+            if($this->CheckPro($rec->result[0],$data)){
+                $data->id=$rec->result[0]->id;
+                $r=SOSSData::Update("eprahimprofilerequest",$data);
+                $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
+                return $data;
+            }else{
+                $r=SOSSData::Insert("eprahimprofilerequest",$data);
+                $data->id=$r->result->generatedId;
+            }
         }else{
             
             $r=SOSSData::Insert("eprahimprofilerequest",$data);
@@ -70,6 +75,20 @@ class appService {
         }
         $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
         return $data; 
+    }
+
+    private function CheckPro($data1,$data2){
+        if(isset($data1->name)){
+            if($data1->name==$data1->name){
+                return true;
+            }
+            if(isset($data2->id_number)){
+                if($data1->result[0]->id_number==$data1->id_number){
+                    return true;
+                }
+            }   
+        }
+        return false;
     }
 
     public function getRegxForm($req,$res){
@@ -98,6 +117,36 @@ class appService {
         }
     }
 
+    public function getListOfPeople($req,$res)
+    {
+        if(isset($_GET["ref"])){
+            $id=$_GET["ref"];
+            $rec=SOSSData::Query("eprahimprofilerequest","referelid:".$id);
+            if(count($rec->result)>0){
+                $html=$this->getRenderedHTML("regdata.php",array("data"=>$rec->result));
+                echo $html;
+                exit();
+            }
+        }else{
+            $rec=SOSSData::Query("eprahimprofilerequest",null);
+            if(count($rec->result)>0){
+                $html=$this->getRenderedHTML("regdata.php",array("data"=>$rec->result));
+                $mpdf = new \Mpdf\Mpdf();
+                //echo $html;
+                //exit;
+                $mpdf->allow_charset_conversion=true;  // Set by default to TRUE
+    
+                $mpdf->charset_in='windows-1252';
+                $mpdf->WriteHTML(mb_convert_encoding($html,"UTF-8", "windows-1252"));
+
+                 $mpdf->Output("reg-list.pdf",\Mpdf\Output\Destination::DOWNLOAD);
+                exit();
+            }
+        }
+
+
+    }
+
     function getRenderedHTML($path,$_data=array()) {
         foreach ($_data as $key => $value) {
             # code...
@@ -115,7 +164,7 @@ class appService {
     }
 
     public function getCSV($req,$res){
-        $rec=SOSSData::Query("qibprofilerequest",null);
+        $rec=SOSSData::Query("eprahimprofilerequest",null);
         //var_dump($rec);
         
         header("Content-Type: text/csv");

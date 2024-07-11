@@ -1,6 +1,6 @@
 <h1 style="text-align: center;">Welcome to International Higher Education Scholar Centre</h1>
 <div class="input-form">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> GET IQ TEST Result for IHESC Scholarship Admission </h1>
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> IQ TEST Result for IHESC Scholarship </h1>
 <hr>
 <div class="input-error">
   <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
@@ -12,7 +12,7 @@
   <div class="form-group">
     <label for="NIC">NIC / Passport Number</label>
     <input type="text" class="form-control" id="NIC" aria-describedby="NICHelp" placeholder="Enter NIC" v-model="data.id_number">
-    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number.</small>
+    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number / Passport Number.</small>
   </div>
   <button  class="btn bg-primary-button btn-block" v-on:click="submit">Check Results</button>
 </form>

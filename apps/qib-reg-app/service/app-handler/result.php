@@ -33,7 +33,7 @@
 
 <table class="tg"><thead>
   <tr>
-    <th class="tg-black" colspan="5"><h1>SCHOLARSHIP ADMISSION IQ Test Result</h1></th>
+    <th class="tg-black" colspan="3"><h1>IQ Exam Result</h1></th>
     
   </tr>
 </thead>
@@ -91,7 +91,7 @@
   </td>
   </tr>
   <tr>
-    <td class="tg-0pky-name">IQ Result</td>
+    <td class="tg-0pky-name">IQ EXAM RESULT</td>
     <td class="tg-0pky-value" colspan="2"><?=$data->iq_result?></td>
   </tr>
   <tr>
@@ -100,7 +100,7 @@
   </tr>
   <tr>
     <td class="tg-0pky-name">COUNTRY</td>
-    <td class="tg-0pky-value" colspan="2">Sri Lanka</td>
+    <td class="tg-0pky-value" colspan="2">Sri Lanka (143)</td>
   </tr>
   <tr>
     <td class="tg-0pky-name">EXAM CENTER</td>
@@ -109,9 +109,21 @@
   
 </tbody>
 </table>
-<p>This is a Golden Opportunity for you to showcase your IQ knowledge to world by 
-World Recognized UK Based International Education Scholar Center.
-You can get a UK verified Internationally recognized certificate and QR code
-to add it in your CVs or for future endeavor</p>
+<table style="width: 100%;">
+  <tr>
+    <td><img src="https://scholarships.qibcampus.com/assets/qib-reg-app/QR.jpeg" alt="" style="width: 200Px;"></td>
+    <td rowspan="3" style="padding-left: 50px;"> <p style="text-align: justify;text-justify: inter-word; padding: 30PX; margin: 50px;">We are thrilled to present you with a golden opportunity to showcase your IQ knowledge on an international platform. The World Recognised UK-Based International Education Scholar Centre conducts and monitors this prestigious IQ examination.
+<br><br>
+By taking part, you will not only demonstrate your intellectual prowess but also earn a UK-verified, internationally recognised certificate. This certificate comes with a QR code, allowing you to effortlessly add it to your CV, LinkedIn profile, or other professional documents. Such a credential will undoubtedly enhance your future endeavours, setting you apart in competitive academic and professional landscapes.
+<br><br>
+Seize this chance to validate your abilities and gain recognition from a world-class institution. Your participation will be a significant step towards achieving your academic and career aspirations.</p></td>
+  </tr>
+  <tr>
+    <td>Please scan this QR code for <br>instructions on how to obtain <br>your scholarship grant.</td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+</table>
 </body>
 </html>
