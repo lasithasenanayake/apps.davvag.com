@@ -42,6 +42,10 @@
                   <td>{{ date }}</td>
               </tr>
               <tr>
+                <th>To Account<br/>(keep blank to Normal Company)</th>
+                <td><button v-on:click="selectProfile"> Select </button></td>
+              </tr>
+              <tr>
                 <th>Payment Type</th>
                 <td>
                   <select title="Payment Type" class="form-control mb15" v-model="paymenttype">

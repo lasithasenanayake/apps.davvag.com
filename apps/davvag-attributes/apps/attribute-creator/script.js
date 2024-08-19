@@ -226,6 +226,16 @@ WEBDOCK.component().register(function(exports){
                         $fieldSet.append($txt); 
                         $formTmp.append($fieldSet);
                         break;  
+                    case 'date':
+                            $fieldSet = $('<div class="form-group"></div>');
+                            $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
+                            $txt=$('<div class="col-sm-6"></div>');
+                            
+                            $txt.append('<input class="form-control" type="date" id="'+obj.name+'" '+(obj.readonly==1?'disabled':'')+' '+(obj.req==1?'required':'')+'>');
+                            
+                            $fieldSet.append($txt); 
+                            $formTmp.append($fieldSet);
+                        break;
                 default:
                     alert('There was no input type found.');
                     break;

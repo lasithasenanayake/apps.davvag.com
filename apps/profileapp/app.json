@@ -44,7 +44,12 @@
         "frmprofile-list": {
             "type":"component",
             "location":"components"
-        },"setting-app":{
+        },
+        "frmprofile-list-popup":{
+            "type":"component",
+            "location":"components"
+        },
+        "setting-app":{
             "type":"component",
             "location":"components"
         },

@@ -48,8 +48,8 @@ WEBDOCK.component().register(function(exports){
 
     function renderDrid() {
         lockForm(); 
-        attribute.renderGrid("attr_projects","sampleform",[{type:"data",name:"admin",displayname:"ID",style:""},
-        {type:"data",name:"name",displayname:"yo man"},
+        attribute.renderGrid("attr_projects","sampleform",[{type:"data",name:"ID",displayname:"ID",style:""},
+        {type:"data",name:"header",displayname:"Title"},
         {type:"button",name:"openalert",fn:"function",caption:"Execute Command",displayname:"Edit",function:function(e){
             item=e.data;
             att_popup=exports.getShellComponent("attribute_shell_popup");

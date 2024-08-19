@@ -109,6 +109,17 @@
             "dataType":"int"
         },
         {
+            "fieldName":"projectid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"gender",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 1
+            }
+        },
+        {
              "fieldName":"medicremarks",
              "dataType":"java.lang.String",
             "annotations":{

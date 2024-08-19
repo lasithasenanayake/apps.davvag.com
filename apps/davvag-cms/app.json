@@ -124,6 +124,7 @@
                 "partials" : {
                     "/" : "partial-homeblog-bg",
                     "/app/@appName/*appRoute" : "partial-app",
+                    "/p/@username":"partial-user",
                     "/home" : "partial-homeblog",
                     "/donate" : "partial-donation",
                     "/notFound": "partial-404",

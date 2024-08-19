@@ -19,11 +19,16 @@
                     $data->status=SOSSData::Update($data->id,$data->data);
                 }else{
                     $data->status=SOSSData::Insert($data->id,$data->data);
+                    if(!empty($data->status->result->generateId)){
+                        for ($i=0; $i < count($data->primary); $i++) { 
+                            $data->data->{$data->primary[$i]}=$data->status->result->generateId;
+                        }
+                    }
                 }
                 //sreturn $data->status;
                 if($data->status->success){
                     //echo "im in";
-                    if(isset($data->postworkflow)){
+                    if(!empty($data->postworkflow)){
                         //echo "im in";
                         
                         $data->workflow_log= DavvagFlow::Execute("davvag-attributes",$data->postworkflow->name,self::getInputData($data));

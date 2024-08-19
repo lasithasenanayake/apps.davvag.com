@@ -1,6 +1,6 @@
 {
     "components": {
-        "enrole-sin": {
+        "enrole-reg": {
             "type":"component",
             "location":"apps"
         },
@@ -15,6 +15,10 @@
         "sample-popup":{
             "type":"component",
             "location":"apps"
+        },
+        "projects":{
+            "type":"component",
+            "location":"apps"
         }
     },
     "description":{
@@ -26,14 +30,19 @@
     "tags":["showincms","showindock"],
     "configuration":{
         "webdock":{
-            "startupComponent" : "enrole-sin",
+            "startupComponent" : "enrole-reg",
             "onLoad": ["app-handler"],
             "routes":{
                 "partials":{
-                    "/entrole-sin":"entrole-sin",
-                    "/app":"sample-popup"
+                    "/entrole":"enrole-reg",
+                    "/app":"sample-popup",
+                    "/projects":"projects"
                 }
             }
+        },"dock":{
+            "subapps":[
+                {"name":"Projects","path":"projects"}
+            ]
         }
     }
 }

@@ -15,6 +15,7 @@ WEBDOCK.component().register(function(exports){
         supplierData:{},
         paymenttype:"Cash",
         profile_vault:{CashInHand:0},
+        company:null,
         vault:false
     };
 
@@ -56,6 +57,19 @@ WEBDOCK.component().register(function(exports){
             save:saveInvoice,
             savePreview:savePreview,
             savePreviewCancel:function(){bindData.invoiceSave=false;},
+            selectProfile:function(){
+                handler1 = exports.getShellComponent("app_popup");
+                handler1.open("profileapp","frmprofile-list-popup",{},function(d,a){
+                    
+                    a.close(function(){
+                        if(d.id){
+                            bindData.company=d;
+                        }
+                        
+                    });
+                },"Select Profile",true,true);
+
+            },
             onFileChange: function(e) {
                 var files = e.target.files || e.dataTransfer.files;
                 if (!files.length)
@@ -281,6 +295,7 @@ WEBDOCK.component().register(function(exports){
                 paidamount:0,
                 status:"Approved",
                 detailsString:null,
+                company_profileId:(bindData.company.id?bindData.company.id:0),
                 InvoiceItems:[]
             }
             bindData.InvItems.forEach(element => {

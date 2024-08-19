@@ -1,0 +1,98 @@
+<div class="input-form">
+
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+  
+</div>
+<form id="form-details-1" class="activeForm" onsubmit="return false;">
+<h1 class="h3 mb-3 font-weight-normal" style="text-align: center" v-html="project.header"></h1>
+<h2 v-html="project.reg_desc"> </h2>
+<div class="TimeLeft">
+  Days Left : {{ day }}
+  
+</div>
+  <div class="form-group">
+    <label for="Name">Name / නම / பெயர்</label>
+    <input type="text" class="form-control" id="Name" aria-describedby="NameHelp" placeholder="Enter Name" v-model="data.name">
+    <small id="NameHelp" class="form-text text-muted">Your Full name. / ඔබගේ සම්පූර්ණ නම සදහන් කරන්න./உன் முழு பெயர்.</small>
+  </div>
+  <div class="form-group">
+    <label for="gender">Gender / ස්ත්රී පුරුෂ භාවය / பாலினம்</label>
+    <br/>
+    <label class="radio-inline" for="Gender-0">
+      <input type="radio" name="Gender" id="Gender-0" value="m" name="gender" v-model="data.gender">
+      Male / පිරිමි / ஆண்
+    </label> 
+    <label class="radio-inline" for="Gender-1">
+      <input type="radio" name="Gender" id="Gender-1" value="f" name="gender" v-model="data.gender">
+      Female / ගැහැණු / பெண்
+    </label> 
+    
+  </div>
+  <div class="form-group">
+    <label for="NIC">NIC or Passport Number / ජාතික හැඳුනුම්පත හෝ විදේශ ගමන් බලපත්‍ර අංකය /NIC அல்லது பாஸ்போர்ட் எண்</label>
+    <input type="text" class="form-control" id="NIC" aria-describedby="NICHelp" placeholder="Enter NIC" v-model="data.id_number">
+    <small id="NICHelp" class="form-text text-muted">Please Provide National ID Card Number./කරුණාකර ජාතික හැඳුනුම්පත් අංකය ලබා දෙන්න. / தேசிய அடையாள அட்டை எண்ணை வழங்கவும்</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address / ඊතැපැල් ලිපිනය / மின்னஞ்சல் முகவரி</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email"   v-model="data.email">
+    <small id="emailHelp" class="form-text text-muted">Instructions will be emailed to you. / උපදෙස් ඔබට විද්‍යුත් තැපෑලෙන් එවනු ලැබේ. / வழிமுறைகள் உங்களுக்கு மின்னஞ்சலில் அனுப்பப்படும்.</small>
+  </div>
+  <div class="form-group">
+    <label for="contactno"> Contact No /දුරකථන  අංකය / தொடர்பு எண்</label>
+    <input type="tel" class="form-control" id="contactno" aria-describedby="ContactHelp" placeholder="Enter Contact #"  v-model="data.contactno">
+    <small id="ContactHelp" class="form-text text-muted">Please Provide Your Contact No. / කරුණාකර ඔබගේ දුරකථන අංකය ලබා දෙන්න. /தயவுசெய்து உங்கள் தொடர்பு எண்ணை வழங்கவும்.</small>
+  </div>
+
+  <div class="form-group">
+   
+    <label for="contact_gno">Guardian Contact No /භාරකරු  දුරකථන  අංකය / கார்டியன் தொடர்பு எண்</label>
+    <input type="tel" class="form-control" id="contact_gno" aria-describedby="ContactgHelp" placeholder="Enter Contact #"  v-model="data.contactgno">
+    <small id="ContactgHelp" class="form-text text-muted">If Emergancy this Contact No used to Contact. / හදිසි අවස්ථාවකදී මෙම දුරකථන අංකය සම්බන්ධ කර ගැනීමට භාවිතා කරයි./ அவசரநிலை என்றால் இந்த தொடர்பு எண் தொடர்பு கொள்ள பயன்படும்.</small>
+  </div>
+  <div class="form-group">
+    <label for="address">Address / ලිපිනය /முகவரி</label>
+    <textarea class="form-control deliveryAddress" v-model="data.address" placeholder="Enter Your Address" style="margin-bottom:10px;"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="city">City / නගරය / நகரம்</label>
+    <input type="text" class="form-control" id="city" aria-describedby="cityHelp" placeholder="Enter Name" v-model="data.city">
+    <small id="cityHelp" class="form-text text-muted">From which city your travelling from. / ඔබ ගමන් කරන්නේ කුමන නගරයේ සිටද? /நீங்கள் எந்த நகரத்திலிருந்து பயணம் செய்கிறீர்கள்.</small>
+  </div>
+  <div class="form-group">
+    <label for="medic">Medical Health Condition we should know of / අප දැනගත යුතු වෛද්‍ය සෞඛ්‍ය තත්ත්වය /மருத்துவ சுகாதார நிலை</label>
+    <textarea class="form-control deliveryAddress" v-model="data.medicremarks" placeholder="Enter Your Address" style="margin-bottom:10px;"></textarea>
+  </div>
+  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Register / ලියාපදිංචිවෙන්න / பதிவு</button>
+</form>
+<form id="form-details-2" class="inactiveForm" onsubmit="return false;">
+  <h4>You Have Successfully Registered / ඔබ සාර්ථකව ලියාපදිංචි වී ඇත / நீங்கள் வெற்றிகரமாக பதிவு செய்துள்ளீர்கள்</h4>
+  <p>
+    Please download the <b>Instruction Manual</b> and Registration form for your reference. Everything you need to know is detailed in this PDF document. Should you require further clarification, feel free to contact us using the number provided in the registration form.
+  </p>
+  <p>
+    කරුණාකර ඔබේ යොමුව සඳහා උපදෙස් අත්පොත සහ ලියාපදිංචි කිරීමේ පෝරමය බාගන්න. ඔබ දැනගත යුතු සියල්ල මෙම PDF ලේඛනයේ විස්තර කර ඇත. ඔබට වැඩිදුර පැහැදිලි කිරීමක් අවශ්‍ය නම්, ලියාපදිංචි කිරීමේ පෝරමයේ දක්වා ඇති අංකය භාවිතා කර අප හා සම්බන්ධ වීමට ඔබට පුළුවන්.
+  </p>
+  <p>
+    உங்கள் குறிப்புக்காக <b>வழிமுறை கையேடு</b> மற்றும் பதிவு படிவத்தைப் பதிவிறக்கவும். நீங்கள் தெரிந்து கொள்ள வேண்டிய அனைத்தும் இந்த PDF ஆவணத்தில் விரிவாக உள்ளது. உங்களுக்கு மேலும் தெளிவு தேவைப்பட்டால், பதிவு படிவத்தில் கொடுக்கப்பட்டுள்ள எண்ணைப் பயன்படுத்தி எங்களைத் தொடர்புகொள்ளவும்.
+  </p>
+  <a class="red-button" :href="'components/ephraim/app-handler/service/RegxForm?ref='+data.id">Click Here To Download / බාගත කිරීමට මෙතන ක්ලික් කරන්න</a>
+  <br/><br/>
+  <h4>General Registration Details / සාමාන්ය ලියාපදිංචි විස්තර / பொது பதிவு விவரங்கள்</h4>
+  <p v-html="project.reg_complete">
+    
+  </p>
+</form>
+<form id="form-details-3" class="inactiveForm" onsubmit="return false;">
+  <h4>Registration Expired / ලියාපදිංචිය කල් ඉකුත් විය / பதிவு காலாவதியானது</h4>
+ 
+</form>
+<form id="form-details-4" class="inactiveForm" onsubmit="return false;">
+  <h4>Registration Expired / ලියාපදිංචිය කල් ඉකුත් විය / பதிவு காலாவதியானது</h4>
+ 
+</form>
+</div>

@@ -34,7 +34,7 @@
 
 <table class="tg"><thead>
   <tr>
-    <th class="tg-black" colspan="3"><h1>Registration For Ella Hike</h1></th>
+    <th class="tg-black" colspan="3"><h1>Registration Pass</h1></th>
     
   </tr>
 </thead>
@@ -64,17 +64,15 @@
   </td>
   </tr>
   <tr>
-    <td class="tg-0pky-name">DATE</td>
-    <td class="tg-0pky-value" colspan="2">28<sup>th</sup> June 2024 (28-06-2024)</td>
+    
+    <td class="tg-0pky-name">Details</td>
+    <td class="tg-0pky-value" colspan="2"><?$res=SOSSData::Query("attr_projects","ID:".$data->projectid);
+    if(count($res->result)>0){
+      echo $res->result[0]->reg_complete;
+    }
+    ?></td>
   </tr>
-  <tr>
-    <td class="tg-0pky-name">TIME</td>
-    <td class="tg-0pky-value" colspan="2">7:00 am</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky-name">Place</td>
-    <td class="tg-0pky-value" colspan="2"> Ella Train Station</td>
-  </tr>
+  
   <tr>
     <td class="tg-0pky-name">Medical Health Condition</td>
     <td class="tg-0pky-value" colspan="2"> <?=$data->medicremarks?></td>

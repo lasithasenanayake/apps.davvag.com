@@ -24,7 +24,17 @@
             },
             "CSV" : {
                 "method" : "GET"
-            }           
+            },
+            
+            "Project":{
+                "method" : "GET",
+                "parameters": ["pid"]
+            } ,
+            
+            "ListOfPeople":{
+                "method" : "GET",
+                "parameters": ["pid"]
+            }            
         }
     },
     "transformers": {

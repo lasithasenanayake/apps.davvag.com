@@ -89,7 +89,11 @@ WEBDOCK.component().register(function(exports){
     function initiate() {
         exports.getAppComponent("davvag-tools","davvag-app-downloader", function(_app){
             appLoader=_app;
-            appLoader.initialize();
+            if (appLoader.initialize) { 
+                // safe to use the function
+                appLoader.initialize();
+            }
+            
         });
     }
     
