@@ -43,9 +43,18 @@ class appService {
         $data = $req->Body(true);
         $data->regdate=time();
         //$data->country=$this->getCountries()[$data->countrycode];
-        $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
+        if(!empty($data->email))
+            $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
+        elseif(!empty($data->id_number))
+            $rec=SOSSData::Query("profile",urlencode("id_number:".$data->id_number));
+        else{
+            $rec=SOSSData::Query("profile",urlencode("name:".$data->name));
+        }
             $data->profileid=0;
-            if(!count($rec->result)>0 && !$this->CheckPro($rec->result[0],$data)){
+
+
+            $profile=$this->CheckPro($rec->result,$data);
+            if(empty($profile)){
                 $new=new stdClass();
                 $new->name=$data->name;
                 $new->email=$data->email;
@@ -57,13 +66,14 @@ class appService {
                 $r=SOSSData::Insert("profile",$new);
                 $data->profileid=$r->result->generatedId;
             }else{
-                $data->profileid=$rec->result[0]->id;
+                $data->profileid=$profile->id;
             }
         
         $rec=SOSSData::Query("eprahimprofilerequest",urlencode("email:".$data->email.",projectid:".$data->projectid));
         if(count($rec->result)>0){
-            if($this->CheckPro($rec->result[0],$data)){
-                $data->id=$rec->result[0]->id;
+            $profile=$this->CheckPro($rec->result,$data);
+            if(isset($profile)){
+                $data->id=$profile->id;
                 $r=SOSSData::Update("eprahimprofilerequest",$data);
                 $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
                 return $data;
@@ -80,18 +90,30 @@ class appService {
         return $data; 
     }
 
-    private function CheckPro($data1,$data2){
-        if(isset($data1->name)){
-            if($data1->name==$data1->name){
-                return true;
-            }
-            if(isset($data2->id_number)){
-                if($data1->result[0]->id_number==$data1->id_number){
-                    return true;
+    private function CheckPro($data,$data2){
+        foreach ($data as $key => $data1) {
+            # code...
+            if(isset($data1->name)){
+                if(strtolower($data1->name)==strtolower($data2->name)){
+                    return $data1;
                 }
-            }   
+                $persontage=0;
+                similar_text(strtolower($data1->name),strtolower($data2->name),$persontage);
+                if($persontage>90){
+                    return $data1;
+                }
+    
+                if(!empty($data2->id_number)){
+                    if($data1->id_number==$data2->id_number){
+                        return $data1;
+                    }
+                }   
+            }
+            
         }
-        return false;
+
+        return null;
+        
     }
 
     public function getRegxForm($req,$res){

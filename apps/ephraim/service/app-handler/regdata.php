@@ -37,6 +37,7 @@
 <th class="tg-black">Name</th>
 <th class="tg-black">Email</th>
 <th class="tg-black">Contact No</th>
+<th class="tg-black">NIC Number</th>
 <th class="tg-black"></th>
 </tr>
 </thead>
@@ -46,7 +47,9 @@
         <td><?=$value->id?></td>
         <td><?=$value->name?></td>
         <td><?=$value->email?></td>
-        <td><?=$value->contactno?></td>
+        <td>	
+        <a href="tel:<?=$value->contactno?>"><?=$value->contactno?></a></td>
+        <td><?=$value->id_number?></td>
         <td><a href="https://www.davvag.com/components/ephraim/app-handler/service/RegxForm?ref=<?=$value->id?>">Download</a></td>
     </tr>
 
