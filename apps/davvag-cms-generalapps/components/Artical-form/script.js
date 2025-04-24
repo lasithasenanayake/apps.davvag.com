@@ -137,36 +137,19 @@ WEBDOCK.component().register(function(exports){
                 return;
             }
             imagecount=newfiles.length;
-            for (var i = 0; i < newfiles.length; i++) {
-                //newfiles.push(newFile[i]);
-                //getImage(i,files[i]);
-                //console.log();
-                //imagecount++;
-                console.log(i);
-
-                        uploaderInstance.services.uploadFile(newfiles[i], "d_cms_artical", productId+"-"+newfiles[i].name )
-                        .then(function(result2){
-                            $.notify("Profile Image Has been uploaded", "info");
-                            completed++;
-                            if(imagecount==completed){
-                                cb();
-                            }
-                            //cb();
-                        })
-                        .error(function(){
-                            completed++;
-                            $.notify("Profile Image Has not been uploaded", "error");
-                            //cb();
-                            if(imagecount==completed){
-                                cb();
-                            }
-                        });
-                    
-                    
-                    
-                  
+            if(newfiles.length>0){
+                exports.getAppComponent("davvag-tools","davvag-file-uploader", function(_uploader){
+                    uploader=_uploader;
+                    uploader.initialize();
+                    uploader.upload(newfiles, "d_cms_artical", productId,function(r){
+                        $.notify("Image Has been uploaded", "info");
+                        cb();
+                        newfiles=[];
+                    });
+                });
+            }else{
+                cb();
             }
-            //cb();
         
     }
 

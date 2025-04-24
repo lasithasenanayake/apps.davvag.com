@@ -159,24 +159,26 @@ class ArticalService{
 
     function getArtical($req){
         //echo "imain";
+        echo 
         $data =null;
         if(isset($_GET["q"])){
             $data = Summary::GetCode("davvag-cms-generalapps",$_GET["q"]);
-
+            echo $_SERVER["HTTP_HOST"].$data->imgurl;
             if(isset($data)){
                 
-                
+                $image =getimagesize($data->imgurl);
                 echo '<!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="utf-8" />
                     <meta name="description" content="'.urldecode($data->description).'"/>
                     <meta name="tags" content="'.urldecode($data->tags).'"/>
-                    <meta name="og:title" content="'.urldecode($data->title).'"/>
-                    <meta name="og:description" content="'.urldecode($data->description).'"/>
-                    <meta name="og:tags"  content="'.urldecode($data->tag).'">
-                    <meta name="og:image"  itemprop="image" content="http://'.$_SERVER["HTTP_HOST"].$data->imgurl.'"/>
-                    <meta property="og:type" content="website" />
+                    <meta property="og:title" content="'.urldecode($data->title).'"/>
+                    <meta property="og:description" content="'.urldecode($data->description).'"/>
+                    <meta property="og:tags"  content="'.urldecode($data->tag).'">
+                    <meta property="og:image" content="http://'.$_SERVER["HTTP_HOST"].$data->imgurl.'"/>
+                    <meta property="og:type" content="article" />
+                    <meta property="og:url" content="'.$data->url.'" />
                     <title>'.urldecode($data->title).'</title>
                     
                 </head>
