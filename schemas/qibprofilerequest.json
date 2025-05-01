@@ -24,6 +24,13 @@
             }
         },
         {
+            "fieldName":"whatsapp",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 20
+            }
+        },
+        {
             "fieldName":"email",
             "dataType":"java.lang.String",
             "annotations":{
@@ -87,6 +94,18 @@
         },
         {
             "fieldName":"referelid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"projectId",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"uniSeatNum",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"uniSeatBookingNum",
             "dataType":"int"
         },
         {

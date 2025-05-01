@@ -27,7 +27,6 @@ WEBDOCK.component().register(function(exports){
         //exports.Complete({});
         loadValidator();
         bindData.data.countrycode="161";
-        bindData.data.center="Colombo";
     }
 
     function submit(){

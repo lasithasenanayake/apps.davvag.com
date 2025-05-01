@@ -33,7 +33,7 @@
 
 <table class="tg"><thead>
   <tr>
-    <th class="tg-black" colspan="5"><h1>Yerevan State Medical University - Entrance Exam 2025/2026 Admission</h1></th>
+    <th class="tg-black" colspan="5"><h1>SCHOLARSHIP ADMISSION</h1></th>
     
   </tr>
 </thead>
@@ -41,7 +41,7 @@
   <tr>
     <td class="tg-black-left" colspan="3">IQSL24 0858</td>
     <td class="tg-0pky" rowspan="3">
-      <img src="https://scholarships.qibcampus.com/assets/qib-reg-app/side_1.png" width="150px">
+      <img src="https://scholarships.qibcampus.com/assets/qib-reg-app/side.png" width="150px">
 
     </td>
   </tr>
@@ -77,7 +77,7 @@
     </td>
   </tr>
   <tr>
-    <td class="tg-0pky-name">NIC OR PASSPORT NUMBER</td>
+    <td class="tg-0pky-name">NIC NUMBER</td>
     <td class="tg-0pky-value" colspan="2"> 
     <table style="width: 360Px;">
       <tr>
@@ -92,27 +92,7 @@
   </tr>
   <tr>
     <td class="tg-0pky-name">EXAM TIME</td>
-    <td class="tg-0pky-value" colspan="2">2:15PM to 3:45PM</td>
-  </tr>
-  <tr>
-    <td class="tg-0pky-name">UNIVERSITY SEAT CONFIRMATION NUMBER</BR>(RANGE 1820-4-20 TO 1920-4-20)</td>
-    <td class="tg-0pky-value" colspan="2"> 
-    <table style="width: 120Px;">
-      <tr>
-      <?=$this->drawBox(4,$data->uniSeatNum)?>-4-20
-      </tr>
-    </table>
-  </td>
-  </tr>
-  <tr>
-    <td class="tg-0pky-name">UNIVERSITY SEAT BOOKING NUMBER</BR>(RANGE 1000 TO 10000)</td>
-    <td class="tg-0pky-value" colspan="2"> 
-    <table style="width: 150Px;">
-      <tr>
-      <?=$this->drawBox(5,$data->uniSeatBookingNum)?>
-      </tr>
-    </table>
-  </td>
+    <td class="tg-0pky-value" colspan="2">2:30pm</td>
   </tr>
   <tr>
     <?php 
@@ -144,9 +124,22 @@
     <?php 
       $data->center="Colombo";
     ?>
-    <td class="tg-0pky-value" colspan="2"><h2>Taj Samudra Hotel</h2></br>25, Galle Face Center Road, Colombo 05</td>
+    <td class="tg-0pky-value" colspan="2"><?=isset($examCenter[$data->center])?$examCenter[$data->center]:$data->center?></td>
   </tr>
-  
+  <tr>
+    <td class="tg-0pky-name">SELECTED COUNTRY</td>
+    <td class="tg-0pky-value" colspan="2">
+    <table style="width: 450Px;">
+      <tr>
+        <td colspan="3">Code</td><td colspan="12">Country</td>
+      </tr>
+      <tr>
+      <?=$this->drawBox(3,$data->countrycode)?>
+      <?=$this->drawBox(12,$data->country)?>
+      </tr>
+    </table>
+    </td>
+  </tr>
 </tbody>
 </table>
 <div style="text-align: center;">

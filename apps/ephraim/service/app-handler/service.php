@@ -42,6 +42,7 @@ class appService {
     public function postSave($req,$res){
         $data = $req->Body(true);
         $data->regdate=time();
+        $data->projectId=10;
         //$data->country=$this->getCountries()[$data->countrycode];
         if(!empty($data->email))
             $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
