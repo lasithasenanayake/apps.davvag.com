@@ -39,7 +39,7 @@
 </thead>
 <tbody>
   <tr>
-    <td class="tg-black-left" colspan="3">IQSL24 0858</td>
+    <td class="tg-black-left" colspan="3"></td>
     <td class="tg-0pky" rowspan="3">
       <img src="https://scholarships.qibcampus.com/assets/qib-reg-app/side_1.png" width="150px">
 
@@ -99,7 +99,8 @@
     <td class="tg-0pky-value" colspan="2"> 
     <table style="width: 120Px;">
       <tr>
-      <?=$this->drawBox(4,$data->uniSeatNum)?>-4-20
+      <?=$this->drawBox(4,$data->uniSeatNum)?>
+      <td style="border-style:none!important;"><b>-4-20</b></td>
       </tr>
     </table>
   </td>
@@ -144,13 +145,13 @@
     <?php 
       $data->center="Colombo";
     ?>
-    <td class="tg-0pky-value" colspan="2"><h2>Taj Samudra Hotel</h2></br>25, Galle Face Center Road, Colombo 05</td>
+    <td class="tg-0pky-value" colspan="2"><h2>Taj Samudra Hotel</h2></br>25, Galle Face Center Road, Colombo</td>
   </tr>
   
 </tbody>
 </table>
 <div style="text-align: center;">
-<img src="https://scholarships.qibcampus.com/assets/qib-reg-app/buttom.png.png" width="80%" style="display: block;margin-left: auto;margin-right: auto;">
+<img src="https://scholarships.qibcampus.com/assets/qib-reg-app/buttom.png" width="100%" style="display: block;margin-left: auto;margin-right: auto;">
 </div>
 <?php
 $res=SOSSData::Query("profile","id:".$data->referelid);
@@ -160,6 +161,6 @@ if(count($res->result)>0){
 }
 $text=$text."0858";
 ?>
-<h3 style="text-align: center;"><?=$text?></h3>
+
 </body>
 </html>

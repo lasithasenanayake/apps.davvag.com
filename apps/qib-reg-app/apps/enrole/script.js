@@ -90,7 +90,7 @@ WEBDOCK.component().register(function(exports){
         validator_profile = validatorInstance.newValidator (scope);
         validator_profile.map ("data.name",true, "Please enter your full name");
         validator_profile.map ("data.email",true, "Please enter your email");
-
+        validator_profile.map ("data.uniSeatBookingNum",true, "Please enter your booking number");
         
         
     }
