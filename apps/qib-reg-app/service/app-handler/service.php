@@ -99,6 +99,7 @@ class appService {
         $data = $req->Body(true);
         $data->regdate=time();
         $data->country=$this->getCountries()[$data->countrycode];
+        $data->projectId=3;
         $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
             $data->profileid=0;
             if(!count($rec->result)>0){
@@ -186,7 +187,7 @@ class appService {
     }
 
     public function getCSV($req,$res){
-        $rec=SOSSData::Query("qibprofilerequest",null);
+        $rec=SOSSData::Query("qibprofilerequest","projectId:3");
         //var_dump($rec);
         
         header("Content-Type: text/csv");

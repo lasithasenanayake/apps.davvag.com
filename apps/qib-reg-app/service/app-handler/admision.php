@@ -88,18 +88,19 @@
   </tr>
   <tr>
     <td class="tg-0pky-name">EXAM DATE</td>
-    <td class="tg-0pky-value" colspan="2">4<sup>th</sup> May 2025</td>
+    <td class="tg-0pky-value" colspan="2">5<sup>th</sup> September 2025</td>
   </tr>
   <tr>
     <td class="tg-0pky-name">EXAM TIME</td>
-    <td class="tg-0pky-value" colspan="2">2:15PM to 3:45PM</td>
+    <td class="tg-0pky-value" colspan="2">1.30pm </td>
   </tr>
   <tr>
-    <td class="tg-0pky-name">UNIVERSITY SEAT CONFIRMATION NUMBER</BR>(RANGE 1820-4-20 TO 1920-4-20)</td>
+    <td class="tg-0pky-name">UNIVERSITY SEAT CONFIRMATION NUMBER</BR>(RANGE 1820-4-20 TO 2020-4-20)</td>
     <td class="tg-0pky-value" colspan="2"> 
-    <table style="width: 120Px;">
+    <table style="width: 140Px;">
       <tr>
-      <?=$this->drawBox(4,$data->uniSeatNum)?>
+      <td style="border-style:none!important;"><b>MBBS</b></td>
+      <?=$this->drawBox(4,($data->uniSeatNum==0?"":$data->uniSeatNum))?>
       <td style="border-style:none!important;"><b>-4-20</b></td>
       </tr>
     </table>
@@ -145,7 +146,7 @@
     <?php 
       $data->center="Colombo";
     ?>
-    <td class="tg-0pky-value" colspan="2"><h2>Taj Samudra Hotel</h2></br>25, Galle Face Center Road, Colombo</td>
+    <td class="tg-0pky-value" colspan="2"><h2>BMICH Jasmine Hall</h2>,</br> Bauddhaloka Mawatha, Colombo 07.</td>
   </tr>
   
 </tbody>
