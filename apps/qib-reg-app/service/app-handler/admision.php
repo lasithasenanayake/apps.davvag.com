@@ -52,7 +52,7 @@
        $name= explode(" ",$data->name)
       ?>
       <?php if(count($name)<5):?>
-      <table style="width:500Px;height: 130Px;">
+      <table style="width:450Px;height: 130Px;">
         <tr>
           <?=$this->drawBox(15,(isset($name[0])?$name[0]:""))?>
         </tr>
@@ -109,7 +109,7 @@
   <tr>
     <td class="tg-0pky-name">UNIVERSITY SEAT BOOKING NUMBER</BR>(RANGE 1000 TO 10000)</td>
     <td class="tg-0pky-value" colspan="2"> 
-    <table style="width: 150Px;">
+    <table style="width: 50Px;">
       <tr>
       <?=$this->drawBox(5,$data->uniSeatBookingNum)?>
       </tr>
@@ -146,7 +146,7 @@
     <?php 
       $data->center="Colombo";
     ?>
-    <td class="tg-0pky-value" colspan="2"><h2>BMICH Jasmine Hall</h2>,</br> Bauddhaloka Mawatha, Colombo 07.</td>
+    <td class="tg-0pky-value" colspan="2"><h2>BMICH Jasmine Hall</h2></br> Bauddhaloka Mawatha, Colombo 07.</td>
   </tr>
   
 </tbody>

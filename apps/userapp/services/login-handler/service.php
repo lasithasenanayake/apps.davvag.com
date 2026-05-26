@@ -390,6 +390,7 @@ class LoginService {
             //setcookie("securityToken", $outObject->token, time() + (86400 * 1), "/");
             if ($result->success == true){
                 if (sizeof($result->result) > 0){
+                    
                     $outObject->profile = $result->result[0];
                     $_SESSION["authData_Profile"]=$result->result[0];
                 }

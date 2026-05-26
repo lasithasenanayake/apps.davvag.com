@@ -1,0 +1,38 @@
+<h1>Schema</h1>
+<div class="row" v-if="schema.object!=undefined">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Field Name</th>
+                <th>DataType</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="field in schema.object.fields" :key="field.Name">
+                <td>{{ field.fieldName }}</td>
+                <td>{{ field.dataType }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    </div>  
+<div class="row" v-if="schema.object!=undefined">
+    <h3>Permissions</h3>
+    <h4>Default Write Object</h4>
+    <p v-if="schema.object.permission.defaultWriteObject==-1">Private</p>
+    <p v-else-if="schema.object.permission.defaultWriteObject==0">Public</p>
+    <p v-else>Custom</p>
+    <button class="btn btn-primary" @click="setObject(schema)">Set Object</button>
+    <h4>Insert Permissions</h4>
+    <p v-if="schema.object.permission.AllowInsert.length==0">All (*)</p>
+    <h4>Update Permissions</h4>
+    <p v-if="schema.object.permission.AllowUpdate.length==0">All (*)</p>
+    <h4>Delete Permissions</h4>
+    <p v-if="schema.object.permission.AllowDelete.length==0">All (*)</p>
+</div>
+<div class="row">
+    <button class="btn btn-primary" @click="save">Save</button>
+    <button class="btn btn-secondary" @click="close">Close</button>
+
+
+

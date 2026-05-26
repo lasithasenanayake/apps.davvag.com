@@ -1,5 +1,5 @@
 WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,routeData;
+    var scope,validator_profile,service_handler,sossrout_handler;
 
     var bindData = {
         submitErrors : [],submitInfo : [],data:{}
@@ -7,8 +7,15 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
         methods:{
-            submit:submit
-           
+            submit:submit,
+           open:function(){
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("davvag-sample-app-1","sample-input-form",{},function(data){
+                    console.log(JSON.stringify(data));
+                    shellpopup.close();
+                },"popup name");
+
+           }
         },
         data :bindData,
         onReady: function(s){
@@ -18,27 +25,17 @@ WEBDOCK.component().register(function(exports){
     }
 
     function initialize(){
-        pInstance = exports.getShellComponent("soss-routes");
-        routeData = pInstance.getInputData();
         service_handler = exports.getComponent("app-handler");
         if(!service_handler){
             console.log("Service has not Loaded please check.")
         }
-        //exports.Complete({});
         loadValidator();
-        bindData.data.countrycode="161";
-        bindData.data.center="Colombo";
     }
 
     function submit(){
-        
         lockForm();
         scope.submitErrors = [];
         scope.submitErrors = validator_profile.validate(); 
-        if(routeData!=null){
-            if(routeData.ref!=null)
-                bindData.data.referelid=routeData.ref;
-        }
         if (!scope.submitErrors){
             lockForm();
             scope.submitErrors = [];
@@ -48,11 +45,7 @@ WEBDOCK.component().register(function(exports){
                 console.log(result);
                 
                 if(result.success){
-                    //exports.Complete(result.result);
-                    bindData.data=result.result;
-                    scope.submitInfo.push("Created Successfully.");
-                    $("#form-details-2").toggle();
-                    $("#form-details-1").toggle();
+                    scope.submitInfo.push("result.result.message");
                 }else{
                     scope.submitErrors.push("Error");
                 }
@@ -63,8 +56,6 @@ WEBDOCK.component().register(function(exports){
                 unlockForm();
             });
 
-        }else{
-            unlockForm();
         }
     }
 
@@ -75,29 +66,31 @@ WEBDOCK.component().register(function(exports){
     
 
     function lockForm(){
-        $("#form-details-1 :input").prop("disabled", true);
-        $("#form-details-1 :button").prop("disabled", true);
+        $("#form-details :input").prop("disabled", true);
+        $("#form-details :button").prop("disabled", true);
     }
 
     function unlockForm(){
-        $("#form-details-1 :input").prop("disabled", false);
-        $("#form-details-1 :button").prop("disabled", false);
+        $("#form-details :input").prop("disabled", false);
+        $("#form-details :button").prop("disabled", false);
     }
 
     function loadValidator(){
         var validatorInstance = exports.getShellComponent ("soss-validator");
 
         validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.name",true, "Please enter your full name");
-        validator_profile.map ("data.email",true, "Please enter your email");
-        //validator_profile.map ("data.uniSeatBookingNum",true, "Please enter your booking number");
+        validator_profile.map ("data.email",true, "Please enter your full name");
+        validator_profile.map ("data.password",true, "Please enter your contact number");
+        validator_profile.map ("data.contactno","numeric", "Phone number should only consist of numbers");
+        validator_profile.map ("data.contactno","minlength:9", "Phone number should consit of 10 numbers");
+
         
         
     }
 
     exports.vue = vueData;
     exports.onReady = function(element){
-        initialize();
+        
     }
 
 });

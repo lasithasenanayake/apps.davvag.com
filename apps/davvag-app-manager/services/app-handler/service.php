@@ -166,6 +166,39 @@ class BroadcastService {
 
     }
 
+    public function postSaveSchema($req,$res){
+        $data=$req->Body(true);
+        foreach($data as $schema){
+            if(isset($schema->updated)){
+                $schemaLocation = TENANT_RESOURCE_LOCATION . "/schemas/$schema->Name.json" ;
+                file_put_contents($schemaLocation,json_encode($schema->object));
+            }
+        }
+        return $data;
+    }
+
+    public function getSchemas($req,$res){
+        $schemas=[];
+        $files=glob(TENANT_RESOURCE_LOCATION."/schemas/*.json");
+        foreach($files as $file){
+            $jsonObj = json_decode(file_get_contents($file));
+            if(!isset($jsonObj->permission)){
+                $jsonObj->permission=new stdClass();
+                $jsonObj->permission->defaultWriteObjectID=[];
+                $jsonObj->permission->AllowInsert=[];
+                $jsonObj->permission->AllowUpdate=[];
+                $jsonObj->permission->AllowDelete=[];
+                $jsonObj->permission->AllowRead=[];
+            }
+            $schema=new stdClass();
+            $schema->Name=basename($file,".json");
+            $schema->object=$jsonObj;
+            array_push($schemas,$schema);
+        }
+        return $schemas;
+    }
+    
+
     public function getallApplications($req,$res){
         
         $tenantFile = TENANT_RESOURCE_LOCATION . "/tenant.json";

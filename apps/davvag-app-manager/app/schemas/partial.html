@@ -1,0 +1,23 @@
+<h1>Schema Objects</h1>
+<div class="row">
+   <input type="text" class="form-control" placeholder="Search..." v-model="searchQuery" @input="filterSchemas"> 
+</div>
+<div class="row">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="schema in schemas" :key="schema.Name" :class="{ 'updated-row': schema.updated }">
+                <td>{{ schema.Name }}</td>
+                <td><button class="btn btn-primary" @click="editSchema(schema)">Edit Permission</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>  
+
+
+

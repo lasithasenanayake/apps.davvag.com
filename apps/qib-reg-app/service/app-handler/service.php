@@ -36,7 +36,7 @@ class appService {
         $out='';
         for ($i=0; $i < $nc ; $i++) { 
             # code...
-            $out.='<td style="width=5px;">'.(isset($t[$i])?strtoupper($t[$i]):"&emsp;").'</td>';
+            $out.='<td style="width=5px;!important">'.(isset($t[$i])?strtoupper($t[$i]):"&emsp;").'</td>';
         }
         return $out;
     }

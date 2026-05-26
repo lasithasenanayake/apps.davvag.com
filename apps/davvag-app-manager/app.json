@@ -12,6 +12,14 @@
         "launcher":{
             "type":"component",
             "location":"app"
+        },
+        "schemas":{
+            "type":"component",
+            "location":"app"
+        },
+        "schema-file":{
+            "type":"component",
+            "location":"app"
         }
     },
     "description":{
@@ -28,12 +36,14 @@
             "routes":{
                 "partials":{
                     "/app" : "apps",
-                    "/launcher" : "launcher"
+                    "/launcher" : "launcher",
+                    "/schemas" : "schemas"
                 }
             }
         },"dock":{
             "subapps":[
                 {"name":"App Permision","path":"apps"},{"name":"Launchers","path":"launcher"}
+                ,{"name":"Schemas","path":"schemas"}
             ]
         }
     },

@@ -55,9 +55,10 @@ class ProductService {
         
         $product=$req->Body(true);
         //return $product;
+        //return $product;
         //$user= Auth::Autendicate("product","save",$res);
         $summery =new stdClass();
-        $summery->summery=substr($product->caption,0,500);
+        $summery->summery=substr(isset($product->caption)?$product->caption:'',0,500);
         $summery->title=$product->name;
         
         //if(isset())
@@ -105,11 +106,11 @@ class ProductService {
         CacheData::clearObjects("products");
         CacheData::clearObjects("d_all_summery");
         CacheData::clearObjects("products_attributes");
-        if(count($product->RemoveImages)>0){
+        if(count(isset($product->RemoveImages)?$product->RemoveImages:[])>0){
             $product->removedStatus=SOSSData::Delete("products_image",$product->RemoveImages);
         }
 
-        foreach($product->Images as $key=>$value){
+        foreach((isset($product->Images)?$product->Images:[]) as $key=>$value){
             $product->Images[$key]->articalid=$product->itemid;
             if($product->Images[$key]->id==0){
                 $result2=SOSSData::Insert ("products_image", $product->Images[$key],$tenantId = null);

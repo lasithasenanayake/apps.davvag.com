@@ -1,0 +1,15 @@
+<div class="row">
+    <div v-for="group in groups" :key="group.name" class="group">
+      <div class="group-header">
+        <label>
+          <input
+            type="checkbox"
+            :checked="isGroupAllSelected(group)"
+            :indeterminate="isGroupSomeSelected(group) && !isGroupAllSelected(group)"
+            @change="toggleGroup(group, $event.target.checked)"
+          />
+          <strong>{{ group.name }}</strong>
+        </label>
+      </div>
+    <div></div>
+</div>

@@ -34,6 +34,10 @@
                 "method":"GET",
                 "parameters":[]
             },
+            "Schemas":{
+                "method":"GET",
+                "parameters":[]
+            },
             "ApplicationLaunchers":{
                 "method":"GET",
                 "parameters":["app","subapp"]
@@ -51,6 +55,9 @@
                 "parameters":["bid"]
             },
             "SaveLauncherUserPerm":{
+                "method":"POST"
+            },
+            "SaveSchema":{
                 "method":"POST"
             }
         }

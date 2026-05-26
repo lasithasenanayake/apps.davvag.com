@@ -1,21 +1,24 @@
 
 WEBDOCK.component().register(function(exports, scope){
-    var $progress,$progressBar,$closebutton,$modal;
+    var $progress,$progressBar,$closebutton,$modal=[];
     var applist=[];
     var AppIndex=0;
+    var AppInstance=[];
     exports.initialize = function(){
         
         //clearCeate();
     }
-    var callback;
-    var errCallback,completed,data_collected;
+    var callback=[];
+    var errCallback=[],data_collected=[];
+    var completed=[];
 
 
     exports.launchApp=function(launcherInfo,cb,er,cbcompleted,data){
         let launcher_data=GetLauncherData(launcherInfo,data);
+        let id=launcherInfo.appcode+"_"+launcherInfo.subappcode;
         window.launcher_data=window.launcher_data?window.launcher_data:{};
         //{:launcher_data}
-        let id=launcherInfo.appcode+"_"+launcherInfo.subappcode;
+        
         window.launcher_data[id]=launcher_data;
         if(launcherInfo.applicationtype=="application"){
             switch(launcherInfo.window_type){
@@ -89,7 +92,7 @@ WEBDOCK.component().register(function(exports, scope){
             wa.remove();
         }
         bodyEt=$("body");
-        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true' intert><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
     }
 
     function popup_small(id,title){
@@ -113,15 +116,22 @@ WEBDOCK.component().register(function(exports, scope){
         
     }
 
+    function dispose(id){
+        $("#" + id + "_popup").remove();
+    }
+
     function popup_real(id,appId,startupComponent,cb,er,cbcompleted,data){
         
         RenderApplication(appId,startupComponent,id+"_window",cb,er,function(d){
-            $modal=$("#"+id+'_popup');
-            $modal.on('hidden.bs.modal', function () {
+            $modal[id]=$("#"+id+'_popup');
+            $modal[id].on('hidden.bs.modal', function () {
                 if(cbcompleted)
                     cbcompleted(d);
+
+                dispose(id);
+                
             });
-            $modal.modal('toggle');
+            $modal[id].modal('toggle');
 
             
         },data);
@@ -145,10 +155,10 @@ WEBDOCK.component().register(function(exports, scope){
     
     
     function RenderApplication(appId,startupComponent,id,cb,er,cbcompleted,d){
-        callback=cb;
-        errCallback=er;
-        completed=cbcompleted;
-        data_collected=d;
+        callback[id]=cb;
+        errCallback[id]=er;
+        completed[id]=cbcompleted;
+        data_collected[id]=d;
         var leftMenu = exports.getShellComponent("left-menu");
         leftMenu.getApps(function(apps){
             var renderDiv = $("#" + id);
@@ -172,11 +182,11 @@ WEBDOCK.component().register(function(exports, scope){
             window[loadID].loading=true;
             
 
-            var MemoryApp= WEBDOCK.componentManager.getMemoryApp(appId,startupComponent);
+            let MemoryApp= Object.assign({},WEBDOCK.componentManager.getMemoryApp(appId,startupComponent));
             if(MemoryApp){
                 try {
                     
-                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance);
+                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance,appid);
                     window[loadID].loading=false;
                     console.log("Memory Loaded..");
                     return; 
@@ -195,7 +205,7 @@ WEBDOCK.component().register(function(exports, scope){
                     WEBDOCK.componentManager.getOnDemand(appId,descriptor, startupComponent, function(results,desc, instance){
                         if(instance){
                             try {
-                                renderApp(results,id,desc,instance);
+                                renderApp(results,id,desc,instance,appId);
                                 
                             } catch (error) {
                                 renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">App not Loaded or permission Issue.</div>');
@@ -218,7 +228,7 @@ WEBDOCK.component().register(function(exports, scope){
         //});
     }
 
-    function renderApp(data,id,desc,instance){
+    function renderApp(data,id,desc,instance,appid){
         try {
             var renderDiv = $("#" + id);
             renderDiv.empty();
@@ -248,13 +258,13 @@ WEBDOCK.component().register(function(exports, scope){
                 canCallOnReady = false;
 
                 if (instance.vue.onReady){
-                    if(completed){
+                    if(completed[id]){
                         var obj={};
-                        Object.assign(obj,data_collected);
-                        instance.dataObject=data_collected;
-                        instance.Complete=completed;
+                        Object.assign(obj,data_collected[id]);
+                        instance.dataObject=data_collected[id];
+                        instance.Complete=completed[id];
                         instance.renderDiv=renderDiv;
-                        instance.vue.onReady(scope,{status:"internalcall",data:data_collected,completedEvent:completed,renderDiv:renderDiv});
+                        instance.vue.onReady(scope,{status:"internalcall",data:data_collected[id],completedEvent:completed,renderDiv:renderDiv});
                     }else{
                         instance.Complete=function(data){
                             instance.onStatusChange(data);
@@ -268,12 +278,12 @@ WEBDOCK.component().register(function(exports, scope){
             if (canCallOnReady && instance.onReady)
                 instance.onReady(renderDiv);
             
-                callback(desc);
+                callback[id](desc);
         } catch (e){
             console.log ("Error Occured While Loading...");
             console.log (e);
-            if(errCallback)
-                errCallback(e);
+            if(errCallback[id])
+                errCallback[id](e);
         }
     }
     exports.RenderHTML=RenderHTML;

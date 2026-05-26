@@ -1,6 +1,6 @@
 WEBDOCK.component().register(function(exports){
     var appLoader;
-    var callback,popupName,popupDialog;
+    var callback=[],datasent=[],popupName,popupDialog;
     
     function popup_large(id,title){
         wa= document.getElementById(id+"_popup");
@@ -55,8 +55,8 @@ WEBDOCK.component().register(function(exports){
         popupLock=popupLock==null?true:popupLock;
         let _popupName=appName+"-"+appComponent;
         let _popupDialog=appName+"-"+appComponent+"dialog";
-        callback=cb;
-
+        callback[appName+"-"+appComponent]=cb;
+        datasent[appName+"-"+appComponent]=Object.assign({}, data);
         if(popupLarg){
             popup_large(_popupDialog,dialogName);
         }else{
@@ -71,9 +71,15 @@ WEBDOCK.component().register(function(exports){
         },function(_data){
             app={id:"#"+popupDialog+"_popup",close:function(){
                 $("#"+_popupDialog+"_popup").modal('toggle');
+                $("#" + _popupDialog + "_popup").on("hidden.bs.modal", function () {
+
+                    document.activeElement.blur();
+                    $(this).remove();   // destroys the modal element and its children
+                });
+                
             }}
-            callback(_data,app);    
-        },data);
+            callback[appName+"-"+appComponent](_data,app);
+        },datasent[appName+"-"+appComponent]);
         if(popupLock){
             $("#"+_popupDialog+"_popup").modal({backdrop: 'static', keyboard: false});
         }else{
@@ -84,6 +90,7 @@ WEBDOCK.component().register(function(exports){
 
     function close() {
         $("#"+popupDialog+"_popup").modal('toggle');
+        $("#"+popupDialog+"_popup").remove();
     }
 
     function initiate() {
