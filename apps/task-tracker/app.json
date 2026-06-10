@@ -1,0 +1,54 @@
+{
+    "components": {
+        "projects": {
+            "type": "component",
+            "location": "components"
+        },
+        "tasks": {
+            "type": "component",
+            "location": "components"
+        },
+        "task-view": {
+            "type": "component",
+            "location": "components"
+        },
+        "task-dashboard": {
+            "type": "component",
+            "location": "components"
+        },
+        "task-style": {
+            "type": "component",
+            "location": "components"
+        },
+        "taskapi": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Task Manager",
+        "author": "DAVVAG",
+        "version": "0.3",
+        "icon": "appicon.png"
+    },
+    "tags": ["showincms", "showindock"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "projects",
+            "onLoad": ["task-style", "taskapi"],
+            "routes": {
+                "partials": {
+                    "/": "projects",
+                    "/projects": "projects",
+                    "/tasks": "tasks",
+                    "/task": "task-view"
+                }
+            }
+        },
+        "dock": {
+            "subapps": [
+                {"name": "Projects", "path": "projects"}
+            ]
+        }
+    }
+}

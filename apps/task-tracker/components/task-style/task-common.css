@@ -1,0 +1,296 @@
+.tm-page,
+.tm-app {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.tm-page *,
+.tm-page *:before,
+.tm-page *:after,
+.tm-app *,
+.tm-app *:before,
+.tm-app *:after {
+    box-sizing: border-box;
+}
+
+.tm-page .row,
+.tm-app .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.tm-page [class*="col-"],
+.tm-app [class*="col-"] {
+    min-height: 1px;
+    padding-left: 15px;
+    padding-right: 15px;
+    position: relative;
+    width: 100%;
+}
+
+.tm-page .col-xs-4,
+.tm-app .col-xs-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}
+
+.tm-page .col-xs-6,
+.tm-app .col-xs-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.tm-page .col-xs-8,
+.tm-app .col-xs-8 {
+    flex: 0 0 66.666667%;
+    max-width: 66.666667%;
+}
+
+.tm-page .col-xs-12,
+.tm-app .col-xs-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.tm-page .btn-default,
+.tm-app .btn-default {
+    background-color: #fff;
+    border-color: #ccc;
+    color: #333;
+}
+
+.tm-page .btn-default:hover,
+.tm-page .btn-default:focus,
+.tm-app .btn-default:hover,
+.tm-app .btn-default:focus {
+    background-color: #e6e6e6;
+    border-color: #adadad;
+    color: #333;
+}
+
+.tm-page .btn-xs,
+.tm-app .btn-xs {
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 1px 5px;
+}
+
+.tm-page .label,
+.tm-app .label {
+    border-radius: .25em;
+    color: #fff;
+    display: inline;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    padding: .2em .6em .3em;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.tm-page .label-default,
+.tm-app .label-default {
+    background-color: #777;
+}
+
+.tm-page .progress,
+.tm-app .progress {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);
+    overflow: hidden;
+}
+
+.tm-page .progress-bar,
+.tm-app .progress-bar {
+    color: #fff;
+    float: left;
+    font-size: 12px;
+    height: 100%;
+    line-height: 18px;
+    text-align: center;
+    transition: width .6s ease;
+}
+
+.tm-page .progress-bar-success,
+.tm-app .progress-bar-success {
+    background-color: #5cb85c;
+}
+
+.tm-page .progress-bar-info,
+.tm-app .progress-bar-info {
+    background-color: #5bc0de;
+}
+
+.tm-page .progress-bar-warning,
+.tm-app .progress-bar-warning {
+    background-color: #f0ad4e;
+}
+
+.tm-page .progress-bar-danger,
+.tm-app .progress-bar-danger {
+    background-color: #d9534f;
+}
+
+.tm-page .nav-tabs,
+.tm-app .nav-tabs {
+    border-bottom: 1px solid #ddd;
+}
+
+.tm-page .nav-tabs > li,
+.tm-app .nav-tabs > li {
+    display: block;
+    margin-bottom: -1px;
+}
+
+.tm-page .nav-tabs > li > a,
+.tm-app .nav-tabs > li > a {
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+    display: block;
+    margin-right: 2px;
+    padding: 10px 15px;
+}
+
+.tm-page .nav-tabs > li.active > a,
+.tm-page .nav-tabs > li.active > a:hover,
+.tm-page .nav-tabs > li.active > a:focus,
+.tm-app .nav-tabs > li.active > a,
+.tm-app .nav-tabs > li.active > a:hover,
+.tm-app .nav-tabs > li.active > a:focus {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+    color: #555;
+    cursor: default;
+}
+
+.tm-page .glyphicon,
+.tm-app .glyphicon {
+    display: inline-block;
+    font-family: FontAwesome, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+}
+
+.tm-page .glyphicon-refresh:before,
+.tm-app .glyphicon-refresh:before {
+    content: "\f021";
+}
+
+.tm-page .glyphicon-plus:before,
+.tm-app .glyphicon-plus:before {
+    content: "\f067";
+}
+
+.tm-page .glyphicon-tasks:before,
+.tm-app .glyphicon-tasks:before {
+    content: "\f0ae";
+}
+
+.tm-page .glyphicon-lock:before,
+.tm-app .glyphicon-lock:before {
+    content: "\f023";
+}
+
+.tm-page .glyphicon-floppy-disk:before,
+.tm-app .glyphicon-floppy-disk:before {
+    content: "\f0c7";
+}
+
+.tm-page .glyphicon-trash:before,
+.tm-app .glyphicon-trash:before {
+    content: "\f1f8";
+}
+
+.tm-page .glyphicon-chevron-left:before,
+.tm-app .glyphicon-chevron-left:before {
+    content: "\f053";
+}
+
+.tm-page .glyphicon-chevron-right:before,
+.tm-app .glyphicon-chevron-right:before {
+    content: "\f054";
+}
+
+.tm-page .glyphicon-chevron-down:before,
+.tm-app .glyphicon-chevron-down:before {
+    content: "\f078";
+}
+
+.tm-page .glyphicon-time:before,
+.tm-app .glyphicon-time:before {
+    content: "\f017";
+}
+
+.tm-page .glyphicon-paperclip:before,
+.tm-app .glyphicon-paperclip:before {
+    content: "\f0c6";
+}
+
+.tm-page .glyphicon-remove:before,
+.tm-app .glyphicon-remove:before {
+    content: "\f00d";
+}
+
+.tm-page .glyphicon-comment:before,
+.tm-app .glyphicon-comment:before {
+    content: "\f075";
+}
+
+@media (min-width: 768px) {
+    .tm-page .col-sm-4,
+    .tm-app .col-sm-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+
+    .tm-page .col-sm-6,
+    .tm-app .col-sm-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .tm-page .col-sm-8,
+    .tm-app .col-sm-8 {
+        flex: 0 0 66.666667%;
+        max-width: 66.666667%;
+    }
+
+    .tm-page .col-sm-12,
+    .tm-app .col-sm-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    .tm-page .col-md-3,
+    .tm-app .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    .tm-page .col-md-4,
+    .tm-app .col-md-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+
+    .tm-page .col-md-5,
+    .tm-app .col-md-5 {
+        flex: 0 0 41.666667%;
+        max-width: 41.666667%;
+    }
+
+    .tm-page .col-md-7,
+    .tm-app .col-md-7 {
+        flex: 0 0 58.333333%;
+        max-width: 58.333333%;
+    }
+}

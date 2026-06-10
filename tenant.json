@@ -1,6 +1,12 @@
 {
     "apps":{
+        "ai-chatgpt-agent":{
+            "version":"latest"
+        },
         "davvag-task":{
+            "version":"latest"
+        },
+        "task-tracker":{
             "version":"latest"
         },
         "davvag-hosting-console":{

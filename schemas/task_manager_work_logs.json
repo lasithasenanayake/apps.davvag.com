@@ -1,0 +1,63 @@
+{
+    "fields": [
+        {
+            "fieldName": "logId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "comments",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 2000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "logDate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "startDate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "endDate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "durationInMinutes",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "progress",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        }
+    ]
+}

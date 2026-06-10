@@ -1,0 +1,258 @@
+.tm-page {
+    color: #20242a;
+    padding: 12px;
+}
+
+.tm-toolbar {
+    align-items: center;
+    border-bottom: 1px solid #d8dde4;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+.tm-toolbar h3 {
+    display: inline-block;
+    margin: 0 0 0 8px;
+}
+
+.tm-panel {
+    background: #fff;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.tm-panel-header {
+    border-bottom: 1px solid #e6e9ee;
+    min-height: 42px;
+    padding: 8px 10px;
+}
+
+.tm-task-wrap {
+    width: 100%;
+}
+
+.tm-task-panel {
+    min-height: calc(100vh - 190px);
+}
+
+.tm-task-summary {
+    align-items: flex-start;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 32%);
+}
+
+.tm-task-summary p {
+    margin-bottom: 8px;
+}
+
+.tm-progress-wrap {
+    padding-top: 3px;
+}
+
+.tm-meta-grid {
+    border-top: 1px solid #e6e9ee;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.tm-form {
+    padding: 10px;
+}
+
+.tm-form .tm-panel-header {
+    margin: -10px -10px 10px;
+}
+
+.tm-form label {
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.tm-progress {
+    height: 18px;
+    margin-top: 10px;
+}
+
+.tm-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tm-chip {
+    background: #337ab7;
+    border: 1px solid #2e6da4;
+    border-radius: 14px;
+    color: #fff;
+    padding: 4px 9px;
+}
+
+.tm-attachment {
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    margin: 6px 0;
+    padding: 6px;
+}
+
+.tm-actions {
+    margin-top: 12px;
+}
+
+.tm-timeline {
+    padding-top: 8px;
+}
+
+.tm-log {
+    border-left: 3px solid #5bc0de;
+    margin-bottom: 12px;
+    padding-left: 10px;
+}
+
+.tm-log span {
+    display: block;
+}
+
+.tm-inline-heading {
+    border-top: 1px solid #e6e9ee;
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.tm-expand-section {
+    border-top: 1px solid #d8dde4;
+    margin-top: 14px;
+}
+
+.tm-expand-header {
+    align-items: center;
+    background: #f7f9fb;
+    border: 0;
+    color: #20242a;
+    display: flex;
+    font-size: 15px;
+    font-weight: 600;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 10px 12px;
+    text-align: left;
+    width: 100%;
+}
+
+.tm-expand-header:hover,
+.tm-expand-header:focus {
+    background: #eef3f7;
+    outline: none;
+}
+
+.tm-expand-header .glyphicon {
+    color: #337ab7;
+    margin-right: 8px;
+}
+
+.tm-expand-body {
+    padding: 12px 0 4px;
+}
+
+.tm-work-form {
+    background: #fbfcfd;
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    padding: 12px;
+}
+
+.tm-file-input {
+    margin-top: 8px;
+}
+
+.tm-comments {
+    margin-top: 0;
+}
+
+.tm-comment {
+    border-top: 1px solid #e6e9ee;
+    padding: 10px 0;
+}
+
+.tm-comment p {
+    margin: 6px 0;
+}
+
+.tm-comment .text-muted {
+    display: block;
+    font-size: 12px;
+}
+
+.tm-replies {
+    border-left: 3px solid #d8dde4;
+    margin-left: 14px;
+    padding-left: 10px;
+}
+
+.tm-reply {
+    border-top: 0;
+    padding-bottom: 6px;
+}
+
+.tm-comment-attachment {
+    align-items: center;
+    background: #f7f9fb;
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding: 6px 8px;
+}
+
+.tm-reply-link {
+    padding-left: 0;
+}
+
+.tm-reply-form {
+    background: #fbfcfd;
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding: 10px;
+}
+
+.tm-reply-button {
+    margin-top: 6px;
+}
+
+.tm-comment-form {
+    border-top: 1px solid #e6e9ee;
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+@media (max-width: 767px) {
+    .tm-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tm-task-panel {
+        min-height: 0;
+    }
+
+    .tm-task-summary,
+    .tm-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tm-expand-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+}

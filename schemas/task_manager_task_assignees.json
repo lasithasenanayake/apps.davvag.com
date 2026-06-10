@@ -1,0 +1,42 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "email",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        }
+    ]
+}

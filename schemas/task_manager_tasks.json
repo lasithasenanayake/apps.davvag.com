@@ -1,0 +1,62 @@
+{
+    "fields": [
+        {
+            "fieldName": "taskId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "projectId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "body",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 5000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName": "priority",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName": "progress",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "createdate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "duedate",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

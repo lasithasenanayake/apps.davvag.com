@@ -1,0 +1,82 @@
+<section class="tm-page">
+  <div class="tm-toolbar">
+    <div>
+      <button class="btn btn-default btn-sm" v-on:click="backToProjects"><span class="glyphicon glyphicon-chevron-left"></span></button>
+      <h3>{{ project ? project.name : 'Tasks' }}</h3>
+      <span class="text-muted">Tasks under selected project</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-primary" v-on:click="createTask"><span class="glyphicon glyphicon-plus"></span> Task</button>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <ul class="nav nav-tabs tm-status-tabs">
+    <li v-for="status in statusOptions" v-bind:class="{active:activeStatus == status}">
+      <a v-on:click="setStatusTab(status)">{{ status }}</a>
+    </li>
+  </ul>
+
+  <div class="row">
+    <div class="col-md-5">
+      <div class="tm-panel">
+        <div class="tm-panel-header"><strong>{{ activeStatus }} Tasks</strong></div>
+        <div class="tm-list">
+          <button class="tm-task-row" v-for="task in tasks" v-on:click="selectTask(task)" v-bind:class="{active:selectedTask && selectedTask.taskId == task.taskId}">
+            <strong>{{ task.subject }}</strong>
+            <span class="label label-default">{{ task.status }}</span>
+            <div class="progress">
+              <div class="progress-bar" v-bind:class="progressClass(task)" v-bind:style="{width:(task.progress || 0) + '%'}">{{ task.progress || 0 }}%</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <div class="tm-panel tm-form">
+        <div class="tm-panel-header">
+          <strong>{{ form.taskId ? 'Edit Task' : 'New Task' }}</strong>
+          <button class="btn btn-xs btn-info" v-if="form.taskId" v-on:click="openTaskView(form)"><span class="glyphicon glyphicon-time"></span> Work Log</button>
+        </div>
+
+        <label>Subject</label>
+        <input class="form-control" v-model="form.subject">
+        <label>Body</label>
+        <textarea class="form-control" rows="5" v-model="form.body"></textarea>
+
+        <div class="row">
+          <div class="col-sm-4"><label>Status</label><select class="form-control" v-model="form.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
+          <div class="col-sm-4"><label>Priority</label><select class="form-control" v-model="form.priority"><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select></div>
+          <div class="col-sm-4"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="form.progress"></div>
+        </div>
+
+        <label>Assignees</label>
+        <div class="tm-chip-list">
+          <button type="button" class="tm-chip" v-for="profile in allowedProfiles" v-bind:class="{active:isAssignee(profile)}" v-on:click="toggleAssignee(profile)">{{ profile.name }}</button>
+        </div>
+
+        <label>Attachments</label>
+        <input type="file" class="form-control" multiple v-on:change="onFileChange">
+        <div class="tm-attachments">
+          <div class="tm-attachment" v-for="(file,index) in attachments">
+            <a v-bind:href="attachmentUrl(file)" target="_blank">
+              <span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}
+            </a>
+            <input class="form-control input-sm" placeholder="Caption" v-model="file.caption">
+            <button class="btn btn-xs btn-default" v-on:click="removeAttachment(index)"><span class="glyphicon glyphicon-remove"></span></button>
+          </div>
+        </div>
+
+        <div class="tm-actions">
+          <button class="btn btn-primary" v-on:click="saveTask"><span class="glyphicon glyphicon-floppy-disk"></span> Save Task</button>
+          <button class="btn btn-info" v-if="form.taskId" v-on:click="openTaskView(form)"><span class="glyphicon glyphicon-time"></span> View / Log</button>
+          <button class="btn btn-danger" v-if="form.taskId" v-on:click="deleteTask(form)"><span class="glyphicon glyphicon-trash"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

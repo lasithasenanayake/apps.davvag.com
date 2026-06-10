@@ -1,0 +1,51 @@
+{
+    "fields": [
+        {
+            "fieldName": "commentId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "parentCommentId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "body",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 3000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "commentDate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        }
+    ]
+}

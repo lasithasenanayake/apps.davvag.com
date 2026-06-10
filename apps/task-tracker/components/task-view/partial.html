@@ -1,0 +1,135 @@
+<section class="tm-page">
+  <div class="tm-toolbar">
+    <div>
+      <button class="btn btn-default btn-sm" v-on:click="backToTasks"><span class="glyphicon glyphicon-chevron-left"></span></button>
+      <h3>{{ task ? task.subject : 'Task View' }}</h3>
+      <span class="text-muted">{{ project ? project.name : '' }}</span>
+    </div>
+    <button class="btn btn-default" v-on:click="refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="tm-task-wrap" v-if="task">
+    <div class="tm-panel tm-form tm-task-panel">
+      <div class="tm-panel-header"><strong>Task Progress</strong></div>
+      <div class="tm-task-summary">
+        <div>
+          <p>{{ task.body }}</p>
+          <span class="label label-default">{{ task.status }}</span>
+        </div>
+        <div class="tm-progress-wrap">
+          <div class="progress tm-progress">
+            <div class="progress-bar" v-bind:class="progressClass(task)" v-bind:style="{width:(task.progress || 0) + '%'}">{{ task.progress || 0 }}%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tm-meta-grid">
+        <div>
+          <label>Assignees</label>
+          <div class="tm-chip-list">
+            <span class="tm-chip active" v-for="assignee in assignees">{{ assignee.profileName }}</span>
+          </div>
+        </div>
+        <div>
+          <label>Attachments</label>
+          <div class="tm-attachment" v-for="file in attachments">
+            <a v-bind:href="attachmentUrl(file)" target="_blank"><span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}</a>
+            <span class="text-muted">{{ file.caption }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tm-expand-section">
+        <button type="button" class="tm-expand-header" v-on:click="toggleDiscussion">
+          <span><span class="glyphicon" v-bind:class="discussionOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'"></span> Discussion</span>
+          <span class="text-muted">{{ comments.length }} comments</span>
+        </button>
+        <div class="tm-expand-body" v-show="discussionOpen">
+          <div class="tm-comments">
+            <div class="tm-comment" v-for="comment in comments">
+              <div class="tm-comment-body">
+                <strong>{{ comment.profileName || 'Unknown' }}</strong>
+                <span class="text-muted">{{ comment.commentDate }}</span>
+                <p>{{ comment.body }}</p>
+                <div class="tm-comment-attachment" v-for="file in comment.Attachments">
+                  <a v-bind:href="commentAttachmentUrl(file)" target="_blank"><span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}</a>
+                </div>
+                <button type="button" class="btn btn-xs btn-link tm-reply-link" v-on:click="openReply(comment)">Reply to</button>
+              </div>
+
+              <div class="tm-replies">
+                <div class="tm-comment tm-reply" v-for="reply in comment.replies">
+                  <strong>{{ reply.profileName || 'Unknown' }}</strong>
+                  <span class="text-muted">{{ reply.commentDate }}</span>
+                  <p>{{ reply.body }}</p>
+                  <div class="tm-comment-attachment" v-for="file in reply.Attachments">
+                    <a v-bind:href="commentAttachmentUrl(file)" target="_blank"><span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}</a>
+                  </div>
+                </div>
+                <div class="tm-reply-form" v-show="comment.replyOpen">
+                  <textarea class="form-control input-sm" rows="2" placeholder="Write a reply" v-model="comment.replyBody"></textarea>
+                  <input type="file" class="form-control tm-file-input" multiple v-on:change="onReplyFileChange($event, comment)">
+                  <div class="tm-comment-attachment" v-for="(file,index) in comment.replyAttachments">
+                    <span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}
+                    <button class="btn btn-xs btn-default" v-on:click="removeReplyAttachment(comment, index)"><span class="glyphicon glyphicon-remove"></span></button>
+                  </div>
+                  <button class="btn btn-xs btn-default tm-reply-button" v-on:click="cancelReply(comment)">Cancel</button>
+                  <button class="btn btn-xs btn-primary tm-reply-button" v-on:click="saveReply(comment)">Reply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tm-comment-form">
+            <textarea class="form-control" rows="3" placeholder="Write a comment" v-model="commentForm.body"></textarea>
+            <input type="file" class="form-control tm-file-input" multiple v-on:change="onCommentFileChange">
+            <div class="tm-comment-attachments">
+              <div class="tm-comment-attachment" v-for="(file,index) in commentAttachments">
+                <span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}
+                <button class="btn btn-xs btn-default" v-on:click="removeCommentAttachment(index)"><span class="glyphicon glyphicon-remove"></span></button>
+              </div>
+            </div>
+            <button class="btn btn-primary tm-actions" v-on:click="saveComment"><span class="glyphicon glyphicon-comment"></span> Comment</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tm-expand-section">
+        <button type="button" class="tm-expand-header" v-on:click="toggleProgress">
+          <span><span class="glyphicon" v-bind:class="progressOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'"></span> Progress Timeline</span>
+          <span class="text-muted">{{ workLogs.length }} logs</span>
+        </button>
+        <div class="tm-expand-body" v-show="progressOpen">
+          <div class="tm-work-form">
+            <label>Work date</label>
+            <input type="date" class="form-control" v-model="logForm.logDate" v-on:change="syncWorkDate">
+            <div class="row">
+              <div class="col-sm-6"><label>Start time</label><input type="time" class="form-control" v-model="logForm.startTime" v-on:change="recalcMinutes"></div>
+              <div class="col-sm-6"><label>End time</label><input type="time" class="form-control" v-model="logForm.endTime" v-on:change="recalcMinutes"></div>
+            </div>
+            <div class="row">
+              <div class="col-sm-4"><label>Minutes</label><input type="number" class="form-control" v-model="logForm.durationInMinutes"></div>
+              <div class="col-sm-4"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="logForm.progress"></div>
+              <div class="col-sm-4"><label>Status</label><select class="form-control" v-model="logForm.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
+            </div>
+            <label>Work notes</label>
+            <textarea class="form-control" rows="4" v-model="logForm.comments"></textarea>
+            <button class="btn btn-success tm-actions" v-on:click="addWorkLog"><span class="glyphicon glyphicon-time"></span> Save Work Log</button>
+          </div>
+
+          <div class="tm-timeline">
+            <div class="tm-log" v-for="log in workLogs">
+              <strong>{{ log.status }} - {{ log.progress }}%</strong>
+              <span class="text-muted">{{ log.profileName || 'Unknown' }} | {{ log.logDate }} | {{ log.durationInMinutes }} min</span>
+              <p>{{ log.comments }}</p>
+              <small class="text-muted" v-if="log.startDate || log.endDate">{{ log.startDate }} - {{ log.endDate }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

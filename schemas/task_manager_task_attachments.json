@@ -1,0 +1,43 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "caption",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "fileType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "size",
+            "dataType": "int"
+        }
+    ]
+}

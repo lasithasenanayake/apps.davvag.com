@@ -1,0 +1,65 @@
+<section class="ai-agent">
+    <aside class="ai-agent__config" aria-label="AI agent configuration">
+        <div class="ai-agent__brand">
+            <span class="ai-agent__mark">AI</span>
+            <div>
+                <p class="ai-agent__eyebrow">DAVVAG localhost tenant</p>
+                <h1>ChatGPT Agent</h1>
+            </div>
+        </div>
+
+        <div class="ai-agent__status" data-agent-status>Loading configuration...</div>
+
+        <label class="ai-agent__field">
+            <span>OpenAI API key</span>
+            <input type="password" data-agent-api-key autocomplete="off" placeholder="sk-..." />
+            <small>Stored on the server only. Leave blank when saving to keep the existing key.</small>
+        </label>
+
+        <label class="ai-agent__field">
+            <span>Model</span>
+            <input type="text" data-agent-model placeholder="gpt-4.1-mini" />
+        </label>
+
+        <label class="ai-agent__field">
+            <span>Temperature</span>
+            <input type="number" data-agent-temperature min="0" max="2" step="0.1" placeholder="1" />
+        </label>
+
+        <label class="ai-agent__field">
+            <span>Max output tokens</span>
+            <input type="number" data-agent-max-output min="1" max="8192" step="1" placeholder="1000" />
+        </label>
+
+        <label class="ai-agent__field ai-agent__field--wide">
+            <span>Agent instructions</span>
+            <textarea data-agent-instructions rows="7" placeholder="Describe how this AI agent should behave."></textarea>
+        </label>
+
+        <div class="ai-agent__actions">
+            <button type="button" class="ai-agent__button ai-agent__button--primary" data-agent-save>Save configuration</button>
+            <button type="button" class="ai-agent__button" data-agent-clear-key>Clear API key</button>
+        </div>
+    </aside>
+
+    <section class="ai-agent__chat" aria-label="AI chat">
+        <header class="ai-agent__chat-header">
+            <div>
+                <p class="ai-agent__eyebrow">Conversation</p>
+                <h2>Ask the configured agent</h2>
+            </div>
+            <button type="button" class="ai-agent__button ai-agent__button--ghost" data-agent-reset>Reset chat</button>
+        </header>
+
+        <div class="ai-agent__messages" data-agent-messages>
+            <div class="ai-agent__empty">
+                Configure the API key, tune the agent instructions, then send a message.
+            </div>
+        </div>
+
+        <form class="ai-agent__composer" data-agent-form>
+            <textarea data-agent-message rows="3" placeholder="Type your message. Shift+Enter for a new line."></textarea>
+            <button type="submit" class="ai-agent__send">Send</button>
+        </form>
+    </section>
+</section>

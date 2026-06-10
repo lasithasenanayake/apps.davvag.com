@@ -1,0 +1,34 @@
+---
+# DAVVAG tenant-level cPanel Git deployment.
+#
+# This file belongs in the tenant repository/folder:
+#   davvag-core/localhost
+#
+# In this local checkout, davvag-core/localhost is a junction to:
+#   C:\xampp\htdocs\apps.davvag.com
+#
+# cPanel will run these Bash tasks from this tenant folder. The tasks deploy
+# tenant resources into the framework tenant directory:
+#   $HOME/public_html/davvag-core/{TENANT_NAME}
+#
+# Change TENANT_NAME if the production HTTP host is not apps.davvag.com.
+deployment:
+  tasks:
+    - export PUBLIC_ROOT="${PUBLIC_ROOT:-$HOME/public_html}"
+    - export PUBLIC_ROOT="${PUBLIC_ROOT%/}"
+    - export TENANT_NAME="${TENANT_NAME:-apps.davvag.com}"
+    - export TENANTPATH="$PUBLIC_ROOT/davvag-core/$TENANT_NAME"
+    - /bin/mkdir -p "$PUBLIC_ROOT/davvag-core"
+    - /bin/mkdir -p "$TENANTPATH"
+    - /bin/mkdir -p "$HOME/davvag-media/$TENANT_NAME"
+    - /usr/bin/printf '<Files ~ "^.*">\n  Deny from all\n</Files>\n' > "$PUBLIC_ROOT/davvag-core/.htaccess"
+    - /bin/cp -f tenant.json anonymous.json web_user.json sysadmin.json sysuser.json facebook_user.json seller.json "$TENANTPATH/"
+    - if [ -f config.json ] && [ ! -f "$TENANTPATH/config.json" ]; then /bin/cp -f config.json "$TENANTPATH/config.json"; fi
+    - if [ -f sossgrid.conf ] && [ ! -f "$TENANTPATH/sossgrid.conf" ]; then /bin/cp -f sossgrid.conf "$TENANTPATH/sossgrid.conf"; fi
+    - if [ -d apps ]; then /bin/cp -R apps "$TENANTPATH/"; fi
+    - if [ -d davvag-flow ]; then /bin/cp -R davvag-flow "$TENANTPATH/"; fi
+    - if [ -d global ]; then /bin/cp -R global "$TENANTPATH/"; fi
+    - if [ -d plugins ]; then /bin/cp -R plugins "$TENANTPATH/"; fi
+    - if [ -d schemas ]; then /bin/cp -R schemas "$TENANTPATH/"; fi
+    - if [ -f schemas.zip ]; then /bin/cp -f schemas.zip "$TENANTPATH/schemas.zip"; fi
+    - if [ -f auth-0.0.1-SNAPSHOT.jar ]; then /bin/cp -f auth-0.0.1-SNAPSHOT.jar "$TENANTPATH/auth-0.0.1-SNAPSHOT.jar"; fi

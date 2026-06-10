@@ -1,0 +1,25 @@
+{
+    "name": "AI ChatGPT Agent Console",
+    "description": "Configures a server-side OpenAI API key and provides a chat console for the tenant.",
+    "author": "Davvag",
+    "version": "0.1",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "chat-console.css"
+            }
+        ]
+    }
+}

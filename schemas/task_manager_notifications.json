@@ -1,0 +1,65 @@
+{
+    "fields": [
+        {
+            "fieldName": "notificationId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "email",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName": "eventType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 60
+            }
+        },
+        {
+            "fieldName": "message",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName": "createdate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "sentdate",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

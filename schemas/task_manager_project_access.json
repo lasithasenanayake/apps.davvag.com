@@ -1,0 +1,27 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "projectId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "role",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        }
+    ]
+}

@@ -1,0 +1,127 @@
+.tm-page {
+    color: #20242a;
+    padding: 12px;
+}
+
+.tm-toolbar {
+    align-items: center;
+    border-bottom: 1px solid #d8dde4;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+.tm-toolbar h3 {
+    display: inline-block;
+    margin: 0 0 0 8px;
+}
+
+.tm-panel {
+    background: #fff;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.tm-panel-header {
+    align-items: center;
+    border-bottom: 1px solid #e6e9ee;
+    display: flex;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 8px 10px;
+}
+
+.tm-form {
+    padding: 10px;
+}
+
+.tm-form .tm-panel-header {
+    margin: -10px -10px 10px;
+}
+
+.tm-form label {
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.tm-status-tabs {
+    margin-bottom: 12px;
+}
+
+.tm-status-tabs a {
+    cursor: pointer;
+}
+
+.tm-list {
+    max-height: 620px;
+    overflow-y: auto;
+}
+
+.tm-task-row {
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid #edf0f3;
+    display: block;
+    padding: 10px;
+    text-align: left;
+    width: 100%;
+}
+
+.tm-task-row.active,
+.tm-task-row:hover {
+    background: #eef6ff;
+}
+
+.tm-task-row .progress {
+    height: 16px;
+    margin: 8px 0 0;
+}
+
+.tm-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.tm-chip {
+    background: #f4f6f8;
+    border: 1px solid #cfd6de;
+    border-radius: 14px;
+    padding: 4px 9px;
+}
+
+.tm-chip.active {
+    background: #337ab7;
+    border-color: #2e6da4;
+    color: #fff;
+}
+
+.tm-attachment {
+    align-items: center;
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr minmax(120px, 180px) auto;
+    margin: 6px 0;
+    padding: 6px;
+}
+
+.tm-actions {
+    margin-top: 12px;
+}
+
+@media (max-width: 767px) {
+    .tm-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tm-attachment {
+        grid-template-columns: 1fr;
+    }
+}

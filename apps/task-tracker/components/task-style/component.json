@@ -1,0 +1,11 @@
+{
+    "name": "task-style",
+    "description": "Task Manager shared cross-dock styles",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "css": [
+            {"type": "css", "location": "task-common.css"}
+        ]
+    }
+}

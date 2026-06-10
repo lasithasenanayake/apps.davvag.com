@@ -1,0 +1,30 @@
+{
+    "components": {
+        "chat-console": {
+            "type": "component",
+            "location": "components"
+        },
+        "agent-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "AI ChatGPT Agent",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": ["showindock"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "chat-console",
+            "onLoad": ["agent-api"],
+            "routes": {
+                "partials": {
+                    "/": "chat-console"
+                }
+            }
+        }
+    }
+}

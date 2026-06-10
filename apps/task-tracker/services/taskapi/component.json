@@ -1,0 +1,33 @@
+{
+    "name": "taskapi",
+    "description": "Task Manager service handlers",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "TaskManagerService",
+        "methods": {
+            "ListProjects": {"method": "POST"},
+            "ProjectDetails": {"method": "POST"},
+            "SaveProject": {"method": "POST"},
+            "DeleteProject": {"method": "POST"},
+            "ListTasks": {"method": "POST"},
+            "SaveTask": {"method": "POST"},
+            "DeleteTask": {"method": "POST"},
+            "TaskDetails": {"method": "POST"},
+            "SaveWorkLog": {"method": "POST"},
+            "SaveComment": {"method": "POST"},
+            "ListProfiles": {"method": "POST"},
+            "NotifyTaskAssignees": {"method": "POST"}
+        }
+    },
+    "transformers": {}
+}

@@ -1,0 +1,170 @@
+.tm-app {
+    color: #20242a;
+    padding: 12px;
+}
+
+.tm-toolbar {
+    align-items: center;
+    border-bottom: 1px solid #d8dde4;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+.tm-toolbar h3 {
+    margin: 0;
+}
+
+.tm-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.tm-column {
+    margin-bottom: 12px;
+}
+
+.tm-panel {
+    background: #fff;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.tm-panel-header {
+    align-items: center;
+    border-bottom: 1px solid #e6e9ee;
+    display: flex;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 8px 10px;
+}
+
+.tm-form {
+    padding: 10px;
+}
+
+.tm-form .tm-panel-header {
+    margin: -10px -10px 10px;
+}
+
+.tm-form label {
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.tm-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.tm-list-item {
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid #edf0f3;
+    display: block;
+    padding: 10px;
+    text-align: left;
+    width: 100%;
+}
+
+.tm-list-item.active,
+.tm-list-item:hover {
+    background: #eef6ff;
+}
+
+.tm-list-item small {
+    color: #68717d;
+    display: block;
+}
+
+.tm-task-item .progress {
+    height: 16px;
+    margin: 8px 0 0;
+}
+
+.tm-status-filter {
+    max-width: 120px;
+}
+
+.tm-tabs {
+    margin-top: 12px;
+}
+
+.tm-check {
+    display: block;
+    font-weight: normal;
+}
+
+.tm-actions {
+    margin-top: 12px;
+}
+
+.tm-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.tm-chip {
+    background: #f4f6f8;
+    border: 1px solid #cfd6de;
+    border-radius: 14px;
+    padding: 4px 9px;
+}
+
+.tm-chip.active {
+    background: #337ab7;
+    border-color: #2e6da4;
+    color: #fff;
+}
+
+.tm-attachments {
+    margin-top: 8px;
+}
+
+.tm-attachment {
+    align-items: center;
+    border: 1px solid #e0e4e9;
+    border-radius: 6px;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr minmax(120px, 180px) auto;
+    margin-bottom: 6px;
+    padding: 6px;
+}
+
+.tm-attachment img {
+    height: 32px;
+    margin-right: 6px;
+    object-fit: cover;
+    width: 32px;
+}
+
+.tm-log-button {
+    margin-top: 10px;
+}
+
+.tm-timeline {
+    margin-top: 10px;
+}
+
+.tm-log {
+    border-left: 3px solid #5bc0de;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+@media (max-width: 767px) {
+    .tm-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tm-attachment {
+        grid-template-columns: 1fr;
+    }
+}

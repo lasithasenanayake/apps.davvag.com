@@ -1,0 +1,34 @@
+{
+    "name": "AI ChatGPT Agent API",
+    "description": "Server-side service for storing AI agent configuration and calling the OpenAI Responses API.",
+    "author": "Davvag",
+    "version": "0.1",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "ai_chatgpt_agent\\AgentService",
+        "methods": {
+            "Config": {
+                "method": "GET"
+            },
+            "SaveConfig": {
+                "method": "POST"
+            },
+            "ClearConfig": {
+                "method": "POST"
+            },
+            "Chat": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}
