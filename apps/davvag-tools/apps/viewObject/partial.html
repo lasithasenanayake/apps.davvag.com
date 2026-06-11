@@ -1,58 +1,97 @@
-<div>
-  <div class="input-error">
-    <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
-      <strong>ERROR! </strong> {{error}}
+<section class="vo-shell">
+  <div class="vo-alerts">
+    <div class="alert alert-danger" v-for="error in submitErrors">
+      <strong>Error:</strong> {{ error }}
     </div>
-    <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
-        <strong>INFO! </strong> {{error}}
+    <div class="alert alert-info" v-for="message in submitInfo">
+      {{ message }}
+    </div>
+  </div>
+
+  <div class="vo-mode" role="radiogroup" aria-label="Record permission mode">
+    <label v-bind:class="{active:custom == 'public'}">
+      <input type="radio" value="public" v-model="custom">
+      <span class="fa fa-globe"></span>
+      <strong>Public</strong>
+      <small>Anyone who can open the app can view this record.</small>
+    </label>
+    <label v-bind:class="{active:custom == 'custom'}">
+      <input type="radio" value="custom" v-model="custom">
+      <span class="fa fa-gear"></span>
+      <strong>Custom</strong>
+      <small>Allow selected users or groups.</small>
+      <span class="vo-id-badge" v-if="viewObjectID">View Object ID {{ viewObjectID }}</span>
+    </label>
+  </div>
+
+  <div class="vo-public-note" v-if="custom == 'public'">
+    This record will use the public view object.
+  </div>
+
+  <div class="vo-custom" v-if="custom == 'custom'">
+    <div class="vo-editor">
+      <div class="vo-field">
+        <label>Type</label>
+        <select class="form-control" v-model="item_type" v-on:change="loadValues">
+          <option value="user">User</option>
+          <option value="group">Group</option>
+        </select>
       </div>
+      <div class="vo-field">
+        <label>{{ item_type == 'group' ? 'Group' : 'User' }}</label>
+        <select class="form-control" v-model="item_value" v-bind:disabled="valuesLoading">
+          <option value="" disabled>{{ valuesLoading ? 'Loading...' : 'Select one' }}</option>
+          <option v-bind:value="v.val" v-for="v in item_values">{{ v.text }}</option>
+        </select>
+      </div>
+      <div class="vo-field">
+        <label>Permission</label>
+        <select class="form-control" v-model="item_permision">
+          <option value="View">View</option>
+          <option value="Edit">Edit</option>
+          <option value="Full">Full</option>
+        </select>
+      </div>
+      <div class="vo-editor-actions">
+        <button type="button" class="btn btn-primary" v-on:click="addItem" v-bind:disabled="valuesLoading">
+          <span class="fa" v-bind:class="editingIndex >= 0 ? 'fa-check' : 'fa-plus'"></span>
+          {{ editingIndex >= 0 ? 'Update' : 'Add' }}
+        </button>
+        <button type="button" class="btn btn-default" v-if="editingIndex >= 0" v-on:click="clearEditor">
+          Cancel Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="vo-list">
+      <div class="vo-empty" v-if="loading">Loading current permissions...</div>
+      <div class="vo-empty" v-if="!loading && items.length == 0">No custom permissions added yet.</div>
+      <div class="vo-row" v-for="(item,index) in items">
+        <div class="vo-row-main">
+          <span class="vo-type">{{ item.item_type }}</span>
+          <strong>{{ item.item_text }}</strong>
+          <span class="vo-value">{{ item.item_value }}</span>
+        </div>
+        <span class="vo-permission" v-bind:class="permissionClass(item)">{{ item.item_permision }}</span>
+        <div class="vo-row-actions">
+          <button type="button" class="btn btn-default" v-on:click="editItem(index)" title="Edit permission">
+            <span class="fa fa-pencil"></span>
+          </button>
+          <button type="button" class="btn btn-danger vo-delete-button" v-on:click="removeItem(index)" title="Remove permission">
+            <span class="vo-trash-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
-  <div id="form-details-top">
-    <input type="radio" id="one" value="public" v-model="custom" />
-    <label for="one">Public <i class="fa fa-globe fa-1x"> </i></label>
-    <input type="radio" id="two" value="custom" v-model="custom" />
-    <label for="two">Custom <i class="fa fa-gear fa-1x"> </i></label>
+
+  <div class="vo-actions">
+    <button type="button" class="btn btn-primary" v-on:click="submit" v-bind:disabled="saving || loading">
+      <span class="fa fa-save"></span>
+      {{ saving ? 'Saving...' : 'Save' }}
+    </button>
+    <button type="button" class="btn btn-default" v-on:click="cancel" v-bind:disabled="saving">
+      Cancel
+    </button>
   </div>
-  <div id="form-details">
-    <div class="form-group">
-      <table v-if="custom=='custom'" style="width: 100%;">
-        <thead>
-          <tr>
-             <td>
-              <select name="item_type" title="type" class="form-contdol"  id="item_type" placeholder="select type" v-model="item_type" v-on:change="loadVlues();">
-                <option value="user">User</option>
-                <option value="group">Group</option>
-              </select>
-              </td>
-              <td> <select name="item_permision" title="Permision" class="form-contdol" id="item_permision" placeholder="select Permision" v-model="item_permision">
-                <option value="View">View</option>
-                <option value="Edit">Edit</option>
-                <option value="Full">Full</option>
-              </select></td>
-              <td>
-                <select name="item_value" class="form-contdol" title="Permision Value" id="item_value" placeholder="-" v-model="item_value">
-                  <option v-bind:value="v" v-for="v in item_values">{{ v.text }}</option>
-                </select>
-              </td>
-              <td>
-               <button v-on:click="addItem()">
-                Add Item
-               </button>
-              </td>
-          </tr>
-          
-        </thead>
-        <tbody>
-          <tr v-for="d in items">
-            <td>{{ d.item_type }}</td>
-            <td>{{ d.item_permision }}</td>
-            <td>{{ d.item_text }}</td>
-            <td>Edit|Remove</td>
-          </tr>
-        </tbody>
-      </table>
-    
-    <button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>
-    <button  class="btn bg-primary-button btn-block" v-on:click="cancel">Cancel</button>
-  </div>
-  </div>
+</section>

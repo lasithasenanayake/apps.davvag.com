@@ -110,7 +110,7 @@ WEBDOCK.component().register(function(exports){
     exports.close=close;
     window.openAppPopup=openPopupForm;
     window.openViewObject=function(data,cb){
-            openPopupForm("davvag-tools","viewObject",data,cb,"Change Record Permision",false,true);
+            openPopupForm("davvag-tools","viewObject",data,cb,"Change Record Permission",false,true);
 
 
     }

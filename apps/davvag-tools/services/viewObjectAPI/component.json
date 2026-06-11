@@ -1,8 +1,8 @@
 {
     "name" : "View Object Api",
-    "description":"This allows to set permision to a record.",
+    "description":"This allows record permissions to be configured.",
     "author":"Lasitha Senanayake",
-    "version" : "0.1",
+    "version" : "0.2",
     "gitUrl" : "",
     "resources": {
         "files":[

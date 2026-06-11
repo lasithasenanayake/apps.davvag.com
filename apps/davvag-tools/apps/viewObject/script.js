@@ -1,215 +1,261 @@
-WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,routeData;
-    var countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
+WEBDOCK.component().register(function (exports) {
+    var serviceHandler;
 
     var bindData = {
-        data:{},
-        submitErrors : [],submitInfo : [],items:[],item_type:"",item_permision:"",item_value:"",item_values:[],custom:"public"
+        loading: false,
+        saving: false,
+        submitErrors: [],
+        submitInfo: [],
+        custom: "public",
+        items: [],
+        valuesLoading: false,
+        editingIndex: -1,
+        item_type: "user",
+        item_permision: "View",
+        item_value: "",
+        item_values: [],
+        viewObjectID: 0
     };
 
-    var vueData =  {
-        methods:{
-            addItem:function(){
-              add=true;
-              bindData.submitErrors=[];
-              bindData.submitInfo=[];
-              bindData.items.forEach(element => {
-                if(bindData.item_type==element.item_type){
-                  if(bindData.item_value==element.item_value){
-                    add=false;
-                    bindData.submitErrors.push("Item has already added.");
-                  }
-                }
-              });
-              if(add){
-                bindData.items.push({"item_type":bindData.item_type,"item_permision":bindData.item_permision,"item_value":bindData.item_value.val,"item_text":bindData.item_value.text});
-              }
-            },
-            loadVlues:function(){
-              service_handler.services.PermisionValues({"item_type":bindData.item_type}).then(function(result){ 
-                if(result.success){
-                    bindData.item_values=result.result;
-                    
-                }else{
-                    bindData.submitErrors.push("Error");
-                }
-              }).error(function(result){
-                  bindData.submitErrors = [];
-                  bindData.submitErrors.push("Error");
-                  
-              });
-            },
-            submit:function(){
-              if(bindData.custom=='public'){
-                exports.Complete(0);
-                return;
-              }
-              service_handler.services.Save(bindData.items).then(function(result){ 
-                if(result.success){
-                    bindData.items=result.result;
-                    if(bindData.items.length>0){
-                      exports.Complete(bindData.items[0].viewObjectID);
-                    }else{
-                      if(exports.dataObject!=null)
-                        exports.Complete(exports.dataObject);
-                      else
-                        exports.Complete(0);
-                    }
-                }else{
-                    bindData.submitErrors.push("Error");
-                }
-              }).error(function(result){
-                  bindData.submitErrors = [];
-                  bindData.submitErrors.push("Error");
-                  
-              });
-            },
-            cancel:function(){
-              if(exports.dataObject)
-                exports.Complete(exports.dataObject);
-              else
-                exports.Complete(0);
-            }
-
-           
+    exports.vue = {
+        data: bindData,
+        methods: {
+            addItem: addItem,
+            editItem: editItem,
+            removeItem: removeItem,
+            clearEditor: clearEditor,
+            loadValues: loadValues,
+            submit: submit,
+            cancel: cancel,
+            permissionClass: permissionClass,
+            selectedValueText: selectedValueText
         },
-        data :bindData,
-        onReady: function(s){
-            scope=s;
+        onReady: function () {
             initialize();
         }
+    };
+
+    exports.onReady = function () {};
+
+    function initialize() {
+        serviceHandler = exports.getComponent("viewObjectAPI");
+        if (!serviceHandler) {
+            setError("Permission service has not loaded.");
+            return;
+        }
+
+        loadValues();
+        if (exports.dataObject !== undefined && exports.dataObject !== null && String(exports.dataObject) !== "0") {
+            bindData.custom = "custom";
+            bindData.viewObjectID = exports.dataObject;
+            loadObject(exports.dataObject);
+        } else {
+            bindData.custom = "public";
+            bindData.viewObjectID = 0;
+        }
     }
 
-    function initialize(){
-      service_handler = exports.getComponent("viewObjectAPI");
-      if(!service_handler){
-          console.log("Service has not Loaded please check.")
-      }
-      if(exports.dataObject){
-        if(exports.dataObject==0){
-          bindData.custom='public';
-        }else{
-          bindData.custom='custom';
-        }
-        service_handler.services.FindObject({objectID:exports.dataObject}).then(function(result){ 
-          if(result.success){
-              bindData.items=result.result;
-          }else{
-              bindData.submitErrors.push("Error");
-          }
-        }).error(function(result){
-            bindData.submitErrors = [];
-            bindData.submitErrors.push("Error");
-            
-        });
-      }else{
-        bindData.custom='public';
-      }
-    }
-    
-
-    function autocomplete(inp, arr) {
-        /*the autocomplete function takes two arguments,
-        the text field element and an array of possible autocompleted values:*/
-        var currentFocus;
-        /*execute a function when someone writes in the text field:*/
-        inp.addEventListener("input", function(e) {
-            var a, b, i, val = this.value;
-            /*close any already open lists of autocompleted values*/
-            closeAllLists();
-            if (!val) { return false;}
-            currentFocus = -1;
-            /*create a DIV element that will contain the items (values):*/
-            a = document.createElement("DIV");
-            a.setAttribute("id", this.id + "autocomplete-list");
-            a.setAttribute("class", "autocomplete-items");
-            /*append the DIV element as a child of the autocomplete container:*/
-            this.parentNode.appendChild(a);
-            /*for each item in the array...*/
-            for (i = 0; i < arr.length; i++) {
-              /*check if the item starts with the same letters as the text field value:*/
-              if (arr[i].text.substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-                /*create a DIV element for each matching element:*/
-                b = document.createElement("DIV");
-                /*make the matching letters bold:*/
-                b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                b.innerHTML += arr[i].text.substr(val.length);
-                /*insert a input field that will hold the current array item's value:*/
-                b.innerHTML += "<input type='hidden' value='" + arr[i].val + "'>";
-                /*execute a function when someone clicks on the item value (DIV element):*/
-                b.addEventListener("click", function(e) {
-                    /*insert the value for the autocomplete text field:*/
-                    inp.value = this.getElementsByTagName("input")[0].value;
-                    /*close the list of autocompleted values,
-                    (or any other open lists of autocompleted values:*/
-                    closeAllLists();
-                });
-                a.appendChild(b);
-              }
+    function loadObject(objectId) {
+        bindData.loading = true;
+        serviceHandler.services.FindObject({objectID: objectId}).then(function (result) {
+            bindData.loading = false;
+            if (result.success) {
+                bindData.items = normalizeItems(result.result || []);
+                bindData.custom = bindData.items.length > 0 ? "custom" : "public";
+                bindData.viewObjectID = bindData.items.length > 0 && bindData.items[0].viewObjectID ? bindData.items[0].viewObjectID : objectId;
+            } else {
+                setError("Could not load current permissions.");
             }
+        }).error(function () {
+            bindData.loading = false;
+            setError("Could not load current permissions.");
         });
-        /*execute a function presses a key on the keyboard:*/
-        inp.addEventListener("keydown", function(e) {
-            var x = document.getElementById(this.id + "autocomplete-list");
-            if (x) x = x.getElementsByTagName("div");
-            if (e.keyCode == 40) {
-              /*If the arrow DOWN key is pressed,
-              increase the currentFocus variable:*/
-              currentFocus++;
-              /*and and make the current item more visible:*/
-              addActive(x);
-            } else if (e.keyCode == 38) { //up
-              /*If the arrow UP key is pressed,
-              decrease the currentFocus variable:*/
-              currentFocus--;
-              /*and and make the current item more visible:*/
-              addActive(x);
-            } else if (e.keyCode == 13) {
-              /*If the ENTER key is pressed, prevent the form from being submitted,*/
-              e.preventDefault();
-              if (currentFocus > -1) {
-                /*and simulate a click on the "active" item:*/
-                if (x) x[currentFocus].click();
-              }
-            }
-        });
-        function addActive(x) {
-          /*a function to classify an item as "active":*/
-          if (!x) return false;
-          /*start by removing the "active" class on all items:*/
-          removeActive(x);
-          if (currentFocus >= x.length) currentFocus = 0;
-          if (currentFocus < 0) currentFocus = (x.length - 1);
-          /*add class "autocomplete-active":*/
-          x[currentFocus].classList.add("autocomplete-active");
-        }
-        function removeActive(x) {
-          /*a function to remove the "active" class from all autocomplete items:*/
-          for (var i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
-          }
-        }
-        function closeAllLists(elmnt) {
-          /*close all autocomplete lists in the document,
-          except the one passed as an argument:*/
-          var x = document.getElementsByClassName("autocomplete-items");
-          for (var i = 0; i < x.length; i++) {
-            if (elmnt != x[i] && elmnt != inp) {
-              x[i].parentNode.removeChild(x[i]);
-            }
-          }
-        }
-        /*execute a function when someone clicks in the document:*/
-        document.addEventListener("click", function (e) {
-            closeAllLists(e.target);
-        });
-      }
-
-    
-
-    exports.vue = vueData;
-    exports.onReady = function(element){
-        
     }
 
+    function loadValues() {
+        bindData.valuesLoading = true;
+        bindData.item_value = "";
+        serviceHandler.services.PermisionValues({item_type: bindData.item_type}).then(function (result) {
+            bindData.valuesLoading = false;
+            if (result.success) {
+                bindData.item_values = result.result || [];
+                if (bindData.item_values.length > 0) {
+                    bindData.item_value = bindData.item_values[0].val;
+                }
+            } else {
+                setError("Could not load users or groups.");
+            }
+        }).error(function () {
+            bindData.valuesLoading = false;
+            setError("Could not load users or groups.");
+        });
+    }
+
+    function addItem() {
+        clearMessages();
+        if (!bindData.item_type || !bindData.item_permision || !bindData.item_value) {
+            setError("Select a type, name, and permission.");
+            return;
+        }
+
+        var row = {
+            item_type: bindData.item_type,
+            item_permision: bindData.item_permision,
+            item_value: bindData.item_value,
+            item_text: selectedValueText()
+        };
+
+        var duplicateIndex = findItemIndex(row.item_type, row.item_value);
+        if (bindData.editingIndex >= 0) {
+            if (duplicateIndex >= 0 && duplicateIndex !== bindData.editingIndex) {
+                setError("That user or group is already in this permission list.");
+                return;
+            }
+            bindData.items.splice(bindData.editingIndex, 1, row);
+            bindData.editingIndex = -1;
+            setInfo("Permission row updated.");
+        } else if (duplicateIndex >= 0) {
+            bindData.items.splice(duplicateIndex, 1, row);
+            setInfo("Existing permission row updated.");
+        } else {
+            bindData.items.push(row);
+            setInfo("Permission row added.");
+        }
+    }
+
+    function editItem(index) {
+        clearMessages();
+        var row = bindData.items[index];
+        if (!row) {
+            return;
+        }
+        bindData.editingIndex = index;
+        bindData.item_type = row.item_type || "user";
+        bindData.item_permision = row.item_permision || "View";
+        bindData.item_value = row.item_value || "";
+        loadValuesForEdit(row.item_value);
+    }
+
+    function loadValuesForEdit(value) {
+        bindData.valuesLoading = true;
+        serviceHandler.services.PermisionValues({item_type: bindData.item_type}).then(function (result) {
+            bindData.valuesLoading = false;
+            bindData.item_values = result.success ? (result.result || []) : [];
+            bindData.item_value = value;
+        }).error(function () {
+            bindData.valuesLoading = false;
+            setError("Could not load users or groups.");
+        });
+    }
+
+    function removeItem(index) {
+        clearMessages();
+        bindData.items.splice(index, 1);
+        if (bindData.editingIndex === index) {
+            clearEditor();
+        }
+        setInfo("Permission row removed.");
+    }
+
+    function clearEditor() {
+        bindData.editingIndex = -1;
+        bindData.item_type = "user";
+        bindData.item_permision = "View";
+        loadValues();
+    }
+
+    function submit() {
+        clearMessages();
+        if (bindData.custom === "public") {
+            exports.Complete(0);
+            return;
+        }
+        if (bindData.items.length === 0) {
+            setError("Add at least one user or group, or choose Public.");
+            return;
+        }
+
+        bindData.saving = true;
+        serviceHandler.services.Save(bindData.items).then(function (result) {
+            bindData.saving = false;
+            if (result.success) {
+                bindData.items = normalizeItems(result.result || []);
+                if (bindData.items.length > 0 && bindData.items[0].viewObjectID !== undefined) {
+                    bindData.viewObjectID = bindData.items[0].viewObjectID;
+                    exports.Complete(bindData.items[0].viewObjectID);
+                } else if (exports.dataObject !== undefined && exports.dataObject !== null) {
+                    exports.Complete(exports.dataObject);
+                } else {
+                    exports.Complete(0);
+                }
+            } else {
+                setError("Could not save permissions.");
+            }
+        }).error(function () {
+            bindData.saving = false;
+            setError("Could not save permissions.");
+        });
+    }
+
+    function cancel() {
+        if (exports.dataObject !== undefined && exports.dataObject !== null) {
+            exports.Complete(exports.dataObject);
+        } else {
+            exports.Complete(0);
+        }
+    }
+
+    function normalizeItems(items) {
+        return (items || []).map(function (item) {
+            return {
+                viewObjectID: item.viewObjectID,
+                item_type: item.item_type || "user",
+                item_permision: item.item_permision || "View",
+                item_value: item.item_value || "",
+                item_text: item.item_text || item.item_value || ""
+            };
+        });
+    }
+
+    function selectedValueText() {
+        for (var i = 0; i < bindData.item_values.length; i++) {
+            if (String(bindData.item_values[i].val) === String(bindData.item_value)) {
+                return bindData.item_values[i].text;
+            }
+        }
+        return bindData.item_value;
+    }
+
+    function findItemIndex(type, value) {
+        for (var i = 0; i < bindData.items.length; i++) {
+            if (bindData.items[i].item_type === type && String(bindData.items[i].item_value) === String(value)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    function permissionClass(item) {
+        var permission = String((item || {}).item_permision || "View").toLowerCase();
+        if (permission === "full") {
+            return "vo-permission-full";
+        }
+        if (permission === "edit") {
+            return "vo-permission-edit";
+        }
+        return "vo-permission-view";
+    }
+
+    function setError(message) {
+        bindData.submitErrors.push(message);
+    }
+
+    function setInfo(message) {
+        bindData.submitInfo.push(message);
+    }
+
+    function clearMessages() {
+        bindData.submitErrors = [];
+        bindData.submitInfo = [];
+    }
 });

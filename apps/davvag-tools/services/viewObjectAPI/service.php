@@ -1,4 +1,9 @@
 <?php
+if (defined("PLUGIN_PATH")) {
+    require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
+    require_once(PLUGIN_PATH . "/phpcache/cache.php");
+    require_once(PLUGIN_PATH . "/auth/auth.php");
+}
 
 class ViewObjectApi {
 
@@ -9,66 +14,72 @@ class ViewObjectApi {
     
 
     public function postSave($req,$res){
-        $data =$req->Body(true);
-        //array_push($data,)
-        $keySort=array();
-        $header=new stdClass();
-        $user=AUTH::Autendicate();
-        /*if(isset($data[0]->viewObjectID)){
-            $d =SOSSData::Query("user_object","viewObjectID:".$data[0]->viewObjectID);
-            if(count($d->result)>0){
-                $header=$d->result[0];
-            }
-        }*/
-        
-        foreach ($data as $key => $value) {
-            # code...
-            array_push($keySort,$value->item_value."-".$value->item_permision);
-            
-        }
-        
-        asort($keySort);
-        
-        $keyValue=md5(implode("_",$keySort));
-        if(!isset($header->viewObjectID)){
-            $d =SOSSData::Query("user_object","keyValue:".$keyValue.",owner:".$user->userid);
-            if(count($d->result)>0){
-                $header=$d->result[0];
-            }
-        }
-        $header->keyValue=$keyValue;
-        $can =false;
-        if(isset($header->viewObject)){
-            SOSSData::Update("user_object",$header);
-        }else{
-           $header->owner=$user->userid;
-           $result =SOSSData::Insert("user_object",$header);
-           if($result->success){
-                $header->viewObjectID=$result->result->generatedId;
-                $can=true;
-           }
+        $data = $req->Body(true);
+        if (!is_array($data)) {
+            $res->SetError("Permission list is required.");
+            return null;
         }
 
-        for ($i=0; $i < count($data) ; $i++) { 
-            # code...
-            $data[$i]->viewObjectID=$header->viewObjectID;
+        $user = Auth::Autendicate();
+        if (!isset($user->userid)) {
+            $res->SetError("You must be logged in to save permissions.");
+            return null;
         }
-        if($can){
-            $r= SOSSData::Insert("user_view_objects",$data);
-            if($r->success){
-                return $data;
-               }else{
-                    $res->SetError($r);
-                    return $r;
-               }
-        }else{
-            return $data;
+
+        $rows = $this->normalizeRows($data);
+        if (count($rows) === 0) {
+            $res->SetError("Add at least one permission row.");
+            return null;
         }
+
+        $keySort = array();
+        foreach ($rows as $row) {
+            array_push($keySort, $row->item_type . "-" . $row->item_value . "-" . $row->item_permision);
+        }
+        sort($keySort);
+        $keyValue = md5(implode("_", $keySort));
+
+        $header = null;
+        $existing = SOSSData::Query("user_object", "keyValue:" . $keyValue . ",owner:" . $user->userid, null, "asc", 1, 0, null, false);
+        if ($existing->success && count($existing->result) > 0) {
+            $header = $existing->result[0];
+        }
+
+        if ($header === null) {
+            $header = new stdClass();
+            $header->keyValue = $keyValue;
+            $header->owner = $user->userid;
+            $result = SOSSData::Insert("user_object", $header);
+            if (!$result->success) {
+                $res->SetError($result);
+                return null;
+            }
+            $header->viewObjectID = $result->result->generatedId;
+
+            foreach ($rows as $row) {
+                $row->viewObjectID = $header->viewObjectID;
+            }
+            $insert = SOSSData::Insert("user_view_objects", $rows);
+            if (!$insert->success) {
+                $res->SetError($insert);
+                return null;
+            }
+        } else {
+            foreach ($rows as $row) {
+                $row->viewObjectID = $header->viewObjectID;
+            }
+        }
+
+        $this->clearPermissionCaches();
+        return $this->findRows($header->viewObjectID);
     }
 
     public function getFindObject($req,$res){
-        $r=SOSSData::Query("user_view_objects","viewObjectID:".$req->Query()->objectID);
-        return $r->result;
+        $query = $req->Query();
+        if (!isset($query->objectID) || intval($query->objectID) === 0) {
+            return array();
+        }
+        return $this->findRows($query->objectID);
     }
 
     public function getUserVieObjects($req,$res){
@@ -85,8 +96,8 @@ class ViewObjectApi {
                 return $objects;
             }else{
 
-                $d =SOSSData::Query("user_object","owner:".$user->userid);
-                if($d->sccuess){
+                $d =SOSSData::Query("user_object","owner:".$user->userid, null, "asc", 100, 0, null, false);
+                if($d->success){
                     $keySort=array($user->userid."-full");
                     $keyValue=md5(implode("_",$keySort));
                     $hasOnlyMe=false;
@@ -94,7 +105,7 @@ class ViewObjectApi {
                     foreach ($d->result as $key => $value) {
                         # code...
                         $value->tag="Custom";
-                        if($value->keyvalue==$keyValue){
+                        if(isset($value->keyValue) && $value->keyValue==$keyValue){
                             $hasOnlyMe=true;
                             $header=$value;
                         }
@@ -143,7 +154,8 @@ class ViewObjectApi {
         switch ($req->Query()->item_type) {
             case 'group':
                 # code...
-                $data=SOSSData::Query("usergroups","");
+                array_push($data_sent,array("val"=>"anonymous","text"=>"Anonymous / public visitors"));
+                $data=SOSSData::Query("usergroups","", null, "asc", 1000, 0, null, false);
                 
                 foreach ($data->result as $key => $value) {
                     # code...
@@ -153,7 +165,8 @@ class ViewObjectApi {
                 break;
             case 'user':
                 # code...
-                $data=SOSSData::Query("users","");
+                array_push($data_sent,array("val"=>"*","text"=>"All signed-in users"));
+                $data=SOSSData::Query("users","", null, "asc", 1000, 0, null, false);
                 
                 foreach ($data->result as $key => $value) {
                     # code...
@@ -167,6 +180,57 @@ class ViewObjectApi {
                 break;
         }
         return $data_sent;
+    }
+
+    private function findRows($objectId) {
+        $r = SOSSData::Query("user_view_objects", "viewObjectID:" . $objectId, null, "asc", 1000, 0, null, false);
+        return $r->success ? $r->result : array();
+    }
+
+    private function normalizeRows($data) {
+        $rows = array();
+        $seen = array();
+        foreach ($data as $item) {
+            if (!isset($item->item_type) || !isset($item->item_value) || !isset($item->item_permision)) {
+                continue;
+            }
+            $type = $item->item_type === "group" ? "group" : "user";
+            $value = trim((string)$item->item_value);
+            if ($value === "") {
+                continue;
+            }
+            $permission = $this->normalizePermission($item->item_permision);
+            $key = $type . ":" . $value;
+            if (isset($seen[$key])) {
+                $rows[$seen[$key]]->item_permision = $permission;
+                $rows[$seen[$key]]->item_text = isset($item->item_text) && trim($item->item_text) !== "" ? trim($item->item_text) : $value;
+                continue;
+            }
+            $row = new stdClass();
+            $row->item_type = $type;
+            $row->item_value = $value;
+            $row->item_permision = $permission;
+            $row->item_text = isset($item->item_text) && trim($item->item_text) !== "" ? trim($item->item_text) : $value;
+            $seen[$key] = count($rows);
+            array_push($rows, $row);
+        }
+        return $rows;
+    }
+
+    private function normalizePermission($permission) {
+        $permission = strtolower(trim((string)$permission));
+        if ($permission === "full") {
+            return "Full";
+        }
+        if ($permission === "edit") {
+            return "Edit";
+        }
+        return "View";
+    }
+
+    private function clearPermissionCaches() {
+        CacheData::clearObjects("user_object");
+        CacheData::clearObjects("viewObjects");
     }
     
 
