@@ -1,0 +1,64 @@
+{
+    "name" : "profile",
+    "description":"Vue.JS Plugin for Soss Router",
+    "author":"Supun Dissanayake",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "ProfileService",
+        "methods" : {
+            "Save" : {
+                "method" : "POST"
+            },
+            "DipositSave":{
+                "method" : "POST"
+            },"DepositCancelation" : {
+                "method" : "GET",
+                "parameters": ["id"]
+            },
+            "InvoiceSave" : {
+                "method" : "POST"
+            },"POSave" : {
+                "method" : "POST"
+            },"GRNSave" : {
+                "method" : "POST"
+            },
+            "PaymentSave" : {
+                "method" : "POST"
+            },
+            "Search" : {
+                "method" : "GET",
+                "parameters": ["q"]
+            },
+            "SearchV1" : {
+                "method" : "GET",
+                "parameters": ["column","value"]
+            },
+            "ByID" :{
+                "method" : "GET",
+                "parameters": ["id"]
+            },
+            "SupplierData":{
+                "method" : "GET",
+                "parameters": []
+            },
+            "q" : {
+                "method" : "POST"
+            },
+            "ChangeStatus":{
+                "method" : "POST"
+            }
+        }
+    
+    }
+    
+}

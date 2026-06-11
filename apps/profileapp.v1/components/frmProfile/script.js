@@ -1,0 +1,287 @@
+WEBDOCK.component().register(function(exports){
+    var bindData = {
+        i_profile:{catogory:"Customer",id:0,country:"Sri Lanka",city:"",attributes:{}},
+        SearchItem:"",
+        items:[],
+        showSearch:false,
+        p_image:'',
+        submitErrors:undefined
+    };
+
+    var vueData = {        
+        onReady: function(s){
+            initializeComponent();
+            exports.getAppComponent("davvag-tools","davvag-img-cropper", function(cropper){
+                cropper.initialize(300,300);
+                cropper1=cropper;
+            });
+        },
+        data:bindData,
+        methods: {
+            save:saveProfile,
+            capture:function(){
+                let shellpopup =exports.getShellComponent("app_popup");
+                shellpopup.open("davvag-tools","capture",{},function(data,app){
+                    app.close(function(){
+                        cropper1.crope(1,1,function(e){
+                            //console.log(e);
+                            bindData.p_image=e.data;
+                            newFile=e.fileData;
+                        },data);
+                    });
+                    
+                    
+                },"Capture",true,false);
+            },
+            clear:clearProfile,
+            getProfilebyID:getProfilebyID,
+            searchItems:searchItems,
+            createImage:createImage ,
+            removeImage: removeImage,
+            onFileChange: function(e) {
+                var files = e.target.files || e.dataTransfer.files;
+                if (!files.length)
+                    return;
+                this.createImage(files[0]);
+            },
+            crope:function(){
+                cropper1.crope(1,1,function(e){
+                    //console.log(e);
+                    bindData.p_image=e.data;
+                    newFile=e.fileData;
+                });
+            },
+            navigateBack: function(){
+                handler1 = exports.getShellComponent("soss-routes");
+                handler1.appNavigate("..");
+            }
+        }
+    }
+
+    //exports.vue = vueData;
+    var cropper1;
+   
+
+    exports.onReady = function(element){
+
+    }
+    exports.deferredVue = function(resolver, renderDiv){
+        var attributes = exports.getShellComponent("dynamic-attributes");
+        attributes.renderForm("profileattribute","i_profile.attributes",renderDiv,"AttributeText",function(){
+            resolver(vueData);
+        });
+    };
+    //var catogoryid ={"Staff",""};
+    //var item ={};
+    var productHandler;
+    var profileHandler;
+    var uploaderInstance;
+    var pInstance;
+    var validatorInstance;
+    var validator;
+
+    function initializeComponent(){
+        WEBDOCK.freezeUiComponent("soss-routes",true); 
+        //productHandler = exports.getComponent("product");
+        profileHandler = exports.getComponent("profile");
+        uploaderInstance = exports.getShellComponent("soss-uploader");
+        pInstance = exports.getShellComponent("soss-routes");
+        validatorInstance = exports.getShellComponent("soss-validator");
+        loadValidator();
+        var routeData = pInstance.getInputData();
+        $('#grnDatePicker').datepicker().on('changeDate', function(ev){
+            var d = new Date($('#grnDatePicker').val());
+            bindData.i_profile.dateofbirth =  (d.getMonth()+1).toString()+"-"+d.getDate()+"-"+d.getFullYear(); 
+        });
+        if(routeData.id!=null){
+            getProfilebyID(routeData.id)
+        }
+        WEBDOCK.freezeUiComponent("soss-routes",false);
+        
+        //jQuery('#datepicker').datepicker();
+        //jQuery("#datepicker").mask("99/99/9999");
+        //getAllProductsThroughService();
+        //getAllProductsThroughTransform();
+        //saveProfile();
+    }
+
+    function loadValidator(){
+        validator = validatorInstance.newValidator (bindData);
+        validator.map ("i_profile.name",true, "You should enter a name");
+        validator.map ("i_profile.title",true, "You should enter a title");
+        validator.map ("i_profile.address",true, "You should enter a address");
+        validator.map ("i_profile.city",true, "You should enter a city");
+        validator.map ("i_profile.email","email", "email address is not valied");
+        validator.map ("i_profile.contactno",true, "contact no is incorrect");
+        validator.map ("i_profile.id_number",true, "ID no is incorrect");
+        //validator.map ("i_profile.dateofbirth","date", "date of birth is incorrect");
+        validator.map ("i_profile.catogory",true, "You should select a Profile Category");
+        //validator.map ("p_image",true, "You should upload an image");
+    }
+
+    var newFile;
+    function uploadFile(productId, cb){
+        if (!newFile)cb();
+        else{
+            exports.getAppComponent("davvag-tools","davvag-file-uploader", function(uploader){
+                uploader.initialize();
+                var files=[];
+                newFile.name=productId;
+                files.push(newFile);
+                uploader.upload(files, "profile", null,cb)
+            });
+            /*
+            uploaderInstance.services.uploadFile(newFile, "profile", productId)
+            .then(function(result){
+                $.notify("Profile Image Has been uploaded", "info");
+                cb();
+            })
+            .error(function(){
+                $.notify("Profile Image Has not been uploaded", "error");
+                cb();
+            });*/
+        }
+    }
+
+    function addProfileToTmp(p){
+        var profiles=[];
+        var additem=true;
+        if( localStorage.getItem("tmpprofiles")!==null)
+        {
+            try{
+                profiles=JSON.parse(localStorage.getItem("tmpprofiles"));
+            }catch{
+                profiles=[];
+            }
+        }
+        profiles.forEach(element => {
+            if(element.id==p.id){
+                element=p;
+                additem=false;
+                return;
+            }
+        });
+        if(additem){
+            profiles.push(p);
+        }
+        localStorage.setItem("tmpprofiles",JSON.stringify(profiles));
+    }
+
+    function removeImage(e) {
+        bindData.p_image = '';
+    }
+
+    function createImage(file) {
+
+        
+
+        newFile = file;
+        var image = new Image();
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            bindData.p_image = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function clearProfile(){
+        bindData.i_profile={catogory:"Customer",id:0,country:"Sri Lanka",city:"",attributes:{}};
+        bindData.items=[];
+        bindData.p_image='';
+        bindData.showSearch=false;
+    }
+    function saveProfile(){
+        WEBDOCK.freezeUiComponent("soss-routes",true); 
+        
+        bindData.submitErrors = validator.validate(); 
+            if (!bindData.submitErrors){
+            //return;
+            //bindData.i_profile.attributes
+            profileHandler.services.Save(bindData.i_profile)
+            .then(function(response){
+                //console.log(JSON.stringify(response));
+                if(response.success){
+                    //console
+                    //console.log(response.result.result.generatedId);
+                    //if(response.result.result.generatedId!=0){
+                        bindData.i_profile=response.result;
+                       
+                    //}
+                    WEBDOCK.freezeUiComponent("soss-routes",false); 
+                    $.notify("Profile Has been saved", "success");
+                    addProfileToTmp(bindData.i_profile);
+                    uploadFile(bindData.i_profile.id, function(){
+                        handler1 = exports.getShellComponent("soss-routes");
+                        handler1.appNavigate("..");
+                    });
+                    
+                    
+                }else{
+                    $.notify("ERROR! Saving Profile", "error");
+                    //console.log(JSON.stringify(response));
+                    WEBDOCK.freezeUiComponent("soss-routes",false); 
+                    //alert (response.result.error);
+                }
+            })
+            .error(function(error){
+                //alert (error.responseJSON.result);
+                $.notify("ERROR! "+ (error.responseJSON ? error.responseJSON.result : "Saving failed"), "error");
+                WEBDOCK.freezeUiComponent("soss-routes",false); 
+                
+            });
+        }else{
+            WEBDOCK.freezeUiComponent("soss-routes",false); 
+        }
+    }
+
+    function getProfilebyID(id){
+        profileHandler.services.ByID({id:id})
+        .then(function(response){
+            if(response.success){
+                //console
+                //bindData.item.id=response.result.result.generatedId;
+                bindData.showSearch=false;
+                if(response.result!=null){
+                    bindData.i_profile=response.result;
+                    //bindData.i_profile.attributes={};s
+                    bindData.p_image = 'components/dock/soss-uploader/service/get/profile/'+bindData.i_profile.id;
+                    //console.log( bindData.p_image);
+                    //image
+                }else{
+                    clearProfile();
+                }
+            }else{
+                $.notify("ERROR! Loading Profile Error", "error");
+                //alert (response.error);
+            }
+        })
+        .error(function(error){
+            $.notify(error.responseJSON ? error.responseJSON.result : "Loading profile failed", "error");
+        });
+    }
+
+    function searchItems(columncode,columnvalue){
+        profileHandler.services.Search({q:columncode+":"+columnvalue})
+        .then(function(response){
+            if(response.success){
+                //console
+                //bindData.item.id=response.result.result.generatedId;
+                if(response.result.length!=0){
+                    bindData.items=response.result;
+                    bindData.showSearch=true;
+                }
+            }else{
+                $.notify("Searching error please refresh your application", "error");
+                //alert (response.error);
+            }
+        })
+        .error(function(error){
+            //alert (error.responseJSON.result);
+            $.notify("Searching error please refresh your application", "error");
+        });
+    }
+
+    
+});

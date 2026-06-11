@@ -100,6 +100,9 @@
         "userapp":{
             "version":"latest"
         },
+        "profileapp.v1":{
+            "version":"latest"
+        },
         "bible":{
             "version":"latest"
         }
