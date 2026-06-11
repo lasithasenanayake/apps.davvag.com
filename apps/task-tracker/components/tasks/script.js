@@ -3,16 +3,19 @@ WEBDOCK.component().register(function (exports) {
     var handler;
     var routeData = {};
     var newfiles = [];
+    var richTextReady = false;
 
     var bindData = {
         errors: [],
         info: [],
         project: null,
         allowedProfiles: [],
+        allowedProfilesLoading: false,
         tasks: [],
         attachments: [],
         selectedTask: null,
         form: emptyTask(),
+        formOpen: false,
         activeStatus: "New",
         statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
     };
@@ -25,15 +28,22 @@ WEBDOCK.component().register(function (exports) {
             setStatusTab: setStatusTab,
             createTask: createTask,
             selectTask: selectTask,
+            editTask: editTask,
+            closeTaskForm: closeTaskForm,
             saveTask: saveTask,
             deleteTask: deleteTask,
             openTaskView: openTaskView,
+            openTimeTracker: openTimeTracker,
+            openPasswordVault: openPasswordVault,
             toggleAssignee: toggleAssignee,
             isAssignee: isAssignee,
             removeAttachment: removeAttachment,
             onFileChange: onFileChange,
             attachmentUrl: attachmentUrl,
-            progressClass: progressClass
+            taskColorStyle: taskColorStyle,
+            progressClass: progressClass,
+            priorityClass: priorityClass,
+            priorityLabelClass: priorityLabelClass
         },
         onReady: function () {
             initialize();
@@ -57,6 +67,7 @@ WEBDOCK.component().register(function (exports) {
 
     function initialize() {
         ensureTaskCommonStyles();
+        ensureRichTextEditor();
         api = exports.getComponent("taskapi");
         handler = exports.getShellComponent("soss-routes");
         routeData = getRouteData();
@@ -78,11 +89,23 @@ WEBDOCK.component().register(function (exports) {
         api.services.ProjectDetails({projectId: routeData.projectId}).then(function (response) {
             if (response.success) {
                 bindData.project = response.result.project;
-                bindData.allowedProfiles = response.result.profiles || [];
-                createTask();
+                loadAllowedProfiles();
+                closeTaskForm();
             }
         }).error(function () {
             setError("Could not load project.");
+        });
+    }
+
+    function loadAllowedProfiles() {
+        bindData.allowedProfilesLoading = true;
+        api.services.ProjectAssignedProfiles({projectId: routeData.projectId}).then(function (response) {
+            bindData.allowedProfilesLoading = false;
+            bindData.allowedProfiles = response.success ? normalizeProfiles(response.result || []) : [];
+        }).error(function () {
+            bindData.allowedProfilesLoading = false;
+            bindData.allowedProfiles = [];
+            setError("Could not load project assignees.");
         });
     }
 
@@ -102,11 +125,13 @@ WEBDOCK.component().register(function (exports) {
 
     function setStatusTab(status) {
         bindData.activeStatus = status;
+        closeTaskForm();
         loadTasks();
     }
 
     function createTask() {
         bindData.selectedTask = null;
+        bindData.formOpen = true;
         bindData.attachments = [];
         newfiles = [];
         bindData.form = emptyTask();
@@ -115,37 +140,59 @@ WEBDOCK.component().register(function (exports) {
         if (bindData.project) {
             bindData.form.sysviewobject = bindData.project.sysviewobject;
         }
+        activateRichText(bindData.form.body);
     }
 
     function selectTask(task) {
+        editTask(task);
+    }
+
+    function editTask(task) {
         bindData.selectedTask = task;
+        bindData.formOpen = true;
+        if (!bindData.allowedProfiles.length) {
+            loadAllowedProfiles();
+        }
         bindData.form = clone(task);
         bindData.form.Assignees = [];
         bindData.form.Attachments = [];
         bindData.form.RemovedAttachments = [];
         bindData.attachments = [];
         newfiles = [];
+        activateRichText(bindData.form.body);
 
         api.services.TaskDetails({taskId: task.taskId}).then(function (response) {
             if (response.success) {
-                bindData.form.Assignees = response.result.assignees || [];
+                bindData.form.Assignees = normalizeAssignees(response.result.assignees || []);
                 bindData.attachments = response.result.attachments || [];
                 bindData.attachments.forEach(function (file) {
                     file.scr = attachmentUrl(file);
                 });
+                activateRichText(bindData.form.body);
             }
         }).error(function () {
             setError("Could not load task details.");
         });
     }
 
+    function closeTaskForm() {
+        bindData.formOpen = false;
+        bindData.selectedTask = null;
+        bindData.attachments = [];
+        newfiles = [];
+        bindData.form = emptyTask();
+        bindData.form.projectId = routeData.projectId;
+    }
+
     function saveTask() {
         clearMessages();
+        syncRichTextBody();
         if (!bindData.form.subject) {
             setError("Task subject is required.");
             return;
         }
         bindData.form.projectId = routeData.projectId;
+        bindData.form.Assignees = normalizeAssignees(bindData.form.Assignees || []);
         bindData.form.Attachments = bindData.attachments;
         api.services.SaveTask(bindData.form).then(function (response) {
             if (response.success) {
@@ -157,7 +204,10 @@ WEBDOCK.component().register(function (exports) {
                         message: "Task updated"
                     });
                     loadTasks();
-                    selectTask(response.result);
+                    bindData.selectedTask = response.result;
+                    bindData.formOpen = false;
+                    bindData.attachments = [];
+                    newfiles = [];
                     setInfo("Task saved.");
                 });
             } else {
@@ -174,7 +224,7 @@ WEBDOCK.component().register(function (exports) {
         }
         api.services.DeleteTask(task).then(function (response) {
             if (response.success) {
-                createTask();
+                closeTaskForm();
                 loadTasks();
                 setInfo("Task deleted.");
             } else {
@@ -192,16 +242,34 @@ WEBDOCK.component().register(function (exports) {
         navigate("../task?projectId=" + routeData.projectId + "&taskId=" + task.taskId);
     }
 
+    function openTimeTracker(task) {
+        if (!task || !task.taskId) {
+            return;
+        }
+        navigate("../time-tracker?projectId=" + routeData.projectId + "&taskId=" + task.taskId);
+    }
+
+    function openPasswordVault() {
+        if (!routeData.projectId) {
+            return;
+        }
+        navigate("../password-vault?projectId=" + routeData.projectId);
+    }
+
     function backToProjects() {
         navigate("../projects");
     }
 
     function toggleAssignee(profile) {
         bindData.form.Assignees = bindData.form.Assignees || [];
+        var profileId = profileIdOf(profile);
+        if (profileId === null) {
+            return;
+        }
         var next = [];
         var exists = false;
         bindData.form.Assignees.forEach(function (assignee) {
-            if (String(assignee.profileId) === String(profile.id)) {
+            if (String(assigneeProfileIdOf(assignee)) === String(profileId)) {
                 exists = true;
             } else {
                 next.push(assignee);
@@ -210,7 +278,7 @@ WEBDOCK.component().register(function (exports) {
         if (!exists) {
             next.push({
                 id: 0,
-                profileId: profile.id,
+                profileId: profileId,
                 profileName: profile.name,
                 email: profile.email
             });
@@ -219,13 +287,68 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function isAssignee(profile) {
+        var profileId = profileIdOf(profile);
+        if (profileId === null) {
+            return false;
+        }
         var found = false;
         (bindData.form.Assignees || []).forEach(function (assignee) {
-            if (String(assignee.profileId) === String(profile.id)) {
+            if (String(assigneeProfileIdOf(assignee)) === String(profileId)) {
                 found = true;
             }
         });
         return found;
+    }
+
+    function normalizeProfiles(profiles) {
+        var seen = {};
+        return profiles.filter(function (profile) {
+            return profileIdOf(profile) !== null;
+        }).map(function (profile) {
+            if (profile.id === undefined || profile.id === null) {
+                profile.id = profileIdOf(profile);
+            }
+            return profile;
+        }).filter(function (profile) {
+            var id = String(profileIdOf(profile));
+            if (seen[id]) {
+                return false;
+            }
+            seen[id] = true;
+            return true;
+        });
+    }
+
+    function normalizeAssignees(assignees) {
+        return assignees.filter(function (assignee) {
+            return assigneeProfileIdOf(assignee) !== null;
+        }).map(function (assignee) {
+            assignee.profileId = assigneeProfileIdOf(assignee);
+            return assignee;
+        });
+    }
+
+    function profileIdOf(profile) {
+        if (!profile) {
+            return null;
+        }
+        if (profile.id !== undefined && profile.id !== null && profile.id !== "") {
+            return profile.id;
+        }
+        if (profile.profileId !== undefined && profile.profileId !== null && profile.profileId !== "") {
+            return profile.profileId;
+        }
+        return null;
+    }
+
+    function assigneeProfileIdOf(assignee) {
+        if (!assignee) {
+            return null;
+        }
+        if (assignee.profileId !== undefined && assignee.profileId !== null && assignee.profileId !== "") {
+            return assignee.profileId;
+        }
+        return null;
     }
 
     function onFileChange(e) {
@@ -310,6 +433,43 @@ WEBDOCK.component().register(function (exports) {
         return "progress-bar-danger";
     }
 
+    function priorityClass(task) {
+        return "tm-priority-" + priorityKey(task);
+    }
+
+    function priorityLabelClass(task) {
+        return "tm-priority-label-" + priorityKey(task);
+    }
+
+    function taskColorStyle(task) {
+        var color = (task && task.projectColor) || (bindData.project && bindData.project.projectColor) || "";
+        if (!isColor(color)) {
+            return {};
+        }
+        return {
+            borderLeftColor: color,
+            boxShadow: "inset 5px 0 0 " + color
+        };
+    }
+
+    function isColor(value) {
+        return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(String(value || ""));
+    }
+
+    function priorityKey(task) {
+        var priority = String((task || {}).priority || "Normal").toLowerCase();
+        if (priority === "urgent") {
+            return "urgent";
+        }
+        if (priority === "high") {
+            return "high";
+        }
+        if (priority === "low") {
+            return "low";
+        }
+        return "normal";
+    }
+
     function getRouteData() {
         var data = {};
         if (handler && handler.getInputData) {
@@ -348,8 +508,114 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=0.3";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
         document.getElementsByTagName("head")[0].appendChild(link);
+    }
+
+    function ensureRichTextEditor() {
+        if (!bindData.formOpen) {
+            return;
+        }
+        ensureRichTextAssets(function () {
+            setTimeout(function () {
+                var editor = $("#taskBodyEditor");
+                if (!editor.length || !$.fn.Editor) {
+                    return;
+                }
+                if (!editor.data("editor")) {
+                    editor.Editor();
+                    bindRichTextSync(editor);
+                }
+                richTextReady = true;
+                setRichTextContent(bindData.form.body);
+            }, 0);
+        });
+    }
+
+    function activateRichText(value) {
+        setTimeout(function () {
+            ensureRichTextEditor();
+            setTimeout(function () {
+                setRichTextContent(value || "");
+            }, 0);
+        }, 0);
+    }
+
+    function ensureRichTextAssets(cb) {
+        if (!document.getElementById("task-richtext-css")) {
+            var css = document.createElement("link");
+            css.id = "task-richtext-css";
+            css.rel = "stylesheet";
+            css.type = "text/css";
+            css.href = "assets/davvag-cms-generalapps/editor.css";
+            document.getElementsByTagName("head")[0].appendChild(css);
+        }
+
+        if (window.jQuery && $.fn.Editor) {
+            cb();
+            return;
+        }
+
+        if (document.getElementById("task-richtext-js")) {
+            waitForRichText(cb);
+            return;
+        }
+
+        var script = document.createElement("script");
+        script.id = "task-richtext-js";
+        script.type = "text/javascript";
+        script.src = "assets/davvag-cms-generalapps/editor.js";
+        script.onload = cb;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }
+
+    function waitForRichText(cb) {
+        var attempts = 0;
+        var timer = setInterval(function () {
+            attempts++;
+            if (window.jQuery && $.fn.Editor) {
+                clearInterval(timer);
+                cb();
+            }
+            if (attempts > 30) {
+                clearInterval(timer);
+            }
+        }, 100);
+    }
+
+    function bindRichTextSync(editor) {
+        var content = editor.data("editor");
+        if (!content || content.data("taskSyncBound")) {
+            return;
+        }
+        content.data("taskSyncBound", true);
+        content.on("keyup paste blur input", function () {
+            syncRichTextBody();
+        });
+    }
+
+    function setRichTextContent(value) {
+        var editor = $("#taskBodyEditor");
+        if (!editor.length) {
+            return;
+        }
+        if (richTextReady && editor.data("editor")) {
+            editor.Editor("setText", value || "");
+        } else {
+            editor.val(value || "");
+        }
+    }
+
+    function syncRichTextBody() {
+        var editor = $("#taskBodyEditor");
+        if (!editor.length) {
+            return;
+        }
+        if (richTextReady && editor.data("editor")) {
+            bindData.form.body = editor.Editor("getText");
+        } else {
+            bindData.form.body = editor.val() || "";
+        }
     }
 
     function setError(message) {

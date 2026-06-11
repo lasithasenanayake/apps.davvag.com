@@ -27,6 +27,26 @@ class TaskManagerService {
         return $result->success ? $result->result : array();
     }
 
+    public function postSearchProfileByEmail($req, $res) {
+        $body = $this->body($req);
+        $email = isset($body->email) ? trim($body->email) : "";
+        if ($email === "" && isset($body->search)) {
+            $email = trim($body->search);
+        }
+        if (strlen($email) < 2) {
+            return array();
+        }
+
+        $safeEmail = str_replace(array(",", ":"), " ", $email);
+        $result = SOSSData::Query("profile", "email:" . $safeEmail, null, "asc", 20, 0);
+        if ($result->success && count($result->result) > 0) {
+            return $this->filterProfilesByEmail($result->result, $email, 10);
+        }
+
+        $all = SOSSData::Query("profile", "", null, "asc", 1000, 0);
+        return $all->success ? $this->filterProfilesByEmail($all->result, $email, 10) : array();
+    }
+
     public function postListProjects($req, $res) {
         $body = $this->body($req);
         $query = "";
@@ -55,6 +75,26 @@ class TaskManagerService {
             $details->profiles = $this->getProfilesByIds($details->accessProfileIds);
         }
         return $details;
+    }
+
+    public function postProjectAssignedProfiles($req, $res) {
+        $body = $this->body($req);
+        $ids = array();
+
+        if (isset($body->profileIds) && is_array($body->profileIds)) {
+            $ids = $body->profileIds;
+        } elseif (isset($body->AccessProfiles) && is_array($body->AccessProfiles)) {
+            $ids = $body->AccessProfiles;
+        } elseif (isset($body->projectId) && intval($body->projectId) > 0) {
+            if (!$this->canAccessProject($body->projectId)) {
+                return array();
+            }
+            $projectResult = SOSSData::Query($this->projectNamespace, "projectId:" . $body->projectId);
+            $project = $projectResult->success && count($projectResult->result) > 0 ? $projectResult->result[0] : null;
+            $ids = $this->getProjectProfileIds($body->projectId, $project);
+        }
+
+        return $this->getProfilesByIds($this->normalizeProfileIds($ids));
     }
 
     public function postSaveProject($req, $res) {
@@ -141,7 +181,67 @@ class TaskManagerService {
             $query .= ",status:" . $body->status;
         }
         $result = SOSSData::Query($this->taskNamespace, $query, null, "desc", 200, 0);
-        return $result->success ? $result->result : array();
+        if (!$result->success) {
+            return array();
+        }
+        $projectCache = array();
+        $tasks = $this->normalizeTasks($result->result);
+        foreach ($tasks as $task) {
+            $this->attachProjectSummary($task, $projectCache);
+        }
+        return $tasks;
+    }
+
+    public function postListMyTasks($req, $res) {
+        $body = $this->body($req);
+        $profileId = $this->currentProfileId();
+        if ($profileId === null) {
+            return array();
+        }
+
+        $assignments = SOSSData::Query($this->assigneeNamespace, "profileId:" . $profileId, null, "desc", 500, 0);
+        if (!$assignments->success || count($assignments->result) === 0) {
+            return array();
+        }
+
+        $tasks = array();
+        $seenTasks = array();
+        $projectCache = array();
+        $status = isset($body->status) ? trim($body->status) : "";
+
+        foreach ($assignments->result as $assignment) {
+            if (!isset($assignment->taskId) || isset($seenTasks[(string)$assignment->taskId])) {
+                continue;
+            }
+            if (!isset($assignment->profileId) || (string)$assignment->profileId !== (string)$profileId) {
+                continue;
+            }
+
+            $taskResult = SOSSData::Query($this->taskNamespace, "taskId:" . $assignment->taskId);
+            if (!$taskResult->success || count($taskResult->result) === 0) {
+                continue;
+            }
+
+            $task = $this->normalizeTask($taskResult->result[0]);
+            if ($status !== "" && (!isset($task->status) || $task->status !== $status)) {
+                continue;
+            }
+            if (!isset($task->projectId) || !$this->canAccessProject($task->projectId)) {
+                continue;
+            }
+
+            $this->attachProjectSummary($task, $projectCache);
+            $task->assigneeStatus = isset($assignment->status) ? $assignment->status : "";
+            $seenTasks[(string)$assignment->taskId] = true;
+            array_push($tasks, $task);
+        }
+
+        usort($tasks, function ($left, $right) {
+            $leftDate = isset($left->updatedate) && $left->updatedate !== "" ? $left->updatedate : (isset($left->createdate) ? $left->createdate : "");
+            $rightDate = isset($right->updatedate) && $right->updatedate !== "" ? $right->updatedate : (isset($right->createdate) ? $right->createdate : "");
+            return strtotime($rightDate) - strtotime($leftDate);
+        });
+        return $tasks;
     }
 
     public function postSaveTask($req, $res) {
@@ -228,7 +328,7 @@ class TaskManagerService {
         $workLogs = SOSSData::Query($this->workLogNamespace, "taskId:" . $body->taskId, null, "desc", 100, 0);
         $notifications = SOSSData::Query($this->notificationNamespace, "taskId:" . $body->taskId, null, "desc", 100, 0);
 
-        $details->task = $task->success && count($task->result) > 0 ? $task->result[0] : null;
+        $details->task = $task->success && count($task->result) > 0 ? $this->normalizeTask($task->result[0]) : null;
         $details->assignees = $assignees->success ? $assignees->result : array();
         $details->attachments = $attachments->success ? $attachments->result : array();
         $details->workLogs = $workLogs->success ? $workLogs->result : array();
@@ -588,6 +688,93 @@ class TaskManagerService {
             }
         }
         return $profiles;
+    }
+
+    private function normalizeProfileIds($ids) {
+        $out = array();
+        $seen = array();
+        foreach ($ids as $id) {
+            if (is_object($id)) {
+                if (isset($id->profileId)) {
+                    $id = $id->profileId;
+                } elseif (isset($id->id)) {
+                    $id = $id->id;
+                }
+            }
+            if ($id !== "" && $id !== null && !isset($seen[(string)$id])) {
+                $seen[(string)$id] = true;
+                array_push($out, $id);
+            }
+        }
+        return $out;
+    }
+
+    private function filterProfilesByEmail($profiles, $email, $limit) {
+        $email = strtolower(trim($email));
+        $matches = array();
+        foreach ($profiles as $profile) {
+            $profileEmail = isset($profile->email) ? strtolower(trim($profile->email)) : "";
+            if ($profileEmail !== "" && strpos($profileEmail, $email) !== false) {
+                array_push($matches, $profile);
+            }
+            if (count($matches) >= $limit) {
+                break;
+            }
+        }
+        return $matches;
+    }
+
+    private function normalizeTasks($tasks) {
+        $out = array();
+        foreach ($tasks as $task) {
+            array_push($out, $this->normalizeTask($task));
+        }
+        return $out;
+    }
+
+    private function normalizeTask($task) {
+        if (!isset($task->priority) || trim($task->priority) === "") {
+            $task->priority = "Normal";
+        }
+        if (!isset($task->status) || trim($task->status) === "") {
+            $task->status = "New";
+        }
+        if (!isset($task->progress) || $task->progress === "") {
+            $task->progress = 0;
+        }
+        return $task;
+    }
+
+    private function projectName($projectId, &$cache) {
+        $summary = $this->projectSummary($projectId, $cache);
+        return $summary->name;
+    }
+
+    private function attachProjectSummary($task, &$cache) {
+        if (!isset($task->projectId)) {
+            return;
+        }
+        $summary = $this->projectSummary($task->projectId, $cache);
+        $task->projectName = $summary->name;
+        $task->projectColor = $summary->color;
+    }
+
+    private function projectSummary($projectId, &$cache) {
+        $key = (string)$projectId;
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        $summary = new stdClass();
+        $summary->name = "";
+        $summary->color = "";
+        $project = SOSSData::Query($this->projectNamespace, "projectId:" . $projectId);
+        if ($project->success && count($project->result) > 0) {
+            $summary->name = isset($project->result[0]->name) ? $project->result[0]->name : "";
+            $summary->color = isset($project->result[0]->projectColor) ? $project->result[0]->projectColor : "";
+        }
+        $cache[$key] = $summary;
+        return $summary;
     }
 
     private function canAccessTask($taskId) {

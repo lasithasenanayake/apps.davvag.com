@@ -405,12 +405,45 @@ task_manager_notifications
 
 Actual email delivery is still an extension point. Project SMTP/IMAP fields are stored in `task_manager_projects` for future integration with `plugins/notify` or a tenant-local mail plugin.
 
+## Task Email Client
+
+`services/TaskEmailClient` exposes:
+
+```text
+GET components/task-tracker/TaskEmailClient/service/getMail
+```
+
+Optional query parameters:
+
+```text
+projectId
+search
+limit
+markSeen
+```
+
+Default search is `UNSEEN`, default limit is `25`, and imported messages are marked seen unless `markSeen=false`.
+
+The service uses the PHP IMAP extension inside the service class, reads project IMAP settings from `task_manager_projects`, and only imports email from profiles assigned to that project through `task_manager_project_access` or `profileids`.
+
+New email threads create `task_manager_tasks` rows with `emailMessageId`, `emailFromEmail`, and `emailFromName`, then assign the sender profile in `task_manager_task_assignees`. Replies are matched by `Message-ID`, `In-Reply-To`, or `References`; matching messages are saved to `task_manager_task_comments` with `emailMessageId` and `emailFromEmail`.
+
+Email attachments are stored directly into the same DAVVAG uploader paths:
+
+```text
+MEDIA_FOLDER/DATASTORE_DOMAIN/task_manager_attachments/{taskId}-{fileName}
+MEDIA_FOLDER/DATASTORE_DOMAIN/task_manager_comment_attachments/{commentId}-{fileName}
+```
+
+Metadata is saved in `task_manager_task_attachments` or `task_manager_comment_attachments`, so existing UI download URLs continue to work.
+
 ## Validation Commands
 
 From repository root:
 
 ```powershell
 C:\xampp\php\php.exe -l davvag-core\localhost\apps\task-tracker\services\taskapi\service.php
+C:\xampp\php\php.exe -l davvag-core\localhost\apps\task-tracker\services\TaskEmailClient\service.php
 node --check davvag-core\localhost\apps\task-tracker\components\projects\script.js
 node --check davvag-core\localhost\apps\task-tracker\components\tasks\script.js
 node --check davvag-core\localhost\apps\task-tracker\components\task-view\script.js

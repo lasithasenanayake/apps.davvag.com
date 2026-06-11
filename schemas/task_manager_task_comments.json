@@ -46,6 +46,20 @@
             "annotations": {
                 "maxLen": 30
             }
+        },
+        {
+            "fieldName": "emailMessageId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500
+            }
+        },
+        {
+            "fieldName": "emailFromEmail",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
         }
     ]
 }

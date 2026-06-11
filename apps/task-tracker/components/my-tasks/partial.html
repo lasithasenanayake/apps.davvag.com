@@ -1,0 +1,56 @@
+<section class="tm-page tm-my-tasks">
+  <div class="tm-toolbar">
+    <div>
+      <h3>My Tasks</h3>
+      <span class="text-muted">Tasks assigned to you across all projects</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="openProjects"><span class="glyphicon glyphicon-folder-open"></span> Projects</button>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <ul class="nav nav-tabs tm-status-tabs">
+    <li v-for="status in statusOptions" v-bind:class="{active:activeStatus == status}">
+      <a v-on:click="setStatusTab(status)">{{ status }}</a>
+    </li>
+  </ul>
+
+  <div class="tm-panel tm-task-list-panel">
+    <div class="tm-panel-header">
+      <strong>{{ activeStatus }} Tasks</strong>
+      <span class="text-muted">{{ tasks.length }} assigned</span>
+    </div>
+    <div class="tm-list">
+      <div class="tm-empty" v-if="!loading && tasks.length == 0">No assigned tasks found.</div>
+      <div class="tm-empty" v-if="loading">Loading tasks...</div>
+      <div class="tm-task-row" v-for="task in tasks" v-bind:class="priorityClass(task)" v-bind:style="taskColorStyle(task)">
+        <div class="tm-task-main">
+          <div class="tm-task-title">
+            <strong>{{ task.subject }}</strong>
+            <span class="tm-task-badges">
+              <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
+              <span class="label label-default">{{ task.status }}</span>
+            </span>
+          </div>
+          <div class="tm-task-meta">
+            <span><span class="tm-project-swatch" v-if="task.projectColor" v-bind:style="{backgroundColor: task.projectColor}"></span><span class="glyphicon glyphicon-folder-open"></span> {{ task.projectName || 'Project' }}</span>
+            <span v-if="task.updatedate"><span class="glyphicon glyphicon-time"></span> {{ task.updatedate }}</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" v-bind:class="progressClass(task)" v-bind:style="{width:(task.progress || 0) + '%'}">{{ task.progress || 0 }}%</div>
+          </div>
+        </div>
+        <div class="tm-task-actions">
+          <button class="btn btn-xs btn-success" v-on:click="openTimeTracker(task)"><span class="glyphicon glyphicon-play"></span> Track</button>
+          <button class="btn btn-xs btn-info" v-on:click="openTaskView(task)"><span class="glyphicon glyphicon-time"></span> View</button>
+          <button class="btn btn-xs btn-default" v-on:click="openProjectTasks(task)"><span class="glyphicon glyphicon-list"></span> Project Tasks</button>
+          <button class="btn btn-xs btn-default" v-on:click="openPasswordVault(task)"><span class="glyphicon glyphicon-lock"></span> Vault</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

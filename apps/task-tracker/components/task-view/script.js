@@ -30,6 +30,8 @@ WEBDOCK.component().register(function (exports) {
             addWorkLog: addWorkLog,
             attachmentUrl: attachmentUrl,
             progressClass: progressClass,
+            priorityClass: priorityClass,
+            priorityLabelClass: priorityLabelClass,
             syncWorkDate: syncWorkDate,
             recalcMinutes: recalcMinutes,
             onCommentFileChange: onCommentFileChange,
@@ -42,7 +44,8 @@ WEBDOCK.component().register(function (exports) {
             openReply: openReply,
             cancelReply: cancelReply,
             toggleDiscussion: toggleDiscussion,
-            toggleProgress: toggleProgress
+            toggleProgress: toggleProgress,
+            commentHtml: commentHtml
         },
         onReady: function () {
             initialize();
@@ -277,6 +280,21 @@ WEBDOCK.component().register(function (exports) {
         return comments;
     }
 
+    function commentHtml(value) {
+        var html = String(value || "");
+        html = html.replace(/<!doctype[^>]*>/gi, "");
+        html = html.replace(/<\/?(html|head|body)[^>]*>/gi, "");
+        html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+        html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+        html = html.replace(/<iframe[\s\S]*?<\/iframe>/gi, "");
+        html = html.replace(/<object[\s\S]*?<\/object>/gi, "");
+        html = html.replace(/<embed[\s\S]*?>/gi, "");
+        html = html.replace(/\son\w+="[^"]*"/gi, "");
+        html = html.replace(/\son\w+='[^']*'/gi, "");
+        html = html.replace(/\s(href|src)=["']\s*javascript:[^"']*["']/gi, "");
+        return html;
+    }
+
     function addWorkLog() {
         clearMessages();
         if (!bindData.task || !bindData.task.taskId) {
@@ -365,6 +383,28 @@ WEBDOCK.component().register(function (exports) {
         return "progress-bar-danger";
     }
 
+    function priorityClass(task) {
+        return "tm-priority-" + priorityKey(task);
+    }
+
+    function priorityLabelClass(task) {
+        return "tm-priority-label-" + priorityKey(task);
+    }
+
+    function priorityKey(task) {
+        var priority = String((task || {}).priority || "Normal").toLowerCase();
+        if (priority === "urgent") {
+            return "urgent";
+        }
+        if (priority === "high") {
+            return "high";
+        }
+        if (priority === "low") {
+            return "low";
+        }
+        return "normal";
+    }
+
     function getRouteData() {
         var data = {};
         if (handler && handler.getInputData) {
@@ -423,7 +463,7 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=0.3";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 

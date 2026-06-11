@@ -1,0 +1,29 @@
+{
+    "name": "TaskEmailClient",
+    "description": "Imports project mailbox messages into tasks and task discussion.",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "TaskEmailClient",
+        "methods": {
+            "getMail": {
+                "method": "GET",
+                "parameters": ["projectId", "search", "limit", "markSeen"]
+            },
+            "Mail": {
+                "method": "GET",
+                "parameters": ["projectId", "search", "limit", "markSeen"]
+            }
+        }
+    },
+    "transformers": {}
+}

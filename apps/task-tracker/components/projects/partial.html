@@ -14,7 +14,7 @@
   <div class="alert alert-info" v-for="message in info">{{ message }}</div>
 
   <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-12">
       <div class="tm-panel">
         <div class="tm-panel-header"><strong>Project List</strong></div>
         <div class="tm-list">
@@ -23,17 +23,25 @@
               <strong>{{ project.name }}</strong>
               <span>{{ project.status }}</span>
             </button>
-            <button class="btn btn-xs btn-success" v-on:click="openTasks(project)"><span class="glyphicon glyphicon-tasks"></span></button>
+            <div class="btn-group">
+              <button class="btn btn-xs btn-success" v-on:click="openTasks(project)" title="Tasks"><span class="glyphicon glyphicon-tasks"></span></button>
+              <button class="btn btn-xs btn-default" v-on:click="openPasswordVault(project)" title="Password Vault"><span class="glyphicon glyphicon-lock"></span></button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="col-md-7">
+  <div class="tm-modal-backdrop" v-if="formOpen">
+    <div class="tm-modal-dialog">
       <div class="tm-panel tm-form">
         <div class="tm-panel-header">
           <strong>{{ form.projectId ? 'Edit Project' : 'New Project' }}</strong>
-          <button class="btn btn-xs btn-default" v-on:click="ChangePermision(form)"><span class="glyphicon glyphicon-lock"></span></button>
+          <div>
+            <button class="btn btn-xs btn-default" v-on:click="ChangePermision(form)"><span class="glyphicon glyphicon-lock"></span></button>
+            <button class="btn btn-xs btn-default" v-on:click="closeProjectForm"><span class="glyphicon glyphicon-remove"></span></button>
+          </div>
         </div>
 
         <label>Project name</label>
@@ -46,6 +54,11 @@
           <option>Paused</option>
           <option>Closed</option>
         </select>
+        <label>Project color</label>
+        <div class="tm-color-field">
+          <input type="color" class="tm-color-picker" v-model="form.projectColor">
+          <input class="form-control" v-model="form.projectColor">
+        </div>
 
         <ul class="nav nav-tabs tm-tabs">
           <li class="active"><a href="#project-access" data-toggle="tab">Access</a></li>
@@ -53,11 +66,37 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="project-access">
-            <div class="tm-profile-grid">
-              <label class="tm-check" v-for="profile in profiles">
-                <input type="checkbox" v-bind:checked="hasProfile(profile)" v-on:change="toggleProfile(profile)">
-                <span>{{ profile.name }}</span>
-              </label>
+            <div class="tm-access-search">
+              <label>Add profile by email</label>
+              <div class="input-group">
+                <input class="form-control" name="task_project_access_email_search" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search email address" v-model="accessSearch" v-on:keyup="searchAccessProfiles">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="button" v-on:click="runAccessSearch"><span class="glyphicon glyphicon-search"></span></button>
+                </span>
+              </div>
+              <div class="tm-access-note" v-if="accessSearching">Searching...</div>
+              <div class="tm-access-note" v-if="accessSearchMessage">{{ accessSearchMessage }}</div>
+              <div class="tm-access-results" v-if="accessMatches.length > 0">
+                <button type="button" class="tm-access-result" v-for="profile in accessMatches" v-on:click="addAccessProfile(profile)">
+                  <strong>{{ profile.name }}</strong>
+                  <span>{{ profile.email }}</span>
+                  <span class="label label-default" v-if="hasProfile(profile) && isAccessRowVisible(profile)">Added</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tm-access-table">
+              <div class="tm-empty" v-if="accessProfilesLoading">Loading assigned profiles...</div>
+              <div class="tm-empty" v-if="!accessProfilesLoading && accessProfiles().length == 0">No profiles assigned.</div>
+              <div class="tm-access-row" v-if="!accessProfilesLoading" v-for="profile in accessProfiles()">
+                <div>
+                  <strong>{{ profile.name }}</strong>
+                  <span>{{ profile.email }}</span>
+                </div>
+                <button type="button" class="btn btn-xs btn-default" v-on:click="removeAccessProfile(profile)">
+                  <span class="glyphicon glyphicon-remove"></span>
+                </button>
+              </div>
             </div>
           </div>
           <div class="tab-pane" id="project-mail">
@@ -81,6 +120,7 @@
         <div class="tm-actions">
           <button class="btn btn-primary" v-on:click="saveProject"><span class="glyphicon glyphicon-floppy-disk"></span> Save Project</button>
           <button class="btn btn-success" v-if="form.projectId" v-on:click="openTasks(form)"><span class="glyphicon glyphicon-tasks"></span> Tasks</button>
+          <button class="btn btn-default" v-if="form.projectId" v-on:click="openPasswordVault(form)"><span class="glyphicon glyphicon-lock"></span> Password Vault</button>
           <button class="btn btn-danger" v-if="form.projectId" v-on:click="deleteProject(form)"><span class="glyphicon glyphicon-trash"></span></button>
         </div>
       </div>

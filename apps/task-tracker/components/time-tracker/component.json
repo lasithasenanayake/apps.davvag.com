@@ -1,0 +1,15 @@
+{
+    "name": "time-tracker",
+    "description": "Focused task time tracker and work logger",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ],
+        "css": [
+            {"type": "css", "location": "time-tracker.css"}
+        ]
+    }
+}

@@ -22,10 +22,13 @@
             "ListTasks": {"method": "POST"},
             "SaveTask": {"method": "POST"},
             "DeleteTask": {"method": "POST"},
+            "ListMyTasks": {"method": "POST"},
             "TaskDetails": {"method": "POST"},
             "SaveWorkLog": {"method": "POST"},
             "SaveComment": {"method": "POST"},
             "ListProfiles": {"method": "POST"},
+            "SearchProfileByEmail": {"method": "POST"},
+            "ProjectAssignedProfiles": {"method": "POST"},
             "NotifyTaskAssignees": {"method": "POST"}
         }
     },

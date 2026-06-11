@@ -12,12 +12,15 @@
   <div class="alert alert-info" v-for="message in info">{{ message }}</div>
 
   <div class="tm-task-wrap" v-if="task">
-    <div class="tm-panel tm-form tm-task-panel">
+    <div class="tm-panel tm-form tm-task-panel" v-bind:class="priorityClass(task)">
       <div class="tm-panel-header"><strong>Task Progress</strong></div>
       <div class="tm-task-summary">
         <div>
-          <p>{{ task.body }}</p>
-          <span class="label label-default">{{ task.status }}</span>
+          <div class="tm-task-body" v-html="task.body"></div>
+          <span class="tm-task-badges">
+            <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
+            <span class="label label-default">{{ task.status }}</span>
+          </span>
         </div>
         <div class="tm-progress-wrap">
           <div class="progress tm-progress">
@@ -53,7 +56,7 @@
               <div class="tm-comment-body">
                 <strong>{{ comment.profileName || 'Unknown' }}</strong>
                 <span class="text-muted">{{ comment.commentDate }}</span>
-                <p>{{ comment.body }}</p>
+                <div class="tm-comment-content" v-html="commentHtml(comment.body)"></div>
                 <div class="tm-comment-attachment" v-for="file in comment.Attachments">
                   <a v-bind:href="commentAttachmentUrl(file)" target="_blank"><span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}</a>
                 </div>
@@ -64,7 +67,7 @@
                 <div class="tm-comment tm-reply" v-for="reply in comment.replies">
                   <strong>{{ reply.profileName || 'Unknown' }}</strong>
                   <span class="text-muted">{{ reply.commentDate }}</span>
-                  <p>{{ reply.body }}</p>
+                  <div class="tm-comment-content" v-html="commentHtml(reply.body)"></div>
                   <div class="tm-comment-attachment" v-for="file in reply.Attachments">
                     <a v-bind:href="commentAttachmentUrl(file)" target="_blank"><span class="glyphicon glyphicon-paperclip"></span> {{ file.name }}</a>
                   </div>

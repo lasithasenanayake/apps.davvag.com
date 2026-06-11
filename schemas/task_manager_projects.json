@@ -32,6 +32,13 @@
             }
         },
         {
+            "fieldName": "projectColor",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 20
+            }
+        },
+        {
             "fieldName": "profileids",
             "dataType": "java.lang.String",
             "annotations": {

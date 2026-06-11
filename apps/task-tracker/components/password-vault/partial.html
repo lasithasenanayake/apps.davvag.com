@@ -1,0 +1,117 @@
+<section class="tm-page pv-page">
+  <div class="tm-toolbar">
+    <div>
+      <button class="btn btn-default btn-sm" v-on:click="backToProjects"><span class="glyphicon glyphicon-chevron-left"></span></button>
+      <h3>{{ project ? project.name + ' Password Vault' : 'Password Vault' }}</h3>
+      <span class="text-muted">Store website logins for the selected project.</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-primary" v-if="projectId" v-on:click="createVault"><span class="glyphicon glyphicon-plus"></span> Login</button>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="tm-panel pv-search-panel">
+    <div class="input-group">
+      <input class="form-control" placeholder="Search title, URL, username, or owner" v-model="search" v-on:keyup="loadVaults">
+      <span class="input-group-btn">
+        <button class="btn btn-default" v-on:click="loadVaults"><span class="glyphicon glyphicon-search"></span></button>
+      </span>
+    </div>
+  </div>
+
+  <div class="tm-panel">
+    <div class="tm-panel-header"><strong>Vault Records</strong></div>
+    <div class="table-responsive pv-grid-wrap">
+      <table class="table table-striped table-hover pv-grid">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Website URL</th>
+            <th>Username</th>
+            <th>Status</th>
+            <th>Owner</th>
+            <th class="pv-actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td colspan="6" class="tm-empty">Loading vault records...</td>
+          </tr>
+          <tr v-if="!loading && vaults.length == 0">
+            <td colspan="6" class="tm-empty">No vault records found.</td>
+          </tr>
+          <tr v-for="vault in vaults" v-bind:class="{active:selected && selected.vaultId == vault.vaultId}">
+            <td><strong>{{ vault.title }}</strong></td>
+            <td>
+              <a v-if="vault.websiteUrl" v-bind:href="externalUrl(vault.websiteUrl)" target="_blank">{{ vault.websiteUrl }}</a>
+              <span v-if="!vault.websiteUrl" class="text-muted">-</span>
+            </td>
+            <td>{{ vault.username }}</td>
+            <td><span class="label" v-bind:class="statusClass(vault)">{{ vault.status || 'Active' }}</span></td>
+            <td>{{ vault.ownerProfileName || '-' }}</td>
+            <td class="pv-row-actions">
+              <button class="btn btn-xs btn-success" v-on:click="copyPassword(vault)" title="Copy password"><span class="glyphicon glyphicon-copy"></span></button>
+              <button class="btn btn-xs btn-default" v-on:click="editVault(vault)" title="Edit"><span class="glyphicon glyphicon-pencil"></span></button>
+              <button class="btn btn-xs btn-default" v-on:click="ChangePermision(vault)" title="Permissions"><span class="glyphicon glyphicon-lock"></span></button>
+              <button class="btn btn-xs btn-danger" v-on:click="deleteVault(vault)" title="Delete"><span class="glyphicon glyphicon-trash"></span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tm-modal-backdrop" v-if="formOpen">
+    <div class="tm-modal-dialog pv-modal-dialog">
+      <div class="tm-panel tm-form">
+        <div class="tm-panel-header">
+          <strong>{{ form.vaultId ? 'Edit Login' : 'New Login' }}</strong>
+          <div>
+            <button class="btn btn-xs btn-default" v-on:click="ChangePermision(form)"><span class="glyphicon glyphicon-lock"></span></button>
+            <button class="btn btn-xs btn-default" v-on:click="closeVaultForm"><span class="glyphicon glyphicon-remove"></span></button>
+          </div>
+        </div>
+
+        <label>Title</label>
+        <input class="form-control" v-model="form.title">
+
+        <label>Website URL</label>
+        <input class="form-control" v-model="form.websiteUrl">
+
+        <div class="row">
+          <div class="col-sm-6">
+            <label>Username</label>
+            <input class="form-control" autocomplete="off" v-model="form.username">
+          </div>
+          <div class="col-sm-6">
+            <label>Status</label>
+            <select class="form-control" v-model="form.status">
+              <option>Active</option>
+              <option>Inactive</option>
+              <option>Archived</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Password</label>
+        <input type="password" class="form-control" autocomplete="new-password" v-model="form.password" v-bind:placeholder="form.vaultId ? 'Leave blank to keep current password' : ''">
+
+        <label>Confirm password</label>
+        <input type="password" class="form-control" autocomplete="new-password" v-model="form.passwordConfirm">
+
+        <label>Notes</label>
+        <textarea class="form-control" rows="4" v-model="form.notes"></textarea>
+
+        <div class="tm-actions">
+          <button class="btn btn-primary" v-on:click="saveVault"><span class="glyphicon glyphicon-floppy-disk"></span> Save Login</button>
+          <button class="btn btn-success" v-if="form.vaultId" v-on:click="copyPassword(form)"><span class="glyphicon glyphicon-copy"></span> Copy Password</button>
+          <button class="btn btn-danger" v-if="form.vaultId" v-on:click="deleteVault(form)"><span class="glyphicon glyphicon-trash"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

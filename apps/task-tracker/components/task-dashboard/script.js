@@ -47,6 +47,8 @@ WEBDOCK.component().register(function (exports) {
             removeAttachment: removeAttachment,
             onFileChange: onFileChange,
             progressClass: progressClass,
+            priorityClass: priorityClass,
+            priorityLabelClass: priorityLabelClass,
             attachmentUrl: attachmentUrl,
             formatProfileName: formatProfileName,
             clearMessages: clearMessages
@@ -524,6 +526,28 @@ WEBDOCK.component().register(function (exports) {
         return "progress-bar-danger";
     }
 
+    function priorityClass(task) {
+        return "tm-priority-" + priorityKey(task);
+    }
+
+    function priorityLabelClass(task) {
+        return "tm-priority-label-" + priorityKey(task);
+    }
+
+    function priorityKey(task) {
+        var priority = String((task || {}).priority || "Normal").toLowerCase();
+        if (priority === "urgent") {
+            return "urgent";
+        }
+        if (priority === "high") {
+            return "high";
+        }
+        if (priority === "low") {
+            return "low";
+        }
+        return "normal";
+    }
+
     function formatProfileName(profileId) {
         var name = profileId;
         bindData.profiles.forEach(function (profile) {
@@ -575,7 +599,7 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=0.3";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 });

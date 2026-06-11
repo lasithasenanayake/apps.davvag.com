@@ -88,9 +88,12 @@
           </select>
         </div>
         <div class="tm-list tm-task-list">
-          <button class="tm-list-item tm-task-item" v-for="task in tasks" v-on:click="selectTask(task)" v-bind:class="{active:selectedTask && selectedTask.taskId == task.taskId}">
+          <button class="tm-list-item tm-task-item" v-for="task in tasks" v-on:click="selectTask(task)" v-bind:class="[priorityClass(task), {active:selectedTask && selectedTask.taskId == task.taskId}]">
             <strong>{{ task.subject }}</strong>
-            <span class="label label-default">{{ task.status }}</span>
+            <span class="tm-task-badges">
+              <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
+              <span class="label label-default">{{ task.status }}</span>
+            </span>
             <div class="progress">
               <div class="progress-bar" v-bind:class="progressClass(task)" v-bind:style="{width:(task.progress || 0) + '%'}">{{ task.progress || 0 }}%</div>
             </div>
@@ -113,8 +116,9 @@
         <label>Body</label>
         <textarea class="form-control" rows="5" v-model="taskForm.body"></textarea>
         <div class="row">
-          <div class="col-xs-6"><label>Status</label><select class="form-control" v-model="taskForm.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
-          <div class="col-xs-6"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="taskForm.progress"></div>
+          <div class="col-xs-4"><label>Status</label><select class="form-control" v-model="taskForm.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
+          <div class="col-xs-4"><label>Priority</label><select class="form-control" v-model="taskForm.priority"><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select></div>
+          <div class="col-xs-4"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="taskForm.progress"></div>
         </div>
 
         <label>Assignees</label>

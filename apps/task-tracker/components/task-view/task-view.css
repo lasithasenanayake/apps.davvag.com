@@ -49,6 +49,14 @@
     margin-bottom: 8px;
 }
 
+.tm-task-body {
+    margin-bottom: 8px;
+}
+
+.tm-task-body p {
+    margin: 0 0 8px;
+}
+
 .tm-progress-wrap {
     padding-top: 3px;
 }
@@ -183,6 +191,24 @@
 
 .tm-comment p {
     margin: 6px 0;
+}
+
+.tm-comment-content {
+    margin: 6px 0;
+    overflow-wrap: anywhere;
+}
+
+.tm-comment-content p,
+.tm-comment-content div {
+    margin: 0 0 6px;
+}
+
+.tm-comment-content blockquote,
+.tm-comment-content .gmail_quote {
+    border-left: 3px solid #d8dde4;
+    color: #68717d;
+    margin: 8px 0 0;
+    padding-left: 10px;
 }
 
 .tm-comment .text-muted {

@@ -8,6 +8,18 @@
             "type": "component",
             "location": "components"
         },
+        "my-tasks": {
+            "type": "component",
+            "location": "components"
+        },
+        "time-tracker": {
+            "type": "component",
+            "location": "components"
+        },
+        "password-vault": {
+            "type": "component",
+            "location": "components"
+        },
         "task-view": {
             "type": "component",
             "location": "components"
@@ -23,31 +35,45 @@
         "taskapi": {
             "type": "service",
             "location": "services"
+        },
+        "passwordvaultapi": {
+            "type": "service",
+            "location": "services"
+        },
+        "TaskEmailClient": {
+            "type": "service",
+            "location": "services"
         }
     },
     "description": {
         "title": "Task Manager",
         "author": "DAVVAG",
-        "version": "0.3",
+        "version": "2.1",
         "icon": "appicon.png"
     },
     "tags": ["showincms", "showindock"],
     "configuration": {
         "webdock": {
             "startupComponent": "projects",
-            "onLoad": ["task-style", "taskapi"],
+            "onLoad": ["task-style", "taskapi", "passwordvaultapi"],
             "routes": {
                 "partials": {
                     "/": "projects",
                     "/projects": "projects",
                     "/tasks": "tasks",
-                    "/task": "task-view"
+                    "/my-tasks": "my-tasks",
+                    "/time-tracker": "time-tracker",
+                    "/password-vault": "password-vault",
+                    "/task": "task-view",
+                    "/task-view": "task-view"
                 }
             }
         },
         "dock": {
             "subapps": [
-                {"name": "Projects", "path": "projects"}
+                {"name": "Projects", "path": "projects"},
+                {"name": "My Tasks", "path": "my-tasks"},
+                {"name": "Time Tracker", "path": "time-tracker"}
             ]
         }
     }

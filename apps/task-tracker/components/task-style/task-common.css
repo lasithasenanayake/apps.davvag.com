@@ -70,12 +70,41 @@
     color: #333;
 }
 
+.tm-page .btn,
+.tm-app .btn {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    justify-content: center;
+    line-height: 1.2;
+    min-height: 40px;
+    touch-action: manipulation;
+    white-space: normal;
+}
+
+.tm-page .btn-group,
+.tm-app .btn-group {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tm-page .btn-sm,
+.tm-app .btn-sm {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 8px 11px;
+}
+
 .tm-page .btn-xs,
 .tm-app .btn-xs {
-    border-radius: 3px;
-    font-size: 12px;
-    line-height: 1.5;
-    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.2;
+    min-height: 40px;
+    min-width: 40px;
+    padding: 8px 10px;
 }
 
 .tm-page .label,
@@ -95,6 +124,71 @@
 .tm-page .label-default,
 .tm-app .label-default {
     background-color: #777;
+}
+
+.tm-page .tm-task-badges,
+.tm-app .tm-task-badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.tm-page .tm-task-row.tm-priority-low,
+.tm-app .tm-task-row.tm-priority-low,
+.tm-page .tm-task-item.tm-priority-low,
+.tm-app .tm-task-item.tm-priority-low,
+.tm-page .tm-task-panel.tm-priority-low,
+.tm-app .tm-task-panel.tm-priority-low {
+    border-left: 5px solid #5bc0de;
+}
+
+.tm-page .tm-task-row.tm-priority-normal,
+.tm-app .tm-task-row.tm-priority-normal,
+.tm-page .tm-task-item.tm-priority-normal,
+.tm-app .tm-task-item.tm-priority-normal,
+.tm-page .tm-task-panel.tm-priority-normal,
+.tm-app .tm-task-panel.tm-priority-normal {
+    border-left: 5px solid #5cb85c;
+}
+
+.tm-page .tm-task-row.tm-priority-high,
+.tm-app .tm-task-row.tm-priority-high,
+.tm-page .tm-task-item.tm-priority-high,
+.tm-app .tm-task-item.tm-priority-high,
+.tm-page .tm-task-panel.tm-priority-high,
+.tm-app .tm-task-panel.tm-priority-high {
+    border-left: 5px solid #f0ad4e;
+}
+
+.tm-page .tm-task-row.tm-priority-urgent,
+.tm-app .tm-task-row.tm-priority-urgent,
+.tm-page .tm-task-item.tm-priority-urgent,
+.tm-app .tm-task-item.tm-priority-urgent,
+.tm-page .tm-task-panel.tm-priority-urgent,
+.tm-app .tm-task-panel.tm-priority-urgent {
+    border-left: 5px solid #d9534f;
+}
+
+.tm-page .tm-priority-label-low,
+.tm-app .tm-priority-label-low {
+    background-color: #5bc0de;
+}
+
+.tm-page .tm-priority-label-normal,
+.tm-app .tm-priority-label-normal {
+    background-color: #5cb85c;
+}
+
+.tm-page .tm-priority-label-high,
+.tm-app .tm-priority-label-high {
+    background-color: #f0ad4e;
+}
+
+.tm-page .tm-priority-label-urgent,
+.tm-app .tm-priority-label-urgent {
+    background-color: #d9534f;
 }
 
 .tm-page .progress,
@@ -173,9 +267,17 @@
 .tm-app .glyphicon {
     display: inline-block;
     font-family: FontAwesome, Arial, Helvetica, sans-serif;
+    font-size: 17px;
     font-style: normal;
     font-weight: normal;
     line-height: 1;
+}
+
+.tm-page .btn-xs .glyphicon,
+.tm-app .btn-xs .glyphicon,
+.tm-page .btn-sm .glyphicon,
+.tm-app .btn-sm .glyphicon {
+    font-size: 18px;
 }
 
 .tm-page .glyphicon-refresh:before,
@@ -188,9 +290,44 @@
     content: "\f067";
 }
 
+.tm-page .glyphicon-play:before,
+.tm-app .glyphicon-play:before {
+    content: "\f04b";
+}
+
+.tm-page .glyphicon-pause:before,
+.tm-app .glyphicon-pause:before {
+    content: "\f04c";
+}
+
+.tm-page .glyphicon-stop:before,
+.tm-app .glyphicon-stop:before {
+    content: "\f04d";
+}
+
+.tm-page .glyphicon-ok:before,
+.tm-app .glyphicon-ok:before {
+    content: "\f00c";
+}
+
 .tm-page .glyphicon-tasks:before,
 .tm-app .glyphicon-tasks:before {
     content: "\f0ae";
+}
+
+.tm-page .glyphicon-list:before,
+.tm-app .glyphicon-list:before {
+    content: "\f03a";
+}
+
+.tm-page .glyphicon-folder-open:before,
+.tm-app .glyphicon-folder-open:before {
+    content: "\f07c";
+}
+
+.tm-page .glyphicon-flag:before,
+.tm-app .glyphicon-flag:before {
+    content: "\f024";
 }
 
 .tm-page .glyphicon-lock:before,
@@ -241,6 +378,21 @@
 .tm-page .glyphicon-comment:before,
 .tm-app .glyphicon-comment:before {
     content: "\f075";
+}
+
+.tm-page .glyphicon-pencil:before,
+.tm-app .glyphicon-pencil:before {
+    content: "\f040";
+}
+
+.tm-page .glyphicon-copy:before,
+.tm-app .glyphicon-copy:before {
+    content: "\f0c5";
+}
+
+.tm-page .glyphicon-search:before,
+.tm-app .glyphicon-search:before {
+    content: "\f002";
 }
 
 @media (min-width: 768px) {

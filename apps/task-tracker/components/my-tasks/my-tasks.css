@@ -1,0 +1,136 @@
+.tm-my-tasks {
+    color: #20242a;
+    padding: 12px;
+}
+
+.tm-my-tasks .tm-toolbar {
+    align-items: center;
+    border-bottom: 1px solid #d8dde4;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+}
+
+.tm-my-tasks .tm-toolbar h3 {
+    display: inline-block;
+    margin: 0;
+}
+
+.tm-my-tasks .tm-panel {
+    background: #fff;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.tm-my-tasks .tm-panel-header {
+    align-items: center;
+    border-bottom: 1px solid #e6e9ee;
+    display: flex;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 8px 10px;
+}
+
+.tm-my-tasks .tm-status-tabs {
+    margin-bottom: 12px;
+}
+
+.tm-my-tasks .tm-status-tabs a {
+    cursor: pointer;
+}
+
+.tm-my-tasks .tm-task-row {
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #edf0f3;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px;
+    text-align: left;
+    width: 100%;
+}
+
+.tm-my-tasks .tm-task-row:hover {
+    background: #eef6ff;
+}
+
+.tm-my-tasks .tm-task-main {
+    min-width: 0;
+}
+
+.tm-my-tasks .tm-task-title {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.tm-my-tasks .tm-task-title strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.tm-my-tasks .tm-task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.tm-my-tasks .tm-task-row .progress {
+    height: 16px;
+    margin: 8px 0 0;
+}
+
+.tm-my-tasks .tm-task-meta {
+    color: #68717d;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12px;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.tm-my-tasks .tm-project-swatch {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+    display: inline-block;
+    height: 14px;
+    margin-right: 5px;
+    vertical-align: -2px;
+    width: 14px;
+}
+
+.tm-my-tasks .tm-task-list-panel {
+    min-height: calc(100vh - 190px);
+}
+
+.tm-my-tasks .tm-list {
+    max-height: none;
+    min-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+.tm-my-tasks .tm-empty {
+    color: #68717d;
+    padding: 14px;
+}
+
+@media (max-width: 767px) {
+    .tm-my-tasks .tm-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tm-my-tasks .tm-task-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tm-my-tasks .tm-task-actions {
+        justify-content: flex-start;
+    }
+}

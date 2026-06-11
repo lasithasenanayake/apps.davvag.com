@@ -1,0 +1,87 @@
+<section class="tm-page tt-shell">
+  <div class="tt-phone">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+    <div class="tt-topbar">
+      <button class="tt-icon-button" v-on:click="backToTask"><span class="glyphicon glyphicon-chevron-left"></span></button>
+      <div class="tt-title-wrap">
+        <h3>{{ project ? project.name : 'Time Tracker' }}</h3>
+        <span v-if="task">{{ task.subject }}</span>
+      </div>
+      <span class="tt-pill">{{ task ? (task.priority || 'Normal') : 'Work' }}</span>
+    </div>
+
+    <div class="tt-empty" v-if="!task && !errors.length">
+      <strong>Select a task</strong>
+      <span>Open the tracker from a task list item.</span>
+    </div>
+
+    <div class="tt-runner" v-if="task && mode == 'tracking'">
+      <div class="tt-activity">
+        <span class="tt-dot"></span>
+        <span>{{ task.status || 'In Progress' }}</span>
+      </div>
+
+      <div class="tt-ring" v-bind:style="ringStyle()">
+        <div class="tt-ring-inner">
+          <strong>{{ formattedTime() }}</strong>
+        </div>
+      </div>
+
+      <div class="tt-controls">
+        <button type="button" class="tt-control" v-on:click="togglePause">
+          <span class="glyphicon" v-bind:class="paused ? 'glyphicon-play' : 'glyphicon-pause'"></span>
+        </button>
+        <button type="button" class="tt-control" v-on:click="stopTimer">
+          <span class="glyphicon glyphicon-stop"></span>
+        </button>
+      </div>
+      <div class="tt-control-labels">
+        <span>{{ paused ? 'Resume' : 'Pause' }}</span>
+        <span>Quit</span>
+      </div>
+    </div>
+
+    <div class="tt-log-panel" v-if="task && mode == 'logging'">
+      <div class="tt-log-summary">
+        <span>Tracked</span>
+        <strong>{{ formattedTime() }}</strong>
+      </div>
+
+      <label>What are you doing?</label>
+      <textarea class="form-control" rows="4" v-model="logForm.comments" placeholder="Work completed, blockers, next step"></textarea>
+
+      <div class="tt-form-grid">
+        <div>
+          <label>Minutes</label>
+          <input type="number" min="1" class="form-control" v-model="logForm.durationInMinutes">
+        </div>
+        <div>
+          <label>Progress</label>
+          <input type="number" min="0" max="100" class="form-control" v-model="logForm.progress">
+        </div>
+        <div>
+          <label>Status</label>
+          <select class="form-control" v-model="logForm.status">
+            <option v-for="status in statusOptions">{{ status }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tt-actions">
+        <button class="btn btn-default" v-on:click="resumeTimer"><span class="glyphicon glyphicon-play"></span> Resume</button>
+        <button class="btn btn-primary" v-on:click="saveWorkLog"><span class="glyphicon glyphicon-floppy-disk"></span> Log Work</button>
+      </div>
+    </div>
+
+    <div class="tt-log-panel tt-saved" v-if="task && mode == 'saved'">
+      <span class="glyphicon glyphicon-ok"></span>
+      <strong>Work logged</strong>
+      <div class="tt-actions">
+        <button class="btn btn-default" v-on:click="backToTask">Task View</button>
+        <button class="btn btn-primary" v-on:click="startAgain">Track Again</button>
+      </div>
+    </div>
+  </div>
+</section>

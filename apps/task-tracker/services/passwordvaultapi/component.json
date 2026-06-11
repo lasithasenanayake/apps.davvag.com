@@ -1,0 +1,26 @@
+{
+    "name": "passwordvaultapi",
+    "description": "Task Manager password vault service handlers",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "PasswordVaultService",
+        "methods": {
+            "ListVaults": {"method": "POST"},
+            "VaultDetails": {"method": "POST"},
+            "SaveVault": {"method": "POST"},
+            "DeleteVault": {"method": "POST"},
+            "CopyPassword": {"method": "POST"}
+        }
+    },
+    "transformers": {}
+}
