@@ -1,4 +1,4 @@
-<div class="contentpanel">
+<div class="contentpanel profile-v1-app profile-page">
       
   <div class="row">
     <div class="col-sm-3">
@@ -36,8 +36,8 @@
         
         <button class="btn btn-success mr5" v-on:click="updateStatus(item,'active')"><i class="fa fa-user" ></i> Active</button>
         <button class="btn btn-warning mr5" v-on:click="updateStatus(item,'inactive')"><i class="fa fa-exclamation" ></i> Inactive</button>
-        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'hidden')"><i class="fa fa-eraserf" ></i> Hidden</button>
-        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'void')"><i class="fa fa-eraserf" ></i> Void</button>
+        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'hidden')"><i class="fa fa-eye-slash" ></i> Hidden</button>
+        <button class="btn btn-danger mr5" v-on:click="updateStatus(item,'void')"><i class="fa fa-ban" ></i> Void</button>
        <!-- <button class="btn btn-white"><i class="fa fa-envelope-o"></i> Message</button>-->
       </div><!-- profile-header -->
       
@@ -68,7 +68,7 @@
               <td>{{ t.tranid }}</td>
               <td>{{ t.tranDate }}</td>
               <td>{{ t.amount | currency }}</td>
-              <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+              <td><button class="btn btn-success btn-sm" v-on:click="navigatepage(t.trantype,t.tranid);"><i class="fa fa-eye"></i> View</button></td>
             </tr>
             <tr>
               <td></td>

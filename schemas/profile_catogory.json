@@ -1,0 +1,55 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "description",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 20,
+                "default": "active"
+            }
+        },
+        {
+            "fieldName": "isDefault",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1,
+                "default": "N"
+            }
+        },
+        {
+            "fieldName": "sortOrder",
+            "dataType": "int"
+        }
+    ]
+}

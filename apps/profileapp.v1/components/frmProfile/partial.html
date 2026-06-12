@@ -1,5 +1,5 @@
 
-  <div class="panel panel-default">
+  <div class="panel panel-default profile-v1-app profile-edit">
     <div class="panel-heading">
         <div class="panel-btns">
             <a v-on:click="navigateBack()" class="panel-close">×</a>
@@ -15,36 +15,14 @@
             <div class="row row-pad-12">
                   <div class="col-lg-4">
                       <select class="form-control mb15" v-model="i_profile.catogory">
-                          <option>Customer</option>
-                          <option>Vender</option>
-                          <option>Company</option>
-                          <option>Guest</option>
-                          <option>Staff</option>
-                          <option>Student</option>
-                          <option>Student-MDiv</option>
-                          <option>Student-Diploma</option>
-                          <option>Student-BTH</option>
-                          <option>Student-Digree</option>
-                          <option>Student-HCD</option>
-                          <option>Visiting</option>
-                          <option>Church</option>
-                          <option>Pastor</option>
+                          <option v-for="catogory in profileCatogories" v-bind:value="catogory.name">{{ catogory.name }}</option>
                       </select>
                   </div>
                   <div class="col-lg-8">
-                      <div class="input-group mb15">
-                          <div class="col-lg-4">
-                              <input type="text" class="form-control" placeholder="Profile ID"  v-model="i_profile.id" v-on:focusout="getProfilebyID(i_profile.id);"/>
-                              
-                          </div>
-                          
-                          <div class="col-lg-8">
-                            <input type="text" class="form-control" placeholder="Search"  v-model="SearchItem"/>
-                          </div>
-                          
-                          <span class="input-group-btn">
-                              <button type="button" class="btn btn-default" data-toggle="modal" data-target=".bs-example-modal-lg" v-on:click="searchItems('name',SearchItem);">Search</button>
-                          </span>
+                      <div class="profile-search-bar profile-edit-search mb15">
+                          <input type="text" class="form-control profile-id-input" placeholder="Profile ID" v-model="i_profile.id" v-on:focusout="getProfilebyID(i_profile.id);"/>
+                          <input type="text" class="form-control" placeholder="Search by name" v-model="SearchItem"/>
+                          <button type="button" class="btn btn-default" data-toggle="modal" data-target=".bs-example-modal-lg" v-on:click="searchItems('name',SearchItem);"><i class="fa fa-search"></i> Search</button>
                       </div>
                   </div>
                   
@@ -76,7 +54,7 @@
                   <td>{{ profile.email }}</td>
                   <td class="center"> {{ profile.contactno }}</td>
                   <td class="center">{{ profile.organization }}</td>
-                  <td><button class="btn btn-success btn-sm"v-on:click="getProfilebyID(profile.id);">Retrive</button></td>
+                  <td><button class="btn btn-success btn-sm" v-on:click="getProfilebyID(profile.id);"><i class="fa fa-download"></i> Retrieve</button></td>
                </tr>
                
             </tbody>
@@ -110,10 +88,10 @@
                     <div class="panel-body">
                         <div class="form-group">
                             <label for="exampleInputFile" class="col-md-4">Profile Image</label>
-                            <div class="col-md-4">
-                              <img :src="p_image" class="col-md-12" width="60" @click="crope"/>
-                              <button @click="crope">New Image</button>
-                              <button @click="capture">Take Picture</button>
+                            <div class="col-md-8 profile-image-control">
+                              <img :src="p_image" class="profile-photo-preview" @click="crope"/>
+                              <button class="btn btn-default btn-sm" @click="crope"><i class="fa fa-picture-o"></i> New Image</button>
+                              <button class="btn btn-default btn-sm" @click="capture"><i class="fa fa-camera"></i> Take Picture</button>
                             </div>
                         </div>
                         
@@ -161,11 +139,11 @@
                                 <label class="col-md-4 control-label" for="Marital">Marital Status:</label>
                                 <div class="col-md-8"> 
                                   <label class="radio-inline" for="Marital-0">
-                                    <input type="radio"  value="single" name="Marital" v-model="i_profile.maritalStatus">
+                                    <input type="radio" value="married" name="Marital" v-model="i_profile.maritalStatus">
                                     Married
                                   </label> 
                                   <label class="radio-inline" for="Marital-1">
-                                    <input type="radio"  value="married" name="Marital" v-model="i_profile.maritalStatus">
+                                    <input type="radio" value="single" name="Marital" v-model="i_profile.maritalStatus">
                                     Unmarried
                                   </label> 
                                 </div>
@@ -263,15 +241,14 @@
                     <input type="email" name="email" placeholder="email" class="form-control" v-model="i_profile.email" v-on:focusout="searchItems('email',i_profile.email);"/>
                   </div>
                   <div class="col-lg-6">
-                    <input type="text" name="contactno" placeholder="Conatct no" class="form-control" v-model="i_profile.contactno" v-on:focusout="searchItems('contactno',i_profile.contactno);"/>
+                    <input type="text" name="contactno" placeholder="Contact no" class="form-control" v-model="i_profile.contactno" v-on:focusout="searchItems('contactno',i_profile.contactno);"/>
                   </div>
                   
                 </div><!-- row -->
                 <div class="row row-pad-5">
-                <textarea class="form-control" rows="4" placeholder="Address" v-model="i_profile.address"></textarea>
+                  <textarea class="form-control" rows="4" placeholder="Address" v-model="i_profile.address"></textarea>
                 </div>
                 <div class="row row-pad-5">
-                </br>  
                   <div class="col-lg-6">
                       <!--<input type="text" name="country" placeholder="Country" class="form-control" v-model="i_profile.country"/>-->
                       
@@ -556,9 +533,9 @@
     <div class="panel-footer">
    <div class="row">
     <div class="col-sm-6 col-sm-offset-3">
-      <button  class="btn btn-default pull-right" v-on:click="save">Save</button>
-      <button  class="btn btn-default pull-right" v-on:click="clear">Clear</button>
-      <button  class="btn btn-default pull-right" v-on:click="navigateBack">Back</button>
+      <button class="btn btn-primary pull-right" v-on:click="save"><i class="fa fa-save"></i> Save</button>
+      <button class="btn btn-default pull-right" v-on:click="clear"><i class="fa fa-eraser"></i> Clear</button>
+      <button class="btn btn-default pull-right" v-on:click="navigateBack"><i class="fa fa-arrow-left"></i> Back</button>
     </div>
    </div>
   </div><!-- panel-footer -->

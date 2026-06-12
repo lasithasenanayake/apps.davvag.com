@@ -3,6 +3,9 @@ WEBDOCK.component().register(function(exports){
         i_profile:{},
         InvItems:[{itemid:0,name:"",uom:"",qty:0,price:parseFloat("0").toFixed(2),total:parseFloat("0").toFixed(2),selected:null,invtype:"",catogory:""}],
         products:[],
+        taxes:[{id:0, code:"NO_TAX", name:"No Tax", rate:0, isDefault:"Y"}],
+        selectedTax:null,
+        currencyConfig:{code:""},
         subtotal:0,
         discount:0,
         tax:0,
@@ -25,7 +28,7 @@ WEBDOCK.component().register(function(exports){
         });
         bindData.subtotal=parseFloat(bindData.subtotal).toFixed(2);
         bindData.taxamount=parseFloat(parseFloat(bindData.subtotal)*(parseFloat(bindData.tax)/100)).toFixed(2);
-        bindData.total= parseFloat(parseFloat(bindData.subtotal)+parseFloat(bindData.taxamount)).toFixed(2)-parseFloat(bindData.discount).toFixed(2);
+        bindData.total= parseFloat(parseFloat(bindData.subtotal)+parseFloat(bindData.taxamount)-parseFloat(bindData.discount)).toFixed(2);
        
     }
 
@@ -114,6 +117,9 @@ WEBDOCK.component().register(function(exports){
             }
             ,
             taxChange:calcTotals,
+            taxSelect:function(){
+                applySelectedTax();
+            },
             print:function(){
                 var prtContent=document.getElementById("printcontent");
                 var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
@@ -142,6 +148,8 @@ WEBDOCK.component().register(function(exports){
         var routeData = pInstance.getInputData();
         profileHandler = exports.getComponent("profile");
         sossdata = exports.getShellComponent("soss-data");
+        loadInvoiceTaxes();
+        loadCurrencyConfig();
         profileHandler.services.SupplierData().then(
             function(r){
                 if(r.success){
@@ -198,6 +206,41 @@ WEBDOCK.component().register(function(exports){
         if(routeData.id!=null){
             getProfilebyID(routeData.id)
         }
+    }
+
+    function loadInvoiceTaxes(){
+        profileHandler.services.InvoiceTaxes()
+        .then(function(response){
+            if(response.success && response.result && response.result.length){
+                bindData.taxes = response.result;
+                bindData.selectedTax = response.result[0];
+                response.result.forEach(function(item){
+                    if(item.isDefault === "Y"){
+                        bindData.selectedTax = item;
+                    }
+                });
+                applySelectedTax();
+            }
+        })
+        .error(function(){
+            $.notify("Tax mappings could not be loaded. Using no tax.", "warn");
+        });
+    }
+
+    function loadCurrencyConfig(){
+        profileHandler.services.CurrencyConfig()
+        .then(function(response){
+            if(response.success && response.result){
+                bindData.currencyConfig = response.result;
+            }
+        });
+    }
+
+    function applySelectedTax(){
+        if(bindData.selectedTax){
+            bindData.tax = parseFloat(bindData.selectedTax.rate || 0);
+        }
+        calcTotals();
     }
 
     
@@ -265,7 +308,11 @@ WEBDOCK.component().register(function(exports){
                 subtotal:bindData.subtotal,
                 total:bindData.total,
                 tax:bindData.tax,
+                taxid:bindData.selectedTax ? bindData.selectedTax.id : 0,
+                taxcode:bindData.selectedTax ? bindData.selectedTax.code : "",
+                taxname:bindData.selectedTax ? bindData.selectedTax.name : "",
                 taxamount:bindData.taxamount,
+                currencycode:bindData.currencyConfig ? bindData.currencyConfig.code : "",
                 discount:bindData.discount,
                 paidamount:0,
                 status:"Approved",

@@ -12,6 +12,10 @@
             "type":"service",
             "location":"service"
         },
+        "profile-style": {
+            "type":"component",
+            "location":"apps"
+        },
         "bank-settings":{
             "type":"component",
             "location":"apps"
@@ -35,7 +39,7 @@
     "configuration":{
         "webdock":{
             "startupComponent" : "bank-all",
-            "onLoad": ["app-handler"],
+            "onLoad": ["profile-style", "app-handler"],
             "routes":{
                 "partials":{
                     "/settings":"bank-all",

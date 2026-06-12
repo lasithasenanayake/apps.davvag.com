@@ -183,6 +183,24 @@
             "dataType":"float"
         },
         {
+            "fieldName":"taxid",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"taxcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName":"taxname",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200
+            }
+        },
+        {
             "fieldName":"preparedByID",
             "dataType":"java.lang.String",
             "annotations":{

@@ -51,6 +51,18 @@
                 "method" : "GET",
                 "parameters": []
             },
+            "ProfileCatogories":{
+                "method" : "GET",
+                "parameters": []
+            },
+            "InvoiceTaxes":{
+                "method" : "GET",
+                "parameters": []
+            },
+            "CurrencyConfig":{
+                "method" : "GET",
+                "parameters": []
+            },
             "q" : {
                 "method" : "POST"
             },

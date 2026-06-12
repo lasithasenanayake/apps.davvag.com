@@ -1,4 +1,4 @@
-<div class="contentpanel">
+<div class="contentpanel profile-v1-app profile-page">
       
   <div class="row">
     <div class="col-sm-3">
@@ -20,9 +20,9 @@
       </address>
       
       <ul class="social-list">
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('inv',item)">Invoice</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('rpt',item)">Payment</button></li>
-        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('change',item)">Change Status</button></li>
+        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('inv',item)"><i class="fa fa-file-text-o"></i> Invoice</button></li>
+        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('rpt',item)"><i class="fa fa-credit-card"></i> Payment</button></li>
+        <li><button class="btn btn-default btn-xs" v-on:click="navigatebutton('change',item)"><i class="fa fa-toggle-on"></i> Change Status</button></li>
       </ul>
     </div><!-- col-sm-3 -->
     <div class="col-sm-9">
@@ -65,7 +65,7 @@
               <td>{{ t.tranid }}</td>
               <td>{{ t.tranDate }}</td>
               <td>{{ t.amount | currency }}</td>
-              <td><button class="btn btn-success btn-sm"v-on:click="navigatepage(t.trantype,t.tranid);">View</button></td>
+              <td><button class="btn btn-success btn-sm" v-on:click="navigatepage(t.trantype,t.tranid);"><i class="fa fa-eye"></i> View</button></td>
             </tr>
             <tr>
               <td></td>
@@ -95,7 +95,7 @@
                   
                   
                   <span :class="'pull-right label label-'+status(itm.status)"  >{{ itm.status }}</span>
-                  <button type="button"  title="open" v-on:click="openAttribuePopup(itm)">action</button>
+                  <button type="button" class="btn btn-default btn-sm" title="open" v-on:click="openAttribuePopup(itm)"><i class="fa fa-external-link"></i> Open</button>
                 </div>
                 </div><!-- media -->
               

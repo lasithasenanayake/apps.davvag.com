@@ -1,5 +1,5 @@
 WEBDOCK.component().register(function(exports){
-    var scope,handler;
+    var scope,handler,validator_profile;
 
     function loadUoms(skip, take){
          
@@ -22,12 +22,12 @@ WEBDOCK.component().register(function(exports){
 
             },
             close:function(){
-               $('#modalappwindow').modal('show');
+               $('#modalappwindow').modal('hide');
             },
             save:submit
         },
         data :{
-            items : [],data:{}
+            items : [],data:{},submitErrors:[],submitInfo:[]
         },
         onReady: function(s){
             scope = s;
@@ -73,7 +73,7 @@ WEBDOCK.component().register(function(exports){
                 unlockForm();
             }).error(function(result){
                 scope.submitErrors = [];
-                bindData.submitErrors.push("Error");
+                scope.submitErrors.push("Error");
                 unlockForm();
             });
 

@@ -1,0 +1,30 @@
+{
+    "name": "profile-catogory-handler",
+    "description": "Profile catogory service",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "profile_catogory_creator\\ProfileCatogoryService",
+        "methods": {
+            "List": {
+                "method": "GET"
+            },
+            "Active": {
+                "method": "GET"
+            },
+            "Save": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

@@ -1,0 +1,30 @@
+{
+    "components": {
+        "currency-configuration-admin": {
+            "type": "component",
+            "location": "components"
+        },
+        "currency-configuration-handler": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Currency Configuration",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": ["showindock"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "currency-configuration-admin",
+            "onLoad": ["currency-configuration-handler"],
+            "routes": {
+                "partials": {
+                    "/": "currency-configuration-admin"
+                }
+            }
+        }
+    }
+}

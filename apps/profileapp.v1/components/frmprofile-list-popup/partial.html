@@ -1,4 +1,4 @@
-<div class="contentpanel">
+<div class="contentpanel profile-v1-app profile-page">
   <div class="row row-pad-12">
     <div class="col-lg-4">
         <select class="form-control mb15" v-model="SearchColumn">
@@ -15,8 +15,8 @@
     <div class="col-lg-8">
         <div class="profile-search-bar mb15">
             <input type="text" class="form-control" placeholder="Search" v-model="SearchItem"/>
-            <button type="button" class="btn btn-default" v-on:click="searchItems(SearchColumn,SearchItem);">Search</button>
-            <button class="btn btn-primary" v-on:click="navigate('edit',null)">New Profile</button>
+            <button type="button" class="btn btn-default" v-on:click="searchItems(SearchColumn,SearchItem);"><i class="fa fa-search"></i> Search</button>
+            <button class="btn btn-primary" v-on:click="navigate('edit',null)"><i class="fa fa-plus"></i> New Profile</button>
         </div>
     </div>
     
@@ -28,9 +28,9 @@
         <h1><center>{{ Message }}</center></h1>
     </div>
     
-    <div class="row">
+    <div class="row profile-card-grid">
       
-      <div class="col-md-6" v-for="profile in items">
+      <div class="col-md-6 profile-card-col" v-for="profile in items">
         <div class="people-item">
           <div class="media">
             
@@ -42,7 +42,7 @@
               <div class="text-muted"><i class="fa fa-briefcase"></i> {{ profile.organization }}</div>
               <div class="profile-position"><i class="fa fa-star"></i>  <span :class="'label label-'+status(profile.Status)"> {{ profile.Status }}</span></div>
               <ul class="social-list profile-actions">
-                <li><button class="btn btn-primary" v-on:click="select(profile)">Select</button></li>
+                <li><button class="btn btn-primary" v-on:click="select(profile)"><i class="fa fa-check"></i> Select</button></li>
               </ul>
               <ul v-for="app in Launchers" class="social-list profile-actions launcher-actions">
                 <li :class="subapp.Launchers.length!=0?'nav-item dropdown':'nav-item'" v-for="subapp in app.Launchers">
@@ -58,11 +58,10 @@
           </div>
         </div>
       </div><!-- col-md-6 -->
-      <div class="row center" v-if="items && items.length">
-        <button class="btn btn-default" v-on:click="clear">Clear History</button>
-      </div>
-      
     </div><!-- row -->
+    <div class="profile-list-footer" v-if="items && items.length">
+      <button class="btn btn-default" v-on:click="clear"><i class="fa fa-trash-o"></i> Clear History</button>
+    </div>
   </div><!-- people-list -->
   
 </div>

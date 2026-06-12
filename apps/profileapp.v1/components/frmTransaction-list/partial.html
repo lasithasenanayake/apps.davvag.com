@@ -1,0 +1,80 @@
+<div class="contentpanel profile-v1-app profile-page profile-list-page">
+  <div class="profile-list-header">
+    <div class="profile-list-title">
+      <h3><i :class="'fa ' + icon"></i> {{ title }}</h3>
+      <p>{{ subtitle }}</p>
+    </div>
+    <div class="pv-actions">
+      <button type="button" class="btn btn-default" v-on:click="loadLatest" :disabled="loading">
+        <i class="fa fa-refresh"></i> Latest
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-list-toolbar">
+    <select class="form-control" v-model="SearchColumn">
+      <option v-for="column in columns" :value="column.value">{{ column.label }}</option>
+    </select>
+    <input type="text" class="form-control" placeholder="Search transactions" v-model="SearchItem" v-on:keyup.enter="searchRecords">
+    <button type="button" class="btn btn-primary" v-on:click="searchRecords" :disabled="loading">
+      <i class="fa fa-search"></i> Search
+    </button>
+    <button type="button" class="btn btn-default" v-on:click="clearSearch" :disabled="loading">
+      <i class="fa fa-times"></i> Clear
+    </button>
+  </div>
+
+  <div class="profile-list-summary" v-if="Message">
+    <i :class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="table-responsive profile-transaction-wrap">
+    <table class="table table-bordered table-hover profile-transaction-table">
+      <thead>
+        <tr>
+          <th>{{ idLabel }}</th>
+          <th>{{ dateLabel }}</th>
+          <th>{{ primaryLabel }}</th>
+          <th>{{ secondaryLabel }}</th>
+          <th>{{ statusLabel }}</th>
+          <th class="text-right">{{ amountLabel }}</th>
+          <th class="profile-actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="!records || records.length === 0">
+          <td colspan="7" class="profile-empty-state">
+            No {{ title.toLowerCase() }} found.
+          </td>
+        </tr>
+        <tr v-for="record in records">
+          <td data-label="Number">
+            <strong>{{ recordId(record) }}</strong>
+          </td>
+          <td data-label="Date">{{ formatDate(recordDate(record)) }}</td>
+          <td data-label="Name">{{ recordPrimary(record) }}</td>
+          <td data-label="Contact">{{ recordSecondary(record) }}</td>
+          <td data-label="Status">
+            <span :class="'label label-' + statusClass(recordStatus(record))">{{ recordStatus(record) }}</span>
+          </td>
+          <td data-label="Amount" class="text-right">
+            {{ recordCurrency(record) }} {{ formatMoney(recordAmount(record)) }}
+          </td>
+          <td data-label="Actions" class="profile-transaction-actions">
+            <button type="button" class="btn btn-success btn-sm" v-on:click="openRecord(record)" :disabled="!canOpen(record)">
+              <i class="fa fa-print"></i> Print View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="profile-load-more" v-if="records && records.length">
+    <button type="button" class="btn btn-default" v-on:click="loadMore" :disabled="loading || loadingMore || !hasMore">
+      <i :class="loadingMore ? 'fa fa-spinner fa-spin' : 'fa fa-chevron-down'"></i>
+      {{ hasMore ? 'Load More' : 'No More Records' }}
+    </button>
+  </div>
+</div>

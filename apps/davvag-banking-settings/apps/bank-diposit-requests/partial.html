@@ -1,91 +1,91 @@
-<div class="content">
-  <div style="color:black;">
-    
-
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Bank Code</th>
-        <th>Account No</th>
-        <th>Date</th>
-        <th>Remarks</th>
-        <th>Amount</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="item in items">
-        <td>{{ item.bank_code }}</td>
-        <td>{{ item.bank_accountno }}</td>
-        <td>{{ item.dipositDate }}</td>
-        <td>
-          {{ item.remark }} 
-        </td>
-        <td>
-          {{ item.dipositAmount }} 
-        </td>
-        <td>
-            <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
-                <a class="btn btn-primary" v-on:click="open(item)" ><span class="glyphicon glyphicon-pencil"></span> Clear Payment</a>
-                
-            </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="container profile-v1-app profile-list-page banking-settings-app">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="banking-heading-text">
+        <h4 class="panel-title"><i class="fa fa-credit-card"></i> Pending Deposits</h4>
+        <p>Review submitted bank transfer slips and clear verified payments.</p>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+        <strong>ERROR! </strong> {{error}}
+      </div>
+      <div class="alert alert-info" v-if="submitInfo" v-for="info in submitInfo">
+        <strong>INFO! </strong> {{info}}
+      </div>
+      <div class="profile-list-summary" v-if="items && items.length">
+        <i class="fa fa-info-circle"></i> {{ items.length }} pending deposit request(s).
+      </div>
+      <div class="table-responsive profile-transaction-wrap">
+        <table class="table table-bordered table-hover profile-transaction-table">
+          <thead>
+            <tr>
+              <th>Bank Code</th>
+              <th>Account No</th>
+              <th>Date</th>
+              <th>Remarks</th>
+              <th>Amount</th>
+              <th class="profile-actions-col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items">
+              <td data-label="Bank Code">{{ item.bank_code }}</td>
+              <td data-label="Account No">{{ item.bank_accountno }}</td>
+              <td data-label="Date">{{ item.dipositDate }}</td>
+              <td data-label="Remarks">{{ item.remark || item.remarks }}</td>
+              <td data-label="Amount">{{ item.dipositAmount }}</td>
+              <td data-label="Actions">
+                <div class="profile-transaction-actions">
+                  <button type="button" class="btn btn-default btn-sm" v-on:click="open(item)"><i class="fa fa-check"></i> Clear Payment</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="!items || !items.length">
+              <td colspan="6" class="profile-empty-state">No pending deposit requests.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
-</div>
-<div class="modal fade" id="modalappwindow" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+<div class="modal fade banking-settings-app profile-v1-app" id="modalappwindow" role="dialog" tabindex="-1" style="overflow-x: auto;overflow-y: auto;width:100%;">
   <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
           <div class="modal-header">
-              
-                  Deposit Clearance             
-              
+              Deposit Clearance
           </div>
           <div id="appdock" class="modal-body">
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Bank Name</strong></div>
-              <div class="col-sm-9">{{ data.bank_name }}</div>
+            <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+              <strong>ERROR! </strong> {{error}}
             </div>
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Account No</strong></div>
-              <div class="col-sm-9">{{ data.bank_accountno }}</div>
+            <div class="banking-detail-list">
+              <div class="banking-detail-row"><strong>Bank Name</strong><span>{{ data.bank_name }}</span></div>
+              <div class="banking-detail-row"><strong>Account No</strong><span>{{ data.bank_accountno }}</span></div>
+              <div class="banking-detail-row"><strong>Name</strong><span>{{ data.name}}</span></div>
+              <div class="banking-detail-row"><strong>Contact No</strong><span>{{ data.contactno}}</span></div>
+              <div class="banking-detail-row"><strong>Deposit Date</strong><span>{{ data.dipositDate || data.dipositdate }}</span></div>
+              <div class="banking-detail-row"><strong>Deposit Amount</strong><span>{{ data.dipositAmount}}</span></div>
+              <div class="banking-detail-row"><strong>Remarks</strong><span>{{ data.remarks || data.remark }}</span></div>
             </div>
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Name</strong></div>
-              <div class="col-sm-9">{{ data.name}}</div>
+            <div class="form-group" v-if="data.bank_slip">
+              <img :src="data.bank_slip" class="banking-image-preview">
             </div>
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Contact No</strong></div>
-              <div class="col-sm-9">{{ data.contactno}}</div>
-            </div>
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Dipist Date</strong></div>
-              <div class="col-sm-9">{{ data.dipositdate}}</div>
-            </div>  
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Dipist Amount</strong></div>
-              <div class="col-sm-9">{{ data.dipositAmount}}</div>
-            </div> 
-            <div class="form-group">
-              <div class="col-sm-3"><strong>Remarks</strong></div>
-              <div class="col-sm-9">{{ data.remarks}}</div>
-            </div>  
-            <div class="form-group">
-              <img :src="data.bank_slip" width="500px">
-            </div> 
-            <div class="form-group">
-              <label>Banked Amount *</label>
-              <input type="number" class="form-control" v-model="data.clearedAmount">
-            </div>
-            <div class="form-group">
-              <label>Reference Number *</label>
-              <input type="text" class="form-control" v-model="data.cleared_ref">
-            </div>
-            <button  class="btn bg-primary-button btn-block" v-on:click="save">Submit</button>
-            <button  class="btn bg-primary-button btn-block" v-on:click="close">Cancel</button>
+            <form id="form-details" onsubmit="event.preventDefault();">
+              <div class="form-group">
+                <label>Banked Amount *</label>
+                <input type="number" class="form-control" v-model="data.clearedAmount">
+              </div>
+              <div class="form-group">
+                <label>Reference Number *</label>
+                <input type="text" class="form-control" v-model="data.cleared_ref">
+              </div>
+              <div class="banking-form-actions">
+                <button type="button" class="btn btn-default" v-on:click="close"><i class="fa fa-times"></i> Cancel</button>
+                <button type="button" class="btn btn-primary" v-on:click="save"><i class="fa fa-check"></i> Submit</button>
+              </div>
+            </form>
           </div>
       </div>
   </div>

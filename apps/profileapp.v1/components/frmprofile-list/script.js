@@ -27,10 +27,10 @@ WEBDOCK.component().register(function(exports){
                
                 var handler = exports.getShellComponent("soss-routes");
                 if(p!=null){
-                    handler.appNavigate("/"+pagev+"?id=" + p.id);
+                    handler.appNavigate("../"+pagev+"?id=" + p.id);
                     addProfileToTmp(p);
                 }else{
-                    handler.appNavigate("/"+pagev);
+                    handler.appNavigate("../"+pagev);
                 }
             },status:function(status){
                 switch((status?status:'active').toString().toLowerCase()){

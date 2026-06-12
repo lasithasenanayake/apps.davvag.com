@@ -1,0 +1,30 @@
+{
+    "components": {
+        "profile-catogory-admin": {
+            "type": "component",
+            "location": "components"
+        },
+        "profile-catogory-handler": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Profile Catogories",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": ["showindock"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "profile-catogory-admin",
+            "onLoad": ["profile-catogory-handler"],
+            "routes": {
+                "partials": {
+                    "/": "profile-catogory-admin"
+                }
+            }
+        }
+    }
+}

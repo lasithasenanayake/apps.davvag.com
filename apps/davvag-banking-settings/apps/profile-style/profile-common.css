@@ -1,0 +1,514 @@
+.profile-v1-app,
+.profile-v1-app * {
+  box-sizing: border-box;
+}
+
+.profile-v1-app {
+  --pv-bg: #f4f7fb;
+  --pv-panel: #ffffff;
+  --pv-border: #dce3eb;
+  --pv-border-strong: #c7d2df;
+  --pv-text: #1f2937;
+  --pv-muted: #64748b;
+  --pv-primary: #2563eb;
+  --pv-primary-dark: #1d4ed8;
+  --pv-success: #16a34a;
+  --pv-danger: #dc2626;
+  --pv-warning: #d97706;
+  --pv-radius: 8px;
+  color: var(--pv-text);
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 100%;
+}
+
+.profile-v1-app.container,
+.profile-v1-app.contentpanel,
+.profile-v1-app.input-form,
+.profile-v1-app.panel {
+  background: var(--pv-bg);
+  padding: 16px;
+}
+
+.profile-v1-app .panel,
+.profile-v1-app.people-list .people-item,
+.profile-v1-app .people-item,
+.profile-v1-app .table,
+.profile-v1-app .well {
+  border-color: var(--pv-border);
+  border-radius: var(--pv-radius);
+}
+
+.profile-v1-app .panel,
+.profile-v1-app .people-item {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+}
+
+.profile-v1-app .panel-heading,
+.profile-v1-app .panel-footer {
+  border-color: var(--pv-border);
+}
+
+.profile-v1-app .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.profile-v1-app [class*="col-"] {
+  min-width: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.profile-v1-app .pull-right,
+.profile-v1-app .pull-left {
+  float: none !important;
+}
+
+.profile-v1-app .profile-toolbar,
+.profile-v1-app .profile-actions,
+.profile-v1-app .pv-actions,
+.profile-v1-app .profile-list-footer,
+.profile-v1-app .col-md-12:has(> .btn) {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.profile-v1-app .btn {
+  align-items: center;
+  border-radius: 6px;
+  display: inline-flex;
+  gap: 7px;
+  justify-content: center;
+  line-height: 1.2;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  touch-action: manipulation;
+  white-space: normal;
+}
+
+.profile-v1-app .btn-xs,
+.profile-v1-app .btn-sm {
+  font-size: 14px;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 11px;
+}
+
+.profile-v1-app .btn-primary,
+.profile-v1-app .bg-primary-button {
+  background: var(--pv-primary);
+  border-color: var(--pv-primary);
+  color: #fff;
+}
+
+.profile-v1-app .btn-primary:hover,
+.profile-v1-app .btn-primary:focus,
+.profile-v1-app .bg-primary-button:hover,
+.profile-v1-app .bg-primary-button:focus {
+  background: var(--pv-primary-dark);
+  border-color: var(--pv-primary-dark);
+  color: #fff;
+}
+
+.profile-v1-app .btn .fa,
+.profile-v1-app .nav-link .fa {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.profile-v1-app .form-control,
+.profile-v1-app select,
+.profile-v1-app input,
+.profile-v1-app textarea {
+  border-color: var(--pv-border-strong);
+  border-radius: 6px;
+  min-height: 42px;
+}
+
+.profile-v1-app textarea.form-control {
+  min-height: 96px;
+}
+
+.profile-v1-app label {
+  color: var(--pv-muted);
+  font-weight: 600;
+  padding-top: 8px;
+}
+
+.profile-v1-app .input-group {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.profile-v1-app .input-group .input-group-addon {
+  align-items: center;
+  background: #f8fafc;
+  border-color: var(--pv-border-strong);
+  color: #475569;
+  display: inline-flex;
+  flex: 0 0 42px;
+  justify-content: center;
+  min-height: 42px;
+  width: 42px;
+}
+
+.profile-v1-app .input-group .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 1%;
+}
+
+.profile-v1-app .table {
+  background: #fff;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.profile-v1-app .table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+}
+
+.profile-v1-app .table th,
+.profile-v1-app .table td {
+  border-color: var(--pv-border) !important;
+  vertical-align: middle !important;
+}
+
+.profile-v1-app .table-responsive,
+.profile-v1-app .pv-scroll-x {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+}
+
+.profile-v1-app .thumbnail,
+.profile-v1-app img.thumbnail {
+  border-color: var(--pv-border);
+  border-radius: var(--pv-radius);
+}
+
+.profile-v1-app .label {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+}
+
+.profile-v1-app.profile-list-page .profile-list-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.profile-v1-app.profile-list-page .profile-list-title h3 {
+  align-items: center;
+  display: flex;
+  font-size: 24px;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.profile-v1-app.profile-list-page .profile-list-title p {
+  color: var(--pv-muted);
+  margin: 0;
+}
+
+.profile-v1-app.profile-list-page .profile-list-summary {
+  align-items: center;
+  background: #eef6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--pv-radius);
+  color: #1e3a8a;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+}
+
+.profile-v1-app.profile-list-page .profile-transaction-wrap {
+  background: var(--pv-panel);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+}
+
+.profile-v1-app.profile-list-page .profile-transaction-table {
+  border: 0;
+  margin-bottom: 0;
+}
+
+.profile-v1-app.profile-list-page .profile-transaction-table th,
+.profile-v1-app.profile-list-page .profile-transaction-table td {
+  padding: 12px;
+}
+
+.profile-v1-app.profile-list-page .profile-transaction-table td {
+  overflow-wrap: anywhere;
+}
+
+.profile-v1-app.profile-list-page .profile-actions-col {
+  width: 150px;
+}
+
+.profile-v1-app.profile-list-page .profile-transaction-actions {
+  white-space: nowrap;
+}
+
+.profile-v1-app.profile-list-page .profile-empty-state {
+  color: var(--pv-muted);
+  font-weight: 600;
+  padding: 24px 12px !important;
+  text-align: center;
+}
+
+.profile-v1-app.profile-edit .panel-body-nopadding {
+  padding: 0;
+}
+
+.profile-v1-app.profile-edit .form-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.profile-v1-app.profile-edit .form-group > label[class*="col-"] {
+  flex: 0 0 180px;
+  max-width: 180px;
+  width: 180px;
+}
+
+.profile-v1-app.profile-edit .form-group > div[class*="col-"] {
+  flex: 1 1 240px;
+  max-width: none;
+  width: auto;
+}
+
+.banking-settings-app.input-form {
+  margin: 0 auto;
+  max-width: 980px;
+  width: 100%;
+}
+
+.banking-settings-app .panel-title {
+  font-weight: 700;
+}
+
+.banking-settings-app .panel-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.banking-settings-app .banking-heading-text p {
+  color: var(--pv-muted);
+  margin: 4px 0 0;
+}
+
+.banking-settings-app .banking-form-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.banking-settings-app .banking-detail-list {
+  background: #f8fafc;
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.banking-settings-app .banking-detail-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 160px minmax(0, 1fr);
+  padding: 8px 0;
+}
+
+.banking-settings-app .banking-detail-row strong {
+  color: var(--pv-muted);
+}
+
+.banking-settings-app .banking-image-preview {
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  display: block;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.banking-settings-app .banking-qr-preview {
+  max-height: 220px;
+  max-width: 220px;
+}
+
+.banking-settings-app .list-group {
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  overflow: hidden;
+}
+
+.banking-settings-app .list-group-item {
+  border-color: var(--pv-border);
+  cursor: pointer;
+}
+
+.banking-settings-app .list-group-item:hover,
+.banking-settings-app .list-group-item:focus {
+  background: #eef6ff;
+  color: #1e3a8a;
+}
+
+.banking-settings-app .modal-content {
+  border-color: var(--pv-border);
+  border-radius: var(--pv-radius);
+}
+
+.banking-settings-app .modal-header {
+  border-color: var(--pv-border);
+  font-weight: 700;
+}
+
+.activeForm {
+  display: block;
+}
+
+.inactiveForm {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .profile-v1-app.container,
+  .profile-v1-app.contentpanel,
+  .profile-v1-app.input-form,
+  .profile-v1-app.panel {
+    padding: 12px;
+  }
+
+  .profile-v1-app [class*="col-md-"],
+  .profile-v1-app [class*="col-lg-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .profile-v1-app .table {
+    min-width: 720px;
+  }
+}
+
+@media (max-width: 767px) {
+  .profile-v1-app .pv-actions,
+  .profile-v1-app .profile-list-footer,
+  .profile-v1-app .col-md-12:has(> .btn),
+  .banking-settings-app .banking-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-v1-app .btn {
+    width: 100%;
+  }
+
+  .profile-v1-app.profile-edit .form-group > label[class*="col-"],
+  .profile-v1-app.profile-edit .form-group > div[class*="col-"] {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+  }
+
+  .profile-v1-app.profile-list-page .profile-list-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table {
+    min-width: 0;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table thead {
+    display: none;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table,
+  .profile-v1-app.profile-list-page .profile-transaction-table tbody,
+  .profile-v1-app.profile-list-page .profile-transaction-table tr,
+  .profile-v1-app.profile-list-page .profile-transaction-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table tr {
+    border-bottom: 1px solid var(--pv-border);
+    padding: 8px 0;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table td {
+    border: 0 !important;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 112px minmax(0, 1fr);
+    padding: 8px 12px;
+    text-align: left !important;
+  }
+
+  .profile-v1-app.profile-list-page .profile-transaction-table td::before {
+    color: var(--pv-muted);
+    content: attr(data-label);
+    font-weight: 700;
+  }
+
+  .profile-v1-app.profile-list-page .profile-empty-state {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .profile-v1-app.profile-list-page .profile-empty-state::before {
+    display: none;
+  }
+
+  .banking-settings-app .banking-detail-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .profile-v1-app {
+    background: #fff !important;
+    color: #000;
+    padding: 0 !important;
+  }
+
+  .profile-v1-app .btn,
+  .profile-v1-app .pv-actions {
+    display: none !important;
+  }
+
+  .profile-v1-app .table {
+    min-width: 0;
+  }
+}

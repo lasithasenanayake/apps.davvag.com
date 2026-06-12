@@ -146,6 +146,15 @@
         "profileapp-admin":{
             "version":"latest"
         },
+        "tax-master":{
+            "version":"latest"
+        },
+        "currency-configuration":{
+            "version":"latest"
+        },
+        "profile-catogory-creator":{
+            "version":"latest"
+        },
         "davvag-shop-v2":{
             "version":"latest"
         },

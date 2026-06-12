@@ -1,0 +1,14 @@
+{
+    "name": "profile-style",
+    "description": "Profile V1 shared responsive UI styles",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "css": [
+            {
+                "type": "css",
+                "location": "profile-common.css"
+            }
+        ]
+    }
+}

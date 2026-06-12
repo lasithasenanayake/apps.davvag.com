@@ -1,39 +1,47 @@
-<div class="content">
-  <div style="color:black;">
-    <div>
-        <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
-            <a v-on:click="navigate()" class="btn btn-primary">New Bank</a>
-        </div>
+<div class="container profile-v1-app profile-list-page banking-settings-app">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="banking-heading-text">
+        <h4 class="panel-title"><i class="fa fa-university"></i> Bank Accounts</h4>
+        <p>Manage bank transfer accounts used by payment flows.</p>
+      </div>
+      <div class="pv-actions">
+        <button type="button" v-on:click="navigate()" class="btn btn-primary"><i class="fa fa-plus"></i> New Bank</button>
+      </div>
     </div>
-    <br/><br/><br/>
-
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Bank Code</th>
-        <th>Bank Name</th>
-        <th>Account No</th>
-        <th>Account Name</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="item in items">
-        <td>{{ item.bank_code }}</td>
-        <td>{{ item.bank_name }}</td>
-        <td>{{ unescape(item.bank_accountno) }}</td>
-        <td>
-          {{ unescape(item.bank_accountname) }} 
-        </td>
-        <td>
-            <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
-                <a class="btn btn-primary" v-on:click="navigate(item.bank_code)" ><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-                <a class="btn btn-primary" href=""> <span class="glyphicon glyphicon-remove"></span> Delete</a>
-            </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <div class="panel-body">
+      <div class="profile-list-summary" v-if="items && items.length">
+        <i class="fa fa-info-circle"></i> {{ items.length }} bank account(s) configured.
+      </div>
+      <div class="table-responsive profile-transaction-wrap">
+        <table class="table table-bordered table-hover profile-transaction-table">
+          <thead>
+            <tr>
+              <th>Bank Code</th>
+              <th>Bank Name</th>
+              <th>Account No</th>
+              <th>Account Name</th>
+              <th class="profile-actions-col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items">
+              <td data-label="Bank Code">{{ item.bank_code }}</td>
+              <td data-label="Bank Name">{{ item.bank_name }}</td>
+              <td data-label="Account No">{{ unescape(item.bank_accountno) }}</td>
+              <td data-label="Account Name">{{ unescape(item.bank_accountname) }}</td>
+              <td data-label="Actions">
+                <div class="profile-transaction-actions">
+                  <button type="button" class="btn btn-default btn-sm" v-on:click="navigate(item.bank_code)"><i class="fa fa-pencil"></i> Edit</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="!items || !items.length">
+              <td colspan="5" class="profile-empty-state">No bank accounts configured yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>

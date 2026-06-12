@@ -1,4 +1,4 @@
-<div  class="container" v-show="!invoiceSave">
+<div class="container profile-v1-app profile-transaction" v-show="!invoiceSave">
     <div class="row clearfix" style="margin-top:20px">
         <div class="pull-left col-md-4">
           <table class="table table-bordered table-hover" id="tab_logic_total">
@@ -107,10 +107,11 @@
           </tr>
           <tr>
             <th class="text-center">Tax</th>
-            <td class="text-center"><div class="input-group mb-2 mb-sm-0">
-                <input type="number" class="form-control" id="tax" placeholder="0" v-model="tax" v-on:change="taxChange">
-                <div class="input-group-addon">%</div>
-              </div></td>
+            <td class="text-center">
+              <select class="form-control mb15" v-model="selectedTax" v-on:change="taxSelect">
+                <option v-bind:value="taxitem" v-for="taxitem in taxes">{{ taxitem.name }} ({{ taxitem.rate }}%)</option>
+              </select>
+            </td>
           </tr>
           <tr>
             <th class="text-center">Tax Amount</th>
@@ -126,12 +127,12 @@
   </div>
   <div class="row clearfix">
     <div class="col-md-12">
-      <button  class="pull-right btn btn-default" v-on:click="navigateBack">Back</button>
-      <button  class="pull-right btn btn-primary" v-on:click="savePreview">Save</button>
+      <button class="pull-right btn btn-default" v-on:click="navigateBack"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="pull-right btn btn-primary" v-on:click="savePreview"><i class="fa fa-save"></i> Save</button>
     </div>
   </div>
 </div>
-<div  class="container" v-show="invoiceSave">
+<div class="container profile-v1-app profile-transaction" v-show="invoiceSave">
     
     <div id="printcontent" >
     <div class="row">
@@ -165,7 +166,7 @@
     		<div class="row">
     			<div class="col-xs-6">
     				<address>
-    					<strong>Conatct Details:</strong><br>
+    					<strong>Contact Details:</strong><br>
     					{{ InvoiceToSave.contactno }}<br>
               {{ InvoiceToSave.email }}<br>
               <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>
@@ -173,7 +174,7 @@
     			</div>
     			<div class="col-xs-6 text-right">
     				<address>
-              <strong>Conatct Details:</strong><br>
+              <strong>Contact Details:</strong><br>
               {{ supplierData.contactno }}<br>
               {{ supplierData.email }}<br>
     					<strong>Order Date:</strong><br>
@@ -237,7 +238,7 @@
                     <td class="no-line"></td>
                     <td class="no-line"></td>
                     <td class="no-line"></td>
-    								<td class="no-line text-left"><strong>Tax Amount</strong></td>
+    								<td class="no-line text-left"><strong>Discount</strong></td>
     								<td class="no-line text-right">{{ InvoiceToSave.discount }}</td>
     							</tr>
     							<tr>
@@ -246,7 +247,7 @@
                     <td class="no-line"></td>
                     <td class="no-line"></td>
                     <td class="no-line"></td>
-    								<td class="no-line text-left"><strong>Tax Amount</strong></td>
+    								<td class="no-line text-left"><strong>{{ InvoiceToSave.taxname || 'Tax' }} ({{ InvoiceToSave.tax }}%)</strong></td>
     								<td class="no-line text-right">{{ InvoiceToSave.taxamount }}</td>
     							</tr>
     							<tr>
@@ -269,10 +270,10 @@
   <div class="row clearfix">
     <div class="col-md-12">
       
-      <button  class="pull-right btn btn-default" v-on:click="savePreviewCancel" :disabled="InvoiceToSave.invoiceNo != 0 ? true : false">Cancel</button>
-      <button  class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.invoiceNo != 0 ? true : false">Back</button>
-      <button  class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.invoiceNo != 0 ? true : false">Print</button>
-      <button id="send" class="pull-right btn btn-primary" v-on:click="save" :disabled="InvoiceToSave.invoiceNo != 0 ? true : false">Confirm To Save</button>
+      <button class="pull-right btn btn-default" v-on:click="savePreviewCancel" :disabled="InvoiceToSave.invoiceNo != 0 ? true : false"><i class="fa fa-times"></i> Cancel</button>
+      <button class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"><i class="fa fa-print"></i> Print</button>
+      <button id="send" class="pull-right btn btn-primary" v-on:click="save" :disabled="InvoiceToSave.invoiceNo != 0 ? true : false"><i class="fa fa-check"></i> Confirm To Save</button>
     </div>
   </div>
 </div>

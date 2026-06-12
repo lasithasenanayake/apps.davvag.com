@@ -6,6 +6,82 @@ require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
 class ProfileService{
     //public var $appname="profileapp";
+    private function sortConfigItems($items){
+        usort($items, function($a, $b){
+            $ao = isset($a->sortOrder) ? intval($a->sortOrder) : 0;
+            $bo = isset($b->sortOrder) ? intval($b->sortOrder) : 0;
+            if($ao === $bo){
+                return strcmp(isset($a->name) ? $a->name : "", isset($b->name) ? $b->name : "");
+            }
+            return $ao < $bo ? -1 : 1;
+        });
+        return $items;
+    }
+
+    private function defaultProfileCatogories(){
+        return array("Customer","Vender","Company","Guest","Staff","Student","Student-MDiv","Student-Diploma","Student-BTH","Student-Digree","Student-HCD","Visiting","Church","Pastor");
+    }
+
+    private function seedProfileCatogories(){
+        $result = SOSSData::Query("profile_catogory", "");
+        if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
+            return;
+        }
+        $items = array();
+        foreach($this->defaultProfileCatogories() as $index => $name){
+            $item = new stdClass();
+            $item->name = $name;
+            $item->code = strtoupper(preg_replace("/[^A-Za-z0-9]+/", "_", $name));
+            $item->status = "active";
+            $item->isDefault = $index === 0 ? "Y" : "N";
+            $item->sortOrder = $index + 1;
+            $items[] = $item;
+        }
+        SOSSData::Insert("profile_catogory", $items);
+        CacheData::clearObjects("profile_catogory");
+    }
+
+    private function getCurrencyCode(){
+        $result = SOSSData::Query("currency_configuration", "");
+        if(isset($result->success) && $result->success && isset($result->result)){
+            foreach($result->result as $item){
+                $active = !isset($item->status) || strtolower($item->status) === "active";
+                if($active && isset($item->isBase) && strtoupper($item->isBase) === "Y" && isset($item->code)){
+                    return $item->code;
+                }
+            }
+            foreach($result->result as $item){
+                $active = !isset($item->status) || strtolower($item->status) === "active";
+                if($active && isset($item->code)){
+                    return $item->code;
+                }
+            }
+        }
+        if(defined("CURRENCY_CODE")){
+            return CURRENCY_CODE;
+        }
+        return null;
+    }
+
+    private function seedInvoiceTaxes(){
+        $result = SOSSData::Query("tax_master", "");
+        if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
+            return;
+        }
+        $item = new stdClass();
+        $item->code = "NO_TAX";
+        $item->name = "No Tax";
+        $item->description = "Default zero tax mapping";
+        $item->rate = 0;
+        $item->taxType = "percentage";
+        $item->applyTo = "invoice";
+        $item->isDefault = "Y";
+        $item->status = "active";
+        $item->sortOrder = 1;
+        SOSSData::Insert("tax_master", $item);
+        CacheData::clearObjects("tax_master");
+    }
+
     private function updateLedger($ledgertran){
         $Transaction=$ledgertran;
         $result=SOSSData::Insert ("ledger", $ledgertran,$tenantId = null);
@@ -16,8 +92,9 @@ class ProfileService{
         if(count($result->result)!=0){
             $status= $result->result[0];
             $status->outstanding+=$Transaction->amount;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $status->currencycode=$currencyCode;
             }
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
@@ -42,8 +119,9 @@ class ProfileService{
             $status->totalPaidAmount=0;
             $status->totalGRNAmount=0;
             $status->totalPaymentAmount=0;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $status->currencycode=$currencyCode;
             }
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
@@ -74,8 +152,9 @@ class ProfileService{
         if(count($result->result)!=0){
             $status= $result->result[0];
             $status->outstanding+=$Transaction->amount;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $status->currencycode=$currencyCode;
             }
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
@@ -100,8 +179,9 @@ class ProfileService{
             $status->totalPaidAmount=0;
             $status->totalGRNAmount=0;
             $status->totalPaymentAmount=0;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $status->currencycode=$currencyCode;
             }
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
@@ -128,6 +208,260 @@ class ProfileService{
         if(isset($Store_profile->profile)){
             return $Store_profile->profile;
         }else{return null;}
+    }
+
+    public function getProfileCatogories($req,$res){
+        $this->seedProfileCatogories();
+        $result = SOSSData::Query("profile_catogory", "");
+        if(!$result->success){
+            $res->SetError("Unable to load profile catogories.");
+            return null;
+        }
+        $items = array_values(array_filter($result->result, function($item){
+            return !isset($item->status) || strtolower($item->status) === "active";
+        }));
+        return $this->sortConfigItems($items);
+    }
+
+    public function getInvoiceTaxes($req,$res){
+        $this->seedInvoiceTaxes();
+        $result = SOSSData::Query("tax_master", "");
+        if(!$result->success){
+            return array();
+        }
+        $items = array_values(array_filter($result->result, function($item){
+            $active = !isset($item->status) || strtolower($item->status) === "active";
+            $applyTo = isset($item->applyTo) ? strtolower($item->applyTo) : "invoice";
+            return $active && ($applyTo === "invoice" || $applyTo === "all");
+        }));
+        return $this->sortConfigItems($items);
+    }
+
+    public function getCurrencyConfig($req,$res){
+        $code = $this->getCurrencyCode();
+        if($code === null){
+            return null;
+        }
+        $result = SOSSData::Query("currency_configuration", urlencode("code:".$code));
+        if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
+            return $result->result[0];
+        }
+        $item = new stdClass();
+        $item->code = $code;
+        return $item;
+    }
+
+    private function transactionListConfig($type){
+        $type = strtolower(trim($type));
+        if($type == "reciept"){
+            $type = "receipt";
+        }
+        if($type == "diposit"){
+            $type = "deposit";
+        }
+
+        $config = new stdClass();
+        switch($type){
+            case "invoice":
+                $config->type = "invoice";
+                $config->store = "orderheader";
+                $config->title = "Invoices";
+                $config->idField = "invoiceNo";
+                $config->dateField = "invoiceDate";
+                $config->amountField = "total";
+                $config->statusField = "status";
+                $config->nameField = "name";
+                $config->contactField = "contactno";
+                $config->profileColumn = "profileId";
+                $config->printRoute = "invoice";
+                $config->columns = array("invoiceNo","profileId","name","email","contactno","status","preparedBy","PaymentComplete");
+                return $config;
+            case "receipt":
+                $config->type = "receipt";
+                $config->store = "paymentheader";
+                $config->title = "Receipts";
+                $config->idField = "receiptNo";
+                $config->dateField = "receiptDate";
+                $config->amountField = "paymentAmount";
+                $config->statusField = "status";
+                $config->nameField = "name";
+                $config->contactField = "contactno";
+                $config->profileColumn = "profileId";
+                $config->printRoute = "receipt";
+                $config->columns = array("receiptNo","profileId","name","email","contactno","paymentType","status","collectedBy");
+                return $config;
+            case "deposit":
+                $config->type = "deposit";
+                $config->store = "dipositheader";
+                $config->title = "Deposits";
+                $config->idField = "TranNo";
+                $config->dateField = "invoiceDate";
+                $config->amountField = "total";
+                $config->statusField = "status";
+                $config->nameField = "name";
+                $config->contactField = "contactno";
+                $config->profileColumn = "profileId";
+                $config->printRoute = "deposit";
+                $config->columns = array("TranNo","profileId","name","email","contactno","paymenttype","status","preparedBy");
+                return $config;
+            case "collection":
+                $config->type = "collection";
+                $config->store = "ledger";
+                $config->title = "Collections";
+                $config->idField = "tranid";
+                $config->dateField = "tranDate";
+                $config->amountField = "amount";
+                $config->statusField = "trantype";
+                $config->nameField = "description";
+                $config->contactField = "profileid";
+                $config->profileColumn = "profileid";
+                $config->printRoute = "";
+                $config->columns = array("profileid","tranid","trantype","tranDate","amount");
+                return $config;
+            default:
+                return null;
+        }
+    }
+
+    private function transactionRecordValue($record,$field){
+        if(is_object($record) && isset($record->{$field})){
+            return $record->{$field};
+        }
+        if(is_array($record) && isset($record[$field])){
+            return $record[$field];
+        }
+        return null;
+    }
+
+    private function transactionDateScore($value){
+        if($value == null || $value === ""){
+            return 0;
+        }
+        $value = trim(strval($value), "\"");
+        $time = strtotime($value);
+        return $time === false ? 0 : $time;
+    }
+
+    private function transactionColumnAllowed($column,$columns){
+        foreach($columns as $allowedColumn){
+            if($allowedColumn === $column){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function postTransactionList($req,$res){
+        $body = $req->Body(true);
+        if(!is_object($body)){
+            $body = new stdClass();
+        }
+
+        $type = isset($body->type) ? $body->type : "invoice";
+        $config = $this->transactionListConfig($type);
+        if($config == null){
+            $res->SetError("Invalid transaction list type.");
+            return null;
+        }
+
+        $searchValue = isset($body->searchValue) ? trim(strval($body->searchValue)) : "";
+        $searchColumn = isset($body->searchColumn) ? trim(strval($body->searchColumn)) : $config->idField;
+        $profileId = isset($body->profileId) ? trim(strval($body->profileId)) : "";
+        $lastVersionId = null;
+        if(isset($body->sysversionid) && trim(strval($body->sysversionid)) !== ""){
+            $lastVersionId = trim(strval($body->sysversionid));
+        }else if(isset($body->lastVersionId) && trim(strval($body->lastVersionId)) !== ""){
+            $lastVersionId = trim(strval($body->lastVersionId));
+        }
+        $limit = isset($body->limit) ? intval($body->limit) : 50;
+        if($limit <= 0 || $limit > 500){
+            $limit = 50;
+        }
+
+        $search = "";
+        if($searchValue !== ""){
+            if(!$this->transactionColumnAllowed($searchColumn,$config->columns)){
+                $res->SetError("Invalid search field.");
+                return null;
+            }
+            $search = $searchColumn.":".$searchValue;
+            if($profileId !== "" && $config->profileColumn !== ""){
+                $search = $config->profileColumn.":".$profileId.",".$search;
+            }
+        }else if($profileId !== "" && $config->profileColumn !== ""){
+            $search = $config->profileColumn.":".$profileId;
+        }
+
+        $result = SOSSData::Query ($config->store, urlencode($search), $lastVersionId);
+        if(!$result->success){
+            $res->SetError("Unable to load ".$config->title);
+            return null;
+        }
+
+        $records = array();
+        if(isset($result->result) && is_array($result->result)){
+            $records = $result->result;
+        }
+
+        $idField = $config->idField;
+        $dateField = $config->dateField;
+        usort($records,function($a,$b) use ($idField,$dateField){
+            $aVersion = $this->transactionRecordValue($a,"sysversionid");
+            $bVersion = $this->transactionRecordValue($b,"sysversionid");
+            if(is_numeric($aVersion) && is_numeric($bVersion)){
+                $aVersion = floatval($aVersion);
+                $bVersion = floatval($bVersion);
+                if($aVersion != $bVersion){
+                    return ($aVersion < $bVersion) ? 1 : -1;
+                }
+            }
+
+            $aId = $this->transactionRecordValue($a,$idField);
+            $bId = $this->transactionRecordValue($b,$idField);
+            if(is_numeric($aId) && is_numeric($bId)){
+                $aId = floatval($aId);
+                $bId = floatval($bId);
+                if($aId != $bId){
+                    return ($aId < $bId) ? 1 : -1;
+                }
+            }
+
+            $aDate = $this->transactionDateScore($this->transactionRecordValue($a,$dateField));
+            $bDate = $this->transactionDateScore($this->transactionRecordValue($b,$dateField));
+            if($aDate == $bDate){
+                return 0;
+            }
+            return ($aDate < $bDate) ? 1 : -1;
+        });
+
+        $total = count($records);
+        $hasMore = $total >= $limit;
+        if($total > $limit){
+            $records = array_slice($records,0,$limit);
+        }
+
+        $nextSysVersionId = null;
+        foreach($records as $record){
+            $versionId = $this->transactionRecordValue($record,"sysversionid");
+            if(is_numeric($versionId)){
+                $versionId = floatval($versionId);
+                if($nextSysVersionId === null || $versionId < $nextSysVersionId){
+                    $nextSysVersionId = $versionId;
+                }
+            }
+        }
+
+        $response = new stdClass();
+        $response->config = $config;
+        $response->records = $records;
+        $response->total = $total;
+        $response->search = $search;
+        $response->limit = $limit;
+        $response->hasMore = $hasMore && $nextSysVersionId !== null;
+        $response->nextSysVersionId = $nextSysVersionId;
+        $response->sysversionid = $nextSysVersionId;
+
+        return $response;
     }
 
     public function postDipositSave($req,$res){
@@ -190,8 +524,9 @@ class ProfileService{
             $Transaction->preparedBy=$user->email;
             $Transaction->PaymentComplete="N";
             $Transaction->balance=$Transaction->total;
-            if(defined("CURRENCY_CODE")){
-                $Transaction->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $Transaction->currencycode=$currencyCode;
             }
             try {
                 $handler =new Davvag_Order();
@@ -254,8 +589,9 @@ class ProfileService{
             $Transaction->preparedBy=$user->email;
             $Transaction->PaymentComplete="N";
             $Transaction->balance=$Transaction->total;
-            if(defined("CURRENCY_CODE")){
-                $Transaction->currencycode=CURRENCY_CODE;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $Transaction->currencycode=$currencyCode;
             }
             $result = SOSSData::Insert ("orderheader", $Transaction,$tenantId = null);
             CacheData::clearObjects("orderheader");
@@ -268,8 +604,8 @@ class ProfileService{
                 $ledgertran->tranDate=$Transaction->invoiceDate;
                 $ledgertran->description='Invoice No Has been generated';
                 $ledgertran->amount=$Transaction->total;
-                if(defined("CURRENCY_CODE")){
-                    $ledgertran->currencycode=CURRENCY_CODE;
+                if(isset($currencyCode)){
+                    $ledgertran->currencycode=$currencyCode;
                 }
                 $this->updateLedger($ledgertran);   
                 
@@ -675,13 +1011,21 @@ class ProfileService{
             if(!isset($s->storename) || !isset($s->search)){
                 continue;
             }
-            $result= CacheData::getObjects(md5($s->search),$s->storename);
+            $lastVersionId = null;
+            if(isset($s->sysversionid) && trim(strval($s->sysversionid)) !== ""){
+                $lastVersionId = trim(strval($s->sysversionid));
+            }else if(isset($s->lastVersionId) && trim(strval($s->lastVersionId)) !== ""){
+                $lastVersionId = trim(strval($s->lastVersionId));
+            }
+            $cacheKey = md5($s->search."|".$lastVersionId);
+            $useCache = !(isset($s->nocache) && $s->nocache);
+            $result = $useCache ? CacheData::getObjects($cacheKey,$s->storename) : null;
             if(!isset($result)){
-                $result = SOSSData::Query ($s->storename,urlencode($s->search));
+                $result = SOSSData::Query ($s->storename,urlencode($s->search),$lastVersionId);
                 if($result->success){
                     $f->{$s->storename}=$result->result;
-                    if(isset($result->result)){
-                        CacheData::setObjects(md5($s->search),$s->storename,$result->result);
+                    if($useCache && isset($result->result)){
+                        CacheData::setObjects($cacheKey,$s->storename,$result->result);
                     }
                 }else{
                     $f->{$s->storename}=null;

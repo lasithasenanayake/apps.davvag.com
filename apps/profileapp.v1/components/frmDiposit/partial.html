@@ -1,4 +1,4 @@
-<div  class="container" v-show="!invoiceSave">
+<div class="container profile-v1-app profile-transaction" v-show="!invoiceSave">
     <div class="row clearfix" style="margin-top:20px">
         <div class="pull-left col-md-4">
           <table class="table table-bordered table-hover" id="tab_logic_total">
@@ -43,7 +43,7 @@
               </tr>
               <tr>
                 <th>To Account<br/>(keep blank to Normal Company)</th>
-                <td><button v-on:click="selectProfile"> Select </button></td>
+                <td><button class="btn btn-default" v-on:click="selectProfile"><i class="fa fa-user"></i> Select</button></td>
               </tr>
               <tr>
                 <th>Payment Type</th>
@@ -129,12 +129,12 @@
   </div>
   <div class="row clearfix">
     <div class="col-md-12">
-      <button  class="pull-right btn btn-default" v-on:click="navigateBack">Back</button>
-      <button  class="pull-right btn btn-primary" v-on:click="savePreview">Save</button>
+      <button class="pull-right btn btn-default" v-on:click="navigateBack"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="pull-right btn btn-primary" v-on:click="savePreview"><i class="fa fa-save"></i> Save</button>
     </div>
   </div>
 </div>
-<div  class="container" v-show="invoiceSave">
+<div class="container profile-v1-app profile-transaction" v-show="invoiceSave">
     
     <div id="printcontent" >
     <div class="row">
@@ -168,7 +168,7 @@
     		<div class="row">
     			<div class="col-xs-6">
     				<address>
-    					<strong>Conatct Details:</strong><br>
+    					<strong>Contact Details:</strong><br>
     					{{ InvoiceToSave.contactno }}<br>
               {{ InvoiceToSave.email }}<br>
               <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.invoiceNo != 0 ? true : false"/>
@@ -176,7 +176,7 @@
     			</div>
     			<div class="col-xs-6 text-right">
     				<address>
-              <strong>Conatct Details:</strong><br>
+              <strong>Contact Details:</strong><br>
               {{ supplierData.contactno }}<br>
               {{ supplierData.email }}<br>
     					<strong>Order Date:</strong><br>
@@ -258,10 +258,10 @@
   <div class="row clearfix">
     <div class="col-md-12">
       
-      <button  class="pull-right btn btn-default" v-on:click="savePreviewCancel" :disabled="InvoiceToSave.TranNo != 0 ? true : false">Cancel</button>
-      <button  class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.TranNo != 0 ? true : false">Back</button>
-      <button  class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.TranNo != 0 ? true : false">Print</button>
-      <button id="send" class="pull-right btn btn-primary" v-on:click="save" :disabled="InvoiceToSave.TranNo != 0 ? true : false">Confirm To Save</button>
+      <button class="pull-right btn btn-default" v-on:click="savePreviewCancel" :disabled="InvoiceToSave.TranNo != 0 ? true : false"><i class="fa fa-times"></i> Cancel</button>
+      <button class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.TranNo != 0 ? true : false"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.TranNo != 0 ? true : false"><i class="fa fa-print"></i> Print</button>
+      <button id="send" class="pull-right btn btn-primary" v-on:click="save" :disabled="InvoiceToSave.TranNo != 0 ? true : false"><i class="fa fa-check"></i> Confirm To Save</button>
     </div>
   </div>
 </div>

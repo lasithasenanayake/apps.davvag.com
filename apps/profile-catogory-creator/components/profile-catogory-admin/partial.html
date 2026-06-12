@@ -1,0 +1,85 @@
+<div class="container profile-v1-app">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="panel-btns">
+        <a v-on:click="navigateBack()" class="panel-close">x</a>
+      </div>
+      <h4 class="panel-title">Profile Catogory Creator</h4>
+    </div>
+    <div class="panel-body">
+      <div class="alert alert-danger" v-for="error in submitErrors">{{ error }}</div>
+      <div class="alert alert-info" v-for="info in submitInfo">{{ info }}</div>
+      <form class="form-horizontal" v-on:submit.prevent="save">
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Name</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" v-model="form.name" placeholder="Customer">
+          </div>
+          <label class="col-sm-2 control-label">Code</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" v-model="form.code" placeholder="CUSTOMER">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Description</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" v-model="form.description">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Status</label>
+          <div class="col-sm-3">
+            <select class="form-control" v-model="form.status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <label class="col-sm-2 control-label">Default</label>
+          <div class="col-sm-2">
+            <select class="form-control" v-model="form.isDefault">
+              <option value="N">No</option>
+              <option value="Y">Yes</option>
+            </select>
+          </div>
+          <label class="col-sm-1 control-label">Order</label>
+          <div class="col-sm-2">
+            <input type="number" class="form-control" v-model="form.sortOrder">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            <button type="button" class="btn btn-default" v-on:click="clear"><i class="fa fa-eraser"></i> Clear</button>
+          </div>
+        </div>
+      </form>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code</th>
+              <th>Status</th>
+              <th>Default</th>
+              <th>Order</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items">
+              <td>{{ item.name }}</td>
+              <td>{{ item.code }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.isDefault }}</td>
+              <td>{{ item.sortOrder }}</td>
+              <td>
+                <button type="button" class="btn btn-default btn-sm" v-on:click="edit(item)"><i class="fa fa-pencil"></i> Edit</button>
+                <button type="button" class="btn btn-default btn-sm" v-on:click="archive(item)"><i class="fa fa-ban"></i> Inactive</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

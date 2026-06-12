@@ -3,6 +3,22 @@ WEBDOCK.component().register(function(exports){
         i_profile:{catogory:"Customer",id:0,country:"Sri Lanka",city:"",attributes:{}},
         SearchItem:"",
         items:[],
+        profileCatogories:[
+            {name:"Customer"},
+            {name:"Vender"},
+            {name:"Company"},
+            {name:"Guest"},
+            {name:"Staff"},
+            {name:"Student"},
+            {name:"Student-MDiv"},
+            {name:"Student-Diploma"},
+            {name:"Student-BTH"},
+            {name:"Student-Digree"},
+            {name:"Student-HCD"},
+            {name:"Visiting"},
+            {name:"Church"},
+            {name:"Pastor"}
+        ],
         showSearch:false,
         p_image:'',
         submitErrors:undefined
@@ -87,6 +103,7 @@ WEBDOCK.component().register(function(exports){
         uploaderInstance = exports.getShellComponent("soss-uploader");
         pInstance = exports.getShellComponent("soss-routes");
         validatorInstance = exports.getShellComponent("soss-validator");
+        loadProfileCatogories();
         loadValidator();
         var routeData = pInstance.getInputData();
         $('#grnDatePicker').datepicker().on('changeDate', function(ev){
@@ -103,6 +120,21 @@ WEBDOCK.component().register(function(exports){
         //getAllProductsThroughService();
         //getAllProductsThroughTransform();
         //saveProfile();
+    }
+
+    function loadProfileCatogories(){
+        profileHandler.services.ProfileCatogories()
+        .then(function(response){
+            if(response.success && response.result && response.result.length){
+                bindData.profileCatogories = response.result;
+                if(!bindData.i_profile.catogory){
+                    bindData.i_profile.catogory = response.result[0].name;
+                }
+            }
+        })
+        .error(function(){
+            $.notify("Profile catogories could not be loaded. Using defaults.", "warn");
+        });
     }
 
     function loadValidator(){

@@ -4,6 +4,10 @@
             "type":"service",
             "location":"services"
         },
+        "profile-style": {
+            "type":"component",
+            "location":"components"
+        },
         "frmProfile": {
             "type":"component",
             "location":"components"
@@ -35,8 +39,11 @@
         "frmRecipt-view-print": {
             "type":"component",
             "location":"components"
-        }
-        ,
+        },
+        "frmTransaction-list": {
+            "type":"component",
+            "location":"components"
+        },
         "frmprofile-view": {
             "type":"component",
             "location":"components"
@@ -61,14 +68,14 @@
     "description":{
         "title": "Profile V1",
         "author":"Davvag",
-        "version":"0.24",
+        "version":"0.26",
         "icon":""
     },
     "tags":["showindock"],
     "configuration":{
         "webdock":{
             "startupComponent" : "frmprofile-list",
-            "onLoad": ["profile"],
+            "onLoad": ["profile-style", "profile"],
             "routes":{
                 "partials":{
                     "/view" : "frmprofile-view",
@@ -77,6 +84,13 @@
                     "/dip" : "frmDiposit",
                     "/rpt" : "frmRecipt",
                     "/po" : "frmPO",
+                    "/invoices":"frmTransaction-list",
+                    "/receipts":"frmTransaction-list",
+                    "/reciepts":"frmTransaction-list",
+                    "/deposits":"frmTransaction-list",
+                    "/diposits":"frmTransaction-list",
+                    "/collections":"frmTransaction-list",
+                    "/col":"frmTransaction-list",
                     "/receipt" : "frmRecipt-view-print",
                     "/invoice":"frmInvoice-view-print",
                     "/diposit":"frmDiposit-view-print",
@@ -85,9 +99,19 @@
                     "/deposit_tr":"frmDiposit-view-print",
                     "/deposit_de":"frmDiposit-view-print",
                     "/deposit_dv":"frmDiposit-view-print",
-                    "/change":"frmprofile-change-status"
+                    "/change":"frmprofile-change-status",
+                    "/list":"frmprofile-list"
                 }
             }
+        },
+        "dock":{
+            "subapps":[
+                {"name":"Profiles","path":"list"},
+                {"name":"Invoices","path":"invoices"},
+                {"name":"Receipts","path":"receipts"},
+                {"name":"Deposits","path":"deposits"},
+                {"name":"Collections","path":"collections"}
+            ]
         }
     }
 }

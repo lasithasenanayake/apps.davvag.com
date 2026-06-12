@@ -1,50 +1,71 @@
-<div class="input-form">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Bank Setting</h1>
-<hr>
-<div class="input-error">
-  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
-    <strong>ERROR! </strong> {{error}}
-  </div>
-  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
-      <strong>INFO! </strong> {{error}}
+<div class="input-form profile-v1-app profile-edit banking-settings-app">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="banking-heading-text">
+        <h4 class="panel-title"><i class="fa fa-university"></i> Bank Setting</h4>
+        <p>Configure the receiving bank account and optional QR transfer image.</p>
+      </div>
     </div>
-</div>
-<form id="form-details">
-  <div class="form-group">
-    <label for="exampleInputEmail1">Bank Code</label>
-    <input type="text" class="form-control"  :disabled="data.id?true:false"  aria-describedby="emailHelp" placeholder="Bank Code" v-model="data.bank_code">
-    <small id="emailHelp" class="form-text text-muted">Input bank code.</small>
-  </div>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Bank Name</label>
-    <input type="text" class="form-control"  aria-describedby="emailHelp" placeholder="Name of the Bank" v-model="data.bank_name">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Account Holder Name</label>
-    <input type="text" class="form-control"  aria-describedby="emailHelp" placeholder="Account Holder Name" v-model="data.bank_accountname">
-    <small id="emailHelp" class="form-text text-muted">Name of the Account.</small>
-  </div>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Account No</label>
-    <input type="text" class="form-control"  aria-describedby="emailHelp" placeholder="Account No" v-model="data.bank_accountno">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Branch Code</label>
-    <input type="text" class="form-control"  aria-describedby="emailHelp" placeholder="Branch Code" v-model="data.bank_branch_code">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputEmail1">Swift</label>
-    <input type="text" class="form-control"  aria-describedby="emailHelp" placeholder="Swift Code" v-model="data.bank_swift_code">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputFile" class="col-md-4">QR Code</label>
-    <div class="col-md-4">
-      <img :src="qr_code" class="col-md-12" width="60"/>
-      <input type="file" class="form-control"  accept="image/png, image/jpeg" @change="onFileChange">
+    <div class="panel-body">
+      <div class="input-error">
+        <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+          <strong>ERROR! </strong> {{error}}
+        </div>
+        <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
+          <strong>INFO! </strong> {{error}}
+        </div>
+      </div>
+      <form id="form-details" class="form-horizontal" onsubmit="event.preventDefault();">
+        <div class="form-group">
+          <label class="col-md-4 control-label">Bank Code</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" :disabled="data.id?true:false" placeholder="Bank Code" v-model="data.bank_code">
+            <small class="form-text text-muted">Use a unique short code for this bank.</small>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">Bank Name</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" placeholder="Name of the Bank" v-model="data.bank_name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">Account Holder Name</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" placeholder="Account Holder Name" v-model="data.bank_accountname">
+            <small class="form-text text-muted">Name of the account holder.</small>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">Account No</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" placeholder="Account No" v-model="data.bank_accountno">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">Branch Code</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" placeholder="Branch Code" v-model="data.bank_branch_code">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">Swift</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" placeholder="Swift Code" v-model="data.bank_swift_code">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-4 control-label">QR Code</label>
+          <div class="col-md-8">
+            <img v-if="qr_code" :src="qr_code" class="banking-image-preview banking-qr-preview"/>
+            <input type="file" class="form-control" accept="image/png, image/jpeg" @change="onFileChange">
+          </div>
+        </div>
+        <div class="banking-form-actions">
+          <button type="button" class="btn btn-default" v-on:click="navigateback"><i class="fa fa-arrow-left"></i> Cancel</button>
+          <button type="button" class="btn btn-primary" v-on:click="submit"><i class="fa fa-save"></i> Save Settings</button>
+        </div>
+      </form>
     </div>
   </div>
-  <button  class="btn btn-success btn-block" v-on:click="submit">Save Settings</button>
-  <button  class="btn btn-danger btn-block" v-on:click="submit">Delete</button>
-  <button  class="btn btn-info btn-block" v-on:click="navigateback">Cancel</button>
-</form>
 </div>

@@ -1,0 +1,31 @@
+{
+    "name": "tax-master-handler",
+    "description": "Tax master service",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "tax_master\\TaxMasterService",
+        "methods": {
+            "List": {
+                "method": "GET"
+            },
+            "Active": {
+                "method": "GET",
+                "parameters": ["applyTo"]
+            },
+            "Save": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

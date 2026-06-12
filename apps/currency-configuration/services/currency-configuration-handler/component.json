@@ -1,0 +1,33 @@
+{
+    "name": "currency-configuration-handler",
+    "description": "Currency configuration service",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "currency_configuration\\CurrencyConfigurationService",
+        "methods": {
+            "List": {
+                "method": "GET"
+            },
+            "Active": {
+                "method": "GET"
+            },
+            "Default": {
+                "method": "GET"
+            },
+            "Save": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}
