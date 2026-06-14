@@ -1,0 +1,18 @@
+{
+    "name": "theme-changer",
+    "description": "Davvag CMS v7 theme changer",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

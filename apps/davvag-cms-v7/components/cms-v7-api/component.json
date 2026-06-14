@@ -1,0 +1,33 @@
+{
+    "name": "cms-v7-api",
+    "description": "Davvag CMS v7 content API",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "davvag_cms_v7\\CmsV7Api",
+        "methods": {
+            "Site": {
+                "method": "GET"
+            },
+            "Page": {
+                "method": "GET",
+                "parameters": [
+                    "slug"
+                ]
+            },
+            "Assets": {
+                "method": "GET"
+            }
+        }
+    },
+    "transformers": {}
+}

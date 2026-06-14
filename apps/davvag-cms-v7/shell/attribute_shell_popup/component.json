@@ -1,0 +1,28 @@
+{
+    "name" : "dynamic-attributes",
+    "description":"WEBDOCK Router",
+    "author":"Supun Dissanayake",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "appService",
+        "methods" : {
+            "Save" : {
+                "method" : "POST"
+            },
+            "uploadFile" : {
+                "method" : "POST",
+                "route":"/upload/@ns/@name"
+            }
+        }
+    }
+}

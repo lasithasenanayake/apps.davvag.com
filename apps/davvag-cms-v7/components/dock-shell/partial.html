@@ -1,0 +1,67 @@
+<div class="cms-v7-shell">
+    <div webdock-component="nav-bar"></div>
+    <main class="cms-v7-main">
+        <div v-if="loading" class="cms-v7-loading">Loading page...</div>
+        <div v-if="error" class="cms-v7-error">{{ error }}</div>
+        <div v-show="mode == 'page'" class="cms-v7-page">
+            <section v-for="section in page.sections" v-bind:class="sectionClass(section)">
+                <div class="cms-v7-container" v-if="section.type == 'hero'">
+                    <div class="cms-v7-hero-grid">
+                        <div>
+                            <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
+                            <h1>{{ section.title }}</h1>
+                            <p class="cms-v7-lead">{{ section.body }}</p>
+                            <div class="cms-v7-actions">
+                                <a class="cms-v7-button" v-if="section.primaryLabel" v-bind:href="section.primaryUrl">{{ section.primaryLabel }}</a>
+                                <a class="cms-v7-button secondary" v-if="section.secondaryLabel" v-bind:href="section.secondaryUrl">{{ section.secondaryLabel }}</a>
+                            </div>
+                        </div>
+                        <div class="cms-v7-media">
+                            <img v-if="section.image" v-bind:src="section.image" v-bind:alt="section.title">
+                        </div>
+                    </div>
+                </div>
+                <div class="cms-v7-container" v-if="section.type == 'features'">
+                    <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
+                    <h2>{{ section.title }}</h2>
+                    <p class="cms-v7-lead">{{ section.body }}</p>
+                    <div class="cms-v7-card-grid">
+                        <article class="cms-v7-card" v-for="item in section.items">
+                            <h3>{{ item.title }}</h3>
+                            <p>{{ item.body }}</p>
+                        </article>
+                    </div>
+                </div>
+                <div class="cms-v7-container cms-v7-split" v-if="section.type == 'split'">
+                    <div class="cms-v7-media">
+                        <img v-if="section.image" v-bind:src="section.image" v-bind:alt="section.title">
+                    </div>
+                    <div>
+                        <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
+                        <h2>{{ section.title }}</h2>
+                        <p class="cms-v7-copy">{{ section.body }}</p>
+                    </div>
+                </div>
+                <div class="cms-v7-container" v-if="section.type == 'text'">
+                    <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
+                    <h2>{{ section.title }}</h2>
+                    <p class="cms-v7-copy">{{ section.body }}</p>
+                </div>
+                <div class="cms-v7-container" v-if="section.type == 'cta'">
+                    <div class="cms-v7-cta">
+                        <h2>{{ section.title }}</h2>
+                        <p>{{ section.body }}</p>
+                        <div class="cms-v7-actions">
+                            <a class="cms-v7-button" v-if="section.primaryLabel" v-bind:href="section.primaryUrl">{{ section.primaryLabel }}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="cms-v7-container" v-if="section.type == 'html'" v-html="section.html"></div>
+            </section>
+            <div v-if="!loading && page.sections.length == 0" class="cms-v7-empty">This page has no sections yet.</div>
+        </div>
+        <div v-show="mode == 'app'" id="cms-v7-app-renderer"></div>
+    </main>
+    <div webdock-component="theme-changer"></div>
+    <div webdock-component="footer-bar"></div>
+</div>

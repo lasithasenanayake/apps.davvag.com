@@ -85,7 +85,10 @@
         "dock-settings":{
             "version":"latest"
         },
-        "davvag-cms":{
+        "davvag-cms-v7":{
+            "version":"latest"
+        },
+        "davvag-cms-v7-setting":{
             "version":"latest"
         },
         "davvag-cms-generalapps":{
@@ -178,7 +181,7 @@
         "events":{
             "onStartup":{
                 "admin" : "dock",
-                "default" : "davvag-cms"
+                "default" : "davvag-cms-v7"
             }
         }
     }

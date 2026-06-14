@@ -1,0 +1,15 @@
+<nav class="cms-v7-nav" v-bind:data-variant="site.nav.variant">
+    <div class="cms-v7-container cms-v7-nav-inner">
+        <a class="cms-v7-brand" href="#/">
+            <span class="cms-v7-brand-mark">
+                <img v-if="site.logo" v-bind:src="site.logo" v-bind:alt="site.name">
+                <span v-if="!site.logo">{{ initials }}</span>
+            </span>
+            <span>{{ site.name }}</span>
+        </a>
+        <div class="cms-v7-nav-links">
+            <a v-for="link in site.nav.links" v-bind:href="link.url">{{ link.label }}</a>
+            <a class="cms-v7-button" v-if="site.nav.cta && site.nav.cta.label" v-bind:href="site.nav.cta.url">{{ site.nav.cta.label }}</a>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,45 @@
+{
+    "name": "settings-api",
+    "description": "Davvag CMS v7 settings API",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "davvag_cms_v7_setting\\CmsV7SettingsApi",
+        "methods": {
+            "Site": {
+                "method": "GET"
+            },
+            "SaveSite": {
+                "method": "POST"
+            },
+            "Pages": {
+                "method": "GET"
+            },
+            "Page": {
+                "method": "GET",
+                "parameters": [
+                    "slug"
+                ]
+            },
+            "SavePage": {
+                "method": "POST"
+            },
+            "Assets": {
+                "method": "GET"
+            },
+            "UploadAsset": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

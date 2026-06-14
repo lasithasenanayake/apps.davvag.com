@@ -1,0 +1,152 @@
+{
+    "components": {
+        "cms-apps": {
+            "type": "component",
+            "location": "components"
+        },
+        "dock-shell": {
+            "type": "component",
+            "location": "components"
+        },
+        "cms-v7-api": {
+            "type": "service",
+            "location": "components"
+        },
+        "soss-routes": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "app_popup": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "soss-routes-vue": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "soss-validator": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "soss-uploader": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "auth-handler": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "soss-data": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "attribute_shell_popup": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "attribute_shell": {
+            "type": "shell",
+            "location": "shell"
+        },
+        "nav-bar": {
+            "type": "component",
+            "location": "components"
+        },
+        "footer-bar": {
+            "type": "component",
+            "location": "components"
+        },
+        "theme-changer": {
+            "type": "component",
+            "location": "components"
+        },
+        "home": {
+            "type": "partial",
+            "location": "partials"
+        },
+        "features": {
+            "type": "partial",
+            "location": "partials"
+        },
+        "contact": {
+            "type": "partial",
+            "location": "partials"
+        },
+        "partial-app": {
+            "type": "partial",
+            "location": "partials"
+        },
+        "partial-404": {
+            "type": "partial",
+            "location": "partials"
+        }
+    },
+    "description": {
+        "title": "Davvag CMS v7",
+        "author": "Davvag",
+        "version": "0.2",
+        "icon": ""
+    },
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "dock-shell",
+            "onLoad": [
+                "cms-v7-api",
+                "app_popup",
+                "soss-routes",
+                "attribute_shell",
+                "attribute_shell_popup",
+                "soss-uploader",
+                "soss-validator",
+                "auth-handler",
+                "soss-data",
+                "soss-routes-vue",
+                "nav-bar",
+                "footer-bar",
+                "theme-changer"
+            ],
+            "routes": {
+                "home": "/",
+                "notFound": "/not-found",
+                "partials": {
+                    "/contact": "contact",
+                    "/features": "features",
+                    "/": "home",
+                    "/home": "home",
+                    "/app/@appName/*appRoute": "partial-app",
+                    "/not-found": "partial-404",
+                    "/notFound": "partial-404"
+                }
+            }
+        },
+        "cmsv7": {
+            "startup": {
+                "mode": "page",
+                "route": "/"
+            }
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "davvag_launchers_query",
+            "davvag_launchers_subquery",
+            "profile_notify_u"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "davvag-attributes",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
+    }
+}

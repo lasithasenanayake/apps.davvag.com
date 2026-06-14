@@ -1,0 +1,45 @@
+{
+    "slug": "home",
+    "path": "/",
+    "title": "Davvag CMS v7",
+    "status": "published",
+    "sections": [
+        {
+            "type": "hero",
+            "eyebrow": "CMS v7",
+            "title": "Build a sharp landing page without carrying the old CMS weight.",
+            "body": "A clean WebDock shell with editable pages, swappable themes, and componentized navigation and footer.",
+            "primaryLabel": "Open Settings",
+            "primaryUrl": "#/app/davvag-cms-v7-setting",
+            "secondaryLabel": "See Features",
+            "secondaryUrl": "#/features",
+            "image": ""
+        },
+        {
+            "type": "features",
+            "title": "Everything needed for lightweight sites",
+            "body": "Use JSON page sections for fast landing pages and keep advanced app screens available through the dock.",
+            "items": [
+                {
+                    "title": "Theme changer",
+                    "body": "Switch brand palettes instantly using CSS variables."
+                },
+                {
+                    "title": "Editable partials",
+                    "body": "Create and edit landing page sections from the settings app."
+                },
+                {
+                    "title": "Custom components",
+                    "body": "Nav bar and footer are separate components with their own templates and styling."
+                }
+            ]
+        },
+        {
+            "type": "cta",
+            "title": "Ready to customize?",
+            "body": "Open the settings app to change logos, routes, page content, themes, and assets.",
+            "primaryLabel": "Configure CMS v7",
+            "primaryUrl": "#/app/davvag-cms-v7-setting"
+        }
+    ]
+}

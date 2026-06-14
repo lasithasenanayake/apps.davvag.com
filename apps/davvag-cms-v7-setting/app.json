@@ -1,0 +1,43 @@
+{
+    "components": {
+        "settings-console": {
+            "type": "component",
+            "location": "components"
+        },
+        "settings-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Davvag CMS v7 Settings",
+        "author": "Davvag",
+        "version": "0.2",
+        "icon": ""
+    },
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "settings-console",
+            "onLoad": [
+                "settings-api"
+            ],
+            "routes": {
+                "partials": {
+                    "/": "settings-console"
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-cms-v7"
+        ],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
+    }
+}

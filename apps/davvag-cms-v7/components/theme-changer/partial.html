@@ -1,0 +1,9 @@
+<div class="cms-v7-theme-changer">
+    <button type="button" class="cms-v7-theme-toggle" v-on:click="open = !open" title="Change theme">T</button>
+    <div class="cms-v7-theme-panel" v-if="open">
+        <button type="button" class="cms-v7-theme-option" v-for="theme in themes" v-bind:class="{active:selected == theme.name}" v-on:click="selectTheme(theme.name)">
+            <span class="cms-v7-swatch" v-bind:style="swatchStyle(theme)"></span>
+            <span>{{ theme.label }}</span>
+        </button>
+    </div>
+</div>

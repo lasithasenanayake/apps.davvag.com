@@ -1,0 +1,11 @@
+<footer class="cms-v7-footer" v-bind:data-variant="site.footer.variant">
+    <div class="cms-v7-container cms-v7-footer-grid">
+        <div>
+            <strong>{{ site.name }}</strong>
+            <p class="cms-v7-copy">{{ site.footer.copyright }}</p>
+        </div>
+        <div class="cms-v7-footer-links">
+            <a v-for="link in site.footer.links" v-bind:href="link.url">{{ link.label }}</a>
+        </div>
+    </div>
+</footer>

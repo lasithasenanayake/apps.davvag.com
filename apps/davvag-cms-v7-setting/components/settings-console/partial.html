@@ -1,0 +1,335 @@
+<div class="cms7-settings">
+    <header class="cms7-topbar">
+        <div>
+            <p class="cms7-kicker">Davvag CMS v7</p>
+            <h1>{{ site.name || 'Website settings' }}</h1>
+            <p>{{ site.tagline || 'Configure landing pages, themes, assets, navbar, and footer.' }}</p>
+        </div>
+        <div class="cms7-top-actions">
+            <a class="cms7-btn ghost" href="#/">View site</a>
+            <button class="cms7-btn ghost" type="button" v-on:click="reload">Refresh</button>
+            <button class="cms7-btn" type="button" v-on:click="saveSite">Save settings</button>
+        </div>
+    </header>
+
+    <div class="cms7-alert error" v-if="error">{{ error }}</div>
+    <div class="cms7-alert success" v-if="message">{{ message }}</div>
+
+    <nav class="cms7-tabs">
+        <button type="button" v-bind:class="{active: tab == 'site'}" v-on:click="tab = 'site'">Site</button>
+        <button type="button" v-bind:class="{active: tab == 'theme'}" v-on:click="tab = 'theme'">Theme</button>
+        <button type="button" v-bind:class="{active: tab == 'pages'}" v-on:click="tab = 'pages'">Pages</button>
+        <button type="button" v-bind:class="{active: tab == 'assets'}" v-on:click="tab = 'assets'">Assets</button>
+    </nav>
+
+    <section class="cms7-panel" v-show="tab == 'site'">
+        <div class="cms7-section-heading">
+            <div>
+                <h2>Brand And Startup</h2>
+                <p>Controls the public dock name, logo, favicon, default theme, and startup target.</p>
+            </div>
+            <button class="cms7-btn" type="button" v-on:click="saveSite">Save</button>
+        </div>
+        <div class="cms7-grid two">
+            <label>
+                <span>Site name</span>
+                <input type="text" v-model="site.name">
+            </label>
+            <label>
+                <span>Default theme</span>
+                <select v-model="site.theme">
+                    <option v-for="theme in site.themes" v-bind:value="theme.name">{{ theme.label || theme.name }}</option>
+                </select>
+            </label>
+            <label>
+                <span>Tagline</span>
+                <input type="text" v-model="site.tagline">
+            </label>
+            <label>
+                <span>Logo URL</span>
+                <input type="text" v-model="site.logo" placeholder="assets/davvag-cms-v7/uploads/logo.png">
+            </label>
+            <label>
+                <span>Favicon URL</span>
+                <input type="text" v-model="site.favicon">
+            </label>
+            <label>
+                <span>Startup mode</span>
+                <select v-model="site.startup.mode">
+                    <option value="page">Page route</option>
+                    <option value="app">Davvag app</option>
+                </select>
+            </label>
+            <label v-if="site.startup.mode == 'page'">
+                <span>Startup page route</span>
+                <input type="text" v-model="site.startup.route" placeholder="/">
+            </label>
+            <label v-if="site.startup.mode == 'app'">
+                <span>Startup app code</span>
+                <input type="text" v-model="site.startup.appCode" placeholder="davvag-sample-app-1">
+            </label>
+            <label v-if="site.startup.mode == 'app'">
+                <span>Startup app route</span>
+                <input type="text" v-model="site.startup.appRoute" placeholder="/">
+            </label>
+        </div>
+
+        <div class="cms7-editor-band">
+            <div class="cms7-section-heading compact">
+                <div>
+                    <h2>Navbar</h2>
+                    <p>Customize the public navigation links and call to action.</p>
+                </div>
+                <button class="cms7-btn ghost" type="button" v-on:click="addNavLink">Add link</button>
+            </div>
+            <div class="cms7-grid two">
+                <label>
+                    <span>Navbar variant</span>
+                    <select v-model="site.nav.variant">
+                        <option value="clean">Clean</option>
+                        <option value="centered">Centered</option>
+                        <option value="minimal">Minimal</option>
+                    </select>
+                </label>
+                <label>
+                    <span>CTA label</span>
+                    <input type="text" v-model="site.nav.cta.label">
+                </label>
+                <label>
+                    <span>CTA URL</span>
+                    <input type="text" v-model="site.nav.cta.url">
+                </label>
+            </div>
+            <div class="cms7-list">
+                <article class="cms7-row" v-for="(link, index) in site.nav.links">
+                    <input type="text" v-model="link.label" placeholder="Label">
+                    <input type="text" v-model="link.url" placeholder="#/route">
+                    <div class="cms7-row-actions">
+                        <button type="button" title="Move up" v-on:click="moveItem(site.nav.links, index, -1)">Up</button>
+                        <button type="button" title="Move down" v-on:click="moveItem(site.nav.links, index, 1)">Down</button>
+                        <button type="button" title="Remove" v-on:click="removeItem(site.nav.links, index)">Remove</button>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="cms7-editor-band">
+            <div class="cms7-section-heading compact">
+                <div>
+                    <h2>Footer</h2>
+                    <p>Edit footer style, copyright text, and footer links.</p>
+                </div>
+                <button class="cms7-btn ghost" type="button" v-on:click="addFooterLink">Add link</button>
+            </div>
+            <div class="cms7-grid two">
+                <label>
+                    <span>Footer variant</span>
+                    <select v-model="site.footer.variant">
+                        <option value="simple">Simple</option>
+                        <option value="columns">Columns</option>
+                        <option value="minimal">Minimal</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Copyright</span>
+                    <input type="text" v-model="site.footer.copyright">
+                </label>
+            </div>
+            <div class="cms7-list">
+                <article class="cms7-row" v-for="(link, index) in site.footer.links">
+                    <input type="text" v-model="link.label" placeholder="Label">
+                    <input type="text" v-model="link.url" placeholder="#/route">
+                    <div class="cms7-row-actions">
+                        <button type="button" title="Move up" v-on:click="moveItem(site.footer.links, index, -1)">Up</button>
+                        <button type="button" title="Move down" v-on:click="moveItem(site.footer.links, index, 1)">Down</button>
+                        <button type="button" title="Remove" v-on:click="removeItem(site.footer.links, index)">Remove</button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="cms7-panel" v-show="tab == 'theme'">
+        <div class="cms7-section-heading">
+            <div>
+                <h2>Theme Changer</h2>
+                <p>Create named themes for the separate public theme switcher.</p>
+            </div>
+            <div class="cms7-inline-actions">
+                <button class="cms7-btn ghost" type="button" v-on:click="addTheme">Add theme</button>
+                <button class="cms7-btn" type="button" v-on:click="saveSite">Save</button>
+            </div>
+        </div>
+        <div class="cms7-theme-layout">
+            <aside class="cms7-side-list">
+                <button type="button" v-for="(theme, index) in site.themes" v-bind:class="{active: selectedThemeIndex == index}" v-on:click="selectTheme(index)">
+                    <span class="cms7-theme-dot" v-bind:style="themeDot(theme)"></span>
+                    {{ theme.label || theme.name }}
+                </button>
+            </aside>
+            <div class="cms7-theme-form" v-if="selectedTheme">
+                <div class="cms7-grid two">
+                    <label>
+                        <span>Theme key</span>
+                        <input type="text" v-model="selectedTheme.name">
+                    </label>
+                    <label>
+                        <span>Display name</span>
+                        <input type="text" v-model="selectedTheme.label">
+                    </label>
+                    <label v-for="field in themeFields">
+                        <span>{{ field.label }}</span>
+                        <div class="cms7-color-field">
+                            <input type="color" v-if="field.type == 'color'" v-model="selectedTheme[field.key]">
+                            <input type="text" v-model="selectedTheme[field.key]">
+                        </div>
+                    </label>
+                    <label>
+                        <span>Font stack</span>
+                        <input type="text" v-model="selectedTheme.font">
+                    </label>
+                </div>
+                <button class="cms7-btn danger" type="button" v-on:click="removeTheme">Remove theme</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="cms7-panel" v-show="tab == 'pages'">
+        <div class="cms7-section-heading">
+            <div>
+                <h2>Pages And Partials</h2>
+                <p>Create pages, edit section JSON, and generate matching partial routes in app.json.</p>
+            </div>
+            <div class="cms7-inline-actions">
+                <button class="cms7-btn ghost" type="button" v-on:click="newPage">New page</button>
+                <button class="cms7-btn" type="button" v-on:click="savePage">Save page</button>
+            </div>
+        </div>
+        <div class="cms7-pages-layout">
+            <aside class="cms7-side-list">
+                <button type="button" v-for="page in pages" v-bind:class="{active: selectedPage.slug == page.slug}" v-on:click="loadPage(page.slug)">
+                    <strong>{{ page.title }}</strong>
+                    <small>{{ page.path }}</small>
+                </button>
+            </aside>
+            <div class="cms7-page-editor">
+                <div class="cms7-grid four">
+                    <label>
+                        <span>Slug</span>
+                        <input type="text" v-model="selectedPage.slug" v-on:input="normalizePagePath">
+                    </label>
+                    <label>
+                        <span>Path</span>
+                        <input type="text" v-model="selectedPage.path">
+                    </label>
+                    <label>
+                        <span>Title</span>
+                        <input type="text" v-model="selectedPage.title">
+                    </label>
+                    <label>
+                        <span>Status</span>
+                        <select v-model="selectedPage.status">
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="cms7-section-tools">
+                    <button type="button" v-on:click="addSection('hero')">Hero</button>
+                    <button type="button" v-on:click="addSection('features')">Features</button>
+                    <button type="button" v-on:click="addSection('split')">Split</button>
+                    <button type="button" v-on:click="addSection('text')">Text</button>
+                    <button type="button" v-on:click="addSection('cta')">CTA</button>
+                    <button type="button" v-on:click="addSection('html')">HTML</button>
+                </div>
+                <article class="cms7-section-card" v-for="(section, index) in selectedPage.sections">
+                    <div class="cms7-section-card-head">
+                        <strong>{{ index + 1 }}. {{ section.type }}</strong>
+                        <div class="cms7-row-actions">
+                            <button type="button" v-on:click="moveItem(selectedPage.sections, index, -1)">Up</button>
+                            <button type="button" v-on:click="moveItem(selectedPage.sections, index, 1)">Down</button>
+                            <button type="button" v-on:click="duplicateSection(index)">Duplicate</button>
+                            <button type="button" v-on:click="removeItem(selectedPage.sections, index)">Remove</button>
+                        </div>
+                    </div>
+                    <div class="cms7-grid two">
+                        <label>
+                            <span>Type</span>
+                            <select v-model="section.type">
+                                <option value="hero">Hero</option>
+                                <option value="features">Features</option>
+                                <option value="split">Split</option>
+                                <option value="text">Text</option>
+                                <option value="cta">CTA</option>
+                                <option value="html">HTML</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Eyebrow</span>
+                            <input type="text" v-model="section.eyebrow">
+                        </label>
+                        <label>
+                            <span>Title</span>
+                            <input type="text" v-model="section.title">
+                        </label>
+                        <label>
+                            <span>Image URL</span>
+                            <input type="text" v-model="section.image">
+                        </label>
+                        <label class="wide">
+                            <span>Body</span>
+                            <textarea rows="3" v-model="section.body"></textarea>
+                        </label>
+                        <label>
+                            <span>Primary label</span>
+                            <input type="text" v-model="section.primaryLabel">
+                        </label>
+                        <label>
+                            <span>Primary URL</span>
+                            <input type="text" v-model="section.primaryUrl">
+                        </label>
+                        <label>
+                            <span>Secondary label</span>
+                            <input type="text" v-model="section.secondaryLabel">
+                        </label>
+                        <label>
+                            <span>Secondary URL</span>
+                            <input type="text" v-model="section.secondaryUrl">
+                        </label>
+                        <label class="wide" v-if="section.type == 'features'">
+                            <span>Feature items JSON</span>
+                            <textarea rows="7" v-model="section.itemsText"></textarea>
+                        </label>
+                        <label class="wide" v-if="section.type == 'html'">
+                            <span>HTML</span>
+                            <textarea rows="7" v-model="section.html"></textarea>
+                        </label>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="cms7-panel" v-show="tab == 'assets'">
+        <div class="cms7-section-heading">
+            <div>
+                <h2>Assets</h2>
+                <p>Upload files into davvag-cms-v7/assets/uploads and copy their URLs into page, logo, or favicon fields.</p>
+            </div>
+            <label class="cms7-upload">
+                <input type="file" v-on:change="uploadAsset">
+                Upload asset
+            </label>
+        </div>
+        <div class="cms7-asset-grid">
+            <article class="cms7-asset" v-for="asset in assets">
+                <div class="cms7-asset-preview">
+                    <img v-if="isImage(asset.name)" v-bind:src="asset.url" v-bind:alt="asset.name">
+                    <span v-if="!isImage(asset.name)">{{ fileExt(asset.name) }}</span>
+                </div>
+                <strong>{{ asset.name }}</strong>
+                <input type="text" v-bind:value="asset.url" readonly>
+            </article>
+        </div>
+    </section>
+</div>

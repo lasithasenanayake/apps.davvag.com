@@ -1,0 +1,84 @@
+{
+    "name": "Davvag CMS v7",
+    "tagline": "Lightweight landing pages for DAVVAG apps.",
+    "logo": "",
+    "favicon": "assets/davvag-cms-v7/favicon.svg?v=0.2",
+    "theme": "clean",
+    "startup": {
+        "mode": "page",
+        "route": "/"
+    },
+    "nav": {
+        "variant": "clean",
+        "links": [
+            {
+                "label": "Home",
+                "url": "#/"
+            },
+            {
+                "label": "Features",
+                "url": "#/features"
+            },
+            {
+                "label": "Contact",
+                "url": "#/contact"
+            }
+        ],
+        "cta": {
+            "label": "Settings",
+            "url": "#/app/davvag-cms-v7-setting"
+        }
+    },
+    "footer": {
+        "variant": "simple",
+        "copyright": "Copyright 2026 Davvag CMS v7",
+        "links": [
+            {
+                "label": "Home",
+                "url": "#/"
+            },
+            {
+                "label": "Settings",
+                "url": "#/app/davvag-cms-v7-setting"
+            }
+        ]
+    },
+    "themes": [
+        {
+            "name": "clean",
+            "label": "Clean",
+            "background": "#ffffff",
+            "surface": "#f6f8fb",
+            "text": "#18202f",
+            "muted": "#647083",
+            "primary": "#0f766e",
+            "secondary": "#2563eb",
+            "accent": "#e11d48",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "studio",
+            "label": "Studio",
+            "background": "#fbfbf8",
+            "surface": "#f0f1eb",
+            "text": "#22251f",
+            "muted": "#6b6f63",
+            "primary": "#365314",
+            "secondary": "#0e7490",
+            "accent": "#be123c",
+            "font": "Georgia, 'Times New Roman', serif"
+        },
+        {
+            "name": "contrast",
+            "label": "Contrast",
+            "background": "#111827",
+            "surface": "#1f2937",
+            "text": "#f9fafb",
+            "muted": "#cbd5e1",
+            "primary": "#2dd4bf",
+            "secondary": "#60a5fa",
+            "accent": "#fb7185",
+            "font": "Arial, Helvetica, sans-serif"
+        }
+    ]
+}

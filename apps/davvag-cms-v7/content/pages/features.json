@@ -1,0 +1,37 @@
+{
+    "slug": "features",
+    "path": "/features",
+    "title": "CMS Features",
+    "status": "published",
+    "sections": [
+        {
+            "type": "hero",
+            "eyebrow": "Builder tools",
+            "title": "Compose landing pages with focused, reusable sections.",
+            "body": "Davvag CMS v7 keeps the page model simple: sections, themes, assets, and dock-ready app routes.",
+            "primaryLabel": "Open settings",
+            "primaryUrl": "#/app/davvag-cms-v7-setting",
+            "secondaryLabel": "Back home",
+            "secondaryUrl": "#/"
+        },
+        {
+            "type": "features",
+            "title": "What is included",
+            "body": "Use the settings app to change branding, colors, navigation, footer links, pages, and uploaded media.",
+            "items": [
+                {
+                    "title": "Page sections",
+                    "body": "Hero, text, split, features, CTA, and HTML sections render without a heavy CMS framework."
+                },
+                {
+                    "title": "Theme control",
+                    "body": "Create multiple named palettes and let visitors switch between them from the dock."
+                },
+                {
+                    "title": "Dock routing",
+                    "body": "Launch other Davvag apps inside the same clean shell using app routes."
+                }
+            ]
+        }
+    ]
+}
