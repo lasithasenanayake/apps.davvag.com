@@ -1,0 +1,30 @@
+{
+    "components": {
+        "workflow-designer": {
+            "type": "component",
+            "location": "components"
+        },
+        "flow-designer-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Davvag Flow Designer",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": ["showindock","showincms"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "workflow-designer",
+            "onLoad": ["flow-designer-api"],
+            "routes": {
+                "partials": {
+                    "/": "workflow-designer"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,128 @@
+<section class="flow-designer" data-flow-designer>
+    <header class="flow-designer__header">
+        <div class="flow-designer__title">
+            <p>DAVVAG Flow</p>
+            <h1>Workflow Designer</h1>
+        </div>
+        <div class="flow-designer__header-actions">
+            <div class="flow-designer__status" data-flow-status>Loading workflows...</div>
+            <button type="button" class="flow-designer__button" data-new-workflow>New</button>
+            <button type="button" class="flow-designer__button flow-designer__button--run" data-run-workflow>Run</button>
+            <button type="button" class="flow-designer__button flow-designer__button--primary" data-save-workflow>Save</button>
+            <button type="button" class="flow-designer__button flow-designer__button--danger" data-delete-workflow>Delete</button>
+            <button type="button" class="flow-designer__button flow-designer__window-button" data-toggle-maximize aria-label="Maximize" title="Maximize" aria-pressed="false">
+                <span class="flow-designer__window-icon" aria-hidden="true"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flow-designer__shell">
+        <aside class="flow-designer__panel flow-designer__panel--left">
+            <section class="flow-designer__section">
+                <div class="flow-designer__section-head">
+                    <h2>Workflow</h2>
+                    <span data-workflow-count>0 files</span>
+                </div>
+                <div class="flow-designer__form-grid">
+                    <label class="flow-designer__field">
+                        <span>Namespace</span>
+                        <input type="text" data-flow-field="namespace" list="flow-namespace-list" autocomplete="off">
+                        <datalist id="flow-namespace-list" data-namespace-list></datalist>
+                    </label>
+                    <label class="flow-designer__field">
+                        <span>File</span>
+                        <input type="text" data-flow-field="filename" autocomplete="off">
+                    </label>
+                    <label class="flow-designer__field flow-designer__field--full">
+                        <span>Name</span>
+                        <input type="text" data-flow-field="name" autocomplete="off">
+                    </label>
+                    <label class="flow-designer__field flow-designer__field--full">
+                        <span>Startup node</span>
+                        <select data-flow-field="start_up_node"></select>
+                    </label>
+                    <label class="flow-designer__field flow-designer__field--full">
+                        <span>Input data JSON</span>
+                        <textarea rows="5" data-flow-input-json spellcheck="false"></textarea>
+                    </label>
+                </div>
+            </section>
+
+            <section class="flow-designer__section">
+                <div class="flow-designer__section-head">
+                    <h2>Files</h2>
+                    <button type="button" class="flow-designer__mini-button" data-refresh-workflows>Refresh</button>
+                </div>
+                <div class="flow-designer__workflow-list" data-workflow-list></div>
+            </section>
+
+            <section class="flow-designer__section">
+                <div class="flow-designer__section-head">
+                    <h2>Toolbox</h2>
+                    <span data-template-count>0 nodes</span>
+                </div>
+                <label class="flow-designer__field">
+                    <span>Search</span>
+                    <input type="search" data-template-search autocomplete="off">
+                </label>
+                <label class="flow-designer__field">
+                    <span>App Services</span>
+                    <select data-app-service-filter>
+                        <option value="">All apps</option>
+                    </select>
+                </label>
+                <div class="flow-designer__toolbox" data-template-list></div>
+            </section>
+        </aside>
+
+        <section class="flow-designer__stage">
+            <div class="flow-designer__stage-bar">
+                <div>
+                    <strong data-current-workflow>New workflow</strong>
+                    <span data-current-path>davvag-flow/new-flow.json</span>
+                </div>
+                <div class="flow-designer__link-state" data-link-state>No link selected</div>
+            </div>
+            <div class="flow-designer__canvas" data-canvas>
+                <div class="flow-designer__surface" data-surface>
+                    <svg class="flow-designer__connections" data-connections aria-hidden="true"></svg>
+                    <div class="flow-designer__nodes" data-node-layer></div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="flow-designer__panel flow-designer__panel--right">
+            <section class="flow-designer__section flow-designer__section--inspector">
+                <div class="flow-designer__section-head">
+                    <h2>Inspector</h2>
+                    <span data-selected-node-label>No node</span>
+                </div>
+                <div data-node-inspector></div>
+            </section>
+
+            <section class="flow-designer__section flow-designer__section--runner">
+                <div class="flow-designer__section-head">
+                    <h2>Test Run</h2>
+                    <button type="button" class="flow-designer__mini-button flow-designer__mini-button--run" data-run-workflow>Run</button>
+                </div>
+                <label class="flow-designer__field">
+                    <span>Input JSON</span>
+                    <textarea rows="8" data-run-input-json spellcheck="false"></textarea>
+                </label>
+                <div class="flow-designer__inspector-actions">
+                    <button type="button" class="flow-designer__mini-button" data-use-input-schema>Use Schema</button>
+                    <button type="button" class="flow-designer__mini-button" data-copy-run-result>Copy Result</button>
+                </div>
+                <pre class="flow-designer__json flow-designer__run-result" data-run-result>No run yet.</pre>
+            </section>
+
+            <section class="flow-designer__section flow-designer__section--json">
+                <div class="flow-designer__section-head">
+                    <h2>JSON</h2>
+                    <button type="button" class="flow-designer__mini-button" data-copy-json>Copy</button>
+                </div>
+                <pre class="flow-designer__json" data-workflow-json>{}</pre>
+            </section>
+        </aside>
+    </div>
+</section>

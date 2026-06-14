@@ -1,220 +1,258 @@
-<div class="input-form">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Attribute Creator</h1>
-<hr>
-<div class="input-error">
-  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
-    <strong>ERROR! </strong> {{error}}
+<div class="attribute-creator">
+  <div class="attribute-layout">
+    <aside class="attribute-list-panel">
+      <div class="attribute-list-header">
+        <h4>Attributes</h4>
+        <div class="btn-group btn-group-sm">
+          <button type="button" class="btn btn-primary" v-on:click="newAttribute"><i class="fa fa-plus"></i> New</button>
+          <button type="button" class="btn btn-default" v-on:click="refreshAttributes"><i class="fa fa-refresh"></i></button>
+        </div>
+      </div>
+      <input type="text" class="form-control attribute-search" v-model="attributeSearch" placeholder="Search">
+      <div class="attribute-list-state" v-if="loadingAttributes">Loading...</div>
+      <div class="attribute-list-items">
+        <button type="button" class="attribute-list-item" v-for="item in filteredAttributes" v-bind:class="{active:selectedAttributeId == item.id}" v-on:click="editAttribute(item)">
+          <span class="attribute-name">{{ item.name }}</span>
+          <span class="attribute-meta">{{ item.id }} | {{ item.fieldCount }} fields</span>
+          <span class="attribute-workflow" v-if="item.workflowName">{{ item.workflowName }}</span>
+        </button>
+      </div>
+      <div class="attribute-list-state" v-if="!loadingAttributes && filteredAttributes.length == 0">No attributes found.</div>
+    </aside>
+
+    <section class="attribute-editor-panel">
+      <form id="form-details" class="form-horizontal" v-on:submit.prevent="submit">
+        <div class="attribute-editor-header">
+          <div>
+            <h1>Attribute Creator</h1>
+            <span class="attribute-current-id" v-if="selectedAttributeId">{{ selectedAttributeId }}</span>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+        </div>
+
+        <div class="input-error">
+          <div class="alert alert-danger" v-for="error in submitErrors">
+            <strong>ERROR!</strong> {{error}}
+          </div>
+          <div class="alert alert-info" v-for="info in submitInfo">
+            <strong>INFO!</strong> {{info}}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Main Node</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" v-model="att_info.main_node" v-on:blur="normalizeAttributeName">
+          </div>
+          <label class="col-sm-2 control-label">Form Name</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" v-model="att_info.name" v-on:blur="normalizeAttributeName">
+          </div>
+        </div>
+
+        <div class="attribute-section-title">
+          <h4>Fields</h4>
+          <button type="button" class="btn btn-default btn-sm" v-on:click="addField"><i class="fa fa-plus"></i> Add Field</button>
+        </div>
+        <div id="sampleForm" class="attribute-preview"></div>
+
+        <div class="attribute-section-title">
+          <h4>Workflow</h4>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Post Execution</label>
+          <div class="col-sm-9">
+            <select class="form-control" v-model="selectedWorkflowName" v-on:change="selectWorkflow(selectedWorkflowName)">
+              <option value="">No workflow</option>
+              <option v-bind:value="w.name" v-for="w in workflows">{{ w.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive" v-if="postInput.length > 0">
+          <table class="table table-bordered table-condensed">
+            <thead>
+              <tr>
+                <th>Input Variable</th>
+                <th>Value Type</th>
+                <th>Mapping Field</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="input in postInput">
+                <td>{{ input.name }}</td>
+                <td>{{ input.valueType || input.datatype }}</td>
+                <td>
+                  <select class="form-control" v-model="input.mappingfield">
+                    <option value="">Select field</option>
+                    <option v-bind:value="i.name" v-for="i in fields">{{ i.name }}</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="attribute-actions">
+          <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" class="btn btn-default" v-on:click="newAttribute"><i class="fa fa-eraser"></i> Clear</button>
+        </div>
+      </form>
+    </section>
   </div>
-  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
-      <strong>INFO! </strong> {{error}}
-    </div>
-</div>
-<div class="form-group">
-  <label for="exampleInputEmail1">Attribute Form Name</label>
-  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="att_info.name" v-on:focusout="loadvalue(att_info.name);">
-  <small id="NameHelp" class="form-text text-muted">Name without spaces and special charactors.</small>
 </div>
 
-<button  class="btn bg-primary-button btn-block" v-on:click="addField">Add Field</button>
-<hr/>
-<form id="sampleForm">
-  <h2>Input Fields To creation Form</h2>
-</form>
-<hr/>
-<h2>WorkFlow Information</h2>
-<div class="form-group">
-  <label for="exampleInputEmail1">Post Excution Workflow</label>
-  <select class="form-control" data-placeholder="Choose a Flow..." v-model="att_info.postworkflow" @change="populatePostInputs(att_info.postworkflow)">
-    <option value="" >Select Post WorkLow</option>
-    <option :value="w" v-for="w in workflows">{{ w.name }}</option>
-  </select>
-  <small id="NameHelp" class="form-text text-muted">This work flow will be excuted after saving.</small>
-  
-</div>
-<table class="table">
-  <thead>
-    <tr>
-      <td>Input Variables</td>
-      <td>Input ValueType</td>
-      <td>Mapping Field</td>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="input in postInput">
-      <td>{{ input.name }}</td>
-      <td>{{ input.valueType }}</td>
-      <td>
-        <select class="form-control" data-placeholder="Select Mapping Field" v-model="input.mappingfield">
-          <option value="" >Select Mapping Field</option>
-          <option :value="i.name" v-for="i in fields">{{ i.name }}</option>
-        </select>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<button  class="btn bg-primary-button btn-block" v-on:click="submit">Save</button>
-</div>
-<div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
-    
+<div class="modal fade" id="modalFieldPopup" role="dialog" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
-        <div class="modal-header">
-            <h1>Add Field</h1>
-        </div>
-        <div class="modal-body">
-          <div class="mainBody input-form-popup">
-            <div class="input-error">
-              <div class="alert alert-danger" v-if="submitFieldErrors" v-for="error in submitFieldErrors">
-                <strong>ERROR! </strong> {{error}}
-              </div>
-             
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>{{ fieldModalTitle }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="mainBody input-form-popup">
+          <div class="input-error">
+            <div class="alert alert-danger" v-for="error in submitFieldErrors">
+              <strong>ERROR!</strong> {{error}}
             </div>
-            <div class="form-group">
-              <label for="exampleInputPassword1">Field Type</label>
-              <select class="form-control" data-placeholder="Choose a Flow..." v-model="fieldType">
-                <option v-bind:value="i" v-for="i in fieldTypes">{{ i }}</option>
+          </div>
+
+          <div class="form-group">
+            <label>Field Type</label>
+            <select class="form-control" v-model="fieldType">
+              <option v-bind:value="i" v-for="i in fieldTypes">{{ i }}</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="form-group col-sm-6">
+              <label>Label</label>
+              <input type="text" class="form-control" placeholder="Display label" v-model="field.label">
+            </div>
+            <div class="form-group col-sm-6">
+              <label>Name</label>
+              <input type="text" class="form-control" placeholder="field_name" v-model="field.name">
+            </div>
+          </div>
+
+          <div class="row" v-if="fieldType=='select' || fieldType=='text' || fieldType=='textarea' || fieldType=='checkbox'">
+            <div class="form-group col-sm-6">
+              <label>Value Type</label>
+              <select class="form-control" v-model="valuetype">
+                <option value="java.lang.String">String</option>
+                <option value="int">Integer</option>
+                <option value="float">Float / Decimal</option>
+                <option value="java.util.Date">Date</option>
               </select>
             </div>
-            <div id="frmtext">
-              <div class="form-group">
-                <div class="col-md-6">
-                  <label for="exampleInputEmail1">Label</label>
-                  <input type="text" class="form-control" id="txtLbale" aria-describedby="emailHelp" placeholder="Please add the display Lable" v-model="field.label">
-                  <small id="emailHelp" class="form-text text-muted">Here you can input the label to display.</small>
-                </div>
-                <div class="col-md-6">
-                  <label for="exampleInputEmail1">Name</label>
-                  <input type="text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.name">
-                  <small id="NameHelp" class="form-text text-muted">Here you can input the label to display.</small>
-                </div>
-                
-              </div>
-              
-              
+            <div class="form-group col-sm-6" v-if="valuetype=='java.lang.String'">
+              <label>Max Length</label>
+              <input type="number" class="form-control" v-model="field.maxlen">
             </div>
-            <div v-if="fieldType=='select' || fieldType=='text' || fieldType=='textarea' || fieldType=='checkbox'" id="frmselect">
-              <div class="form-group">
-                <div class="col-md-6">
-                  <label for="exampleInputPassword1">Value Type</label>
-                  <select class="form-control" data-placeholder="Choose a Flow..." v-model="valuetype">
-                    <option value="java.lang.String" >String</option>
-                    <option value="int" >Integer</option>
-                    <option value="float" >Float / Decimal</option>
-                    <option value="java.util.Date" >Date</option>
-                  </select>
-                </div>
-                <div v-if="valuetype=='java.lang.String'" class="col-md-6">
-                  <label for="exampleInputEmail1">Max Length</label>
-                  <input type="Number" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.maxlen">
-                  <small id="NameHelp" class="form-text text-muted">Max Lenght of your string.</small>
-                </div>
-                
-              </div>
+          </div>
+
+          <div v-if="fieldType=='select'">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" true-value="1" false-value="0" v-model="datasource"> Pull from a data source
+              </label>
             </div>
-            <div v-if="fieldType=='select'" id="frmSelect">
-              
-                <div class="form-group form-check">
-                  <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="datasource">
-                  <label class="form-check-label" for="exampleCheck1">Pull from a Data Source</label>
+
+            <div v-if="datasource==0 || datasource=='0'">
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label>Choice Value</label>
+                  <input type="text" class="form-control" placeholder="Value" v-model="select.value">
                 </div>
-                
-              <div v-if="datasource==0" class="form-group">
-                <div class="col-md-4">
-                  <label for="exampleInputEmail1">Choice Value</label>
-                  <input type="text" class="form-control" id="txtValue" aria-describedby="NameHelp" placeholder="Choice Value" v-model="select.value">
+                <div class="form-group col-sm-5">
+                  <label>Caption</label>
+                  <input type="text" class="form-control" placeholder="Caption" v-model="select.caption">
                 </div>
-                <div class="col-md-4">
-                  <label for="exampleInputEmail1">Caption </label>
-                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Choice Caption" v-model="select.caption">
+                <div class="form-group col-sm-3 attribute-modal-button">
+                  <button type="button" class="btn btn-default btn-block" v-on:click="addValue(select)">Add</button>
                 </div>
-                <div class="col-md-3">
-                  <label for="exampleInputEmail1"> </label>
-                  <button  class="btn bg-primary-button btn-block" v-on:click="addValue(select)">Add Values</button>
-                </div>
-                
               </div>
-              <div v-if="datasource==0" class="form-group">
-                <table class="table">
+              <div class="table-responsive" v-if="select_values.length > 0">
+                <table class="table table-condensed table-bordered">
                   <thead>
                     <tr>
-                      <th scope="col">Value</th>
-                      <th scope="col">Caption</th>
-                      <th scope="col"></th>
+                      <th>Value</th>
+                      <th>Caption</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="x in select_values">
                       <td>{{ x.sel }}</td>
                       <td>{{ x.label }}</td>
-                      <td><button  type="button" class="btn btn-danger" v-on:click="removeValue(x)">Remove</button></td>
+                      <td><button type="button" class="btn btn-danger btn-xs" v-on:click="removeValue(x)">Remove</button></td>
                     </tr>
                   </tbody>
-                  </table>
+                </table>
               </div>
             </div>
-            <div v-if="fieldType=='checkbox'" id="date">
-              <div class="form-group">
-                <div class="col-md-6">
-                  <label for="exampleInputPassword1">True Value</label>
-                  <input type="Text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.truevalue">
-                  
+
+            <div v-if="datasource==1 || datasource=='1'">
+              <div class="row">
+                <div class="form-group col-sm-6">
+                  <label>Data Source</label>
+                  <input type="text" class="form-control" v-model="field.datasource">
                 </div>
-                <div  class="col-md-6">
-                  <label for="exampleInputEmail1">False Value</label>
-                  <input type="Text" class="form-control" id="txtLbale" aria-describedby="NameHelp" placeholder="field name without spaces" v-model="field.falsevalue">
-                  
+                <div class="form-group col-sm-6">
+                  <label>Query</label>
+                  <input type="text" class="form-control" v-model="field.query">
                 </div>
-                
               </div>
-            </div>
-            <div v-if="fieldType=='fileupload'" id="frmfileupload">
-              <h1>Not Impletmented</h1>
-            </div>
-            <div class="form-group form-check">
-              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="field.req">
-              <label class="form-check-label" for="exampleCheck1">Required</label>
-            </div>
-            <div class="form-group form-check">
-              <input type="checkbox" class="form-check-input" true-value="1" false-value="0" v-model="field.readonly">
-              <label class="form-check-label" for="exampleCheck1">Read Only</label>
-            </div>
-            <div v-if="isPrimary" class="form-group form-check">
-              <input type="checkbox" class="form-check-input" true-value="true" false-value="false" v-model="primary">
-              <label class="form-check-label" for="exampleCheck1">Is Primary Key</label>
-            </div>
-            <div v-if="autoIncrement" class="form-group form-check">
-              <input type="checkbox" class="form-check-input" true-value="true" false-value="false" v-model="field.autoIncrement">
-              <label class="form-check-label" for="exampleCheck1">Auto autoIncrement</label>
-            </div>
-            <div v-if="datasource==1" id="frmdatasource">
-              <div class="form-group">
-                <div class="col-md-4">
-                  <label for="exampleInputEmail1">Data Source</label>
-                  <input type="text" class="form-control" id="txtValue" aria-describedby="NameHelp" placeholder="Data Source" v-model="field.datasource">
+              <div class="row">
+                <div class="form-group col-sm-6">
+                  <label>Value</label>
+                  <input type="text" class="form-control" v-model="field.datavalue">
                 </div>
-                <div class="col-md-4">
-                  <label for="exampleInputEmail1">Query </label>
-                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Query" v-model="field.query">
-                </div>
-                <div class="col-md-2">
-                  <label for="exampleInputEmail1">Value</label>
-                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Value" v-model="field.datavalue">
-                </div>
-                <div class="col-md-2">
-                  <label for="exampleInputEmail1">Caption</label>
-                  <input type="text" class="form-control" id="txtCaption" aria-describedby="NameHelp" placeholder="Caption" v-model="field.datacaption">
+                <div class="form-group col-sm-6">
+                  <label>Caption</label>
+                  <input type="text" class="form-control" v-model="field.datacaption">
                 </div>
               </div>
             </div>
           </div>
-          
-          
+
+          <div class="row" v-if="fieldType=='checkbox'">
+            <div class="form-group col-sm-6">
+              <label>True Value</label>
+              <input type="text" class="form-control" v-model="field.truevalue">
+            </div>
+            <div class="form-group col-sm-6">
+              <label>False Value</label>
+              <input type="text" class="form-control" v-model="field.falsevalue">
+            </div>
+          </div>
+
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" true-value="1" false-value="0" v-model="field.req"> Required
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" true-value="1" false-value="0" v-model="field.readonly"> Read Only
+            </label>
+          </div>
+          <div class="checkbox" v-if="isPrimary">
+            <label>
+              <input type="checkbox" v-model="primary"> Primary Key
+            </label>
+          </div>
+          <div class="checkbox" v-if="autoIncrement">
+            <label>
+              <input type="checkbox" v-model="field.autoIncrement"> Auto Increment
+            </label>
+          </div>
         </div>
-          
-        <div class="modal-footer">
-          <button class="btn btn-primary" v-on:click="addNew(field)">Add</button>
-          <button type="button" class="btn btn-warning" v-on:click="closeField()">Cancel</button>
-        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" v-on:click="addNew(field)">{{ fieldActionLabel }}</button>
+        <button type="button" class="btn btn-warning" v-on:click="closeField()">Cancel</button>
+      </div>
     </div>
-</div>
+  </div>
 </div>

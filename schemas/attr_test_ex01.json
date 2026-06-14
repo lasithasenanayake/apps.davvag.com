@@ -1,0 +1,1 @@
+{"fields":[{"fieldName":"ID","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},{"fieldName":"Name","dataType":"java.lang.String","annotations":{"maxLen":"200"}},{"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":"500"}},{"fieldName":"workflow","dataType":"java.lang.String","annotations":{"maxLen":"100"}}]}

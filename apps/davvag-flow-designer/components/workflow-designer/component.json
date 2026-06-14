@@ -1,0 +1,26 @@
+{
+    "name": "workflow-designer",
+    "description": "Visual editor for Davvag Flow workflow JSON files.",
+    "author": "Davvag",
+    "version": "0.1",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "workflow-designer.css"
+            }
+        ]
+    },
+    "transformers": {}
+}

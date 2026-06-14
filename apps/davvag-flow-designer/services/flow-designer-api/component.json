@@ -1,0 +1,39 @@
+{
+    "name": "flow-designer-api",
+    "description": "Workflow file IO and toolbox discovery for Davvag Flow Designer.",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "davvag_flow_designer\\FlowDesignerService",
+        "methods": {
+            "DesignerData": {
+                "method": "GET"
+            },
+            "ListWorkflows": {
+                "method": "GET"
+            },
+            "LoadWorkflow": {
+                "method": "POST"
+            },
+            "SaveWorkflow": {
+                "method": "POST"
+            },
+            "RunWorkflow": {
+                "method": "POST"
+            },
+            "DeleteWorkflow": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

@@ -26,6 +26,14 @@
                 "method" : "GET",
                 "parameters": ["id"]
             },
+            "Attribute" : {
+                "method" : "GET",
+                "parameters": ["id"]
+            },
+            "List": {
+                "method" : "GET",
+                "parameters": []
+            },
             "WorkFlows":{
                 "method" : "GET",
                 "parameters": []

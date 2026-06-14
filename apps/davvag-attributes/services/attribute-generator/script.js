@@ -1,147 +1,160 @@
+WEBDOCK.component().register(function(exports){
+    var service_handler;
+    var bindData = {
+        fields: [],
+        att_info: {},
+        data: {}
+    };
 
-WEBDOCK.component().register(function(exports, scope){
-    var $progress,$progressBar,$closebutton,$modal,service_handler;
     exports.initialize = function(){
+        loadServiceHandler();
+    };
+
+    exports.Generate = function(ID, data, divid, cbcompleted, cbError){
+        var completed = typeof cbcompleted === "function" ? cbcompleted : function(){};
+        var failed = typeof cbError === "function" ? cbError : function(){};
+        var attributeId = resolveAttributeId(ID, data || {});
+
+        loadServiceHandler();
+        if(!service_handler){
+            failed("Service has not loaded. Please check app-handler.");
+            return;
+        }
+
+        var loadService = service_handler.services.Attribute ? service_handler.services.Attribute : service_handler.services.Atrribute;
+        if(!loadService){
+            failed("Attribute load service is not available.");
+            return;
+        }
+
+        loadService.call(service_handler.services, {id: attributeId}).then(function(result){
+            if(result.success && result.result){
+                bindData.att_info = result.result;
+                bindData.fields = bindData.att_info.Fields || bindData.att_info.atrributeFields || [];
+                bindData.data = createForm(bindData.fields, divid);
+                completed(bindData.att_info);
+            }else{
+                bindData.fields = [];
+                bindData.data = createForm(bindData.fields, divid);
+                failed(result);
+            }
+        }).error(function(result){
+            bindData.fields = [];
+            createForm(bindData.fields, divid);
+            failed(result);
+        });
+    };
+
+    function loadServiceHandler(){
+        if(service_handler){
+            return;
+        }
         service_handler = exports.getComponent("app-handler");
         if(!service_handler){
-            console.log("Service has not Loaded please check.")
+            console.log("Service has not loaded. Please check app-handler.");
         }
-        //clearCeate();
-    }
-    var callback;
-    var errCallback,completed,data_collected;
-    var bindData={
-        fields:[],
-        att_info:{},
-        data:{}
-    }
-    
-    exports.Generate=function(ID,data,divid,cbcompleted,cbError){
-        
-        completed=cbcompleted;
-        data_collected=data;
-        service_handler.services.Atrribute({id:bindData.att_info.main_node +'_'+id.toString()}).then(function(result){
-                
-            if(result.success){
-               if(result.result!=null){
-                   bindData.att_info=result.result;
-                   bindData.fields=bindData.att_info.atrributeFields?bindData.att_info.atrributeFields:[];
-                   bindData.data=createForm(bindData.fields,divid);
-                   cbcompleted(bindData.att_info);
-               }else{
-                    //bindData.att_info=result.result;
-                    bindData.fields=[];
-                    bindData.data=createForm(bindData.fields,divid);
-                    cbcompleted(bindData.att_info);
-               }
-            }else{
-                bindData.fields=[];
-                bindData.data=createForm(bindData.fields,divid);
-                cbError(result);
-            }
-            
-        }).error(function(result){
-            bindData.fields=[];
-            createForm(bindData.fields,divid);
-            cbError(result);
-        });
     }
 
-    
+    function resolveAttributeId(ID, data){
+        var id = (ID || "").toString();
+        if(id.indexOf("_") >= 0){
+            return id;
+        }
+        return ((data && data.main_node) || bindData.att_info.main_node || "attr") + "_" + id;
+    }
+
+    function isTrue(value){
+        return value === true || value === 1 || value === "1" || value === "true";
+    }
 
     function createForm(arr,id){
         var $formTmp = $('<form class="form-horizontal form-bordered"></form>');
-        var data ={}; 
-        arr.forEach( function(obj, idx) {
-            var $fieldSet,
-                $selctOpts = $('<select class="form-control" name="" id="'+obj.name+'"></select>'),
-                inputType = obj.type; 
-            data[obj.name]=null;    
+        var data = {};
+
+        if(!Array.isArray(arr)){
+            arr = [];
+        }
+
+        arr.forEach(function(obj) {
+            var $fieldSet = $('<div class="form-group"></div>');
+            var $label = $('<label class="col-sm-3 control-label"></label>').text(obj.label || obj.name || "");
+            var $txt = $('<div class="col-sm-9"></div>');
+            var inputType = obj.type;
+            data[obj.name] = null;
+
+            $fieldSet.append($label);
+
             switch (inputType){
                 case 'text':
-                    $fieldSet = $('<div class="form-group"></div>');
-                    $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
-                    $txt=$('<div class="col-sm-6"></div>');
-                    if ( obj.req === 1) {
-                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'" required>');
-                    } else {
-                        $txt.append('<input class="form-control" type="text" id="'+obj.name+'">');
-                    }
-                    $fieldSet.append($txt); 
-                    $formTmp.append($fieldSet);
+                    $txt.append(flagInput($('<input class="form-control" type="text">').attr({id:obj.name, name:obj.name}), obj));
                     break;
                 case 'textarea':
-                    $fieldSet = $('<div class="form-group"></div>');
-                    $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
-                    $txt=$('<div class="col-sm-6"></div>');
-                    $txt.append('<textarea class="form-control" rows="4" cols="50" id="'+obj.name+'"></textarea>');
-                    $fieldSet.append($txt); 
-                    $formTmp.append($fieldSet);
+                    $txt.append(flagInput($('<textarea class="form-control" rows="4" cols="50"></textarea>').attr({id:obj.name, name:obj.name}), obj));
                     break;
                 case 'select':
-                    $fieldSet = $('<div class="form-group"></div>');
-                    $fieldSet.append('<label  class="col-sm-3 control-label">'+obj.label+'</label>');
-                    $txt=$('<div class="col-sm-6"></div>');
+                    var $select = flagInput($('<select class="form-control"></select>').attr({id:obj.name, name:obj.name}), obj);
                     if(obj.datasource){
-                        fillSelectFfromDataSource($selctOpts,obj);
+                        fillSelectFromDataSource($select, obj);
                     }else{
-                        addOptions($selctOpts, obj.choices);
+                        addOptions($select, obj.choices);
                     }
-                    $txt.append($selctOpts);
-                    $fieldSet.append($txt);                     
-                    $formTmp.append($fieldSet);
+                    $txt.append($select);
                     break;
                 case 'checkbox':
-                        $fieldSet = $('<div class="form-group"></div>');
-                        $fieldSet.append('<label class="col-sm-3 control-label">'+obj.label+'</label>');
-                        $txt=$('<div class="col-sm-6"></div>');
-                        if ( obj.req === 1) {
-                            $txt.append('<input class="form-control" type="checkbox" true-value="'+obj.truevalue+'" false-value="'+obj.falsevalue+'"  id="'+obj.name+'" required>');
-                        } else {
-                            $txt.append('<input class="form-control" type="checkbox" true-value="'+obj.truevalue+'" false-value="'+obj.falsevalue+'"  id="'+obj.name+'">');
-                        }
-                        $fieldSet.append($txt); 
-                        $formTmp.append($fieldSet);
-                        break;  
+                    $txt.append(flagInput($('<input class="attribute-checkbox-preview" type="checkbox">').attr({
+                        id:obj.name,
+                        name:obj.name,
+                        'true-value':obj.truevalue,
+                        'false-value':obj.falsevalue
+                    }), obj));
+                    break;
+                case 'date':
+                    $txt.append(flagInput($('<input class="form-control" type="date">').attr({id:obj.name, name:obj.name}), obj));
+                    break;
                 default:
-                    alert('There was no input type found.');
+                    $txt.append($('<p class="form-control-static text-danger"></p>').text('Unsupported field type: ' + inputType));
                     break;
             }
-            $txt=$('<div class="col-sm-3"></div>'); 
-            
-            $txt.append('<button class="btn btn-danger">Delete</button>');
-            if(obj.primary){
-                $txt.append('<label class=" control-label">Primary </label>');
-            }
-            $fieldSet.append($txt);
-            
 
+            $fieldSet.append($txt);
+            $formTmp.append($fieldSet);
         });
-    
-        $("#" + id).html($formTmp.html())
-        return data;  
-        // Loop for the select options.
+
+        $("#" + id).empty().append($formTmp.children());
+        return data;
+
+        function flagInput(elem, obj){
+            if(isTrue(obj.readonly)){
+                elem.prop('disabled', true);
+            }
+            if(isTrue(obj.req)){
+                elem.prop('required', true);
+            }
+            return elem;
+        }
+
         function addOptions(elem, arr){
+            if(!Array.isArray(arr)){
+                return;
+            }
             arr.forEach(function(obj){
-                elem.append('<option value="'+obj.sel+'">'+obj.label+'</option>');              
+                elem.append($('<option></option>').attr('value', obj.sel).text(obj.label));
             });
         }
 
-        function fillSelectFfromDataSource(elem,field){
+        function fillSelectFromDataSource(elem, field){
             service_handler.services.GetDataSource(field).then(function(result){
-                if(result.success){
+                if(result.success && Array.isArray(result.result)){
                     result.result.forEach(function(obj){
-                        elem.append('<option value="'+(obj[field.datavalue]?obj[field.datavalue]:"error")+'">'+(obj[field.datacaption]?obj[field.datacaption]:"error")+'</option>');              
+                        elem.append($('<option></option>')
+                            .attr('value', obj[field.datavalue] ? obj[field.datavalue] : "error")
+                            .text(obj[field.datacaption] ? obj[field.datacaption] : "error"));
                     });
                 }
             }).error(function(error){
-                elem.append('<option value="error">Error Please Check Console</option>');
-                Consol.log(JSON.stringify(error));              
-                
-            })
+                elem.append('<option value="error">Error. Please check console.</option>');
+                console.log(JSON.stringify(error));
+            });
         }
     }
-
-    
-
 });
