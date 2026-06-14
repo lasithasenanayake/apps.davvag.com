@@ -2,7 +2,7 @@
     "name" : "partial-app",
     "description":"Davvag CMS v7 app route partial",
     "author":"Davvag",
-    "version" : "0.2",
+    "version" : "0.3",
     "gitUrl" : "",
     "resources": {
         "files":[

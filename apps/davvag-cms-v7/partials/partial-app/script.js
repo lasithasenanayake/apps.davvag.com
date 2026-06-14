@@ -5,13 +5,15 @@ WEBDOCK.component().register(function(exports){
             appRoute: "/"
         },
         onReady: function(scope, renderDiv, variables){
+            var data = vueData.data;
             variables = variables || {routeParams: {}};
-            scope.appName = variables.routeParams.appName || "";
-            scope.appRoute = variables.routeParams.appRoute || "/";
-            if(scope.appRoute === ""){
-                scope.appRoute = "/";
+            variables.routeParams = variables.routeParams || {};
+            data.appName = variables.routeParams.appName || "";
+            data.appRoute = variables.routeParams.appRoute || "/";
+            if(data.appRoute === ""){
+                data.appRoute = "/";
             }
-            renderApp(scope.appName, scope.appRoute, renderDiv);
+            renderApp(data.appName, data.appRoute, renderDiv);
         }
     };
 
