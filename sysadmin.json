@@ -3,6 +3,9 @@
         "ai-chatgpt-agent": {
             "version": "latest"
         },
+        "ai-agent-creator": {
+            "version": "latest"
+        },
         "davvag-task": {
             "version": "latest"
         },

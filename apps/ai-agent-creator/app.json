@@ -1,0 +1,30 @@
+{
+    "components": {
+        "creator-console": {
+            "type": "component",
+            "location": "components"
+        },
+        "creator-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "AI Agent Creator",
+        "author": "Davvag",
+        "version": "0.2",
+        "icon": ""
+    },
+    "tags": ["showindock"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "creator-console",
+            "onLoad": ["creator-api"],
+            "routes": {
+                "partials": {
+                    "/": "creator-console"
+                }
+            }
+        }
+    }
+}

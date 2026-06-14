@@ -1,0 +1,152 @@
+{
+    "gema": {
+        "agentCode": "gema",
+        "name": "AMMY",
+        "description": "This Agent is a script writer",
+        "capabilities": [
+            "You a Agent writes 3 mininut Video scripts when provide with the Text."
+        ],
+        "configuration": {
+            "provider": {
+                "type": "google",
+                "name": "Google AI API",
+                "model": "gemini-3-flash-preview"
+            },
+            "connection": {
+                "method": "Generative Language API",
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+                "httpMethod": "POST",
+                "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                "resource": "models/gemini-3-flash-preview:generateContent",
+                "auth": {
+                    "type": "api_key",
+                    "apiKey": "AIzaSyC4kRikWAZc2ZNVGvrt1CKqi3zXx6rAUkg"
+                }
+            },
+            "agent": {
+                "code": "gema",
+                "name": "AMMY",
+                "description": "This Agent is a script writer",
+                "capabilities": [
+                    "You a Agent writes 3 mininut Video scripts when provide with the Text."
+                ],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script."
+                    }
+                ]
+            },
+            "parameters": {
+                "temperature": 0.7,
+                "maxTokens": 2048,
+                "streaming": true
+            },
+            "createdAt": "2026-06-12T14:21:52+00:00"
+        },
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "TestAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "gema",
+                "message": "scopData.inputData.message"
+            }
+        },
+        "createdAt": "2026-06-12T14:19:18+00:00",
+        "updatedAt": "2026-06-12T14:21:52+00:00"
+    },
+    "apc": {
+        "agentCode": "apc",
+        "name": "APC",
+        "description": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script.",
+        "capabilities": [
+            "You are an AI Agent that specializes in writing 3\u2011minute video scripts.",
+            "When provided with source text",
+            "you transform it into a clear",
+            "engaging script suitable for narration or presentation.",
+            "Guidelines:",
+            "- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).",
+            "- Structure with an intro",
+            "2\u20133 main sections",
+            "and a concise outro.",
+            "- Use short sentences and natural phrasing for smooth voiceover flow.",
+            "- Maintain an engaging",
+            "audience\u2011friendly tone.",
+            "- Adapt the style to match the subject matter (informative",
+            "persuasive",
+            "or storytelling).",
+            "- Do not add visuals or production notes \u2014 only the spoken script."
+        ],
+        "configuration": {
+            "provider": {
+                "type": "lmstudio",
+                "name": "LM Studio",
+                "model": "google/gema-4-e2b"
+            },
+            "connection": {
+                "method": "Local inference server",
+                "endpoint": "http://localhost:1234/v1/chat/completions",
+                "httpMethod": "POST",
+                "server": {
+                    "type": "local_inference_server",
+                    "openAiCompatible": true
+                }
+            },
+            "agent": {
+                "code": "apc",
+                "name": "APC",
+                "description": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script.",
+                "capabilities": [
+                    "You are an AI Agent that specializes in writing 3\u2011minute video scripts.",
+                    "When provided with source text",
+                    "you transform it into a clear",
+                    "engaging script suitable for narration or presentation.",
+                    "Guidelines:",
+                    "- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).",
+                    "- Structure with an intro",
+                    "2\u20133 main sections",
+                    "and a concise outro.",
+                    "- Use short sentences and natural phrasing for smooth voiceover flow.",
+                    "- Maintain an engaging",
+                    "audience\u2011friendly tone.",
+                    "- Adapt the style to match the subject matter (informative",
+                    "persuasive",
+                    "or storytelling).",
+                    "- Do not add visuals or production notes \u2014 only the spoken script."
+                ],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are an AI Agent that specializes in writing 3\u2011minute video scripts.  \nWhen provided with source text, you transform it into a clear, engaging script suitable for narration or presentation.  \n\nGuidelines:\n- Keep the script length appropriate for ~3 minutes of spoken delivery (roughly 400\u2013450 words).  \n- Structure with an intro, 2\u20133 main sections, and a concise outro.  \n- Use short sentences and natural phrasing for smooth voiceover flow.  \n- Maintain an engaging, audience\u2011friendly tone.  \n- Adapt the style to match the subject matter (informative, persuasive, or storytelling).  \n- Do not add visuals or production notes \u2014 only the spoken script."
+                    }
+                ]
+            },
+            "parameters": {
+                "temperature": 0.2,
+                "maxTokens": 21048,
+                "streaming": false
+            },
+            "createdAt": "2026-06-12T14:33:21+00:00"
+        },
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "TestAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "apc",
+                "message": "scopData.inputData.message"
+            }
+        },
+        "createdAt": "2026-06-12T14:26:02+00:00",
+        "updatedAt": "2026-06-12T14:33:21+00:00"
+    }
+}

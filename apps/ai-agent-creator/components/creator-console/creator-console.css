@@ -1,0 +1,408 @@
+.ai-agent-creator-body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f5f7f4;
+    color: #17201d;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+}
+
+.agent-creator,
+.agent-creator *,
+.agent-creator *::before,
+.agent-creator *::after {
+    box-sizing: border-box;
+}
+
+.agent-creator {
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.agent-creator__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #d8ded7;
+    padding: 0.4rem 0 1rem;
+}
+
+.agent-creator h1,
+.agent-creator h2,
+.agent-creator p {
+    margin: 0;
+}
+
+.agent-creator h1 {
+    color: #15221e;
+    font-size: 2.15rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.agent-creator h2 {
+    color: #22302b;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.agent-creator__eyebrow {
+    color: #6c4262;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.agent-creator__status {
+    max-width: 34rem;
+    border: 1px solid #d8ded7;
+    border-left: 0.35rem solid #6b7fba;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #4b5652;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    padding: 0.75rem 0.9rem;
+}
+
+.agent-creator__status.is-success {
+    border-left-color: #2f7d55;
+    background: #edf8f0;
+    color: #18543a;
+}
+
+.agent-creator__status.is-error {
+    border-left-color: #b44b38;
+    background: #fff0ec;
+    color: #8b2d1f;
+}
+
+.agent-creator__status.is-muted {
+    border-left-color: #6b7fba;
+    background: #f1f4ff;
+    color: #35466f;
+}
+
+.agent-creator__workspace {
+    display: grid;
+    grid-template-columns: minmax(20rem, 33rem) minmax(0, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.agent-creator__builder,
+.agent-creator__output,
+.agent-creator__saved,
+.agent-creator__tester {
+    min-width: 0;
+    border: 1px solid #d8ded7;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.agent-creator__builder {
+    padding: 1rem;
+}
+
+.agent-creator__output {
+    display: grid;
+    grid-template-rows: auto minmax(28rem, 1fr);
+    overflow: hidden;
+}
+
+.agent-creator__saved,
+.agent-creator__tester {
+    padding: 1rem;
+}
+
+.agent-creator__saved {
+    align-self: start;
+}
+
+.agent-creator__tester {
+    align-self: start;
+}
+
+.agent-creator__section {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.agent-creator__section + .agent-creator__section,
+.agent-creator form {
+    margin-top: 1rem;
+}
+
+.agent-creator__section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.agent-creator__section-head > span {
+    color: #59645f;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.agent-creator__provider-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.agent-creator__provider,
+.agent-creator__button,
+.agent-creator__format {
+    min-height: 2.35rem;
+    border: 1px solid #cbd3cc;
+    border-radius: 8px;
+    background: #f8faf7;
+    color: #24312c;
+    cursor: pointer;
+    font: 800 0.86rem "Trebuchet MS", Verdana, sans-serif;
+    line-height: 1.15;
+    padding: 0.55rem 0.7rem;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.agent-creator__provider:hover,
+.agent-creator__button:hover,
+.agent-creator__format:hover {
+    border-color: #7185c2;
+    transform: translateY(-1px);
+}
+
+.agent-creator__provider.is-active,
+.agent-creator__format.is-active {
+    border-color: #284271;
+    background: #284271;
+    color: #ffffff;
+}
+
+.agent-creator__form-grid,
+.agent-creator__param-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.agent-creator__field,
+.agent-creator__range,
+.agent-creator__toggle {
+    display: grid;
+    gap: 0.35rem;
+    color: #2a3833;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.agent-creator__field--full {
+    grid-column: 1 / -1;
+}
+
+.agent-creator__field.is-hidden {
+    display: none;
+}
+
+.agent-creator input,
+.agent-creator textarea,
+.agent-creator select {
+    width: 100%;
+    border: 1px solid #cbd3cc;
+    border-radius: 8px;
+    background: #fbfcfa;
+    color: #17201d;
+    font: 400 0.94rem "Trebuchet MS", Verdana, sans-serif;
+    line-height: 1.45;
+    outline: none;
+    padding: 0.7rem 0.75rem;
+}
+
+.agent-creator textarea {
+    min-height: 9rem;
+    resize: vertical;
+}
+
+.agent-creator input:focus,
+.agent-creator textarea:focus,
+.agent-creator select:focus {
+    border-color: #284271;
+    background: #ffffff;
+    box-shadow: 0 0 0 0.18rem rgba(40, 66, 113, 0.14);
+}
+
+.agent-creator__range input {
+    accent-color: #284271;
+    padding: 0;
+}
+
+.agent-creator__range strong {
+    color: #6c4262;
+}
+
+.agent-creator__toggle {
+    align-content: end;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-height: 4.7rem;
+    border: 1px solid #cbd3cc;
+    border-radius: 8px;
+    background: #fbfcfa;
+    padding: 0.75rem;
+}
+
+.agent-creator__toggle input {
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: #2f7d55;
+}
+
+.agent-creator__actions,
+.agent-creator__output-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.agent-creator__actions {
+    margin-top: 1rem;
+}
+
+.agent-creator__button--primary {
+    border-color: #2f7d55;
+    background: #2f7d55;
+    color: #ffffff;
+}
+
+.agent-creator__output > .agent-creator__section-head {
+    border-bottom: 1px solid #d8ded7;
+    padding: 0.85rem 1rem;
+}
+
+.agent-creator__code {
+    overflow: auto;
+    margin: 0;
+    background: #111a1e;
+    color: #e7f0ea;
+    font: 400 0.86rem Consolas, "Courier New", monospace;
+    line-height: 1.55;
+    padding: 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.agent-creator__agent-list {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+    max-height: 24rem;
+    overflow: auto;
+}
+
+.agent-creator__agent {
+    display: grid;
+    gap: 0.25rem;
+    width: 100%;
+    border: 1px solid #d8ded7;
+    border-radius: 8px;
+    background: #fbfcfa;
+    color: #25312c;
+    cursor: pointer;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.agent-creator__agent:hover,
+.agent-creator__agent.is-active {
+    border-color: #284271;
+    background: #f1f4ff;
+}
+
+.agent-creator__agent strong {
+    color: #17201d;
+    font-size: 0.94rem;
+}
+
+.agent-creator__agent span {
+    color: #6c4262;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.agent-creator__agent p,
+.agent-creator__agent small {
+    margin: 0;
+    color: #59645f;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.agent-creator__empty {
+    border: 1px dashed #cbd3cc;
+    border-radius: 8px;
+    color: #59645f;
+    padding: 1rem;
+    text-align: center;
+}
+
+.agent-creator__response {
+    min-height: 11rem;
+    overflow: auto;
+    margin: 1rem 0 0;
+    border-radius: 8px;
+    background: #111a1e;
+    color: #e7f0ea;
+    font: 400 0.86rem Consolas, "Courier New", monospace;
+    line-height: 1.55;
+    padding: 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.agent-creator button:disabled,
+.agent-creator input:disabled,
+.agent-creator textarea:disabled,
+.agent-creator select:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+@media (max-width: 980px) {
+    .agent-creator__workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .agent-creator__output {
+        grid-template-rows: auto minmax(22rem, 60vh);
+    }
+}
+
+@media (max-width: 640px) {
+    .agent-creator {
+        padding: 0.75rem;
+    }
+
+    .agent-creator__header,
+    .agent-creator__section-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .agent-creator__section-head > span {
+        text-align: left;
+    }
+
+    .agent-creator__provider-grid,
+    .agent-creator__form-grid,
+    .agent-creator__param-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .agent-creator h1 {
+        font-size: 1.75rem;
+    }
+}

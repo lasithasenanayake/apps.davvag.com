@@ -1,0 +1,26 @@
+{
+    "name": "creator-console",
+    "description": "AI agent configuration builder interface",
+    "author": "Davvag",
+    "version": "0.2",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "creator-console.css"
+            }
+        ]
+    },
+    "transformers": {}
+}

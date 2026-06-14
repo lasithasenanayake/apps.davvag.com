@@ -1,0 +1,40 @@
+{
+    "name": "AI Agent Creator API",
+    "description": "Validates AI provider settings and generates structured agent configuration objects.",
+    "author": "Davvag",
+    "version": "0.2",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "ai_agent_creator\\CreatorService",
+        "methods": {
+            "GenerateConfig": {
+                "method": "POST"
+            },
+            "SaveAgent": {
+                "method": "POST"
+            },
+            "ListAgents": {
+                "method": "GET"
+            },
+            "DeleteAgent": {
+                "method": "POST"
+            },
+            "TestAgent": {
+                "method": "POST"
+            },
+            "Providers": {
+                "method": "GET"
+            }
+        }
+    },
+    "transformers": {}
+}
