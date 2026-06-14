@@ -1,47 +1,74 @@
 {
     "components": {
         "product": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "frmproduct-list": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "frmproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "newproduct": {
-            "type":"component",
-            "location":"components"
-        },"newproduct_publish": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
+        },
+        "newproduct_publish": {
+            "type": "component",
+            "location": "components"
         },
         "newproduct-v2": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Products V2",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "frmproduct-list",
-            "onLoad": ["product"],
-            "routes":{
-                "partials":{
-                    "/product" : "newproduct-v2",
-                    "/publish":"newproduct_publish"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "frmproduct-list",
+            "onLoad": [
+                "product"
+            ],
+            "routes": {
+                "partials": {
+                    "/product": "newproduct-v2",
+                    "/publish": "newproduct_publish"
                 }
-                
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "d_all_summery",
+            "d_cms_artical_v1",
+            "nearproducts",
+            "product_published",
+            "products",
+            "products_attributes",
+            "products_image"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "davvag-attributes",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

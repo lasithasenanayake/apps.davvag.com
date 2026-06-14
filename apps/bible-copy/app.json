@@ -1,25 +1,35 @@
 {
     "components": {
         "reader-bible": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Bible App",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "reader-bible",
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "reader-bible",
             "onLoad": [],
-            "routes":{
-                "partials":{
-                }
+            "routes": {
+                "partials": {}
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "i18n"
+        ],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

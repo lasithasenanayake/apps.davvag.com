@@ -1,23 +1,29 @@
 {
     "components": {
         "tagtextbox": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "dependencies": {
-            "type":"shell",
-            "location":""
+            "type": "shell",
+            "location": ""
         }
     },
-    "description":{
+    "description": {
         "title": "UI Components",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":""
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
     },
-    "tags":[],
-    "configuration":{
-        "webdock":{
-        }
+    "tags": [],
+    "configuration": {
+        "webdock": {}
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

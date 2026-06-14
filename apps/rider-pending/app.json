@@ -1,41 +1,68 @@
 {
     "components": {
         "crossdomainorder": {
-            "type":"service",
-            "location":"services"
-        },"order-list": {
-            "type":"component",
-            "location":"components"
-        },"frmInvoice-view":{
-            "type":"component",
-            "location":"components"
+            "type": "service",
+            "location": "services"
+        },
+        "order-list": {
+            "type": "component",
+            "location": "components"
+        },
+        "frmInvoice-view": {
+            "type": "component",
+            "location": "components"
         },
         "frmproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "newproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "rider-pending",
-        "author":"Davvag",
-        "version":"0.3",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.3",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "order-list",
-            "onLoad": ["crossdomainorder"],
-            "routes":{
-                "partials":{
-                    "/product" : "newproduct",
-                    "/invoice":"frmInvoice-view"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "order-list",
+            "onLoad": [
+                "crossdomainorder"
+            ],
+            "routes": {
+                "partials": {
+                    "/product": "newproduct",
+                    "/invoice": "frmInvoice-view"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "uom"
+        ],
+        "schemas": [
+            "ledger",
+            "orderdetails",
+            "orderheader",
+            "product_inventrymaster",
+            "profile",
+            "profilestatus",
+            "rider_orders_pending"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

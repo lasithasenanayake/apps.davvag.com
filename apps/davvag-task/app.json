@@ -1,52 +1,84 @@
 {
     "components": {
-        "projects-list":{"type":"component","location":"apps"},
-        "projects":{
-            "type":"component",
-            "location":"apps"
+        "projects-list": {
+            "type": "component",
+            "location": "apps"
         },
-        "tasks":{
-            "type":"component",
-            "location":"apps"
+        "projects": {
+            "type": "component",
+            "location": "apps"
         },
-        "viewObject":{
-            "type":"component",
-            "location":"apps"
+        "tasks": {
+            "type": "component",
+            "location": "apps"
         },
-        "taskapi":{
-            "type":"service",
-            "location":"service"
+        "viewObject": {
+            "type": "component",
+            "location": "apps"
         },
-        "viewObjectAPI":{
-            "type":"service",
-            "location":"service"
+        "taskapi": {
+            "type": "service",
+            "location": "service"
         },
-        "project-type":{
-            "type":"component",
-            "location":"apps"
+        "viewObjectAPI": {
+            "type": "service",
+            "location": "service"
+        },
+        "project-type": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "Davvag Task",
-        "author":"Davvag",
-        "version":"0.8",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.8",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "TestApp",
-            "onLoad": ["taskapi","viewObjectAPI"],
-            "routes":{
-                "partials":{
-                    "/tasks" : "tasks",
-                    "/projects" : "projects-list"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "TestApp",
+            "onLoad": [
+                "taskapi",
+                "viewObjectAPI"
+            ],
+            "routes": {
+                "partials": {
+                    "/tasks": "tasks",
+                    "/projects": "projects-list"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Task","path":"tasks"},{"name":"Projects","path":"projects"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Task",
+                    "path": "tasks"
+                },
+                {
+                    "name": "Projects",
+                    "path": "projects"
+                }
             ]
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_task_header_active",
+            "davvag_task_project_types",
+            "davvag_task_projects",
+            "user_object",
+            "user_view_objects",
+            "usergroups",
+            "users"
+        ],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

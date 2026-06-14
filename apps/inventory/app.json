@@ -1,25 +1,39 @@
 {
     "components": {
         "inventory-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "inventory": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Inventory",
-        "author":"Inventory",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Inventory",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "inventory",
-            "onLoad": ["inventory-handler"]
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "inventory",
+            "onLoad": [
+                "inventory-handler"
+            ]
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [
+            "phpmailer",
+            "transactions"
+        ],
+        "php-extensions": []
     }
 }

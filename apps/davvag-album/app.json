@@ -1,69 +1,109 @@
 {
     "components": {
         "cms-album-handler": {
-            "type":"service",
-            "location":"services"
-        },"Artical-view": {
-            "type":"component",
-            "location":"components"
+            "type": "service",
+            "location": "services"
+        },
+        "Artical-view": {
+            "type": "component",
+            "location": "components"
         },
         "catogory-form": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "catogory-all": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
-        "Album-all":{
-            "type":"component",
-            "location":"components"
+        "Album-all": {
+            "type": "component",
+            "location": "components"
         },
-        "Album-form":{
-            "type":"component",
-            "location":"components"
+        "Album-form": {
+            "type": "component",
+            "location": "components"
         },
-        "carousel-form":{
-            "type":"component",
-            "location":"components"
+        "carousel-form": {
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Davvag Album",
-        "author":"Davvag",
-        "version":"4.0",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "4.0",
+        "icon": "appicon.png"
     },
-    "tags":["showindock","showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "menu",
-            "onLoad": ["cms-album-handler"],
-            "subApps":{
-                "Articles" : {
-                    "route" : "/artical",
-                    "icon" : "appicon.png"
+    "tags": [
+        "showindock",
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "menu",
+            "onLoad": [
+                "cms-album-handler"
+            ],
+            "subApps": {
+                "Articles": {
+                    "route": "/artical",
+                    "icon": "appicon.png"
                 },
-                "All Buttons" : {
-                    "route" : "/buttonsall",
-                    "icon" : "appicon.png"
+                "All Buttons": {
+                    "route": "/buttonsall",
+                    "icon": "appicon.png"
                 }
             },
-            "routes":{
-                "partials":{
-                    "/cat":"catogory-form",
-                    "/catall":"catogory-all",
-                    "/a" : "Artical-view",
-                    "/albumall":"Album-all",
-                    "/album":"Album-form",
-                    "/carousel":"carousel-form"
+            "routes": {
+                "partials": {
+                    "/cat": "catogory-form",
+                    "/catall": "catogory-all",
+                    "/a": "Artical-view",
+                    "/albumall": "Album-all",
+                    "/album": "Album-form",
+                    "/carousel": "carousel-form"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Catogories","path":"catall"}
-                ,{"name":"New Catogory","path":"cat"},{"name":"Albums","path":"albumall"},{"name":"New Album","path":"album"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Catogories",
+                    "path": "catall"
+                },
+                {
+                    "name": "New Catogory",
+                    "path": "cat"
+                },
+                {
+                    "name": "Albums",
+                    "path": "albumall"
+                },
+                {
+                    "name": "New Album",
+                    "path": "album"
+                }
             ]
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "d_album_carousel_dtl_v1",
+            "d_album_carousel_v1",
+            "d_cms_album_imagev1",
+            "d_cms_album_v1",
+            "d_cms_artical_v1"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

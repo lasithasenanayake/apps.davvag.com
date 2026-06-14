@@ -1,49 +1,69 @@
 {
     "components": {
         "user-handler": {
-            "type":"service",
-            "location":"services"
-        }
-        ,
-        "users":{
-            "type":"component",
-            "location":"app"
+            "type": "service",
+            "location": "services"
+        },
+        "users": {
+            "type": "component",
+            "location": "app"
         }
     },
-    "description":{
+    "description": {
         "title": "Users",
-        "author":"Lasitha Senanayake",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Lasitha Senanayake",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "users",
-            "onLoad": ["user-handler","showincms"],
-            "routes":{
-                "partials":{
-                    "/keyword" : "users"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "users",
+            "onLoad": [
+                "user-handler",
+                "showincms"
+            ],
+            "routes": {
+                "partials": {
+                    "/keyword": "users"
                 }
             }
         }
     },
     "resources": {
-        "js" : [
+        "js": [
             {
                 "tag": "bootstrap-datetimepicker",
-                "version" : "latest",
-                "location":"assets/bootstrap-datetimepicker.min.js"
+                "version": "latest",
+                "location": "assets/bootstrap-datetimepicker.min.js"
             }
         ],
-        "css":[
+        "css": [
             {
-                "type":"css",
-                "location":"assets/bootstrap-datetimepicker.min.css"
-            },{
-                "type" : "css",
-                "location" : "assets/broadstyle.css"
+                "type": "css",
+                "location": "assets/bootstrap-datetimepicker.min.css"
+            },
+            {
+                "type": "css",
+                "location": "assets/broadstyle.css"
             }
         ]
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "profile",
+            "schedule_pending",
+            "users"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

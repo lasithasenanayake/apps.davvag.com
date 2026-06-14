@@ -1,34 +1,45 @@
 {
     "components": {
         "settings-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "settingspage": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "user-form": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Web Dock Settings",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "settingspage",
-            "onLoad": ["settings-handler"],
-            "routes":{
-                "partials":{
-                    "/user" : "user-form"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "settingspage",
+            "onLoad": [
+                "settings-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/user": "user-form"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

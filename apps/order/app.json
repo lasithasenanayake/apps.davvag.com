@@ -1,38 +1,55 @@
 {
     "components": {
         "order-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "inventory-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "order-all": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "order-nextday": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Orders",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "order-all",
-            "onLoad": ["order-handler"],
-            "routes":{
-                "partials":{
-                    "/nextday" : "order-nextday"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "order-all",
+            "onLoad": [
+                "order-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/nextday": "order-nextday"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "inventory",
+            "riders"
+        ],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [
+            "phpmailer",
+            "transactions"
+        ],
+        "php-extensions": []
     }
 }

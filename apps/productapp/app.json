@@ -1,43 +1,71 @@
 {
     "components": {
         "product": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "frmproduct-list-V1": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "frmproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "newproduct": {
-            "type":"component",
-            "location":"components"
-        },"newproduct_publish": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
+        },
+        "newproduct_publish": {
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Products",
-        "author":"Davvag",
-        "version":"0.6",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.6",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "frmproduct-list-V1",
-            "onLoad": ["product"],
-            "routes":{
-                "partials":{
-                    "/product" : "newproduct",
-                    "/publish":"newproduct_publish"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "frmproduct-list-V1",
+            "onLoad": [
+                "product"
+            ],
+            "routes": {
+                "partials": {
+                    "/product": "newproduct",
+                    "/publish": "newproduct_publish"
                 }
-                
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "uom"
+        ],
+        "schemas": [
+            "d_all_summery",
+            "d_cms_artical_v1",
+            "nearproducts",
+            "product_published",
+            "product_search_1",
+            "products",
+            "products_attributes",
+            "products_deleted",
+            "products_image",
+            "profile"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

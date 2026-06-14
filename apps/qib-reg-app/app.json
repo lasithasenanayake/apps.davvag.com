@@ -1,43 +1,71 @@
 {
     "components": {
         "enrole": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "result-upload":{
-            "type":"component",
-            "location":"apps"
+        "result-upload": {
+            "type": "component",
+            "location": "apps"
         },
-        "sample-popup":{
-            "type":"component",
-            "location":"apps"
+        "sample-popup": {
+            "type": "component",
+            "location": "apps"
         },
-        "result":{
-            "type":"component",
-            "location":"apps"
+        "result": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "QIB App",
-        "author":"Lasitha",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Lasitha",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "enrole",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/result-upload":"result-upload",
-                    "/result":"result"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "enrole",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/result-upload": "result-upload",
+                    "/result": "result"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-sample-app-1",
+            "stelup_shop"
+        ],
+        "schemas": [
+            "attr_lasitha_form",
+            "profile",
+            "qibprofilerequest",
+            "qibprofilerequest_results"
+        ],
+        "workflows": [
+            "davvag-attributes/testflow.json"
+        ],
+        "plugins": [
+            "davvag-attributes",
+            "davvag-flow",
+            "mpdf",
+            "notify",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

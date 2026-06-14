@@ -15,16 +15,28 @@
         "version": "0.1",
         "icon": ""
     },
-    "tags": ["showindock","showincms"],
+    "tags": [
+        "showindock",
+        "showincms"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "workflow-designer",
-            "onLoad": ["flow-designer-api"],
+            "onLoad": [
+                "flow-designer-api"
+            ],
             "routes": {
                 "partials": {
                     "/": "workflow-designer"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

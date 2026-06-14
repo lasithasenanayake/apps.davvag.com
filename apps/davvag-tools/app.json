@@ -1,45 +1,66 @@
 {
     "components": {
         "davvag-img-cropper": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
-        "davvag-file-uploader":{
-            "type":"service",
-            "location":"services"
+        "davvag-file-uploader": {
+            "type": "service",
+            "location": "services"
         },
-        "davvag-app-downloader":{
-            "type":"service",
-            "location":"services"
-        },"viewObject":{
-            "type":"component",
-            "location":"apps"
+        "davvag-app-downloader": {
+            "type": "service",
+            "location": "services"
         },
-        "capture":{
-            "type":"component",
-            "location":"apps"
+        "viewObject": {
+            "type": "component",
+            "location": "apps"
         },
-        "viewObjectAPI":{
-            "type":"service",
-            "location":"services"
+        "capture": {
+            "type": "component",
+            "location": "apps"
+        },
+        "viewObjectAPI": {
+            "type": "service",
+            "location": "services"
         }
     },
-    "description":{
+    "description": {
         "title": "App Downloader",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":""
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        
-        "webdock":{
-            "onLoad": ["viewObjectAPI"],
-            "routes":{
-                "partials":{
-                    "/viewObject" : "viewObject"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "onLoad": [
+                "viewObjectAPI"
+            ],
+            "routes": {
+                "partials": {
+                    "/viewObject": "viewObject"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "user_object",
+            "user_view_objects",
+            "usergroups",
+            "users"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

@@ -15,16 +15,30 @@
         "version": "0.1",
         "icon": ""
     },
-    "tags": ["showindock"],
+    "tags": [
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "tax-master-admin",
-            "onLoad": ["tax-master-handler"],
+            "onLoad": [
+                "tax-master-handler"
+            ],
             "routes": {
                 "partials": {
                     "/": "tax-master-admin"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

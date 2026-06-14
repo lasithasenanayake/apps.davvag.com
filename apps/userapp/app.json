@@ -1,77 +1,109 @@
 {
     "components": {
         "login-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "login-form": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "login-restpassword": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "chnage-password": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "login-switcher": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "login-error": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "frmprofile-view": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "terms-conditions": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "privacy-policy": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
-        "profile-edit":{
-            "type":"component",
-            "location":"components"
+        "profile-edit": {
+            "type": "component",
+            "location": "components"
         },
-        "frmInvoice-view":{
-            "type":"component",
-            "location":"components"
+        "frmInvoice-view": {
+            "type": "component",
+            "location": "components"
         },
-        "frmRecipt-view":{
-            "type":"component",
-            "location":"components"
+        "frmRecipt-view": {
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "User App",
-        "author":"Davvag",
-        "version":"0.71",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.71",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "login-switcher",
-            "onLoad": ["login-handler"],
-            "routes":{
-                "partials":{
-                    "/login":"login-form",
-                    "/profile":"frmprofile-view",
-                    "/reset":"login-restpassword",
-                    "/error":"login-error",
-                    "/privacy-policy":"privacy-policy",
-                    "/terms-conditions":"terms-conditions",
-                    "/receipt" : "frmRecipt-view",
-                    "/invoice":"frmInvoice-view"
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "login-switcher",
+            "onLoad": [
+                "login-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/login": "login-form",
+                    "/profile": "frmprofile-view",
+                    "/reset": "login-restpassword",
+                    "/error": "login-error",
+                    "/privacy-policy": "privacy-policy",
+                    "/terms-conditions": "terms-conditions",
+                    "/receipt": "frmRecipt-view",
+                    "/invoice": "frmInvoice-view"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools",
+            "i18n"
+        ],
+        "schemas": [
+            "ledger",
+            "orderheader_accepted",
+            "orderheader_pending",
+            "orderheader_rejected",
+            "payment_ext_request",
+            "profile",
+            "profile_attributes",
+            "profile_policy",
+            "profilestatus"
+        ],
+        "workflows": [],
+        "plugins": [
+            "Facebook",
+            "Google",
+            "auth",
+            "notify",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

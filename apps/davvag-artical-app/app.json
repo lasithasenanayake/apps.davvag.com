@@ -1,34 +1,45 @@
 {
     "components": {
         "cmsArtical-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "Artical-all": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "Artical-form": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Articals",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "Artical-form",
-            "onLoad": ["cmsArtical-handler"],
-            "routes":{
-                "partials":{
-                    "/artical" : "Artical-form"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "Artical-form",
+            "onLoad": [
+                "cmsArtical-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/artical": "Artical-form"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

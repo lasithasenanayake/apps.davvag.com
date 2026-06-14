@@ -1,71 +1,120 @@
 {
     "components": {
         "sample-input-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "Setting-form":{
-            "type":"component",
-            "location":"apps"
+        "Setting-form": {
+            "type": "component",
+            "location": "apps"
         },
-        "profile":{
-            "type":"service",
-            "location":"service"
+        "profile": {
+            "type": "service",
+            "location": "service"
         },
-        "frmprofile-list":{
-            "type":"component",
-            "location":"apps"
+        "frmprofile-list": {
+            "type": "component",
+            "location": "apps"
         },
-        "frmprofile-view":{
-            "type":"component",
-            "location":"apps"
+        "frmprofile-view": {
+            "type": "component",
+            "location": "apps"
         },
-        "course_creation":{
-            "type":"component",
-            "location":"apps"
+        "course_creation": {
+            "type": "component",
+            "location": "apps"
         },
-        "subject_creation":{
-            "type":"component",
-            "location":"apps"
-        },"enrol-course":{
-            "type":"component",
-            "location":"apps"
+        "subject_creation": {
+            "type": "component",
+            "location": "apps"
         },
-        "enrol-subject":{
-            "type":"component",
-            "location":"apps"
+        "enrol-course": {
+            "type": "component",
+            "location": "apps"
+        },
+        "enrol-subject": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "LBC Study APP",
-        "author":"Lasitha Senanayake",
-        "version":"0.3",
-        "icon":"appicon.png"
+        "author": "Lasitha Senanayake",
+        "version": "0.3",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "sample-input-form",
-            "onLoad": ["profile","app-handler"],
-            "routes":{
-                "partials":{
-                    "/view":"frmprofile-view",
-                    "/serach":"frmprofile-list",
-                    "/course_creation":"course_creation",
-                    "/subject_creation":"subject_creation",
-                    "/settings":"Setting-form",
-                    "/enrol":"enrol-course",
-                    "/enrol_subject":"enrol-subject"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "sample-input-form",
+            "onLoad": [
+                "profile",
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/view": "frmprofile-view",
+                    "/serach": "frmprofile-list",
+                    "/course_creation": "course_creation",
+                    "/subject_creation": "subject_creation",
+                    "/settings": "Setting-form",
+                    "/enrol": "enrol-course",
+                    "/enrol_subject": "enrol-subject"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Profile Search","path":"serach"},{"name":"Course","path":"course_creation"},{"name":"Settings","path":"settings"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Profile Search",
+                    "path": "serach"
+                },
+                {
+                    "name": "Course",
+                    "path": "course_creation"
+                },
+                {
+                    "name": "Settings",
+                    "path": "settings"
+                }
             ]
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-sample-app-1",
+            "stelup_shop"
+        ],
+        "schemas": [
+            "attr_course_creation",
+            "attr_lasitha_form",
+            "attr_lbc_entrollments",
+            "attr_subject_creation",
+            "lbc_course_entrolments",
+            "lbc_course_entrolments_active",
+            "profile",
+            "profile_attributes",
+            "profiles_search_1",
+            "profileservices"
+        ],
+        "workflows": [
+            "davvag-attributes/testflow.json"
+        ],
+        "plugins": [
+            "auth",
+            "davvag-attributes",
+            "davvag-flow",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

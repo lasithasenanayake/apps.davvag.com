@@ -15,16 +15,29 @@
         "version": "0.1",
         "icon": ""
     },
-    "tags": ["showindock"],
+    "tags": [
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "chat-console",
-            "onLoad": ["agent-api"],
+            "onLoad": [
+                "agent-api"
+            ],
             "routes": {
                 "partials": {
                     "/": "chat-console"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": [
+            "curl"
+        ]
     }
 }

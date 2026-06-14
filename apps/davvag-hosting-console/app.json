@@ -1,47 +1,71 @@
 {
     "components": {
         "console": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "backup-app": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "backup-files": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "hosting-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "test-form":{
-            "type":"component",
-            "location":"apps"
+        "test-form": {
+            "type": "component",
+            "location": "apps"
         },
-        "sample-popup":{
-            "type":"component",
-            "location":"apps"
+        "sample-popup": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "Hosting Manager",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "console",
-            "onLoad": ["hosting-handler"],
-            "routes":{
-                "partials":{
-                    "/test":"backup-files",
-                    "/app":"sample-popup"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "console",
+            "onLoad": [
+                "hosting-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/test": "backup-files",
+                    "/app": "sample-popup"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-sample-app-1",
+            "davvag-tools",
+            "stelup_shop"
+        ],
+        "schemas": [
+            "attr_lasitha_form",
+            "profile"
+        ],
+        "workflows": [
+            "davvag-attributes/testflow.json"
+        ],
+        "plugins": [
+            "davvag-attributes",
+            "davvag-flow"
+        ],
+        "php-extensions": []
     }
 }

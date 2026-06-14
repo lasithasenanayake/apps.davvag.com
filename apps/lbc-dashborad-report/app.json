@@ -1,78 +1,118 @@
 {
     "components": {
         "rpt-handler": {
-            "type":"service",
-            "location":"services"
-        }
-        ,
-        "Collection-Report":{
-            "type":"component",
-            "location":"app"
+            "type": "service",
+            "location": "services"
         },
-        "MonthlyDashboard":{
-            "type":"component",
-            "location":"app"
+        "Collection-Report": {
+            "type": "component",
+            "location": "app"
         },
-        "MonthlyDashboard-income":{
-            "type":"component",
-            "location":"app"
+        "MonthlyDashboard": {
+            "type": "component",
+            "location": "app"
         },
-        "customers":{
-            "type":"component",
-            "location":"app"
+        "MonthlyDashboard-income": {
+            "type": "component",
+            "location": "app"
         },
-        "Profilelist-Report":{
-            "type":"component",
-            "location":"app"
-        },"Profilelist-Report-all":{
-            "type":"component",
-            "location":"app"
+        "customers": {
+            "type": "component",
+            "location": "app"
+        },
+        "Profilelist-Report": {
+            "type": "component",
+            "location": "app"
+        },
+        "Profilelist-Report-all": {
+            "type": "component",
+            "location": "app"
         }
     },
-    "description":{
+    "description": {
         "title": "LBC Dashbord",
-        "author":"Lasitha Senanayake",
-        "version":"0.6",
-        "icon":"appicon.png"
+        "author": "Lasitha Senanayake",
+        "version": "0.6",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "Collection-Report",
-            "onLoad": ["rpt-handler"],
-            "routes":{
-                "partials":{
-                    "/collection" : "Collection-Report",
-                    "/allprofiles" : "Profilelist-Report",
-                    "/all":"Profilelist-Report-all",
-                    "/rpt-monthly-dashboard":"MonthlyDashboard",
-                    "/rpt-monthly-dashboard-income":"MonthlyDashboard-income"
-
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "Collection-Report",
+            "onLoad": [
+                "rpt-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/collection": "Collection-Report",
+                    "/allprofiles": "Profilelist-Report",
+                    "/all": "Profilelist-Report-all",
+                    "/rpt-monthly-dashboard": "MonthlyDashboard",
+                    "/rpt-monthly-dashboard-income": "MonthlyDashboard-income"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Outstanding Report","path":"collection"},{"name":"All Profiles","path":"allprofiles"},{"name":"All","path":"all"},{"name":"Dashboard Enrolment","path":"rpt-monthly-dashboard"}
-                ,{"name":"Dashboard Income","path":"rpt-monthly-dashboard-income"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Outstanding Report",
+                    "path": "collection"
+                },
+                {
+                    "name": "All Profiles",
+                    "path": "allprofiles"
+                },
+                {
+                    "name": "All",
+                    "path": "all"
+                },
+                {
+                    "name": "Dashboard Enrolment",
+                    "path": "rpt-monthly-dashboard"
+                },
+                {
+                    "name": "Dashboard Income",
+                    "path": "rpt-monthly-dashboard-income"
+                }
             ]
         }
     },
     "resources": {
-        "js" : [
+        "js": [
             {
                 "tag": "bootstrap-datetimepicker",
-                "version" : "latest",
-                "location":"assets/bootstrap-datetimepicker.min.js"
+                "version": "latest",
+                "location": "assets/bootstrap-datetimepicker.min.js"
             }
         ],
-        "css":[
+        "css": [
             {
-                "type":"css",
-                "location":"assets/bootstrap-datetimepicker.min.css"
-            },{
-                "type" : "css",
-                "location" : "assets/broadstyle.css"
+                "type": "css",
+                "location": "assets/bootstrap-datetimepicker.min.css"
+            },
+            {
+                "type": "css",
+                "location": "assets/broadstyle.css"
             }
         ]
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "lbc_rpt_all_invoice_reciept",
+            "lbc_rpt_all_invoice_reciept_all_status",
+            "lbc_rpt_outstanding",
+            "orderdetails_purchase_sum_by_month",
+            "schedule_pending"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

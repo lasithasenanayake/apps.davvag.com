@@ -51,11 +51,18 @@
         "version": "2.1",
         "icon": "appicon.png"
     },
-    "tags": ["showincms", "showindock"],
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "projects",
-            "onLoad": ["task-style", "taskapi", "passwordvaultapi"],
+            "onLoad": [
+                "task-style",
+                "taskapi",
+                "passwordvaultapi"
+            ],
             "routes": {
                 "partials": {
                     "/": "projects",
@@ -71,10 +78,37 @@
         },
         "dock": {
             "subapps": [
-                {"name": "Projects", "path": "projects"},
-                {"name": "My Tasks", "path": "my-tasks"},
-                {"name": "Time Tracker", "path": "time-tracker"}
+                {
+                    "name": "Projects",
+                    "path": "projects"
+                },
+                {
+                    "name": "My Tasks",
+                    "path": "my-tasks"
+                },
+                {
+                    "name": "Time Tracker",
+                    "path": "time-tracker"
+                }
             ]
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "profile"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": [
+            "imap"
+        ]
     }
 }

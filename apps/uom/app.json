@@ -1,34 +1,47 @@
 {
     "components": {
         "uom-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "uom-all": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "uom-form": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "UOM",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "uom-all",
-            "onLoad": ["uom-handler"],
-            "routes":{
-                "partials":{
-                    "/uom" : "uom-form"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "uom-all",
+            "onLoad": [
+                "uom-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/uom": "uom-form"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "i18n"
+        ],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

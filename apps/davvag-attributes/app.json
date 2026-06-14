@@ -1,32 +1,49 @@
 {
     "components": {
-        "attribute-creator":{
-            "type":"component",
-            "location":"apps"
+        "attribute-creator": {
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
-        "attribute-generator":{
-            "type":"service",
-            "location":"services"
+        "attribute-generator": {
+            "type": "service",
+            "location": "services"
         }
     },
-    "description":{
+    "description": {
         "title": "Attribute Creator",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "attribute-creator",
-            "onLoad": ["app-handler","attribute-generator"],
-            "routes":{
-                "partials":{}
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "attribute-creator",
+            "onLoad": [
+                "app-handler",
+                "attribute-generator"
+            ],
+            "routes": {
+                "partials": {}
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "d_attributes"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-flow",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

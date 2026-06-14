@@ -1,34 +1,53 @@
 {
     "components": {
         "charge-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "register-stripe": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         }
     },
-    "description":{
+    "description": {
         "title": "Strip Payment Gatway App",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "charge-form",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/mapstripe":"register-stripe"
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "charge-form",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/mapstripe": "register-stripe"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_stripe"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-ipg",
+            "davvag-order",
+            "profile",
+            "sossdata",
+            "stripe"
+        ],
+        "php-extensions": []
     }
 }

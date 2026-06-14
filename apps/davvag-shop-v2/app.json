@@ -1,66 +1,99 @@
 {
     "components": {
         "productsvr": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "frmproduct-list": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "frmproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "newproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
-        "partial-cart":{
-            "type":"component",
-            "location":"components"
+        "partial-cart": {
+            "type": "component",
+            "location": "components"
         },
-        "partial-cart-checkout":{
-            "type":"component",
-            "location":"components"
+        "partial-cart-checkout": {
+            "type": "component",
+            "location": "components"
         },
-        "order-complete":{
-            "type":"component",
-            "location":"components"
+        "order-complete": {
+            "type": "component",
+            "location": "components"
         },
-        "product_app":{
-            "type":"component",
-            "location":"components"
+        "product_app": {
+            "type": "component",
+            "location": "components"
         },
-        "bid-cofirmation":{
-            "type":"component",
-            "location":"components"
+        "bid-cofirmation": {
+            "type": "component",
+            "location": "components"
         },
-        "product-catogory-list":{
-            "type":"component",
-            "location":"components"
+        "product-catogory-list": {
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "Davvag Market Place",
-        "author":"Davvag",
-        "version":"0.8",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.8",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "frmproduct-list",
-            "onLoad": ["productsvr"],
-            "routes":{
-                "partials":{
-                    "/checkout" : "partial-cart",
-                    "/checkout-complete" : "partial-cart-checkout",
-                    "/order-complete" : "order-complete",
-                    "/bid_confirmation":"bid-cofirmation",
-                    "/cat-list":"product-catogory-list"
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "frmproduct-list",
+            "onLoad": [
+                "productsvr"
+            ],
+            "routes": {
+                "partials": {
+                    "/checkout": "partial-cart",
+                    "/checkout-complete": "partial-cart-checkout",
+                    "/order-complete": "order-complete",
+                    "/bid_confirmation": "bid-cofirmation",
+                    "/cat-list": "product-catogory-list"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools",
+            "uom"
+        ],
+        "schemas": [
+            "attr_",
+            "attr_bi",
+            "d_cms_artical_v1",
+            "ds_products_v2",
+            "orderdetails_pending",
+            "orderheader_pending",
+            "productcat",
+            "products",
+            "products_attributes",
+            "products_bids",
+            "products_image"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "davvag-order",
+            "phpcache",
+            "phpmailer",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

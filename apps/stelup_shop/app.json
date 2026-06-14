@@ -1,151 +1,216 @@
 {
     "components": {
         "login-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "productsvr":{
-            "type":"service",
-            "location":"service"
+        "productsvr": {
+            "type": "service",
+            "location": "service"
         },
-        "p_svr":{
-            "type":"service",
-            "location":"service"
+        "p_svr": {
+            "type": "service",
+            "location": "service"
         },
-        "seller_svr":{
-            "type":"service",
-            "location":"service"
+        "seller_svr": {
+            "type": "service",
+            "location": "service"
         },
         "sample-input-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
-        "seller-register-1":{
-            "type":"component",
-            "location":"apps"
-        }
-        ,
-        "product-register":{
-            "type":"component",
-            "location":"apps"
+        "seller-register-1": {
+            "type": "component",
+            "location": "apps"
         },
-        
-        "frmproduct-list":{
-            "type":"component",
-            "location":"apps"
+        "product-register": {
+            "type": "component",
+            "location": "apps"
         },
-        "home-sp":{
-            "type":"component",
-            "location":"apps"
+        "frmproduct-list": {
+            "type": "component",
+            "location": "apps"
         },
-        "partial-404":{
-            "type":"component",
-            "location":"apps"
+        "home-sp": {
+            "type": "component",
+            "location": "apps"
         },
-        "profile":{
-            "type":"component",
-            "location":"apps"
+        "partial-404": {
+            "type": "component",
+            "location": "apps"
         },
-        "messaging":{
-            "type":"component",
-            "location":"apps"
+        "profile": {
+            "type": "component",
+            "location": "apps"
         },
-        "product-comments":{
-            "type":"component",
-            "location":"apps"
+        "messaging": {
+            "type": "component",
+            "location": "apps"
         },
-        "cart-checkout":{
-            "type":"component",
-            "location":"apps"
+        "product-comments": {
+            "type": "component",
+            "location": "apps"
         },
-        "partial-cart":{
-            "type":"component",
-            "location":"apps"
+        "cart-checkout": {
+            "type": "component",
+            "location": "apps"
         },
-        "order-complete":{
-            "type":"component",
-            "location":"apps"
+        "partial-cart": {
+            "type": "component",
+            "location": "apps"
         },
-        "product-trade":{
-            "type":"component",
-            "location":"apps"
+        "order-complete": {
+            "type": "component",
+            "location": "apps"
         },
-        "accept_proposal":{
-            "type":"component",
-            "location":"apps"
+        "product-trade": {
+            "type": "component",
+            "location": "apps"
         },
-        "rejected_proposal":{
-            "type":"component",
-            "location":"apps"
+        "accept_proposal": {
+            "type": "component",
+            "location": "apps"
         },
-        "accepted_proposal":{
-            "type":"component",
-            "location":"apps"
+        "rejected_proposal": {
+            "type": "component",
+            "location": "apps"
         },
-        "product_app":{
-            "type":"component",
-            "location":"apps"
+        "accepted_proposal": {
+            "type": "component",
+            "location": "apps"
         },
-        "product-group-sell":{
-            "type":"component",
-            "location":"apps"
+        "product_app": {
+            "type": "component",
+            "location": "apps"
         },
-        "messages":{
-            "type":"component",
-            "location":"apps"
+        "product-group-sell": {
+            "type": "component",
+            "location": "apps"
         },
-        "product_app_checkout":{
-            "type":"component",
-            "location":"apps"
+        "messages": {
+            "type": "component",
+            "location": "apps"
         },
-        "user-profile":{
-            "type":"component",
-            "location":"apps"
+        "product_app_checkout": {
+            "type": "component",
+            "location": "apps"
         },
-        "seller-product-admin":{
-            "type":"component",
-            "location":"apps"
+        "user-profile": {
+            "type": "component",
+            "location": "apps"
         },
-        "pending-orders":{
-            "type":"component",
-            "location":"apps"
+        "seller-product-admin": {
+            "type": "component",
+            "location": "apps"
+        },
+        "pending-orders": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "Stelup App",
-        "author":"lasitha@davvag.com",
-        "version":"0.4",
-        "icon":"appicon.png"
+        "author": "lasitha@davvag.com",
+        "version": "0.4",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "home-sp",
-            "onLoad": ["app-handler","p_svr","productsvr","login-handler","seller_svr"],
-            "routes":{
-                "partials":{
-                    "/test":"sample-input-form",
-                    "/xplo":"frmproduct-list",
-                    "/selleronboard":"seller-register-1",
-                    "/itemonboard":"product-group-sell",
-                    "/checkout":"cart-checkout",
-                    "/checkout-cart":"partial-cart",
-                    "/profile":"profile",
-                    "/payment-gateway":"",
-                    "/order-complete":"order-complete",
-                    "/traditem":"product-trade",
-                    "/group-sell":"product-group-sell",
-                    "/messages":"messages",
-                    "/userprofile":"user-profile",
-                    "/selleradmin":"seller-product-admin",
-                    "/orders":"pending-orders"
-
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "home-sp",
+            "onLoad": [
+                "app-handler",
+                "p_svr",
+                "productsvr",
+                "login-handler",
+                "seller_svr"
+            ],
+            "routes": {
+                "partials": {
+                    "/test": "sample-input-form",
+                    "/xplo": "frmproduct-list",
+                    "/selleronboard": "seller-register-1",
+                    "/itemonboard": "product-group-sell",
+                    "/checkout": "cart-checkout",
+                    "/checkout-cart": "partial-cart",
+                    "/profile": "profile",
+                    "/payment-gateway": "",
+                    "/order-complete": "order-complete",
+                    "/traditem": "product-trade",
+                    "/group-sell": "product-group-sell",
+                    "/messages": "messages",
+                    "/userprofile": "user-profile",
+                    "/selleradmin": "seller-product-admin",
+                    "/orders": "pending-orders"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "attr_stelup_dispatch",
+            "d_cms_artical_v1",
+            "ledger",
+            "messages",
+            "messages_inbox_query",
+            "messages_query",
+            "nearproducts",
+            "orderdetails",
+            "orderdetails_pending",
+            "orderheader_accepted",
+            "orderheader_cancelled",
+            "orderheader_deleted",
+            "orderheader_dispatched",
+            "orderheader_pending",
+            "orderheader_rejected",
+            "payment_ext_request",
+            "products",
+            "products_attributes",
+            "products_comments",
+            "products_favorites",
+            "products_image",
+            "products_likes",
+            "products_reviews",
+            "products_stelup_1",
+            "products_stelup_2",
+            "products_stelup_3",
+            "products_subitems",
+            "products_subitems_query",
+            "profile",
+            "profile_attributes",
+            "profile_followers",
+            "profile_policy",
+            "profilestatus",
+            "stelup_trade",
+            "stelup_trade_confirm",
+            "stelup_trade_rejected"
+        ],
+        "workflows": [
+            "davvag-attributes/stelup_dispatch_order.json"
+        ],
+        "plugins": [
+            "Facebook",
+            "Google",
+            "auth",
+            "davvag-attributes",
+            "davvag-flow",
+            "davvag-order",
+            "notify",
+            "phpcache",
+            "profile",
+            "profile-stelup",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

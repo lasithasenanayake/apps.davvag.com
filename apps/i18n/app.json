@@ -1,19 +1,25 @@
 {
     "components": {
         "i18n": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         }
     },
-    "description":{
+    "description": {
         "title": "Internationalization",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":""
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
     },
-    "tags":[],
-    "configuration":{
-        "webdock":{
-        }
+    "tags": [],
+    "configuration": {
+        "webdock": {}
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
     }
 }

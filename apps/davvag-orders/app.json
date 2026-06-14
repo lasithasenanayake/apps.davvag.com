@@ -1,58 +1,96 @@
 {
     "components": {
         "davvag-order-handler": {
-            "type":"service",
-            "location":"services"
-        }
-        ,
-        "pending-orders":{
-            "type":"component",
-            "location":"app"
+            "type": "service",
+            "location": "services"
         },
-        "pending-bids":{
-            "type":"component",
-            "location":"app"
+        "pending-orders": {
+            "type": "component",
+            "location": "app"
+        },
+        "pending-bids": {
+            "type": "component",
+            "location": "app"
         }
     },
-    "description":{
+    "description": {
         "title": "Order Taking",
-        "author":"Lasitha Senanayake",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Lasitha Senanayake",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock","showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "pending-orders",
-            "onLoad": ["davvag-order-handler"],
-            "routes":{
-                "partials":{
-                    "/pendingorders" : "pending-orders",
-                    "/pendingbids" : "pending-bids"
+    "tags": [
+        "showindock",
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "pending-orders",
+            "onLoad": [
+                "davvag-order-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/pendingorders": "pending-orders",
+                    "/pendingbids": "pending-bids"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Pending Orders","path":"pendingorders"},{"name":"Pending Bids","path":"pendingbids"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Pending Orders",
+                    "path": "pendingorders"
+                },
+                {
+                    "name": "Pending Bids",
+                    "path": "pendingbids"
+                }
             ]
         }
     },
     "resources": {
-        "js" : [
+        "js": [
             {
                 "tag": "bootstrap-datetimepicker",
-                "version" : "latest",
-                "location":"assets/bootstrap-datetimepicker.min.js"
+                "version": "latest",
+                "location": "assets/bootstrap-datetimepicker.min.js"
             }
         ],
-        "css":[
+        "css": [
             {
-                "type":"css",
-                "location":"assets/bootstrap-datetimepicker.min.css"
-            },{
-                "type" : "css",
-                "location" : "assets/broadstyle.css"
+                "type": "css",
+                "location": "assets/bootstrap-datetimepicker.min.css"
+            },
+            {
+                "type": "css",
+                "location": "assets/broadstyle.css"
             }
         ]
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "attr_bi",
+            "order_bid_approval_pending",
+            "orderdetails_accepted",
+            "orderdetails_pending",
+            "orderdetails_rejected",
+            "orderheader",
+            "orderheader_accepted",
+            "orderheader_pending",
+            "orderheader_rejected",
+            "product_bid_active",
+            "products",
+            "schedule_pending"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

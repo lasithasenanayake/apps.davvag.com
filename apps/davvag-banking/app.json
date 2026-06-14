@@ -1,32 +1,52 @@
 {
     "components": {
         "charge-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         }
     },
-    "description":{
+    "description": {
         "title": "Banking APP",
-        "author":"Davvag",
-        "version":"0.2",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.2",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "charge-form",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/mapstripe":"register-stripe",
-                    "/settings":"bank-all",
-                    "/bank":"bank-settings"
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "charge-form",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/mapstripe": "register-stripe",
+                    "/settings": "bank-all",
+                    "/bank": "bank-settings"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "davvag_bank_disposits",
+            "davvag_banking"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-order",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

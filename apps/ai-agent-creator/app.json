@@ -15,16 +15,29 @@
         "version": "0.2",
         "icon": ""
     },
-    "tags": ["showindock"],
+    "tags": [
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "creator-console",
-            "onLoad": ["creator-api"],
+            "onLoad": [
+                "creator-api"
+            ],
             "routes": {
                 "partials": {
                     "/": "creator-console"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": [
+            "curl"
+        ]
     }
 }

@@ -15,16 +15,30 @@
         "version": "0.1",
         "icon": ""
     },
-    "tags": ["showindock"],
+    "tags": [
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "currency-configuration-admin",
-            "onLoad": ["currency-configuration-handler"],
+            "onLoad": [
+                "currency-configuration-handler"
+            ],
             "routes": {
                 "partials": {
                     "/": "currency-configuration-admin"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

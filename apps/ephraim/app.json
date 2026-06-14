@@ -1,48 +1,75 @@
 {
     "components": {
         "enrole-reg": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "test-form":{
-            "type":"component",
-            "location":"apps"
+        "test-form": {
+            "type": "component",
+            "location": "apps"
         },
-        "sample-popup":{
-            "type":"component",
-            "location":"apps"
+        "sample-popup": {
+            "type": "component",
+            "location": "apps"
         },
-        "projects":{
-            "type":"component",
-            "location":"apps"
+        "projects": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "Ephraim App",
-        "author":"Lasitha",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Lasitha",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "enrole-reg",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/entrole":"enrole-reg",
-                    "/app":"sample-popup",
-                    "/projects":"projects"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "enrole-reg",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/entrole": "enrole-reg",
+                    "/app": "sample-popup",
+                    "/projects": "projects"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"Projects","path":"projects"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Projects",
+                    "path": "projects"
+                }
             ]
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-sample-app-1"
+        ],
+        "schemas": [
+            "attr_projects",
+            "eprahimprofilerequest",
+            "profile"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-attributes",
+            "mpdf",
+            "notify",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

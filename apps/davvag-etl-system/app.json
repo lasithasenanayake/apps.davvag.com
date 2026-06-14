@@ -1,39 +1,63 @@
 {
     "components": {
         "sample-input-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         },
-        "test-form":{
-            "type":"component",
-            "location":"apps"
+        "test-form": {
+            "type": "component",
+            "location": "apps"
         },
-        "sample-popup":{
-            "type":"component",
-            "location":"apps"
+        "sample-popup": {
+            "type": "component",
+            "location": "apps"
         }
     },
-    "description":{
+    "description": {
         "title": "Sampe App",
-        "author":"Davvag",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showincms","showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "sample-input-form",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/test":"test-form",
-                    "/app":"sample-popup"
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "sample-input-form",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/test": "test-form",
+                    "/app": "sample-popup"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-sample-app-1",
+            "stelup_shop"
+        ],
+        "schemas": [
+            "attr_lasitha_form",
+            "profile"
+        ],
+        "workflows": [
+            "davvag-attributes/testflow.json"
+        ],
+        "plugins": [
+            "davvag-attributes",
+            "davvag-flow",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

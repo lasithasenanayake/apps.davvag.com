@@ -1,29 +1,45 @@
 {
     "components": {
         "charge-form": {
-            "type":"component",
-            "location":"apps"
+            "type": "component",
+            "location": "apps"
         },
         "app-handler": {
-            "type":"service",
-            "location":"service"
+            "type": "service",
+            "location": "service"
         }
     },
-    "description":{
+    "description": {
         "title": "Direct Pay Payment Charge",
-        "author":"Davvag",
-        "version":"0.6",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.6",
+        "icon": "appicon.png"
     },
-    "tags":["showincms"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "charge-form",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                }
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "charge-form",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {}
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_directpay_lk"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-order",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

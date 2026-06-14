@@ -1,73 +1,101 @@
 {
     "components": {
         "app-handler": {
-            "type":"service",
-            "location":"services"
-        }
-        ,
-        "apps":{
-            "type":"component",
-            "location":"app"
+            "type": "service",
+            "location": "services"
         },
-        "launcher":{
-            "type":"component",
-            "location":"app"
+        "apps": {
+            "type": "component",
+            "location": "app"
         },
-        "schemas":{
-            "type":"component",
-            "location":"app"
+        "launcher": {
+            "type": "component",
+            "location": "app"
         },
-        "schema-file":{
-            "type":"component",
-            "location":"app"
+        "schemas": {
+            "type": "component",
+            "location": "app"
+        },
+        "schema-file": {
+            "type": "component",
+            "location": "app"
         }
     },
-    "description":{
+    "description": {
         "title": "App Manager",
-        "author":"Lasitha Senanayake",
-        "version":"0.1",
-        "icon":"appicon.png"
+        "author": "Lasitha Senanayake",
+        "version": "0.1",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "apps",
-            "onLoad": ["app-handler"],
-            "routes":{
-                "partials":{
-                    "/app" : "apps",
-                    "/launcher" : "launcher",
-                    "/schemas" : "schemas"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "apps",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/app": "apps",
+                    "/launcher": "launcher",
+                    "/schemas": "schemas"
                 }
             }
-        },"dock":{
-            "subapps":[
-                {"name":"App Permision","path":"apps"},{"name":"Launchers","path":"launcher"}
-                ,{"name":"Schemas","path":"schemas"}
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "App Permision",
+                    "path": "apps"
+                },
+                {
+                    "name": "Launchers",
+                    "path": "launcher"
+                },
+                {
+                    "name": "Schemas",
+                    "path": "schemas"
+                }
             ]
         }
     },
-    "schemas":{
-        "applications":"application.json",
-        "users":"users.json"
-
+    "schemas": {
+        "applications": "application.json",
+        "users": "users.json"
     },
     "resources": {
-        "js" : [
+        "js": [
             {
                 "tag": "bootstrap-datetimepicker",
-                "version" : "latest",
-                "location":"assets/bootstrap-datetimepicker.min.js"
+                "version": "latest",
+                "location": "assets/bootstrap-datetimepicker.min.js"
             }
         ],
-        "css":[
+        "css": [
             {
-                "type":"css",
-                "location":"assets/bootstrap-datetimepicker.min.css"
-            },{
-                "type" : "css",
-                "location" : "assets/broadstyle.css"
+                "type": "css",
+                "location": "assets/bootstrap-datetimepicker.min.css"
+            },
+            {
+                "type": "css",
+                "location": "assets/broadstyle.css"
             }
         ]
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_launchers",
+            "davvag_launchers_perm",
+            "domain_permision",
+            "schedule_pending"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-attributes"
+        ],
+        "php-extensions": []
     }
 }

@@ -15,16 +15,30 @@
         "version": "0.1",
         "icon": ""
     },
-    "tags": ["showindock"],
+    "tags": [
+        "showindock"
+    ],
     "configuration": {
         "webdock": {
             "startupComponent": "profile-catogory-admin",
-            "onLoad": ["profile-catogory-handler"],
+            "onLoad": [
+                "profile-catogory-handler"
+            ],
             "routes": {
                 "partials": {
                     "/": "profile-catogory-admin"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }

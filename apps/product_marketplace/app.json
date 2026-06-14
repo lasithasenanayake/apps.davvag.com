@@ -1,38 +1,61 @@
 {
     "components": {
         "product": {
-            "type":"service",
-            "location":"services"
+            "type": "service",
+            "location": "services"
         },
         "frmproduct-list": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "frmproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         },
         "newproduct": {
-            "type":"component",
-            "location":"components"
+            "type": "component",
+            "location": "components"
         }
     },
-    "description":{
+    "description": {
         "title": "product_marketplace",
-        "author":"Davvag",
-        "version":"0.3",
-        "icon":"appicon.png"
+        "author": "Davvag",
+        "version": "0.3",
+        "icon": "appicon.png"
     },
-    "tags":["showindock"],
-    "configuration":{
-        "webdock":{
-            "startupComponent" : "frmproduct-list",
-            "onLoad": ["product"],
-            "routes":{
-                "partials":{
-                    "/product" : "newproduct"
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "frmproduct-list",
+            "onLoad": [
+                "product"
+            ],
+            "routes": {
+                "partials": {
+                    "/product": "newproduct"
                 }
             }
         }
+    },
+    "dependencies": {
+        "apps": [
+            "uom"
+        ],
+        "schemas": [
+            "d_all_summery",
+            "d_cms_artical_v1",
+            "products",
+            "products_attributes",
+            "products_image"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
+        "php-extensions": []
     }
 }
