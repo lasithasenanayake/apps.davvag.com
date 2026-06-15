@@ -9,7 +9,7 @@
         "route": "/"
     },
     "nav": {
-        "variant": "clean",
+        "variant": "minimal",
         "links": [
             {
                 "label": "Home",
@@ -17,7 +17,7 @@
             },
             {
                 "label": "Features",
-                "url": "#/features"
+                "url": "#/app/userapp"
             },
             {
                 "label": "Contact",
@@ -40,6 +40,10 @@
             {
                 "label": "Settings",
                 "url": "#/app/davvag-cms-v7-setting"
+            },
+            {
+                "label": "New link",
+                "url": "#/"
             }
         ]
     },

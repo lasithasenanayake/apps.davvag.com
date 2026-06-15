@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Davvag CMS v7 landing page dock">
     <title>Davvag CMS v7</title>
-    <link rel="icon" href="assets/davvag-cms-v7/favicon.svg?v=0.2" type="image/svg+xml">
-    <link href="assets/davvag-cms-v7/cms-v7.css?v=0.2" rel="stylesheet">
+    <link rel="icon" href="assets/davvag-cms-v7/favicon.svg?v=0.6" type="image/svg+xml">
+    <link href="assets/davvag-cms-v7/vendor/bootstrap/bootstrap.min.css?v=0.6" rel="stylesheet">
+    <link href="assets/davvag-cms-v7/vendor/font-awesome/font-awesome.min.css?v=0.6" rel="stylesheet">
+    <link href="assets/davvag-cms-v7/cms-v7.css?v=0.6" rel="stylesheet">
+    <link href="assets/davvag-cms-v7/cms-v7-bootstrap-theme.css?v=0.6" rel="stylesheet">
     <style>
         .cms-v7-boot-loader {
             position: fixed;
@@ -96,12 +99,13 @@
         </div>
     </div>
     <div id="cms-v7-root" webdock-component="dock-shell"></div>
-    <div webdock-component="soss-routes" class="id-soss-routes" style="display:none"></div>
-    <div id="idLeftPanel" class="leftpanel" webdock-component="cms-apps" style="display:none"></div>
     <script src="lib/jquery.js"></script>
     <script type="text/javascript">
         jQuery.ajaxSetup({cache: false});
     </script>
+    <script src="assets/davvag-cms-v7/cms-v7-popper-lite.js?v=0.6"></script>
+    <script src="assets/davvag-cms-v7/vendor/bootstrap/bootstrap.min.js?v=0.6"></script>
+    <script src="assets/davvag-cms-v7/cms-v7-bootstrap-compat.js?v=0.6"></script>
     <script src="components/davvag-cms-v7/soss-routes-vue/file/vue.min.js"></script>
     <script src="lib/webdock.js" webdockapp="davvag-cms-v7"></script>
     <script type="text/javascript">

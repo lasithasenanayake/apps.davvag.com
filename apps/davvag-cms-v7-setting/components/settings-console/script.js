@@ -46,11 +46,11 @@ WEBDOCK.component().register(function(exports){
             fileExt: fileExt
         },
         onReady: function(){
-            api = exports.getComponent("settings-api");
-            reload();
+            waitForApi(0);
         }
     };
 
+    exports.cmsV7OwnMount = true;
     exports.onReady = function(element){
         mountVue(element);
     };
@@ -68,6 +68,35 @@ WEBDOCK.component().register(function(exports){
         if(exports.vue.onReady){
             exports.vue.onReady(exports.vue.data, element);
         }
+    }
+
+    function waitForApi(attempt){
+        if(api && api.services){
+            reload();
+            return;
+        }
+        if(exports.getAppComponent){
+            exports.getAppComponent(exports.getAppId(), "settings-api", function(component){
+                api = component;
+                if(api && api.services){
+                    reload();
+                    return;
+                }
+                retryWaitForApi(attempt);
+            });
+            return;
+        }
+        retryWaitForApi(attempt);
+    }
+
+    function retryWaitForApi(attempt){
+        if(attempt >= 25){
+            setError("Settings service is still loading. Please refresh the page.");
+            return;
+        }
+        window.setTimeout(function(){
+            waitForApi(attempt + 1);
+        }, 120);
     }
 
     function emptySite(){
@@ -117,6 +146,10 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadSite(){
+        if(!api || !api.services){
+            waitForApi(0);
+            return;
+        }
         bindData.loading = true;
         api.services.Site().then(function(response){
             bindData.loading = false;
@@ -134,6 +167,10 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadPages(){
+        if(!api || !api.services){
+            waitForApi(0);
+            return;
+        }
         api.services.Pages().then(function(response){
             if(response.success){
                 bindData.pages = response.result || [];
@@ -150,6 +187,10 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadAssets(){
+        if(!api || !api.services){
+            waitForApi(0);
+            return;
+        }
         api.services.Assets().then(function(response){
             if(response.success){
                 bindData.assets = response.result || [];

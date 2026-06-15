@@ -1,1 +1,1 @@
-{"apps":{"qib-reg-app":{"version":"latest"},"userapp":{"version":"latest"},"ephraim":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms"}}}}
+{"apps":{"davvag-cms-v7":{"version":"latest"},"qib-reg-app":{"version":"latest"},"userapp":{"version":"latest"},"ephraim":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}

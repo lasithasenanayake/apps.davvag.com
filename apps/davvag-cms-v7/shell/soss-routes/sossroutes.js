@@ -39,30 +39,9 @@ WEBDOCK.component()
             hashUrl = mainUrl + "#"  + route;
         }else {
             if (WEBDOCK.helpers.contains(relativePath, "..")){
-                var newLoc = "";
-                if (location.hash){
-
-                    var doubleDotCount =0;
-                    var pathWithoutDots = "";
-                    var relativeSplit = relativePath.split("/");
-                    for(var i=0;i<relativeSplit.length;i++){
-                        if (relativeSplit[i] == "..")
-                            doubleDotCount++;
-                        else {
-                            pathWithoutDots+=("/" + relativeSplit[i]);
-                        }
-                    }
-
-                    var splitData = location.hash.split("/");
-                    newLoc = "#";
-                    for (var i=1;i<splitData.length -1; i++)
-                        newLoc += ("/" + splitData[i]);
-                    newLoc += pathWithoutDots;
-                }
-
-
+                var relativeHash = resolveRelativeHash(relativePath);
                 relativePath = undefined;
-                hashUrl = location.protocol+'//'+location.host+location.pathname+ newLoc;
+                hashUrl = location.protocol+'//'+location.host+location.pathname + relativeHash;
             }else {
                 hashUrl = location.protocol+'//'+location.host+location.pathname+ (location.hash ? location.hash : "") + (location.search?location.search:"");
             }
@@ -72,6 +51,33 @@ WEBDOCK.component()
             hashUrl += relativePath;
 
         window.location.href = hashUrl;  
+    }
+
+    function resolveRelativeHash(relativePath){
+        var currentHash = location.hash ? location.hash.substring(1) : "";
+        var parts = currentHash ? currentHash.split("/") : [""];
+        var relativeSplit = (relativePath || "").split("/");
+        var minDepth = isAppHash(parts) ? 3 : 1;
+
+        for(var i=0;i<relativeSplit.length;i++){
+            var part = relativeSplit[i];
+            if(!part || part === "."){
+                continue;
+            }
+            if(part === ".."){
+                if(parts.length > minDepth){
+                    parts.pop();
+                }
+            }else{
+                parts.push(part);
+            }
+        }
+
+        return "#" + parts.join("/");
+    }
+
+    function isAppHash(parts){
+        return parts && parts.length >= 3 && parts[1] === "app" && parts[2] !== "";
     }
 
     function navigate(url){
@@ -95,16 +101,16 @@ WEBDOCK.component()
                 dataBag[toUrl] = {};
 
             if (qi !=-1){
-                qparams = toUrl.substring (qi + 1);
+                var qparams = toUrl.substring (qi + 1);
                 toUrl = toUrl.substring(0,qi);
                 
                 dataBag[toUrl] = {};
                 
                 var paramList = qparams.split ("&");
 
-                for (pi in paramList){
+                for (var pi in paramList){
                     var kv =  paramList[pi].split ("=");                    
-                    dataBag[toUrl][kv[0]] = kv.length == 1 ? undefined : kv [1];
+                    dataBag[toUrl][decodeURIComponent(kv[0])] = kv.length == 1 ? undefined : decodeURIComponent(kv.slice(1).join("="));
                 }
 
             } 
@@ -167,13 +173,13 @@ WEBDOCK.component()
 
                         if (isMatched){
                             partialToDownload = partials[pk];
-                            routeParams = {routeParams:variables, queryParams:{}};
+                            routeParams = {routeParams:variables, queryParams:dataBag[toUrl] || {}};
                             break;                            
                         }
                     }else {
                         if (pk == toUrl){
                             partialToDownload = partials[pk];
-                            routeParams = {routeParams:{}, queryParams:{}};
+                            routeParams = {routeParams:{}, queryParams:dataBag[toUrl] || {}};
                             break;
                         }
                     }

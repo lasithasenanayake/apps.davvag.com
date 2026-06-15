@@ -143,13 +143,67 @@ WEBDOCK.component().register(function(exports){
         bindData.loading = false;
         bindData.error = "";
         bindData.page = {sections: []};
-        var pieces = route.substring(5).split("/");
-        var appId = pieces.shift();
-        var appRoute = "/" + pieces.join("/");
-        renderApp(appId, appRoute);
+        var appRouteData = parseAppRoute(route);
+        if(!appRouteData.appId){
+            bindData.error = "App route is missing an app code.";
+            return;
+        }
+        renderApp(appRouteData.appId, appRouteData.appRoute, appRouteData);
     }
 
-    function renderApp(appId, appRoute){
+    function parseAppRoute(route){
+        var appPath = (route || "").substring(5);
+        var queryString = "";
+        var queryIndex = appPath.indexOf("?");
+        if(queryIndex !== -1){
+            queryString = appPath.substring(queryIndex + 1);
+            appPath = appPath.substring(0, queryIndex);
+        }
+        var pieces = appPath.split("/");
+        var appId = pieces.shift();
+        var appRoute = normalizeAppRoute("/" + pieces.join("/"));
+        return {
+            appId: appId,
+            appRoute: appRoute,
+            queryString: queryString,
+            queryParams: parseQuery(queryString),
+            routeParams: {}
+        };
+    }
+
+    function normalizeAppRoute(route){
+        route = route || "/";
+        var queryIndex = route.indexOf("?");
+        if(queryIndex !== -1){
+            route = route.substring(0, queryIndex);
+        }
+        if(route.charAt(0) !== "/"){
+            route = "/" + route;
+        }
+        route = route.replace(/\/+$/, "");
+        return route || "/";
+    }
+
+    function parseQuery(queryString){
+        var params = {};
+        if(!queryString){
+            return params;
+        }
+        queryString.split("&").forEach(function(pair){
+            if(!pair){
+                return;
+            }
+            var parts = pair.split("=");
+            var key = decodeURIComponent((parts.shift() || "").replace(/\+/g, " "));
+            if(!key){
+                return;
+            }
+            params[key] = decodeURIComponent((parts.join("=") || "").replace(/\+/g, " "));
+        });
+        return params;
+    }
+
+    function renderApp(appId, appRoute, routeContext){
         var host = $("#cms-v7-app-renderer");
         host.html('<div class="cms-v7-loading">Loading app...</div>');
         WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
@@ -161,7 +215,7 @@ WEBDOCK.component().register(function(exports){
             if(descriptor.configuration && descriptor.configuration.webdock){
                 var webdock = descriptor.configuration.webdock;
                 if(webdock.routes && webdock.routes.partials && webdock.routes.partials[appRoute]){
-                    startupComponent = webdock.routes.partials[appRoute];
+                    startupComponent = webdock.routes.partials[normalizeAppRoute(appRoute)];
                 }
                 if(!startupComponent){
                     startupComponent = webdock.startupComponent;
@@ -173,13 +227,13 @@ WEBDOCK.component().register(function(exports){
             }
             WEBDOCK.componentManager.downloadComponents(appId, descriptor, function(){
                 WEBDOCK.componentManager.getOnDemand(appId, descriptor, startupComponent, function(results, desc, instance){
-                    renderAppComponent(host, results, instance);
+                    renderAppComponent(host, results, instance, routeContext);
                 }, descriptor.description ? descriptor.description.version : undefined);
             }, descriptor.description ? descriptor.description.version : undefined);
         });
     }
 
-    function renderAppComponent(host, data, instance){
+    function renderAppComponent(host, data, instance, routeContext){
         var view = "";
         if(data){
             for(var i = 0; i < data.length; i++){
@@ -196,6 +250,10 @@ WEBDOCK.component().register(function(exports){
         if(instance.onLoad){
             instance.onLoad(instance);
         }
+        if(instance.cmsV7OwnMount && instance.onReady){
+            instance.onReady(host, routeContext || {});
+            return;
+        }
         if(instance.vue){
             if(!host.attr("id")){
                 host.attr("id", "cms_v7_app_" + new Date().getTime());
@@ -203,10 +261,10 @@ WEBDOCK.component().register(function(exports){
             instance.vue.el = "#" + host.attr("id");
             var app = new Vue(instance.vue);
             if(instance.vue.onReady){
-                instance.vue.onReady(instance.vue.data, host, {});
+                instance.vue.onReady(instance.vue.data, host, routeContext || {});
             }
         }else if(instance.onReady){
-            instance.onReady(host);
+            instance.onReady(host, routeContext || {});
         }
     }
 

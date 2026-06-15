@@ -2,7 +2,7 @@
     "name": "settings-console",
     "description": "Davvag CMS v7 settings console",
     "author": "Davvag",
-    "version": "0.1",
+    "version": "0.3",
     "resources": {
         "css": [
             {
