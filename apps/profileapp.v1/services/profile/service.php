@@ -100,6 +100,9 @@ class ProfileService{
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
                     break;
+                case "inv-cancel":
+                    $status->totalInvoicedAmount+=$Transaction->amount;
+                    break;
                 case "receipt":
                     $status->totalPaidAmount+=$Transaction->amount;
                     break;
@@ -127,6 +130,9 @@ class ProfileService{
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
                     break;
+                case "inv-cancel":
+                    $status->totalInvoicedAmount+=$Transaction->amount;
+                    break;
                 case "receipt":
                     $status->totalPaidAmount+=$Transaction->amount;
                     break;
@@ -140,6 +146,161 @@ class ProfileService{
             $result=SOSSData::Insert ("profilestatus", $status,$tenantId = null);
                     
         }
+    }
+
+    private function amountValue($value){
+        if(!isset($value) || $value === ""){
+            return 0;
+        }
+        return floatval($value);
+    }
+
+    private function isCancelledStatus($status){
+        $status = isset($status) ? strtolower(trim($status)) : "";
+        return $status === "cancelled" || $status === "canceled" || $status === "deleted" || $status === "void";
+    }
+
+    private function activePaymentAmountForInvoice($invoiceNo){
+        $detailsResult = SOSSData::Query("paymentdetails", urlencode("transactionid:".$invoiceNo));
+        if(!$detailsResult->success){
+            throw new Exception("Unable to validate invoice payments.");
+        }
+
+        $paidAmount = 0;
+        foreach($detailsResult->result as $detail){
+            $tranType = isset($detail->tranType) ? strtolower(trim($detail->tranType)) : "";
+            if($tranType !== "invoice"){
+                continue;
+            }
+
+            $receiptNo = isset($detail->receiptNo) ? intval($detail->receiptNo) : 0;
+            if($receiptNo <= 0){
+                continue;
+            }
+
+            $paymentResult = SOSSData::Query("paymentheader", urlencode("receiptNo:".$receiptNo));
+            if(!$paymentResult->success || count($paymentResult->result) == 0){
+                throw new Exception("Unable to validate invoice receipt ".$receiptNo.".");
+            }
+
+            $payment = $paymentResult->result[0];
+            if($this->isCancelledStatus(isset($payment->status) ? $payment->status : "")){
+                continue;
+            }
+
+            $appliedAmount = $this->amountValue(isset($detail->PaidAmout) ? $detail->PaidAmout : 0);
+            if($appliedAmount <= 0){
+                $appliedAmount = $this->amountValue(isset($detail->DueAmount) ? $detail->DueAmount : 0) - $this->amountValue(isset($detail->Balance) ? $detail->Balance : 0);
+            }
+
+            if($appliedAmount > 0){
+                $paidAmount += $appliedAmount;
+            }
+        }
+
+        return $paidAmount;
+    }
+
+    private function removeInvoiceProfileServices($invoiceNo){
+        $servicesResult = SOSSData::Query("profileservices", urlencode("invid:".$invoiceNo));
+        if(!$servicesResult->success){
+            return;
+        }
+
+        foreach($servicesResult->result as $serviceItem){
+            $serviceItem->status = "Removed";
+            SOSSData::Update("profileservices", $serviceItem,$tenantId = null);
+        }
+        CacheData::clearObjects("profileservices");
+    }
+
+    private function cancelUnpaidInvoice($invoiceNo){
+        $invoiceNo = intval($invoiceNo);
+        if($invoiceNo <= 0){
+            throw new Exception("Invalied Invoice");
+        }
+
+        $result = SOSSData::Query("orderheader", urlencode("invoiceNo:".$invoiceNo));
+        if(!$result->success || count($result->result) == 0){
+            throw new Exception("Invalied Invoice");
+        }
+
+        $invoice = $result->result[0];
+        if($this->isCancelledStatus(isset($invoice->status) ? $invoice->status : "")){
+            throw new Exception("Invoice already cancelled.");
+        }
+        if(!isset($invoice->profileId)){
+            throw new Exception("Invoice profile not found.");
+        }
+
+        $total = $this->amountValue(isset($invoice->total) ? $invoice->total : 0);
+        $balance = isset($invoice->balance) ? $this->amountValue($invoice->balance) : $total;
+        $paidAmount = $this->amountValue(isset($invoice->paidamount) ? $invoice->paidamount : 0);
+        $derivedPaidAmount = $total > 0 ? max(0,$total - $balance) : 0;
+        $paymentComplete = isset($invoice->PaymentComplete) ? strtoupper(trim($invoice->PaymentComplete)) : "N";
+        $activePaymentAmount = $this->activePaymentAmountForInvoice($invoiceNo);
+
+        if($paymentComplete === "Y" || $paidAmount > 0.009 || $derivedPaidAmount > 0.009 || $activePaymentAmount > 0.009){
+            throw new Exception("Only unpaid invoices can be cancelled.");
+        }
+
+        $detailsResult = SOSSData::Query("orderdetails", urlencode("invoiceNo:".$invoiceNo));
+        if(!$detailsResult->success){
+            throw new Exception("Unable to load invoice details.");
+        }
+        $details = isset($detailsResult->result) ? $detailsResult->result : array();
+
+        $reverseLedgerResult = SOSSData::Query("ledger", urlencode("profileid:".$invoice->profileId.",tranid:".$invoiceNo.",trantype:inv-cancel"));
+        if(!$reverseLedgerResult->success){
+            throw new Exception("Unable to validate invoice cancellation ledger.");
+        }
+        if(count($reverseLedgerResult->result) > 0){
+            throw new Exception("Invoice cancellation already exists.");
+        }
+
+        foreach($details as $detail){
+            $this->updateInventry($detail,1);
+        }
+        $this->removeInvoiceProfileServices($invoiceNo);
+
+        if($total > 0){
+            $ledgertran = new StdClass;
+            $ledgertran->profileid = $invoice->profileId;
+            $ledgertran->tranid = $invoiceNo;
+            $ledgertran->trantype = "inv-cancel";
+            $ledgertran->tranDate = date_format(new DateTime(), 'm-d-Y H:i:s');
+            $ledgertran->description = "Invoice No ".$invoiceNo." Cancelled";
+            $ledgertran->amount = -1 * $total;
+            $currencyCode = $this->getCurrencyCode();
+            if(isset($currencyCode)){
+                $ledgertran->currencycode = $currencyCode;
+            }
+            $this->updateLedger($ledgertran);
+        }
+
+        $invoice->status = "cancelled";
+        $invoice->PaymentComplete = "C";
+        $invoice->balance = 0;
+        $invoice->paidamount = 0;
+        $remarks = isset($invoice->remarks) ? trim($invoice->remarks) : "";
+        $remarks = $remarks === "" ? "Invoice cancelled" : $remarks." | Invoice cancelled";
+        $invoice->remarks = substr($remarks,0,300);
+
+        $updateResult = SOSSData::Update("orderheader", $invoice,$tenantId = null);
+        if(!$updateResult->success){
+            throw new Exception("Unable to update invoice status.");
+        }
+
+        CacheData::clearObjects("orderheader");
+        CacheData::clearObjects("orderdetails");
+        CacheData::clearObjects("profileservices");
+        CacheData::clearObjects("product_inventrymaster");
+        CacheData::clearObjects("ledger");
+        CacheData::clearObjects("profilestatus");
+
+        $invoice->InvoiceItems = $details;
+        $invoice->canCancel = false;
+        return $invoice;
     }
 
     private function updateInternalLedger($ledgertran){
@@ -569,6 +730,20 @@ class ProfileService{
         }
     }
 
+    public function getInvoiceCancelation($req,$res){
+        $query=$req->Query();
+        if(!isset($query->id)){
+            $res->SetError("Invalied Invoice");
+            return null;
+        }
+        try{
+            return $this->cancelUnpaidInvoice($query->id);
+        }catch(Exception $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
+    }
+
     public function postInvoiceSave($req,$res){
         
         $Transaction=$req->Body(true);
@@ -682,7 +857,7 @@ class ProfileService{
     }
 
     private function updateInventry($value,$s){
-        if(strtolower($value->invType)=="inventry"){
+        if(isset($value->invType) && strtolower($value->invType)=="inventry"){
             $resultitems = SOSSData::Query ("product_inventrymaster", urlencode("itemid:".$value->itemid.""));//SOSSData::Insert ("", $Transaction,$tenantId = null);
             if(count($resultitems->result)!=0){
                 $itemInv=$resultitems->result[0];

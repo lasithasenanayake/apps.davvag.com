@@ -64,13 +64,25 @@
           <tr :id="'item_'+item.itemid">
             <td>{{ item.itemid }}</td>
             <td>
-                <div class="row">
-                    
-                          <select v-model="item.selected" class="form-control mb15" v-on:change="itemselect(item)" @focusout="itemLeave">
-                                <option value=""></option >
-                                <option  v-bind:value="p" v-for="p in products">{{ p.name }}</option >
-                                
-                          </select>
+                <div class="row" style="position: relative;">
+                    <input type="text"
+                           class="form-control mb15"
+                           autocomplete="off"
+                           placeholder="Type product name"
+                           v-bind:value="item.productSearch"
+                           v-on:input="productInput(item, $event)"
+                           v-on:focus="productFocus(item)"
+                           v-on:blur="productBlur(item)"
+                           v-on:keydown.enter.prevent="productSelectFirst(item)">
+                    <ul class="list-group" style="position: absolute; z-index: 1000; width: 100%; max-height: 220px; overflow-y: auto;" v-show="item.productMatches && item.productMatches.length">
+                        <li class="list-group-item" style="cursor: pointer;" v-for="p in item.productMatches" v-on:mousedown.prevent="productSelect(item, p)">
+                            <strong>{{ p.name }}</strong>
+                            <span class="text-muted" v-show="p.uom"> - {{ p.uom }}</span>
+                            <span class="pull-right">{{ p.price }}</span>
+                        </li>
+                    </ul>
+                    <small class="text-muted" v-show="item.productSearching">{{ item.productNotice }}</small>
+                    <small class="text-warning" v-show="!item.productSearching && item.productNotice">{{ item.productNotice }}</small>
                 </div>
             </td>
             <td> {{ item.uom }}</td>

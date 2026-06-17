@@ -27,6 +27,9 @@
             },"ReceiptCancelation" : {
                 "method" : "GET",
                 "parameters": ["id"]
+            },"InvoiceCancelation" : {
+                "method" : "GET",
+                "parameters": ["id"]
             },
             "InvoiceSave" : {
                 "method" : "POST"

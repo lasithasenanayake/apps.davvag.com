@@ -1,7 +1,29 @@
 WEBDOCK.component().register(function(exports){
+    function emptyInvoiceItem(){
+        return {
+            itemid:0,
+            name:"",
+            uom:"",
+            qty:0,
+            price:parseFloat("0").toFixed(2),
+            subtotal:0,
+            discount_percentage:0,
+            discount:0,
+            total:parseFloat("0").toFixed(2),
+            selected:null,
+            invtype:"",
+            catogory:"",
+            notes:"",
+            productSearch:"",
+            productMatches:[],
+            productSearching:false,
+            productNotice:""
+        };
+    }
+
     var bindData = {
         i_profile:{},
-        InvItems:[{itemid:0,name:"",uom:"",qty:0,price:parseFloat("0").toFixed(2),total:parseFloat("0").toFixed(2),selected:null,invtype:"",catogory:""}],
+        InvItems:[emptyInvoiceItem()],
         products:[],
         taxes:[{id:0, code:"NO_TAX", name:"No Tax", rate:0, isDefault:"Y"}],
         selectedTax:null,
@@ -33,18 +55,16 @@ WEBDOCK.component().register(function(exports){
     }
 
     function removerow(){
-        var additem=true;
         var arr = [];
 
         bindData.InvItems.forEach(element => {
-            if(element.itemid==0){
-             additem=false;
-            }else{
+            ensureInvoiceItemState(element);
+            if(element.itemid!=0 || (element.productSearch && element.productSearch.trim() !== "")){
                 arr.push(element);
             }
         });
         bindData.InvItems=arr;
-        bindData.InvItems.push({itemid:0,name:"",uom:"",qty:0,price:parseFloat("0").toFixed(2),total:parseFloat("0").toFixed(2),selected:null,invtype:"",catogory:""});
+        bindData.InvItems.push(emptyInvoiceItem());
         //console.log(arr);
     }
     var vueData = {
@@ -67,6 +87,11 @@ WEBDOCK.component().register(function(exports){
                 handler1.appNavigate("..");
             },
             itemLeave:calcTotals,
+            productInput:productInput,
+            productFocus:productFocus,
+            productBlur:productBlur,
+            productSelect:productSelect,
+            productSelectFirst:productSelectFirst,
             itemsDiscount:function(item){
                 var subtotal=parseFloat(item.price)*parseFloat(item.qty);
                item.subtotal=subtotal;
@@ -75,37 +100,7 @@ WEBDOCK.component().register(function(exports){
                calcTotals();
             },
             itemselect:function(item){
-                //console.log(JSON.stringify(item));
-                if(item.selected!==""){ 
-                    var subtotal=parseFloat(item.price)*parseFloat(item.qty);
-                    item.itemid=item.selected.itemid;
-                    item.name=item.selected.name;
-                    item.qty=0;
-                    item.price=parseFloat(item.selected.price).toFixed(2);
-                    item.subtotal=subtotal;                    
-                    item.discount_percentage=0;
-                    item.discount= subtotal*item.discount_percentage/100;
-                    item.uom=item.selected.uom;
-                    
-                    item.invtype=item.selected.invType;
-                    item.catogory=item.selected.catogory;
-                    
-                }else{
-                    item.itemid=0;
-                    item.name="";
-                    item.qty=0;
-                    item.price=0;
-                    item.uom="";
-                    item.total=0;
-                    item.invtype="";
-                    item.catogory="";
-                    item.subtotal=0;
-                    item.discount_percentage=0;
-                    item.discount= 0;
-                }
-
-               calcTotals();
-                
+                applyProductSelection(item,item.selected);
             },
             itemsQtyChange:function(item){
                 var subtotal=parseFloat(item.price)*parseFloat(item.qty);
@@ -140,8 +135,237 @@ WEBDOCK.component().register(function(exports){
     var uploaderInstance;
     var pInstance;
     var sossdata;
+    var productSearchTimer=null;
+    var productsDownloadedFromDatabase=false;
+    var productsDownloading=false;
 
    
+    function numberValue(value){
+        var amount=parseFloat(value || 0);
+        return isNaN(amount) ? 0 : amount;
+    }
+
+    function productLabel(product){
+        if(!product){
+            return "";
+        }
+        return product.name || product.caption || ("Product #" + product.itemid);
+    }
+
+    function productSearchText(product){
+        return [
+            productLabel(product),
+            product.caption || "",
+            product.keywords || "",
+            product.catogory || "",
+            product.itemid || ""
+        ].join(" ").toLowerCase();
+    }
+
+    function ensureInvoiceItemState(item){
+        if(!item){
+            return emptyInvoiceItem();
+        }
+        if(item.productSearch === undefined || item.productSearch === null){
+            item.productSearch = item.name || "";
+        }
+        if(!item.productMatches){
+            item.productMatches = [];
+        }
+        if(item.productSearching === undefined){
+            item.productSearching = false;
+        }
+        if(item.productNotice === undefined){
+            item.productNotice = "";
+        }
+        return item;
+    }
+
+    function mergeProducts(products){
+        products = products || [];
+        var existing = {};
+        bindData.products.forEach(function(product){
+            if(product && product.itemid !== undefined){
+                existing[product.itemid] = true;
+            }
+        });
+        products.forEach(function(product){
+            if(product && product.itemid !== undefined && !existing[product.itemid]){
+                bindData.products.push(product);
+                existing[product.itemid] = true;
+            }
+        });
+    }
+
+    function updateProductMatches(item){
+        ensureInvoiceItemState(item);
+        var term = (item.productSearch || "").toString().trim().toLowerCase();
+        if(term === ""){
+            item.productMatches = [];
+            item.productNotice = "";
+            return;
+        }
+
+        item.productMatches = bindData.products.filter(function(product){
+            return productSearchText(product).indexOf(term) >= 0;
+        }).slice(0,12);
+
+        if(item.productMatches.length > 0){
+            item.productNotice = "";
+        }
+    }
+
+    function clearProductSelection(item){
+        item.selected=null;
+        item.itemid=0;
+        item.name="";
+        item.qty=0;
+        item.price=parseFloat("0").toFixed(2);
+        item.uom="";
+        item.total=parseFloat("0").toFixed(2);
+        item.invtype="";
+        item.catogory="";
+        item.subtotal=0;
+        item.discount_percentage=0;
+        item.discount=0;
+    }
+
+    function applyProductSelection(item,product){
+        ensureInvoiceItemState(item);
+        if(product && product !== ""){
+            item.selected=product;
+            item.itemid=product.itemid;
+            item.name=productLabel(product);
+            item.qty=0;
+            item.price=numberValue(product.price).toFixed(2);
+            item.subtotal=0;
+            item.discount_percentage=0;
+            item.discount=0;
+            item.total=parseFloat("0").toFixed(2);
+            item.uom=product.uom || "";
+            item.invtype=product.invType || "";
+            item.catogory=product.catogory || "";
+            item.productSearch=productLabel(product);
+            item.productMatches=[];
+            item.productNotice="";
+        }else{
+            clearProductSelection(item);
+        }
+
+        calcTotals();
+    }
+
+    function productInput(item,event){
+        ensureInvoiceItemState(item);
+        item.productSearch = event && event.target ? event.target.value : (item.productSearch || "");
+        if(item.selected && item.productSearch !== productLabel(item.selected)){
+            clearProductSelection(item);
+        }
+        updateProductMatches(item);
+        if((item.productSearch || "").trim().length >= 2 && item.productMatches.length === 0){
+            scheduleProductDownload(item);
+        }
+    }
+
+    function productFocus(item){
+        ensureInvoiceItemState(item);
+        updateProductMatches(item);
+    }
+
+    function productBlur(item){
+        setTimeout(function(){
+            ensureInvoiceItemState(item);
+            item.productMatches=[];
+            calcTotals();
+        },200);
+    }
+
+    function productSelect(item,product){
+        applyProductSelection(item,product);
+    }
+
+    function productSelectFirst(item){
+        ensureInvoiceItemState(item);
+        if(item.productMatches && item.productMatches.length > 0){
+            productSelect(item,item.productMatches[0]);
+        }else if((item.productSearch || "").trim().length >= 2){
+            scheduleProductDownload(item);
+        }
+    }
+
+    function scheduleProductDownload(item){
+        ensureInvoiceItemState(item);
+        if(productsDownloadedFromDatabase){
+            item.productNotice="Product not found in database.";
+            return;
+        }
+        item.productNotice="Searching products...";
+        if(productSearchTimer){
+            clearTimeout(productSearchTimer);
+        }
+        productSearchTimer=setTimeout(function(){
+            downloadProductsFromDatabase(item);
+        },350);
+    }
+
+    function productQueryService(preferNoCache){
+        if(preferNoCache && profileHandler && profileHandler.services && typeof profileHandler.services.q === "function"){
+            return profileHandler.services;
+        }
+        if(sossdata && sossdata.services && typeof sossdata.services.q === "function"){
+            return sossdata.services;
+        }
+        return profileHandler.services;
+    }
+
+    function loadStoreProducts(){
+        productQueryService(false).q([{storename:"products",search:"showonstore:Y"}])
+        .then(function(r){
+            console.log(JSON.stringify(r));
+            if(r.success && r.result.products){
+                mergeProducts(r.result.products);
+            }
+        })
+        .error(function(error){
+            console.log(error && error.responseJSON ? error.responseJSON : error);
+        });
+    }
+
+    function downloadProductsFromDatabase(item){
+        ensureInvoiceItemState(item);
+        if(productsDownloading || productsDownloadedFromDatabase){
+            updateProductMatches(item);
+            if(item.productMatches.length === 0){
+                item.productNotice="Product not found in database.";
+            }
+            return;
+        }
+        productsDownloading=true;
+        item.productSearching=true;
+        item.productNotice="Searching products...";
+        productQueryService(true).q([{storename:"products",search:"",nocache:true}])
+        .then(function(r){
+            productsDownloading=false;
+            productsDownloadedFromDatabase=true;
+            item.productSearching=false;
+            if(r.success && r.result.products){
+                mergeProducts(r.result.products);
+                updateProductMatches(item);
+                if(item.productMatches.length === 0){
+                    item.productNotice="Product not found in database.";
+                }
+            }else{
+                item.productNotice="Unable to load products.";
+            }
+        })
+        .error(function(error){
+            productsDownloading=false;
+            item.productSearching=false;
+            item.productNotice="Unable to load products.";
+            console.log(error && error.responseJSON ? error.responseJSON : error);
+        });
+    }
+
 
     function initializeComponent(){
         pInstance = exports.getShellComponent("soss-routes");
@@ -182,24 +406,7 @@ WEBDOCK.component().register(function(exports){
             });
             //getProfilebyID(routeData.id)
         }
-        var query=[{storename:"products",search:"showonstore:Y"}];
-        //productHandler = exports.getComponent("product");
-        sossdata.services.q(query)
-                    .then(function(r){
-                        console.log(JSON.stringify(r));
-                        if(r.success){
-                            if(r.result.products.length!=0){
-                                bindData.products=r.result.products;
-                               
-                            }
-                            return;
-                            //calcTotals();
-                            
-                        }
-                    })
-                    .error(function(error){
-                        console.log(error.responseJSON);
-            });
+        loadStoreProducts();
         
         
         
