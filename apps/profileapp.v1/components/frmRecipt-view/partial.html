@@ -3,6 +3,8 @@
         <div class="col-md-12">
           <button class="pull-right btn btn-default" v-on:click="navigateBack" v-show="InvoiceToSave.receiptNo != 0 ? true : false"><i class="fa fa-arrow-left"></i> Back</button>
           <button class="pull-right btn btn-default" v-on:click="print" v-show="InvoiceToSave.receiptNo != 0 ? true : false"><i class="fa fa-print"></i> Print</button>
+          <button class="pull-right btn btn-danger" v-on:click="cancelReceipt" v-show="InvoiceToSave.receiptNo != 0 && !receiptCancelled" v-bind:disabled="!canCancel || canceling"><i class="fa fa-ban"></i> Cancel Receipt</button>
+          <span class="pull-right text-muted" style="margin: 8px 10px 0 0;" v-show="cancelNotice && InvoiceToSave.receiptNo != 0">{{ cancelNotice }}</span>
         </div>
       </div>
     <div id="printcontent" >
@@ -13,6 +15,7 @@
     		<div class="invoice-title">
 				<img :src="'components/dock/soss-uploader/service/get/profile/'+InvoiceToSave.supplier_profileId" width="100px" class="pull-right" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/><br/>
     			<h2>Receipt</h2>
+                <span class="label label-danger" v-show="receiptCancelled">Cancelled</span>
     		</div>
     		<hr>
     		<div class="row">

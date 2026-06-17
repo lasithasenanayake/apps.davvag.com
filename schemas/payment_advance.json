@@ -55,12 +55,21 @@
             "annotations":{
                 "maxLen": 200
             }
-        },{
+        },
+        {
             "fieldName":"source_id",
             "dataType":"java.lang.String",
             "annotations":{
                 "maxLen": 200
             }
+        },
+        {
+            "fieldName":"usedReceiptNo",
+            "dataType":"int"
+        },
+        {
+            "fieldName":"usedAmount",
+            "dataType":"float"
         }
     ]
 }

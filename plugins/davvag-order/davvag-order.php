@@ -440,12 +440,15 @@ class Davvag_Order{
                                     //$value->receiptNo=$payment->receiptNo;
                                         $status='new';
                                         if($balance!=0){
+                                            $usedAmount=0;
                                             if($balance>=$advalue->balance){
+                                                $usedAmount=$advalue->balance;
                                                 $balance-=$advalue->balance;
                                                 $advalue->balance=0;
                                                 $advalue->status='done';
                                                 //$advanceUtilized+=$value->DueAmount;
                                             }else{
+                                                $usedAmount=$balance;
                                                 $advalue->balance-=$balance;
                                                 $balance=0;
                                             }
@@ -453,6 +456,8 @@ class Davvag_Order{
                                             $ad->id=$advalue->id;
                                             $ad->balance=$advalue->balance;
                                             $ad->status=$advalue->status;
+                                            $ad->usedReceiptNo=$payment->receiptNo;
+                                            $ad->usedAmount=$usedAmount;
                                             //$invDetails->PaymentComplete=$paymentComplete;
                                             SOSSData::Update("payment_advance",$ad);
                                         }
@@ -495,6 +500,303 @@ class Davvag_Order{
         
     }
 
+    private function amountValue($value){
+        if(!isset($value) || $value === ""){
+            return 0;
+        }
+        return floatval($value);
+    }
+
+    private function isReceiptCancelled($payment){
+        $status = isset($payment->status) ? strtolower(trim($payment->status)) : "";
+        return $status === "cancelled" || $status === "canceled";
+    }
+
+    private function latestActiveReceiptNo($profileId){
+        $result = SOSSData::Query("paymentheader", urlencode("profileId:".$profileId));
+        if(!$result->success){
+            throw new Exception("Unable to validate latest receipt.");
+        }
+
+        $latest = 0;
+        foreach($result->result as $payment){
+            if($this->isReceiptCancelled($payment)){
+                continue;
+            }
+            $receiptNo = isset($payment->receiptNo) ? intval($payment->receiptNo) : 0;
+            if($receiptNo > $latest){
+                $latest = $receiptNo;
+            }
+        }
+        return $latest;
+    }
+
+    private function advanceRestorePlan($payment){
+        $remaining = $this->amountValue(isset($payment->advanceUtilized) ? $payment->advanceUtilized : 0);
+        if($remaining <= 0){
+            return array();
+        }
+
+        $result = SOSSData::Query("payment_advance", urlencode("profileId:".$payment->profileId));
+        if(!$result->success){
+            throw new Exception("Unable to load advance payments for reversal.");
+        }
+
+        $receiptNo = intval($payment->receiptNo);
+        $updates = array();
+        foreach($result->result as $advance){
+            $usedReceiptNo = isset($advance->usedReceiptNo) ? intval($advance->usedReceiptNo) : 0;
+            if($usedReceiptNo !== $receiptNo){
+                continue;
+            }
+
+            $usedAmount = $this->amountValue(isset($advance->usedAmount) ? $advance->usedAmount : 0);
+            if($usedAmount <= 0){
+                continue;
+            }
+
+            $restoreAmount = min($usedAmount, $remaining);
+            $advance->balance = $this->amountValue(isset($advance->balance) ? $advance->balance : 0) + $restoreAmount;
+            $advanceAmount = $this->amountValue(isset($advance->amount) ? $advance->amount : 0);
+            if($advanceAmount > 0 && $advance->balance > $advanceAmount){
+                $advance->balance = $advanceAmount;
+            }
+            $advance->status = "new";
+            $advance->usedReceiptNo = 0;
+            $advance->usedAmount = 0;
+            $updates[] = $advance;
+            $remaining -= $restoreAmount;
+            if($remaining <= 0.009){
+                break;
+            }
+        }
+
+        if($remaining > 0.009){
+            $candidates = array();
+            foreach($result->result as $advance){
+                $status = isset($advance->status) ? strtolower($advance->status) : "";
+                $sourceId = isset($advance->source_id) ? strval($advance->source_id) : "";
+                if($status === "cancelled" || $status === "canceled" || $sourceId === strval($receiptNo)){
+                    continue;
+                }
+                $advanceAmount = $this->amountValue(isset($advance->amount) ? $advance->amount : 0);
+                $advanceBalance = $this->amountValue(isset($advance->balance) ? $advance->balance : 0);
+                $capacity = $advanceAmount - $advanceBalance;
+                if($capacity > 0.009){
+                    $candidate = new stdClass();
+                    $candidate->advance = $advance;
+                    $candidate->capacity = $capacity;
+                    $candidates[] = $candidate;
+                }
+            }
+
+            if(count($candidates) === 1 && abs($candidates[0]->capacity - $remaining) <= 0.01){
+                $advance = $candidates[0]->advance;
+                $advance->balance = $this->amountValue(isset($advance->balance) ? $advance->balance : 0) + $remaining;
+                $advance->status = "new";
+                $advance->usedReceiptNo = 0;
+                $advance->usedAmount = 0;
+                $updates[] = $advance;
+                $remaining = 0;
+            }
+        }
+
+        if($remaining > 0.009){
+            throw new Exception("Unable to identify the advance payments used by this receipt.");
+        }
+
+        return $updates;
+    }
+
+    private function createdAdvanceCancelPlan($payment){
+        $result = SOSSData::Query("payment_advance", urlencode("profileId:".$payment->profileId.",source_id:".$payment->receiptNo));
+        if(!$result->success){
+            throw new Exception("Unable to load receipt advance balance.");
+        }
+
+        $updates = array();
+        foreach($result->result as $advance){
+            $paymentType = isset($advance->paymentType) ? strtolower($advance->paymentType) : "";
+            $status = isset($advance->status) ? strtolower($advance->status) : "";
+            if($paymentType !== "advance" || $status === "cancelled" || $status === "canceled"){
+                continue;
+            }
+
+            $amount = $this->amountValue(isset($advance->amount) ? $advance->amount : 0);
+            $balance = $this->amountValue(isset($advance->balance) ? $advance->balance : 0);
+            if(abs($amount - $balance) > 0.01){
+                throw new Exception("This receipt's advance has already been used and cannot be cancelled first.");
+            }
+
+            $advance->balance = 0;
+            $advance->status = "cancelled";
+            $updates[] = $advance;
+        }
+
+        return $updates;
+    }
+
+    public function ReceiptCancel($receiptNo,$res=null){
+        $receiptNo = intval($receiptNo);
+        if($receiptNo <= 0){
+            throw new Exception("Invalied Receipt");
+        }
+
+        $result = SOSSData::Query("paymentheader", urlencode("receiptNo:".$receiptNo));
+        if(!$result->success || count($result->result) == 0){
+            throw new Exception("Invalied Receipt");
+        }
+
+        $payment = $result->result[0];
+        if($this->isReceiptCancelled($payment)){
+            throw new Exception("Receipt already cancelled.");
+        }
+
+        if(!isset($payment->profileId)){
+            throw new Exception("Receipt profile not found.");
+        }
+
+        $latestReceiptNo = $this->latestActiveReceiptNo($payment->profileId);
+        if($latestReceiptNo !== $receiptNo){
+            throw new Exception("Only the latest receipt for this profile can be cancelled.");
+        }
+
+        $reverseLedgerResult = SOSSData::Query("ledger", urlencode("profileid:".$payment->profileId.",tranid:".$payment->receiptNo.",trantype:receipt-r"));
+        if(!$reverseLedgerResult->success){
+            throw new Exception("Unable to validate receipt reversal ledger.");
+        }
+        if(count($reverseLedgerResult->result) > 0){
+            throw new Exception("Receipt reversal already exists.");
+        }
+
+        $detailsResult = SOSSData::Query("paymentdetails", urlencode("receiptNo:".$receiptNo));
+        if(!$detailsResult->success){
+            throw new Exception("Unable to load receipt details.");
+        }
+        $details = isset($detailsResult->result) ? $detailsResult->result : array();
+
+        $invoiceUpdates = array();
+        foreach($details as $detail){
+            $tranType = isset($detail->tranType) ? strtolower($detail->tranType) : "";
+            if($tranType !== "invoice"){
+                continue;
+            }
+
+            $invoiceNo = isset($detail->transactionid) ? intval($detail->transactionid) : 0;
+            if($invoiceNo <= 0){
+                continue;
+            }
+
+            $appliedAmount = $this->amountValue(isset($detail->DueAmount) ? $detail->DueAmount : 0) - $this->amountValue(isset($detail->Balance) ? $detail->Balance : 0);
+            if($appliedAmount <= 0){
+                continue;
+            }
+
+            $invoiceResult = SOSSData::Query("orderheader", urlencode("invoiceNo:".$invoiceNo));
+            if(!$invoiceResult->success || count($invoiceResult->result) == 0){
+                throw new Exception("Unable to load invoice ".$invoiceNo." for reversal.");
+            }
+
+            $invoice = $invoiceResult->result[0];
+            $currentBalance = $this->amountValue(isset($invoice->balance) ? $invoice->balance : 0);
+            $currentPaid = isset($invoice->paidamount) ? $this->amountValue($invoice->paidamount) : 0;
+            $total = isset($invoice->total) ? $this->amountValue($invoice->total) : 0;
+            $newBalance = $currentBalance + $appliedAmount;
+            if($total > 0 && $newBalance > $total){
+                $newBalance = $total;
+            }
+            $newPaid = $currentPaid - $appliedAmount;
+            if($newPaid < 0){
+                $newPaid = 0;
+            }
+            if($total > 0 && abs(($total - $newBalance) - $newPaid) > 0.01){
+                $newPaid = $total - $newBalance;
+                if($newPaid < 0){
+                    $newPaid = 0;
+                }
+            }
+
+            $invoiceUpdate = new stdClass();
+            $invoiceUpdate->invoiceNo = $invoiceNo;
+            $invoiceUpdate->paidamount = $newPaid;
+            $invoiceUpdate->balance = $newBalance;
+            $invoiceUpdate->PaymentComplete = $newBalance <= 0.009 ? "Y" : "N";
+            $invoiceUpdates[] = $invoiceUpdate;
+        }
+
+        $advanceUpdates = $this->advanceRestorePlan($payment);
+        $createdAdvanceUpdates = $this->createdAdvanceCancelPlan($payment);
+
+        foreach($invoiceUpdates as $invoiceUpdate){
+            $updateResult = SOSSData::Update("orderheader", $invoiceUpdate,$tenantId = null);
+            if(!$updateResult->success){
+                throw new Exception("Unable to update invoice ".$invoiceUpdate->invoiceNo.".");
+            }
+        }
+
+        foreach($advanceUpdates as $advanceUpdate){
+            $updateResult = SOSSData::Update("payment_advance", $advanceUpdate,$tenantId = null);
+            if(!$updateResult->success){
+                throw new Exception("Unable to restore advance payment.");
+            }
+        }
+
+        foreach($createdAdvanceUpdates as $advanceUpdate){
+            $updateResult = SOSSData::Update("payment_advance", $advanceUpdate,$tenantId = null);
+            if(!$updateResult->success){
+                throw new Exception("Unable to cancel receipt advance.");
+            }
+        }
+
+        $paymentAmount = $this->amountValue(isset($payment->paymentAmount) ? $payment->paymentAmount : 0);
+        if($paymentAmount > 0){
+            $ledgertran = new StdClass;
+            $ledgertran->profileid = $payment->profileId;
+            $ledgertran->tranid = $payment->receiptNo;
+            $ledgertran->trantype = "receipt-r";
+            $ledgertran->tranDate = date_format(new DateTime(), 'm-d-Y H:i:s');
+            $ledgertran->description = "Receipt No ".$payment->receiptNo." Cancelled";
+            $ledgertran->amount = $paymentAmount;
+            $this->updateLedger($ledgertran);
+        }
+
+        $paymentType = "";
+        if(isset($payment->paymenttype)){
+            $paymentType = $payment->paymenttype;
+        }else if(isset($payment->paymentType)){
+            $paymentType = $payment->paymentType;
+        }
+        if(in_array($paymentType,array("Cash","Donation[CASH]")) && $paymentAmount > 0){
+            $cashProfileId = isset($payment->collectedBy) && intval($payment->collectedBy) > 0 ? intval($payment->collectedBy) : 0;
+            if($cashProfileId <= 0){
+                $user = Profile::getUserProfile();
+                $cashProfileId = $user->profile->id;
+            }
+            $this->updateInternalCashLedger($cashProfileId,"rpt-rev",$payment->receiptNo,"Receipt Cancelation",-1*$paymentAmount);
+        }
+
+        $payment->status = "cancelled";
+        $payment->remarks = isset($payment->remarks) && trim($payment->remarks) !== "" ? $payment->remarks." | Receipt cancelled" : "Receipt cancelled";
+        $updateResult = SOSSData::Update("paymentheader", $payment,$tenantId = null);
+        if(!$updateResult->success){
+            throw new Exception("Unable to update receipt status.");
+        }
+
+        CacheData::clearObjects("paymentheader");
+        CacheData::clearObjects("paymentdetails");
+        CacheData::clearObjects("payment_advance");
+        CacheData::clearObjects("orderheader");
+        CacheData::clearObjects("orderdetails");
+        CacheData::clearObjects("ledger");
+        CacheData::clearObjects("profilestatus");
+        CacheData::clearObjects("internal_ledger");
+        CacheData::clearObjects("internal_profilestatus");
+
+        $payment->InvoiceItems = $details;
+        $payment->canCancel = false;
+        return $payment;
+    }
+
     
 
     private function updateLedger($ledgertran){
@@ -512,6 +814,9 @@ class Davvag_Order{
                     $status->totalInvoicedAmount+=$Transaction->amount;
                     break;
                 case "receipt":
+                    $status->totalPaidAmount+=$Transaction->amount;
+                    break;
+                case "receipt-r":
                     $status->totalPaidAmount+=$Transaction->amount;
                     break;
                 case "grn":
@@ -538,6 +843,9 @@ class Davvag_Order{
                     $status->totalInvoicedAmount+=$Transaction->amount;
                     break;
                 case "receipt":
+                    $status->totalPaidAmount+=$Transaction->amount;
+                    break;
+                case "receipt-r":
                     $status->totalPaidAmount+=$Transaction->amount;
                     break;
                 case "grn":

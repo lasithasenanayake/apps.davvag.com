@@ -12,7 +12,11 @@ WEBDOCK.component().register(function(exports){
         date:new Date(),
         duedate:new Date(),
         invoiceSave:false,
-        InvoiceToSave:{}
+        InvoiceToSave:{receiptNo:0,InvoiceItems:[]},
+        canCancel:false,
+        canceling:false,
+        cancelNotice:"",
+        receiptCancelled:false
     };
 
    
@@ -34,7 +38,8 @@ WEBDOCK.component().register(function(exports){
                 WinPrint.document.close();
                 WinPrint.focus();
                 setTimeout(function(){ WinPrint.print();WinPrint.close(); }, 3000);
-            }
+            },
+            cancelReceipt:cancelReceipt
         },
         filters: {
             currency: function (value) {
@@ -53,7 +58,100 @@ WEBDOCK.component().register(function(exports){
     var profileHandler;
     var pInstance;
 
-   
+    function numberValue(value){
+        var amount = parseFloat(value || 0);
+        return isNaN(amount) ? 0 : amount;
+    }
+
+    function isCancelledReceipt(payment){
+        var status = payment && payment.status ? payment.status.toString().toLowerCase() : "";
+        return status === "cancelled" || status === "canceled";
+    }
+
+    function notify(message,type){
+        if(window.$ && $.notify){
+            $.notify(message,type);
+        }else{
+            alert(message);
+        }
+    }
+
+    function responseError(response,fallback){
+        if(response && response.result){
+            if(response.result.error){
+                return response.result.error;
+            }
+            if(typeof response.result === "string"){
+                return response.result;
+            }
+        }
+        return fallback;
+    }
+
+    function setLoadedReceipt(payment,details){
+        bindData.InvoiceToSave=payment || {receiptNo:0,InvoiceItems:[]};
+        bindData.InvoiceToSave.InvoiceItems=details || [];
+        bindData.invoiceSave=!!payment;
+        bindData.receiptCancelled=isCancelledReceipt(bindData.InvoiceToSave);
+        bindData.canCancel=false;
+        bindData.cancelNotice=bindData.receiptCancelled ? "Receipt has been cancelled." : "";
+        if(payment && payment.receiptNo && payment.profileId && !bindData.receiptCancelled){
+            loadCancelState();
+        }
+    }
+
+    function loadCancelState(){
+        var currentReceiptNo = numberValue(bindData.InvoiceToSave.receiptNo);
+        var profileId = bindData.InvoiceToSave.profileId;
+        bindData.canCancel=false;
+        bindData.cancelNotice="";
+        profileHandler.services.q([{storename:"paymentheader",search:"profileId:"+profileId,nocache:true}])
+        .then(function(r){
+            if(r.success && r.result.paymentheader){
+                var latestReceiptNo = 0;
+                r.result.paymentheader.forEach(function(payment){
+                    if(!isCancelledReceipt(payment)){
+                        latestReceiptNo = Math.max(latestReceiptNo,numberValue(payment.receiptNo));
+                    }
+                });
+                bindData.canCancel=latestReceiptNo === currentReceiptNo;
+                bindData.cancelNotice=bindData.canCancel ? "" : "Only the latest receipt for this profile can be cancelled.";
+            }
+        })
+        .error(function(error){
+            bindData.cancelNotice="Unable to verify latest receipt.";
+            console.log(error.responseJSON);
+        });
+    }
+
+    function cancelReceipt(){
+        if(bindData.canceling){
+            return;
+        }
+        if(!bindData.canCancel){
+            notify(bindData.cancelNotice || "Only the latest receipt for this profile can be cancelled.","warn");
+            return;
+        }
+        if(!confirm("Cancel this receipt and reverse ledger and invoice balances?")){
+            return;
+        }
+        bindData.canceling=true;
+        profileHandler.services.ReceiptCancelation({id:bindData.InvoiceToSave.receiptNo})
+        .then(function(response){
+            bindData.canceling=false;
+            if(response.success){
+                setLoadedReceipt(response.result,response.result && response.result.InvoiceItems ? response.result.InvoiceItems : []);
+                notify("Receipt has been cancelled.","success");
+            }else{
+                notify(responseError(response,"Receipt cancellation failed."),"error");
+            }
+        })
+        .error(function(error){
+            bindData.canceling=false;
+            notify(responseError(error.responseJSON,"Receipt cancellation failed."),"error");
+            console.log(error.responseJSON);
+        });
+    }
 
     function initializeComponent(){
         profileHandler = exports.getComponent("profile");
@@ -67,9 +165,7 @@ WEBDOCK.component().register(function(exports){
                         console.log(JSON.stringify(r));
                         if(r.success){
                             if(r.result.paymentheader.length!=0){
-                                bindData.InvoiceToSave=r.result.paymentheader[0];
-                                bindData.InvoiceToSave.InvoiceItems=r.result.paymentdetails;
-                                bindData.invoiceSave=true;
+                                setLoadedReceipt(r.result.paymentheader[0],r.result.paymentdetails);
                             }
                             return;
                             //calcTotals();

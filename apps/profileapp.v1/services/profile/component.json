@@ -24,6 +24,9 @@
             },"DepositCancelation" : {
                 "method" : "GET",
                 "parameters": ["id"]
+            },"ReceiptCancelation" : {
+                "method" : "GET",
+                "parameters": ["id"]
             },
             "InvoiceSave" : {
                 "method" : "POST"

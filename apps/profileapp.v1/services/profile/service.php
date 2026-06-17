@@ -554,6 +554,21 @@ class ProfileService{
         }
     }
 
+    public function getReceiptCancelation($req,$res){
+        $query=$req->Query();
+        if(!isset($query->id)){
+            $res->SetError("Invalied Receipt");
+            return null;
+        }
+        $handler =new Davvag_Order();
+        try{
+            return $handler->ReceiptCancel($query->id);
+        }catch(Exception $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
+    }
+
     public function postInvoiceSave($req,$res){
         
         $Transaction=$req->Body(true);
