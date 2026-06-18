@@ -2,121 +2,215 @@ WEBDOCK.component().register(function(exports){
     var bindData = {
         submitErrors: undefined,
         SearchItem:"",
-        SearchColumn:"name",
+        SearchColumn:"all",
+        allItems:[],
         items:[],
-        image:''
+        loading:false,
+        Message:"Loading products..."
     };
 
     var vueData = {
-        onReady: function(s){
+        onReady: function(){
             initializeComponent();
         },
         data:bindData,
         methods: {
-            ChangePermision:function(item){
-                openViewObject(item.sysviewobject,function(data,shellpopup){
-                    //console.log(JSON.stringify(data));
-                    item.sysviewobject=data;
-                    var handler = exports.getComponent("product");
-                    var promiseObj = handler.services.Save(item);
-                    promiseObj
-                    .then(function(result){
-                        alert("Product has been updated");
-                    })
-                    .error(function(){
-                        alert("Error changing record permision");
-                    });
-                    shellpopup.close();
-                });
-            },
-            searchItems:searchItems,
+            ChangePermision:changePermision,
+            searchItems:applyProductFilter,
+            clearSearch:clearSearch,
+            refreshProducts:refreshProducts,
             navigate: function(id){
-                handler = exports.getShellComponent("soss-routes");
-                handler.appNavigate(id ? "/product?productid=" + id : "/product");
+                var routeHandler = exports.getShellComponent("soss-routes");
+                routeHandler.appNavigate(id ? "/product?productid=" + id : "/product");
             },
             navigatePublish: function(id){
-                handler = exports.getShellComponent("soss-routes");
-                handler.appNavigate(id ? "/publish?productid=" + id : "/product");
+                var routeHandler = exports.getShellComponent("soss-routes");
+                routeHandler.appNavigate(id ? "/publish?productid=" + id : "/publish");
             },
-            deleteProduct:deletepr
-
+            deleteProduct:deleteProduct,
+            productImage:productImage,
+            productStatus:productStatus,
+            formatMoney:formatMoney
         }
-    }
+    };
 
-    function deletepr(e){
-        var handler = exports.getComponent("product");
-
-        handler.services.Delete(e).then(function(result){
-            //scope.items = result.result;
-            if(result.success){
-                filteredItems = bindData.items.filter(function(item) {
-                    if(item.itemid!==result.result.itemid)
-                        return item;
-                });
-                bindData.items=filteredItems==null?[]:filteredItems;
-            }else{
-
-            }
-            //console.log(JSON.stringify(result));
-        }).error(function(){
-            
-        });
-    }
     exports.vue = vueData;
-    exports.onReady = function(element){
-    }
-    //var catogoryid ={"Staff",""};
-    //var item ={};
-    
+    exports.onReady = function(){};
+
     var handler;
 
     function initializeComponent(){
         handler = exports.getComponent("product");
-        searchItems("","");
+        refreshProducts();
     }
 
-    
-
-    
-
-    function searchItems(columncode,columnvalue){
-        console.log(encodeURI(columncode+":"+columnvalue))
+    function refreshProducts(){
+        bindData.loading=true;
+        bindData.Message="Loading products...";
         handler.transformers.allProducts()
         .then(function(response){
-            console.log(JSON.stringify(response));
+            bindData.loading=false;
             if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                bindData.items=[];
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                    response.result.forEach(element => {
-                        bindData.items.push({
-                            name:element.name,
-                            itemid:element.itemid,
-                            image:"components/dock/soss-uploader/service/get/products/"+element.itemid+"-"+element.imgurl,
-                            description:element.description,
-                            price:element.price,
-                            imgurl:element.imgurl,
-                            uom:element.uom,
-                            sysviewobject:element.sysviewobject
-                        })
-                    });
-                    
-                   
-                    console.log(JSON.stringify(bindData.items));
-                }
+                bindData.allItems=[];
+                (response.result || []).forEach(function(element){
+                    bindData.allItems.push(mapProduct(element));
+                });
+                applyProductFilter();
             }else{
-                alert (response.error);
+                bindData.items=[];
+                bindData.Message=response.error || "Unable to load products.";
+                alert(bindData.Message);
             }
         })
         .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
+            bindData.loading=false;
+            bindData.items=[];
+            bindData.Message=error && error.responseJSON ? error.responseJSON.result : "Unable to load products.";
+            alert(bindData.Message);
+            console.log(error && error.responseJSON ? error.responseJSON : error);
         });
     }
 
+    function mapProduct(element){
+        element = element || {};
+        return {
+            name:element.name || "",
+            itemid:element.itemid || "",
+            image:productImage(element),
+            description:element.description || "",
+            caption:stripHtml(element.caption || ""),
+            keywords:element.keywords || "",
+            price:element.price,
+            cost:element.cost,
+            discountper:element.discountper,
+            imgurl:element.imgurl || "",
+            uom:element.uom || "",
+            catogory:element.catogory || "",
+            catogoryid:element.catogoryid || "",
+            invType:element.invType || "",
+            showonstore:element.showonstore || "",
+            sellstype:element.sellstype || "",
+            qty:element.qty,
+            reorder_qty:element.reorder_qty,
+            sysviewobject:element.sysviewobject
+        };
+    }
 
+    function productImage(product){
+        if(!product || !product.imgurl || !product.itemid){
+            return "assets/productapp-v2/appicon.png";
+        }
+        return "components/dock/soss-uploader/service/get/products/" + product.itemid + "-" + product.imgurl;
+    }
+
+    function stripHtml(value){
+        return value.toString().replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+    }
+
+    function recordValue(record,field){
+        if(!record || !field){
+            return "";
+        }
+        return record[field] === undefined || record[field] === null ? "" : record[field].toString();
+    }
+
+    function searchableText(record){
+        return [
+            recordValue(record,"itemid"),
+            recordValue(record,"name"),
+            recordValue(record,"catogory"),
+            recordValue(record,"uom"),
+            recordValue(record,"invType"),
+            recordValue(record,"showonstore"),
+            recordValue(record,"sellstype"),
+            recordValue(record,"keywords"),
+            recordValue(record,"caption")
+        ].join(" ").toLowerCase();
+    }
+
+    function applyProductFilter(){
+        var term=(bindData.SearchItem || "").toString().trim().toLowerCase();
+        var column=(bindData.SearchColumn || "all").toString();
+        if(term === ""){
+            bindData.items=bindData.allItems.slice();
+        }else{
+            bindData.items=bindData.allItems.filter(function(product){
+                if(column === "all"){
+                    return searchableText(product).indexOf(term) >= 0;
+                }
+                return recordValue(product,column).toLowerCase().indexOf(term) >= 0;
+            });
+        }
+
+        bindData.Message=bindData.items.length === 0
+            ? "No products found."
+            : "Showing " + bindData.items.length + " of " + bindData.allItems.length + " products.";
+    }
+
+    function clearSearch(){
+        bindData.SearchItem="";
+        bindData.SearchColumn="all";
+        applyProductFilter();
+    }
+
+    function productStatus(product){
+        if(!product){
+            return "Not set";
+        }
+        return product.showonstore === "Y" ? "Store" : "Hidden";
+    }
+
+    function formatMoney(value){
+        var amount=parseFloat(value || 0);
+        if(isNaN(amount)){
+            amount=0;
+        }
+        return amount.toFixed(2);
+    }
+
+    function changePermision(item){
+        if(typeof openViewObject !== "function"){
+            alert("Permission editor is not available.");
+            return;
+        }
+
+        openViewObject(item.sysviewobject,function(data,shellpopup){
+            item.sysviewobject=data;
+            handler.services.Save(item)
+            .then(function(result){
+                if(result.success){
+                    alert("Product has been updated");
+                }else{
+                    alert("Error changing record permission");
+                }
+            })
+            .error(function(){
+                alert("Error changing record permission");
+            });
+            shellpopup.close();
+        });
+    }
+
+    function deleteProduct(product){
+        if(!product || !product.itemid){
+            return;
+        }
+        if(!confirm("Delete product #" + product.itemid + " - " + product.name + "?")){
+            return;
+        }
+
+        handler.services.Delete(product).then(function(result){
+            if(result.success){
+                bindData.allItems=bindData.allItems.filter(function(item) {
+                    return item.itemid !== result.result.itemid;
+                });
+                applyProductFilter();
+            }else{
+                alert("Product could not be deleted.");
+            }
+        }).error(function(error){
+            alert("Product could not be deleted.");
+            console.log(error && error.responseJSON ? error.responseJSON : error);
+        });
+    }
 });

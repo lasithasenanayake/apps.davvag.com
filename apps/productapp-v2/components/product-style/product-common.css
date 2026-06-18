@@ -1,0 +1,294 @@
+.product-v2-app,
+.product-v2-app * {
+  box-sizing: border-box;
+}
+
+.product-v2-app {
+  --pv-bg: #f4f7fb;
+  --pv-panel: #ffffff;
+  --pv-border: #dce3eb;
+  --pv-border-strong: #c7d2df;
+  --pv-text: #1f2937;
+  --pv-muted: #64748b;
+  --pv-primary: #2563eb;
+  --pv-primary-dark: #1d4ed8;
+  --pv-success: #16a34a;
+  --pv-danger: #dc2626;
+  --pv-radius: 8px;
+  background: var(--pv-bg);
+  color: var(--pv-text);
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 100%;
+  padding: 16px;
+}
+
+.product-v2-app .panel,
+.product-v2-app .product-card,
+.product-v2-app .product-toolbar,
+.product-v2-app .product-table-wrap {
+  background: var(--pv-panel);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+}
+
+.product-v2-app .product-list-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.product-v2-app .product-list-title h3,
+.product-v2-app .product-form-title h3 {
+  align-items: center;
+  display: flex;
+  font-size: 24px;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.product-v2-app .product-list-title p,
+.product-v2-app .product-form-title p,
+.product-v2-app .product-muted {
+  color: var(--pv-muted);
+  margin: 0;
+}
+
+.product-v2-app .product-toolbar {
+  align-items: stretch;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(180px, 240px) minmax(240px, 1fr) auto auto;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.product-v2-app .product-summary {
+  align-items: center;
+  background: #eef6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--pv-radius);
+  color: #1e3a8a;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+}
+
+.product-v2-app .product-table-wrap {
+  overflow-x: auto;
+}
+
+.product-v2-app .table {
+  background: #fff;
+  border-color: var(--pv-border);
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.product-v2-app .table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+}
+
+.product-v2-app .table th,
+.product-v2-app .table td {
+  border-color: var(--pv-border) !important;
+  padding: 12px;
+  vertical-align: middle !important;
+}
+
+.product-v2-app .product-image {
+  border: 1px solid var(--pv-border);
+  border-radius: 8px;
+  height: 72px;
+  object-fit: cover;
+  width: 72px;
+}
+
+.product-v2-app .product-name {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.product-v2-app .product-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.product-v2-app .btn {
+  align-items: center;
+  border-radius: 6px;
+  display: inline-flex;
+  gap: 7px;
+  justify-content: center;
+  line-height: 1.2;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 9px 12px;
+  touch-action: manipulation;
+}
+
+.product-v2-app .btn-primary,
+.product-v2-app .btn-success {
+  background: var(--pv-primary);
+  border-color: var(--pv-primary);
+  color: #fff;
+}
+
+.product-v2-app .btn-primary:hover,
+.product-v2-app .btn-primary:focus,
+.product-v2-app .btn-success:hover,
+.product-v2-app .btn-success:focus {
+  background: var(--pv-primary-dark);
+  border-color: var(--pv-primary-dark);
+  color: #fff;
+}
+
+.product-v2-app .btn-danger {
+  background: var(--pv-danger);
+  border-color: var(--pv-danger);
+  color: #fff;
+}
+
+.product-v2-app .form-control,
+.product-v2-app select,
+.product-v2-app input,
+.product-v2-app textarea {
+  border-color: var(--pv-border-strong);
+  border-radius: 6px;
+  min-height: 42px;
+}
+
+.product-v2-app textarea.form-control {
+  min-height: 96px;
+}
+
+.product-v2-app .panel {
+  border-color: var(--pv-border);
+}
+
+.product-v2-app .panel-heading,
+.product-v2-app .panel-footer {
+  border-color: var(--pv-border);
+}
+
+.product-v2-app .panel-body-nopadding {
+  padding: 0;
+}
+
+.product-v2-app .product-step {
+  background: #fff;
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  margin: 0;
+  padding: 20px;
+}
+
+.product-v2-app .form-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.product-v2-app .form-group > label[class*="col-"] {
+  color: var(--pv-muted);
+  flex: 0 0 190px;
+  font-weight: 600;
+  max-width: 190px;
+  padding-top: 8px;
+  width: 190px;
+}
+
+.product-v2-app .form-group > div[class*="col-"] {
+  flex: 1 1 260px;
+  max-width: none;
+  width: auto;
+}
+
+.product-v2-app .product-form-actions,
+.product-v2-app .frm-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.product-v2-app .product-form-actions .btn:first-child,
+.product-v2-app .frm-group .btn:first-child {
+  margin-right: auto;
+}
+
+.product-v2-app .product-step-title {
+  font-size: 20px;
+  margin: 0 0 18px;
+}
+
+.product-v2-app .product-image-preview {
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  max-height: 120px;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+.product-v2-app .product-image-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.product-v2-app .product-empty-state {
+  color: var(--pv-muted);
+  font-weight: 600;
+  padding: 24px 12px !important;
+  text-align: center;
+}
+
+@media (max-width: 991px) {
+  .product-v2-app {
+    padding: 12px;
+  }
+
+  .product-v2-app .product-toolbar {
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 2fr);
+  }
+
+  .product-v2-app .table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 767px) {
+  .product-v2-app .product-list-header,
+  .product-v2-app .product-toolbar,
+  .product-v2-app .product-actions,
+  .product-v2-app .product-form-actions,
+  .product-v2-app .frm-group {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-v2-app .btn,
+  .product-v2-app .product-toolbar .form-control {
+    width: 100%;
+  }
+
+  .product-v2-app .form-group > label[class*="col-"],
+  .product-v2-app .form-group > div[class*="col-"] {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+  }
+}

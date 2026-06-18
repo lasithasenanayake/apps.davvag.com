@@ -1,37 +1,92 @@
-<div style="color:black;">
-    <div>
-        <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
-            <a class="btn btn-primary dock-link" v-on:click="navigate()">New Product</a>
-        </div>
+<div class="product-v2-app product-list-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-cubes"></i> Products</h3>
+      <p>Search, edit, publish, and maintain product records.</p>
     </div>
-    
-    <div class="people-list">
-      <div class="row">
-        
-        <div class="col-md-6" v-for="profile in items">
-          <div class="people-item">
-            <div class="media">
-              
-                <img alt="" :src="profile.image" class="pull-left thumbnail media-object">
-                <div class="media-body">
-                <h4 class="person-name">{{ profile.name }}</h4>
-                <div class="text-muted"><i class="fa fa-briefcase"></i> {{ profile.catogory }}</div>
-                <div class="text-muted"><i class="fa fa-cubes"></i> {{ profile.uom }} </div>
-                <div class="text-muted"><i class="fa fa-usd"></i>  {{ profile.price }}</div>
-                <div class="text-muted"><i class="fa fa-user-circle"></i> {{ profile.caption }}</div>
-                <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
-                  <!-- <a class="btn btn-primary" :href="'./viewproduct?productid=' + profile.itemid"><span class="glyphicon glyphicon-pencil"></span> Edit</a> -->
-                  <a class="btn btn-primary" v-on:click="navigatePublish(profile.itemid)"><span class="glyphicon glyphicon-pencil"></span> Publish</a>                  
-                  <a class="btn btn-primary" v-on:click="navigate(profile.itemid)"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-                  <a class="btn btn-primary" v-on:click="ChangePermision(profile)"><span class="glyphicon glyphicon-pencil"></span> Change Permition</a>
-                  <a class="btn btn-primary" v-on:click="deleteProduct(profile)" style="cursor:pointer;"> <span class="glyphicon glyphicon-remove"></span> Delete</a>
-              </div>
-              </div>
-            </div>
-          </div>
-        </div><!-- col-md-6 -->
-      </div>
-    </div>
-</div>
- 
+    <button class="btn btn-primary" v-on:click="navigate()">
+      <i class="fa fa-plus"></i> New Product
+    </button>
+  </div>
 
+  <div class="product-toolbar">
+    <select class="form-control" v-model="SearchColumn" v-on:change="searchItems">
+      <option value="all">All fields</option>
+      <option value="itemid">Product ID</option>
+      <option value="name">Name</option>
+      <option value="catogory">Category</option>
+      <option value="uom">UOM</option>
+      <option value="invType">Type</option>
+      <option value="showonstore">Store flag</option>
+      <option value="keywords">Keywords</option>
+    </select>
+    <input class="form-control" type="text" placeholder="Search products..." v-model="SearchItem" v-on:input="searchItems">
+    <button class="btn btn-default" v-on:click="clearSearch">
+      <i class="fa fa-times"></i> Clear
+    </button>
+    <button class="btn btn-default" v-on:click="refreshProducts" v-bind:disabled="loading">
+      <i class="fa fa-refresh"></i> Refresh
+    </button>
+  </div>
+
+  <div class="product-summary">
+    <i class="fa fa-info-circle"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="product-table-wrap">
+    <table class="table table-bordered product-table">
+      <thead>
+        <tr>
+          <th style="width: 88px;">Image</th>
+          <th>Product</th>
+          <th style="width: 150px;">Category</th>
+          <th style="width: 110px;">UOM</th>
+          <th style="width: 120px;">Price</th>
+          <th style="width: 110px;">Status</th>
+          <th style="width: 280px;" class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="loading">
+          <td colspan="7" class="product-empty-state">Loading products...</td>
+        </tr>
+        <tr v-show="!loading && items.length === 0">
+          <td colspan="7" class="product-empty-state">No products found.</td>
+        </tr>
+        <tr v-for="product in items">
+          <td>
+            <img alt="" v-bind:src="product.image" class="product-image">
+          </td>
+          <td>
+            <div class="product-name">#{{ product.itemid }} {{ product.name }}</div>
+            <div class="product-muted">{{ product.caption }}</div>
+            <div class="product-muted" v-show="product.keywords"><i class="fa fa-tags"></i> {{ product.keywords }}</div>
+          </td>
+          <td>{{ product.catogory || 'Unassigned' }}</td>
+          <td>{{ product.uom || '-' }}</td>
+          <td>{{ formatMoney(product.price) }}</td>
+          <td>
+            <span v-bind:class="product.showonstore === 'Y' ? 'label label-success' : 'label label-default'">{{ productStatus(product) }}</span>
+          </td>
+          <td>
+            <div class="product-actions">
+              <button class="btn btn-default btn-sm" v-on:click="navigatePublish(product.itemid)">
+                <i class="fa fa-upload"></i> Publish
+              </button>
+              <button class="btn btn-primary btn-sm" v-on:click="navigate(product.itemid)">
+                <i class="fa fa-pencil"></i> Edit
+              </button>
+              <button class="btn btn-default btn-sm" v-on:click="ChangePermision(product)">
+                <i class="fa fa-lock"></i> Permission
+              </button>
+              <button class="btn btn-danger btn-sm" v-on:click="deleteProduct(product)">
+                <i class="fa fa-trash"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

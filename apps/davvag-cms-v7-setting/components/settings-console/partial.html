@@ -255,7 +255,7 @@
                     <div class="cms7-grid two">
                         <label>
                             <span>Type</span>
-                            <select v-model="section.type">
+                            <select v-model="section.type" v-on:change="sectionTypeChanged(section)">
                                 <option value="hero">Hero</option>
                                 <option value="features">Features</option>
                                 <option value="split">Split</option>
@@ -263,6 +263,22 @@
                                 <option value="cta">CTA</option>
                                 <option value="html">HTML</option>
                             </select>
+                        </label>
+                        <label>
+                            <span>Animation</span>
+                            <select v-model="section.animation">
+                                <option v-for="option in sectionAnimations" v-bind:value="option.value">{{ option.label }}</option>
+                            </select>
+                        </label>
+                        <label v-if="section.type == 'hero'">
+                            <span>Hero rotation</span>
+                            <select v-model="section.heroMode">
+                                <option v-for="option in heroModes" v-bind:value="option.value">{{ option.label }}</option>
+                            </select>
+                        </label>
+                        <label v-if="section.type == 'hero' && section.heroMode != 'manual' && section.heroMode != 'stack'">
+                            <span>Seconds per slide</span>
+                            <input type="number" min="2" max="30" v-model="section.rotationSeconds">
                         </label>
                         <label>
                             <span>Eyebrow</span>

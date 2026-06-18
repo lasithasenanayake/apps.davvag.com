@@ -1,0 +1,14 @@
+{
+    "name": "product-style",
+    "description": "Product app shared responsive UI styles",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "css": [
+            {
+                "type": "css",
+                "location": "product-common.css"
+            }
+        ]
+    }
+}

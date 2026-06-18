@@ -2,17 +2,32 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler;
+    var handler, producthandler, uploaderInstance, validator;
     var newfiles;
 
+    function defaultProduct(){
+        return {
+            uom:"",
+            invType:"",
+            currencycode:"Rs.",
+            catogory:"",
+            attributes:{"temp":"aaaa"},
+            tname:"green7.raha.lk",
+            qty:0,
+            price:0,
+            discountper:0
+        };
+    }
+
     var bindData = {
-        product:{uom:"",invType:"",currencycode:"",catogory:"",attributes:{"temp":"aaaa"},tname:"green7.raha.lk"},
+        product:defaultProduct(),
         image:'',
         files:null,
         p_image:[],
         categories:[],
         uoms: [],
         submitErrors: undefined,
+        p_removed:[],
         tname:"green7.raha.lk"
     };
 
@@ -40,13 +55,13 @@ WEBDOCK.component().register(function(exports){
                 createImageMulti(files);
             },
             navigateBack: function(){
-                handler1 = exports.getShellComponent("soss-routes");
-                handler1.appNavigate("..");
+                var routeHandler = exports.getShellComponent("soss-routes");
+                routeHandler.appNavigate("..");
             }
         }
     }
     exports.deferredVue = function(resolver, renderDiv){
-        attributes = exports.getShellComponent("dynamic-attributes");
+        var attributes = exports.getShellComponent("dynamic-attributes");
         attributes.renderForm("productattribute","product.attributes",renderDiv,"AttributeText",function(){
             resolver(vueData);
         });
@@ -60,7 +75,6 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
-        uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         
         loadValidator();
@@ -79,11 +93,12 @@ WEBDOCK.component().register(function(exports){
     var imagecount=0;
     var completed=0;    
     function uploadFile(productId, cb){
-            if(!newfiles){
+            if(!newfiles || newfiles.length===0){
                 cb();
                 return;
             }
             imagecount=newfiles.length;
+            completed=0;
             for (var i = 0; i < newfiles.length; i++) {
                 console.log(i);
 
@@ -114,11 +129,19 @@ WEBDOCK.component().register(function(exports){
     }
 
     function removeImage(e) {
-        bindData.image = '';
+        if (e > -1) {
+            if(bindData.p_image[e].id!=0){
+                bindData.p_removed.push({id:bindData.p_image[e].id,name:bindData.p_image[e].name,
+                    caption:bindData.p_image[e].caption,default_img:bindData.p_image[e].default_img});
+            }
+            bindData.p_image.splice(e, 1);
+            if(newfiles && newfiles.length > e){
+                newfiles.splice(e,1);
+            }
+        }
     }
 
     function createImage(file) {
-        newFile = file;
         var image = new Image();
         var reader = new FileReader();
         reader.onload = function (e) {
@@ -130,11 +153,12 @@ WEBDOCK.component().register(function(exports){
     function createImageMulti(files) {
         //console.log(JSON.stringify(files));
         //if(!newfiles){
-        newfiles=[];
+        newfiles=newfiles?newfiles:[];
         //}
         for (var i = 0; i < files.length; i++) {
+            var index = newfiles.length;
             newfiles.push(files[i]);
-            getImage(i,files[i]);
+            getImage(index,files[i]);
             //console.log();
         }
         
@@ -156,8 +180,11 @@ WEBDOCK.component().register(function(exports){
     }
 
     function clearProfile(){
-        bindData.item={};
-        showSearch=false;
+        bindData.product=defaultProduct();
+        bindData.image="";
+        bindData.p_image=[];
+        bindData.p_removed=[];
+        newfiles=[];
     }
 
     function loadInitialData(){
@@ -179,11 +206,12 @@ WEBDOCK.component().register(function(exports){
                             console.log(JSON.stringify(r));
                             bindData.categories=[];
                             if(r.success){
-                                for (var i=0;i<r.result.productcat.length;i++)
+                                for (var i=0;i<(r.result.productcat || []).length;i++)
                                     bindData.categories.push(r.result.productcat[i].name);
                             }
                         })
                         .error(function(error){
+                            console.log(error && error.responseJSON ? error.responseJSON : error);
             });
             menuhandler.services.q(query)
                         .then(function(r){
@@ -191,20 +219,21 @@ WEBDOCK.component().register(function(exports){
                             if(r.success){
                                 
                                 
-                                for (var i=0;i<r.result.uom.length;i++)
+                                bindData.uoms=[];
+                                for (var i=0;i<(r.result.uom || []).length;i++)
                                     bindData.uoms.push(r.result.uom[i]["symbol"]);
                                 
                                
                                if(r.result.product_published!=null && r.result.product_published.length!=0){
                                     bindData.product = r.result.product_published[0];
                                     
-                                    bindData.image = 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl;
+                                    bindData.image = bindData.product.imgurl ? 'components/dock/soss-uploader/service/get/products/' + (bindData.product.itemid || bindData.product.tid)+'-'+bindData.product.imgurl : "";
                                     if(r.result.products_image!=null){
                                         bindData.p_image =[];
                                         
                                         bindData.p_image =  r.result.products_image;
                                         for (var i = 0; i < bindData.p_image.length; i++) {
-                                            bindData.p_image[i].scr='components/dock/soss-uploader/service/get/products/'+bindData.product.itemid+'-'+bindData.p_image[i].name;
+                                            bindData.p_image[i].scr='components/dock/soss-uploader/service/get/products/'+(bindData.product.itemid || bindData.product.tid)+'-'+bindData.p_image[i].name;
                                         }
                                     }
                                     //getLocation();
@@ -212,7 +241,7 @@ WEBDOCK.component().register(function(exports){
                                 if(r.result.products!=null && r.result.products.length!=0){
                                     bindData.product = r.result.products[0];
                                 
-                                    bindData.image = 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl;
+                                    bindData.image = bindData.product.imgurl ? 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl : "";
                                     if(r.result.products_image!=null){
                                         bindData.p_image =[];
                                         
@@ -223,15 +252,15 @@ WEBDOCK.component().register(function(exports){
                                     }
                                     getLocation();
                                 }else{
-                                    handler1 = exports.getShellComponent("soss-routes");
-                                    handler1.appNavigate("..");
+                                    var routeHandler = exports.getShellComponent("soss-routes");
+                                    routeHandler.appNavigate("..");
                                 }
                                }
 
                             }
                         })
                         .error(function(error){
-                            
+                            console.log(error && error.responseJSON ? error.responseJSON : error);
             });
 
         
@@ -268,7 +297,7 @@ WEBDOCK.component().register(function(exports){
         $('#send').prop('disabled', true);
         bindData.submitErrors = validator.validate(); 
         if (!bindData.submitErrors){
-            bindData.product.caption=bindData.product.caption.split("'").join("~^");
+            bindData.product.caption=(bindData.product.caption || "").split("'").join("~^");
             bindData.product.caption=bindData.product.caption.split('"').join("~*");
             bindData.product.Images=[];
             bindData.product.tid=bindData.product.itemid;
@@ -277,6 +306,7 @@ WEBDOCK.component().register(function(exports){
                 bindData.product.Images.push({id:bindData.p_image[i].id,name:bindData.p_image[i].name,
                     caption:bindData.p_image[i].caption,default_img:bindData.p_image[i].default_img});
             }
+            bindData.product.RemoveImages=bindData.p_removed;
             
             var promiseObj = producthandler.services.ProductToStore(bindData.product);
            
@@ -303,52 +333,12 @@ WEBDOCK.component().register(function(exports){
 
     function gotoProducts(){
         //location.href = "#/admin-allproducts";
-        handler1 = exports.getShellComponent("soss-routes");
-        handler1.appNavigate("..");
+        var routeHandler = exports.getShellComponent("soss-routes");
+        routeHandler.appNavigate("..");
     }
 
     function searchItems(columncode,columnvalue){
-        console.log(bindData.items)
-        profileHandler.services.Search({q:columncode+":"+columnvalue})
-        .then(function(response){
-            console.log(JSON.stringify(response));
-            if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                /*
-                    response.result.forEach(element => {
-                        //var o=;
-                        //if(bindData.items.includes(element)){
-                            
-                        var found=false;
-                        bindData.items.forEach(searchEl => {
-                                if(searchEl.id==element.id){
-                                    found=true;
-                                }
-                            
-                          });  
-                          if(!found){
-                            bindData.items.push(element);
-                          }
-                            
-                        //}
-                    });*/
-                    bindData.items=response.result;
-                    bindData.showSearch=true;
-                    console.log(JSON.stringify(bindData.items));
-                }
-            }else{
-                alert (response.error);
-            }
-        })
-        .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
-        });
+        return false;
     }
 
 

@@ -79,6 +79,20 @@ class CmsV7SettingsApi {
         return $value;
     }
 
+    private function number($value, $fallback, $min, $max){
+        if(!isset($value) || !is_numeric($value)){
+            return $fallback;
+        }
+        $value = (float)$value;
+        if($value < $min){
+            return $min;
+        }
+        if($value > $max){
+            return $max;
+        }
+        return $value;
+    }
+
     private function links($value){
         $items = array();
         if(is_array($value)){
@@ -94,10 +108,31 @@ class CmsV7SettingsApi {
                 $item = new \stdClass();
                 $item->label = $label;
                 $item->url = $url;
+                if(isset($link->target)){
+                    $item->target = $this->text($link->target, "", 80);
+                }
+                $this->copyOptional($link, $item, "role");
+                $this->copyOptional($link, $item, "roles");
+                $this->copyOptional($link, $item, "group");
+                $this->copyOptional($link, $item, "groups");
+                $this->copyOptional($link, $item, "groupid");
+                $this->copyOptional($link, $item, "groupId");
+                $this->copyOptional($link, $item, "groupIds");
+                $this->copyOptional($link, $item, "allowedRoles");
+                $this->copyOptional($link, $item, "visibleFor");
+                $this->copyOptional($link, $item, "auth");
+                $this->copyOptional($link, $item, "hidden");
+                $this->copyOptional($link, $item, "visible");
                 $items[] = $item;
             }
         }
         return $items;
+    }
+
+    private function copyOptional($source, $target, $name){
+        if(isset($source->{$name})){
+            $target->{$name} = $source->{$name};
+        }
     }
 
     private function themes($value){
@@ -168,6 +203,15 @@ class CmsV7SettingsApi {
 
         $navSource = isset($data->nav) && is_object($data->nav) ? $data->nav : new \stdClass();
         $site->nav = new \stdClass();
+        $site->nav->source = $this->text(isset($navSource->source) ? $navSource->source : "hybrid", "hybrid", 40);
+        $site->nav->launcherAppCode = $this->cleanAppCode(isset($navSource->launcherAppCode) ? $navSource->launcherAppCode : "davvag-cms-v7");
+        $site->nav->launcherComponent = $this->cleanAppCode(isset($navSource->launcherComponent) ? $navSource->launcherComponent : "nav-bar");
+        if(isset($navSource->dynamic)){
+            $site->nav->dynamic = (bool)$navSource->dynamic;
+        }
+        if(isset($navSource->fallback)){
+            $site->nav->fallback = (bool)$navSource->fallback;
+        }
         $site->nav->variant = $this->cleanSlug(isset($navSource->variant) ? $navSource->variant : "clean", "clean");
         $site->nav->links = $this->links(isset($navSource->links) ? $navSource->links : array());
         $site->nav->cta = new \stdClass();
@@ -202,6 +246,11 @@ class CmsV7SettingsApi {
                 }
                 $item = new \stdClass();
                 $item->type = $this->cleanSlug(isset($section->type) ? $section->type : "text", "text");
+                $item->animation = $this->cleanSlug(isset($section->animation) ? $section->animation : "fade-up", "fade-up");
+                if($item->type === "hero"){
+                    $item->heroMode = $this->cleanSlug(isset($section->heroMode) ? $section->heroMode : "auto-fade", "auto-fade");
+                    $item->rotationSeconds = $this->number(isset($section->rotationSeconds) ? $section->rotationSeconds : 6, 6, 2, 30);
+                }
                 $item->eyebrow = $this->text(isset($section->eyebrow) ? $section->eyebrow : "", "", 180);
                 $item->title = $this->text(isset($section->title) ? $section->title : "", "", 260);
                 $item->body = $this->text(isset($section->body) ? $section->body : "", "", 12000);

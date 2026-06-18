@@ -101,13 +101,71 @@ select {
     flex-wrap: wrap;
 }
 
-.cms-v7-nav-links a {
+.cms-v7-nav-item {
+    position: relative;
+}
+
+.cms-v7-nav-links a,
+.cms-v7-nav-menu-button {
     color: var(--cms-muted);
     font-size: 14px;
 }
 
-.cms-v7-nav-links a:hover {
+.cms-v7-nav-links a:hover,
+.cms-v7-nav-menu-button:hover {
     color: var(--cms-text);
+}
+
+.cms-v7-nav-link,
+.cms-v7-nav-menu-button {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.cms-v7-nav-menu-button {
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+.cms-v7-nav-caret {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+}
+
+.cms-v7-nav-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 190px;
+    border: 1px solid var(--cms-border);
+    border-radius: var(--cms-radius);
+    background: var(--cms-bg);
+    box-shadow: var(--cms-shadow);
+    padding: 8px;
+    display: none;
+}
+
+.cms-v7-nav-item.open .cms-v7-nav-menu,
+.cms-v7-nav-item:hover .cms-v7-nav-menu {
+    display: block;
+}
+
+.cms-v7-nav-menu a {
+    display: block;
+    padding: 9px 10px;
+    border-radius: var(--cms-radius);
+    color: var(--cms-text);
+}
+
+.cms-v7-nav-menu a:hover {
+    background: var(--cms-surface);
 }
 
 .cms-v7-button {
@@ -134,6 +192,34 @@ select {
     animation: cms-v7-fade 180ms ease-out;
 }
 
+.cms-v7-animate-none {
+    animation: none;
+}
+
+.cms-v7-animate-fade {
+    animation: cms-v7-fade 420ms ease-out both;
+}
+
+.cms-v7-animate-fade-up {
+    animation: cms-v7-fade-up 520ms ease-out both;
+}
+
+.cms-v7-animate-slide-left {
+    animation: cms-v7-slide-left 520ms ease-out both;
+}
+
+.cms-v7-animate-slide-right {
+    animation: cms-v7-slide-right 520ms ease-out both;
+}
+
+.cms-v7-animate-zoom {
+    animation: cms-v7-zoom 520ms ease-out both;
+}
+
+.cms-v7-animate-pop {
+    animation: cms-v7-pop 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 .cms-v7-section {
     padding: 64px 0;
 }
@@ -143,6 +229,93 @@ select {
     display: flex;
     align-items: center;
     background: var(--cms-surface);
+}
+
+.cms-v7-hero-carousel {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.cms-v7-hero-track {
+    position: relative;
+    width: 100%;
+    min-height: 76vh;
+}
+
+.cms-v7-hero-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(0) scale(1);
+    transition: opacity 520ms ease, transform 520ms ease;
+}
+
+.cms-v7-hero-slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+.cms-v7-hero-carousel-slide .cms-v7-hero-slide {
+    transform: translateX(28px);
+}
+
+.cms-v7-hero-carousel-slide .cms-v7-hero-slide.active {
+    transform: translateX(0);
+}
+
+.cms-v7-hero-carousel-zoom .cms-v7-hero-slide {
+    transform: scale(0.96);
+}
+
+.cms-v7-hero-carousel-zoom .cms-v7-hero-slide.active {
+    transform: scale(1);
+}
+
+.cms-v7-hero-controls {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateX(-50%);
+}
+
+.cms-v7-hero-controls button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--cms-border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--cms-bg) 88%, transparent);
+    color: var(--cms-text);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.cms-v7-hero-dots {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.cms-v7-hero-dots button {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    min-height: 10px;
+    padding: 0;
+    border-color: var(--cms-primary);
+    background: transparent;
+}
+
+.cms-v7-hero-dots button.active {
+    background: var(--cms-primary);
 }
 
 .cms-v7-hero-grid {
@@ -345,6 +518,65 @@ select {
     }
 }
 
+@keyframes cms-v7-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cms-v7-slide-left {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes cms-v7-slide-right {
+    from {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes cms-v7-zoom {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes cms-v7-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.94) translateY(12px);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.01) translateY(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
 @media (max-width: 760px) {
     .cms-v7-nav-inner,
     .cms-v7-footer-grid {
@@ -356,6 +588,31 @@ select {
         padding: 14px 0;
     }
 
+    .cms-v7-nav-links {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .cms-v7-nav-item,
+    .cms-v7-nav-link,
+    .cms-v7-nav-menu-button {
+        width: 100%;
+    }
+
+    .cms-v7-nav-link,
+    .cms-v7-nav-menu-button {
+        justify-content: space-between;
+    }
+
+    .cms-v7-nav-menu {
+        position: static;
+        min-width: 100%;
+        margin: 0 0 6px;
+        box-shadow: none;
+    }
+
     .cms-v7-hero-grid,
     .cms-v7-split,
     .cms-v7-card-grid {
@@ -365,6 +622,19 @@ select {
     .cms-v7-hero {
         min-height: auto;
         padding: 38px 0;
+    }
+
+    .cms-v7-hero-carousel {
+        padding: 0;
+    }
+
+    .cms-v7-hero-track {
+        min-height: 620px;
+    }
+
+    .cms-v7-hero-slide {
+        align-items: flex-start;
+        padding: 38px 0 84px;
     }
 
     .cms-v7-section {

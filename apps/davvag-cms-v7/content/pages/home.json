@@ -6,19 +6,43 @@
     "sections": [
         {
             "type": "hero",
+            "animation": "slide-left",
+            "heroMode": "auto-fade",
+            "rotationSeconds": 10,
             "eyebrow": "CMS v7",
             "title": "Build a sharp landing page without carrying the old CMS weight.",
             "body": "A clean WebDock shell with editable pages, swappable themes, and componentized navigation and footer.",
+            "image": "assets/davvag-cms-v7/uploads/ChatGPT-Image-Jun-10-2026-08_18_47-PM.png",
             "primaryLabel": "Open Settings",
             "primaryUrl": "#/app/davvag-cms-v7-setting",
             "secondaryLabel": "See Features",
-            "secondaryUrl": "#/features",
-            "image": ""
+            "secondaryUrl": "#/features"
+        },
+        {
+            "type": "hero",
+            "animation": "slide-left",
+            "heroMode": "auto-fade",
+            "rotationSeconds": 10,
+            "eyebrow": "CMS v7",
+            "title": "Build a sharp landing page without carrying the old CMS weight.",
+            "body": "A clean WebDock shell with editable pages, swappable themes, and componentized navigation and footer.",
+            "image": "assets/davvag-cms-v7/uploads/ChatGPT-Image-Jun-10-2026-08_18_47-PM.png",
+            "primaryLabel": "Open Settings",
+            "primaryUrl": "#/app/davvag-cms-v7-setting",
+            "secondaryLabel": "See Features",
+            "secondaryUrl": "#/features"
         },
         {
             "type": "features",
+            "animation": "slide-left",
+            "eyebrow": "",
             "title": "Everything needed for lightweight sites",
             "body": "Use JSON page sections for fast landing pages and keep advanced app screens available through the dock.",
+            "image": "",
+            "primaryLabel": "",
+            "primaryUrl": "",
+            "secondaryLabel": "",
+            "secondaryUrl": "",
             "items": [
                 {
                     "title": "Theme changer",
@@ -36,10 +60,15 @@
         },
         {
             "type": "cta",
+            "animation": "fade-up",
+            "eyebrow": "",
             "title": "Ready to customize?",
             "body": "Open the settings app to change logos, routes, page content, themes, and assets.",
+            "image": "assets/davvag-cms-v7/uploads/ChatGPT-Image-Jun-10-2026-08_18_47-PM.png",
             "primaryLabel": "Configure CMS v7",
-            "primaryUrl": "#/app/davvag-cms-v7-setting"
+            "primaryUrl": "#/app/davvag-cms-v7-setting",
+            "secondaryLabel": "",
+            "secondaryUrl": ""
         }
     ]
 }

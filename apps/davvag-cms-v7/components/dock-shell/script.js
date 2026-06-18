@@ -6,13 +6,21 @@ WEBDOCK.component().register(function(exports){
         error: "",
         mode: "page",
         site: {},
-        page: {sections: []}
+        page: {sections: []},
+        renderBlocks: []
     };
+    var heroTimers = [];
 
     var vueData = {
         data: bindData,
         methods: {
-            sectionClass: sectionClass
+            sectionClass: sectionClass,
+            heroCarouselClass: heroCarouselClass,
+            heroSlideClass: heroSlideClass,
+            isHeroSlideActive: isHeroSlideActive,
+            selectHeroSlide: selectHeroSlide,
+            nextHeroSlide: nextHeroSlide,
+            previousHeroSlide: previousHeroSlide
         },
         onReady: function(scope, element){
             renderDiv = element;
@@ -67,6 +75,7 @@ WEBDOCK.component().register(function(exports){
                     setFavicon(bindData.site.favicon);
                 }
                 applyTheme(localStorage.getItem("cms-v7-theme") || bindData.site.theme);
+                notifySiteChanged();
                 if(done){
                     done();
                 }
@@ -87,6 +96,10 @@ WEBDOCK.component().register(function(exports){
             document.head.appendChild(link);
         }
         link.href = url;
+    }
+
+    function notifySiteChanged(){
+        window.dispatchEvent(new CustomEvent("cms-v7-site-changed", {detail: bindData.site}));
     }
 
     function normalizeRoute(){
@@ -125,16 +138,19 @@ WEBDOCK.component().register(function(exports){
             if(result.success && result.result){
                 bindData.page = result.result;
                 document.title = (bindData.page.title || bindData.site.name || "Davvag CMS v7");
+                preparePage();
                 $("#cms-v7-app-renderer").empty();
                 window.scrollTo(0, 0);
             }else{
                 bindData.error = "Page not found.";
                 bindData.page = {sections: []};
+                preparePage();
             }
         }).error(function(){
             bindData.loading = false;
             bindData.error = "Page not found.";
             bindData.page = {sections: []};
+            preparePage();
         });
     }
 
@@ -143,6 +159,7 @@ WEBDOCK.component().register(function(exports){
         bindData.loading = false;
         bindData.error = "";
         bindData.page = {sections: []};
+        preparePage();
         var appRouteData = parseAppRoute(route);
         if(!appRouteData.appId){
             bindData.error = "App route is missing an app code.";
@@ -288,10 +305,151 @@ WEBDOCK.component().register(function(exports){
     }
 
     function sectionClass(section){
+        var classes = "cms-v7-section cms-v7-animate-" + animationName(section);
         if(section.type === "hero"){
-            return "cms-v7-section cms-v7-hero";
+            classes += " cms-v7-hero";
         }
-        return "cms-v7-section";
+        return classes;
+    }
+
+    function preparePage(){
+        clearHeroTimers();
+        bindData.renderBlocks = buildRenderBlocks(bindData.page.sections || []);
+        startHeroTimers();
+    }
+
+    function buildRenderBlocks(sections){
+        var blocks = [];
+        var index = 0;
+        while(index < sections.length){
+            var section = normalizeSection(sections[index]);
+            if(section.type === "hero"){
+                var slides = [];
+                while(index < sections.length && sections[index].type === "hero"){
+                    slides.push(normalizeSection(sections[index]));
+                    index++;
+                }
+                if(slides.length > 1 && heroMode(slides[0]) !== "stack"){
+                    blocks.push({
+                        type: "heroCarousel",
+                        id: "hero-carousel-" + blocks.length,
+                        slides: slides,
+                        activeIndex: 0,
+                        mode: heroMode(slides[0]),
+                        animation: animationName(slides[0]),
+                        intervalMs: rotationMs(slides[0])
+                    });
+                }else{
+                    for(var s = 0; s < slides.length; s++){
+                        blocks.push({type: "section", id: "section-" + blocks.length, section: slides[s]});
+                    }
+                }
+                continue;
+            }
+            blocks.push({type: "section", id: "section-" + blocks.length, section: section});
+            index++;
+        }
+        return blocks;
+    }
+
+    function normalizeSection(section){
+        section = section || {};
+        section.animation = section.animation || "fade-up";
+        if(section.type === "hero"){
+            section.heroMode = section.heroMode || "auto-fade";
+            section.rotationSeconds = section.rotationSeconds || 6;
+        }
+        return section;
+    }
+
+    function startHeroTimers(){
+        for(var i = 0; i < bindData.renderBlocks.length; i++){
+            startHeroTimer(bindData.renderBlocks[i]);
+        }
+    }
+
+    function startHeroTimer(block){
+        if(!block || block.type !== "heroCarousel" || block.mode === "manual"){
+            return;
+        }
+        var timer = window.setInterval(function(){
+            nextHeroSlide(block);
+        }, block.intervalMs);
+        heroTimers.push(timer);
+    }
+
+    function clearHeroTimers(){
+        for(var i = 0; i < heroTimers.length; i++){
+            window.clearInterval(heroTimers[i]);
+        }
+        heroTimers = [];
+    }
+
+    function heroCarouselClass(block){
+        return "cms-v7-section cms-v7-hero cms-v7-hero-carousel cms-v7-hero-carousel-" + carouselMode(block) + " cms-v7-animate-" + (block.animation || "fade-up");
+    }
+
+    function heroSlideClass(block, index){
+        return "cms-v7-hero-slide" + (isHeroSlideActive(block, index) ? " active" : "");
+    }
+
+    function isHeroSlideActive(block, index){
+        return block.activeIndex === index;
+    }
+
+    function selectHeroSlide(block, index){
+        if(!block || !block.slides || !block.slides.length){
+            return;
+        }
+        if(index < 0){
+            index = block.slides.length - 1;
+        }
+        if(index >= block.slides.length){
+            index = 0;
+        }
+        block.activeIndex = index;
+    }
+
+    function nextHeroSlide(block){
+        selectHeroSlide(block, block.activeIndex + 1);
+    }
+
+    function previousHeroSlide(block){
+        selectHeroSlide(block, block.activeIndex - 1);
+    }
+
+    function heroMode(section){
+        var mode = (section.heroMode || "auto-fade").toString();
+        if(mode === "fade" || mode === "auto"){
+            return "auto-fade";
+        }
+        if(mode === "slide"){
+            return "auto-slide";
+        }
+        if(mode === "zoom"){
+            return "auto-zoom";
+        }
+        return mode;
+    }
+
+    function carouselMode(block){
+        var mode = block && block.mode ? block.mode : "auto-fade";
+        return mode.replace(/^auto-/, "");
+    }
+
+    function animationName(section){
+        return (section && section.animation ? section.animation : "fade-up").toString().replace(/[^a-z0-9\-]/g, "") || "fade-up";
+    }
+
+    function rotationMs(section){
+        var seconds = parseFloat(section.rotationSeconds);
+        if(isNaN(seconds) || seconds < 2){
+            seconds = 6;
+        }
+        if(seconds > 30){
+            seconds = 30;
+        }
+        return seconds * 1000;
     }
 
     exports.vue = vueData;

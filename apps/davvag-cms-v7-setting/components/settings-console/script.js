@@ -11,6 +11,22 @@ WEBDOCK.component().register(function(exports){
         selectedPage: emptyPage(),
         selectedTheme: null,
         selectedThemeIndex: 0,
+        sectionAnimations: [
+            {value: "none", label: "None"},
+            {value: "fade", label: "Fade"},
+            {value: "fade-up", label: "Fade up"},
+            {value: "slide-left", label: "Slide left"},
+            {value: "slide-right", label: "Slide right"},
+            {value: "zoom", label: "Zoom"},
+            {value: "pop", label: "Pop"}
+        ],
+        heroModes: [
+            {value: "auto-fade", label: "Auto fade"},
+            {value: "auto-slide", label: "Auto slide"},
+            {value: "auto-zoom", label: "Auto zoom"},
+            {value: "manual", label: "Manual"},
+            {value: "stack", label: "Stacked"}
+        ],
         themeFields: [
             {key: "background", label: "Background", type: "color"},
             {key: "surface", label: "Surface", type: "color"},
@@ -37,6 +53,7 @@ WEBDOCK.component().register(function(exports){
             loadPage: loadPage,
             savePage: savePage,
             normalizePagePath: normalizePagePath,
+            sectionTypeChanged: sectionTypeChanged,
             addSection: addSection,
             duplicateSection: duplicateSection,
             moveItem: moveItem,
@@ -44,6 +61,12 @@ WEBDOCK.component().register(function(exports){
             uploadAsset: uploadAsset,
             isImage: isImage,
             fileExt: fileExt
+        },
+        watch: {
+            selectedTheme: {
+                deep: true,
+                handler: previewTheme
+            }
         },
         onReady: function(){
             waitForApi(0);
@@ -276,7 +299,10 @@ WEBDOCK.component().register(function(exports){
         return arrayOrEmpty(links).filter(function(link){
             return link && (link.label || link.url);
         }).map(function(link){
-            return {label: link.label || "", url: link.url || ""};
+            var item = clone(link);
+            item.label = item.label || "";
+            item.url = item.url || "";
+            return item;
         });
     }
 
@@ -323,6 +349,10 @@ WEBDOCK.component().register(function(exports){
         }
         bindData.selectedThemeIndex = index;
         bindData.selectedTheme = bindData.site.themes[index] || null;
+        if(bindData.selectedTheme && bindData.selectedTheme.name){
+            bindData.site.theme = bindData.selectedTheme.name;
+        }
+        previewTheme(bindData.selectedTheme);
     }
 
     function themeIndex(name){
@@ -338,6 +368,26 @@ WEBDOCK.component().register(function(exports){
         return {
             background: "linear-gradient(135deg, " + (theme.primary || "#0f766e") + ", " + (theme.accent || "#e11d48") + ")"
         };
+    }
+
+    function previewTheme(theme){
+        if(!theme){
+            return;
+        }
+        if(theme.name){
+            bindData.site.theme = theme.name;
+            localStorage.setItem("cms-v7-theme", theme.name);
+        }
+        var root = document.documentElement;
+        root.style.setProperty("--cms-bg", theme.background || "#ffffff");
+        root.style.setProperty("--cms-surface", theme.surface || "#f6f8fb");
+        root.style.setProperty("--cms-text", theme.text || "#18202f");
+        root.style.setProperty("--cms-muted", theme.muted || "#647083");
+        root.style.setProperty("--cms-primary", theme.primary || "#0f766e");
+        root.style.setProperty("--cms-secondary", theme.secondary || "#2563eb");
+        root.style.setProperty("--cms-accent", theme.accent || "#e11d48");
+        root.style.setProperty("--cms-font", theme.font || "Arial, Helvetica, sans-serif");
+        window.dispatchEvent(new CustomEvent("cms-v7-theme-changed", {detail: theme}));
     }
 
     function newPage(){
@@ -393,6 +443,7 @@ WEBDOCK.component().register(function(exports){
         decorated.sections = arrayOrEmpty(decorated.sections);
         for(var i = 0; i < decorated.sections.length; i++){
             var section = decorated.sections[i];
+            applySectionDefaults(section);
             if(section.type === "features"){
                 section.items = arrayOrEmpty(section.items);
                 section.itemsText = JSON.stringify(section.items, null, 4);
@@ -450,6 +501,20 @@ WEBDOCK.component().register(function(exports){
         bindData.selectedPage.sections.push(defaultSection(type));
     }
 
+    function sectionTypeChanged(section){
+        applySectionDefaults(section);
+        if(section.type === "features" && !section.itemsText){
+            section.items = arrayOrEmpty(section.items);
+            if(!section.items.length){
+                section.items = defaultSection("features").items;
+            }
+            section.itemsText = JSON.stringify(section.items, null, 4);
+        }
+        if(section.type === "html" && !section.html){
+            section.html = "<div><h2>Custom HTML</h2><p>Edit this block.</p></div>";
+        }
+    }
+
     function duplicateSection(index){
         bindData.selectedPage.sections.splice(index + 1, 0, clone(bindData.selectedPage.sections[index]));
     }
@@ -457,6 +522,7 @@ WEBDOCK.component().register(function(exports){
     function defaultSection(type){
         var section = {
             type: type,
+            animation: "fade-up",
             eyebrow: "",
             title: type.charAt(0).toUpperCase() + type.substring(1),
             body: "",
@@ -466,6 +532,7 @@ WEBDOCK.component().register(function(exports){
             secondaryLabel: "",
             secondaryUrl: ""
         };
+        applySectionDefaults(section);
         if(type === "features"){
             section.items = [
                 {title: "First feature", body: "Describe a benefit."},
@@ -477,6 +544,14 @@ WEBDOCK.component().register(function(exports){
             section.html = "<div><h2>Custom HTML</h2><p>Edit this block.</p></div>";
         }
         return section;
+    }
+
+    function applySectionDefaults(section){
+        section.animation = section.animation || "fade-up";
+        if(section.type === "hero"){
+            section.heroMode = section.heroMode || "auto-fade";
+            section.rotationSeconds = section.rotationSeconds || 6;
+        }
     }
 
     function moveItem(items, index, direction){

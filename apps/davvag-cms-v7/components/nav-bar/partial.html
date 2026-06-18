@@ -8,8 +8,17 @@
             <span>{{ site.name }}</span>
         </a>
         <div class="cms-v7-nav-links">
-            <a v-for="link in site.nav.links" v-bind:href="link.url">{{ link.label }}</a>
-            <a class="cms-v7-button" v-if="site.nav.cta && site.nav.cta.label" v-bind:href="site.nav.cta.url">{{ site.nav.cta.label }}</a>
+            <div class="cms-v7-nav-item" v-for="item in navItems" v-bind:key="item.id" v-bind:class="{'open': isMenuOpen(item), 'has-children': item.children.length}">
+                <a class="cms-v7-nav-link" v-if="!item.children.length" v-bind:href="item.url" v-bind:target="item.target">{{ item.label }}</a>
+                <button class="cms-v7-nav-menu-button" v-if="item.children.length" type="button" v-on:click="toggleMenu(item, $event)" v-bind:aria-expanded="isMenuOpen(item) ? 'true' : 'false'">
+                    <span>{{ item.label }}</span>
+                    <span class="cms-v7-nav-caret"></span>
+                </button>
+                <div class="cms-v7-nav-menu" v-if="item.children.length">
+                    <a v-for="child in item.children" v-bind:key="child.id" v-bind:href="child.url" v-bind:target="child.target" v-on:click="closeMenu">{{ child.label }}</a>
+                </div>
+            </div>
+            <a class="cms-v7-button" v-if="cta && cta.label" v-bind:href="cta.url" v-bind:target="cta.target">{{ cta.label }}</a>
         </div>
     </div>
 </nav>

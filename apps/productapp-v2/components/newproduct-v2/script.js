@@ -2,9 +2,26 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler,attribute,cropper1;
+    var handler,attribute,cropper1,producthandler,uploaderInstance,uploader,editor;
     var newfiles;
     var validatorPage1,validatorPrice,validatorcat;
+
+    function defaultProduct(){
+        return {
+            uom:"",
+            invType:"",
+            currencycode:"LKR",
+            catogory:"",
+            attributes:{"temp":"aaaa"},
+            showonstore:"Y",
+            sellstype:"se",
+            cost:0,
+            price:0,
+            discountper:0,
+            qty:0,
+            reorder_qty:0
+        };
+    }
 
     function loadValidator(){
         bindData.product.caption=$("#txtcaption").data("editor").html(); 
@@ -25,7 +42,7 @@ WEBDOCK.component().register(function(exports){
     }
 
     var bindData = {
-        product:{uom:"",invType:"",currencycode:"",catogory:"",attributes:{"temp":"aaaa"}},
+        product:defaultProduct(),
         image:'',
         files:null,
         p_image:[],
@@ -34,7 +51,8 @@ WEBDOCK.component().register(function(exports){
         submitErrors: undefined,
         p_removed:[],
         imageSize:{width:450,hieght:500},
-        selectedCat:{}
+        selectedCat:{},
+        activeStep:"settings-users"
     };
 
     var vueData = {
@@ -47,69 +65,82 @@ WEBDOCK.component().register(function(exports){
                 bindData.submitErrors = validatorPage1.validate(); 
                 if (bindData.submitErrors)
                     return;
-                
-                $("#settings-users").toggleClass('active');
-                $("#Product-cat").toggleClass('active');
-
+                setActiveTab("Product-cat");
+            },
+            backToInfo:function(){
+                setActiveTab("settings-users");
             },
             gotoPricing:function(){
                 bindData.submitErrors = validatorcat.validate(); 
                 if (bindData.submitErrors)
                     return;
 
-                $("#Product-cat").toggleClass('active');
-                $("#Product-pricing").toggleClass('active');
+                setActiveTab("Product-pricing");
+            },
+            backToCat:function(){
+                setActiveTab("Product-cat");
             },
             gotoInventory:function(){
                 bindData.submitErrors = validatorPrice.validate(); 
                 if (bindData.submitErrors)
                     return;
 
-                $("#Product-pricing").toggleClass('active');
                 if(bindData.product.invType=="Inventory"){
-                    $("#Product-Inventory").toggleClass('active');
+                    setActiveTab("Product-Inventory");
                     return;
-                }else  if($("#sellstype").text().length>3){
-                    console.log($("#sellstype").html());
-                    $("#settings-sellstype").toggleClass('active');
+                }else if(hasSellstypeForm()){
+                    setActiveTab("settings-sellstype");
                     return;
-                }else if ($("#AttributeText").text().length>3){
-                    console.log($("#AttributeText").html());
-                    $("#settings-attributes").toggleClass('active');
+                }else if (hasAttributeForm()){
+                    setActiveTab("settings-attributes");
                     return;
                 }else{
-                    $("#settings-logo-title").toggleClass('active');
+                    setActiveTab("settings-logo-title");
                 }
 
             },
+            backToPricing:function(){
+                setActiveTab("Product-pricing");
+            },
             gotoSellstype:function() {
-                if(bindData.product.invType=="Inventory")
-                    $("#Product-Inventory").toggleClass('active');
-                else
-                    $("#Product-pricing").toggleClass('active');
-
-                console.log($("#sellstype").html());
-                if ($("#AttributeText").text().length>3){
-                    console.log($("#AttributeText").html());
-                    $("#settings-attributes").toggleClass('active');
+                if(hasSellstypeForm()){
+                    setActiveTab("settings-sellstype");
+                    return;
+                }
+                if(hasAttributeForm()){
+                    setActiveTab("settings-attributes");
                     return;
                 }else{
-                    $("#settings-logo-title").toggleClass('active');
+                    setActiveTab("settings-logo-title");
                 }
                 
             },
             gotoAtrributes:function() {
-                if($("#sellstype").text().length>3){
-                    $("#settings-sellstype").toggleClass('active');
-                }else{
-                    $("#Product-Inventory").toggleClass('active');
-                }
-                if ($("#AttributeText").text().length>3){
-                    $("#settings-attributes").toggleClass('active');
+                if(hasAttributeForm()){
+                    setActiveTab("settings-attributes");
                     return;
                 }else{
-                    $("#settings-logo-title").toggleClass('active');
+                    setActiveTab("settings-logo-title");
                 }
+            },
+            backToInventoryOrPricing:function(){
+                if(bindData.product.invType=="Inventory"){
+                    setActiveTab("Product-Inventory");
+                }else{
+                    setActiveTab("Product-pricing");
+                }
+            },
+            backToSellstypeOrInventory:function(){
+                if(hasSellstypeForm()){
+                    setActiveTab("settings-sellstype");
+                }else if(bindData.product.invType=="Inventory"){
+                    setActiveTab("Product-Inventory");
+                }else{
+                    setActiveTab("Product-pricing");
+                }
+            },
+            gotoImages:function(){
+                setActiveTab("settings-logo-title");
             },
             submit:submit,
             clear:clearProfile,
@@ -118,6 +149,10 @@ WEBDOCK.component().register(function(exports){
             removeImage: removeImage,
             changeType:changType,
             crop:function(){
+                if(!cropper1 || typeof cropper1.crope !== "function"){
+                    $.notify("Image cropper is still loading.", "warn");
+                    return;
+                }
                 cropper1.crope(bindData.imageSize.width,bindData.imageSize.hieght,function(e){
                     newfiles=newfiles?newfiles:[];
                     bindData.p_image.push({id:0,name:e.fileData.name,scr:e.data,file:e.fileData});
@@ -137,17 +172,41 @@ WEBDOCK.component().register(function(exports){
                 createImageMulti(files);
             },
             navigateBack: function(){
-                handler1 = exports.getShellComponent("soss-routes");
-                handler1.appNavigate("..");
+                var routeHandler = exports.getShellComponent("soss-routes");
+                routeHandler.appNavigate("..");
             }
         }
     }
     exports.vue = vueData;
 
 
+    function setActiveTab(tabId,clearErrors){
+        $("#tabs .tab-pane").removeClass("active");
+        $("#" + tabId).addClass("active");
+        bindData.activeStep=tabId;
+        if(clearErrors !== false){
+            bindData.submitErrors=undefined;
+        }
+    }
+
+    function hasSellstypeForm(){
+        return $("#sellstype").children().length > 0 || $.trim($("#sellstype").text()).length > 0;
+    }
+
+    function hasAttributeForm(){
+        return $("#AttributeText").children().length > 0 || $.trim($("#AttributeText").text()).length > 0;
+    }
+
     function changType(sellstype){
         console.log(sellstype);
-        document.getElementById("sellstype").innerHTML = "";
+        var sellstypeElement = document.getElementById("sellstype");
+        if(!sellstypeElement){
+            return;
+        }
+        sellstypeElement.innerHTML = "";
+        if(!sellstype){
+            return;
+        }
         attribute.renderForm("attr_"+sellstype,"sellstype",{itemid:bindData.product.itemid},function(){
             //initiate();
             switch(sellstype){
@@ -217,10 +276,6 @@ WEBDOCK.component().register(function(exports){
     }
 
     function removeImage(e) {
-        bindData.image = '';
-    }
-
-    function removeImage(e) {
         //const index = array.indexOf(e);
         if (e > -1) {
             if(bindData.p_image[e].id!=0){
@@ -228,13 +283,14 @@ WEBDOCK.component().register(function(exports){
                     caption:bindData.p_image[e].caption,default_img:bindData.p_image[e].default_img});
             }
             bindData.p_image.splice(e, 1);
-            newfiles.splice(e,1);
+            if(newfiles && newfiles.length > e){
+                newfiles.splice(e,1);
+            }
         }
 
     }
 
     function createImage(file) {
-        newFile = file;
         var image = new Image();
         var reader = new FileReader();
 
@@ -251,8 +307,9 @@ WEBDOCK.component().register(function(exports){
         newfiles=newfiles?newfiles:[];
         //}
         for (var i = 0; i < files.length; i++) {
+            var index = newfiles.length;
             newfiles.push(files[i]);
-            getImage(i,files[i]);
+            getImage(index,files[i]);
             //console.log();
         }
         
@@ -274,8 +331,12 @@ WEBDOCK.component().register(function(exports){
     }
 
     function clearProfile(){
-        bindData.item={};
-        showSearch=false;
+        bindData.product=defaultProduct();
+        bindData.image="";
+        bindData.p_image=[];
+        bindData.p_removed=[];
+        newfiles=[];
+        setActiveTab("settings-users");
     }
 
     function loadInitialData(){
@@ -294,24 +355,28 @@ WEBDOCK.component().register(function(exports){
                         .then(function(r){
                             console.log(JSON.stringify(r));
                             if(r.success){
-                                for (var i=0;i<r.result.productcat.length;i++){
+                                bindData.categories=[];
+                                bindData.uoms=[];
+                                for (var i=0;i<(r.result.productcat || []).length;i++){
                                     bindData.categories.push({id:r.result.productcat[i].id,name:r.result.productcat[i].name});
                                 }
-                                for (var i=0;i<r.result.uom.length;i++)
+                                for (var i=0;i<(r.result.uom || []).length;i++)
                                     bindData.uoms.push(r.result.uom[i]["symbol"]);
                                 
                                
-                               if(r.result.products!=null){
+                               if(r.result.products && r.result.products.length!=0){
                                 bindData.product = r.result.products[0];
                                 bindData.selectedCat={id:bindData.product.catogoryid,name:bindData.product.catogory};
                                 $("#txtcaption").data("editor").html(bindData.product.caption);
-                                if(r.result.products_attributes.length!=0)
+                                if(r.result.products_attributes && r.result.products_attributes.length!=0)
                                     bindData.product.attributes=r.result.products_attributes[0];
                                 else
                                     bindData.product.attributes={};
                                 
-                                changType(bindData.product.sellstype);
-                                bindData.image = 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl;
+                                if(bindData.product.sellstype){
+                                    changType(bindData.product.sellstype);
+                                }
+                                bindData.image = bindData.product.imgurl ? 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl : "";
                                 if(r.result.products_image!=null){
                                     bindData.p_image =[];
                                     
@@ -326,7 +391,7 @@ WEBDOCK.component().register(function(exports){
                             }
                         })
                         .error(function(error){
-                            
+                            console.log(error && error.responseJSON ? error.responseJSON : error);
             });
         
 
@@ -340,6 +405,23 @@ WEBDOCK.component().register(function(exports){
     function submit(){
         $('#send').prop('disabled', true);
         bindData.submitErrors = validatorPage1.validate(); 
+        if(bindData.submitErrors){
+            setActiveTab("settings-users",false);
+            $('#send').prop('disabled', false);
+            return;
+        }
+        bindData.submitErrors = validatorcat.validate();
+        if(bindData.submitErrors){
+            setActiveTab("Product-cat",false);
+            $('#send').prop('disabled', false);
+            return;
+        }
+        bindData.submitErrors = validatorPrice.validate();
+        if(bindData.submitErrors){
+            setActiveTab("Product-pricing",false);
+            $('#send').prop('disabled', false);
+            return;
+        }
         if (!bindData.submitErrors){
             bindData.product.caption=$("#txtcaption").data("editor").html(); 
             bindData.product.Images=[];
@@ -376,52 +458,12 @@ WEBDOCK.component().register(function(exports){
 
     function gotoProducts(){
         //location.href = "#/admin-allproducts";
-        handler1 = exports.getShellComponent("soss-routes");
-        handler1.appNavigate("..");
+        var routeHandler = exports.getShellComponent("soss-routes");
+        routeHandler.appNavigate("..");
     }
 
     function searchItems(columncode,columnvalue){
-        console.log(bindData.items)
-        profileHandler.services.Search({q:columncode+":"+columnvalue})
-        .then(function(response){
-            console.log(JSON.stringify(response));
-            if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                /*
-                    response.result.forEach(element => {
-                        //var o=;
-                        //if(bindData.items.includes(element)){
-                            
-                        var found=false;
-                        bindData.items.forEach(searchEl => {
-                                if(searchEl.id==element.id){
-                                    found=true;
-                                }
-                            
-                          });  
-                          if(!found){
-                            bindData.items.push(element);
-                          }
-                            
-                        //}
-                    });*/
-                    bindData.items=response.result;
-                    bindData.showSearch=true;
-                    console.log(JSON.stringify(bindData.items));
-                }
-            }else{
-                alert (response.error);
-            }
-        })
-        .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
-        });
+        return false;
     }
 
 

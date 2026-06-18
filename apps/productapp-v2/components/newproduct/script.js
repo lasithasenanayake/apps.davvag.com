@@ -2,11 +2,29 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler,attribute,cropper1;
+    var validator;
+    var handler,attribute,cropper1,producthandler,uploaderInstance,uploader,editor;
     var newfiles;
 
+    function defaultProduct(){
+        return {
+            uom:"",
+            invType:"",
+            currencycode:"LKR",
+            catogory:"",
+            attributes:{"temp":"aaaa"},
+            showonstore:"Y",
+            sellstype:"se",
+            cost:0,
+            price:0,
+            discountper:0,
+            qty:0,
+            reorder_qty:0
+        };
+    }
+
     var bindData = {
-        product:{uom:"",invType:"",currencycode:"",catogory:"",attributes:{"temp":"aaaa"}},
+        product:defaultProduct(),
         image:'',
         files:null,
         p_image:[],
@@ -30,6 +48,10 @@ WEBDOCK.component().register(function(exports){
             removeImage: removeImage,
             changeType:changType,
             crop:function(){
+                if(!cropper1 || typeof cropper1.crope !== "function"){
+                    $.notify("Image cropper is still loading.", "warn");
+                    return;
+                }
                 cropper1.crope(bindData.imageSize.width,bindData.imageSize.hieght,function(e){
                     newfiles=newfiles?newfiles:[];
                     bindData.p_image.push({id:0,name:e.fileData.name,scr:e.data,file:e.fileData});
@@ -49,14 +71,14 @@ WEBDOCK.component().register(function(exports){
                 createImageMulti(files);
             },
             navigateBack: function(){
-                handler1 = exports.getShellComponent("soss-routes");
-                handler1.appNavigate("..");
+                var routeHandler = exports.getShellComponent("soss-routes");
+                routeHandler.appNavigate("..");
             }
         }
     }
 
     exports.deferredVue = function(resolver, renderDiv){
-        attributes = exports.getShellComponent("dynamic-attributes");
+        var attributes = exports.getShellComponent("dynamic-attributes");
         attributes.renderForm("productattribute","product.attributes",renderDiv,"AttributeText",function(){
             resolver(vueData);
         });
@@ -65,7 +87,14 @@ WEBDOCK.component().register(function(exports){
 
     function changType(sellstype){
         console.log(sellstype);
-        document.getElementById("settings-sellstype").innerHTML = "";
+        var sellstypeElement = document.getElementById("settings-sellstype");
+        if(!sellstypeElement){
+            return;
+        }
+        sellstypeElement.innerHTML = "";
+        if(!sellstype){
+            return;
+        }
         attribute.renderForm("attr_"+sellstype,"settings-sellstype",{itemid:bindData.product.itemid},function(){
             //initiate();
             switch(sellstype){
@@ -89,7 +118,6 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
-        uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         attribute=exports.getShellComponent("attribute_shell");
         editor=$("#txtcaption").Editor();
@@ -113,6 +141,10 @@ WEBDOCK.component().register(function(exports){
     var imagecount=0;
     var completed=0;    
     function uploadFile(productId, cb){
+        if(!newfiles || newfiles.length===0){
+            cb();
+            return;
+        }
         if(newfiles.length>0){
             exports.getAppComponent("davvag-tools","davvag-file-uploader", function(_uploader){
                 uploader=_uploader;
@@ -132,10 +164,6 @@ WEBDOCK.component().register(function(exports){
     }
 
     function removeImage(e) {
-        bindData.image = '';
-    }
-
-    function removeImage(e) {
         //const index = array.indexOf(e);
         if (e > -1) {
             if(bindData.p_image[e].id!=0){
@@ -143,13 +171,14 @@ WEBDOCK.component().register(function(exports){
                     caption:bindData.p_image[e].caption,default_img:bindData.p_image[e].default_img});
             }
             bindData.p_image.splice(e, 1);
-            newfiles.splice(e,1);
+            if(newfiles && newfiles.length > e){
+                newfiles.splice(e,1);
+            }
         }
 
     }
 
     function createImage(file) {
-        newFile = file;
         var image = new Image();
         var reader = new FileReader();
 
@@ -166,8 +195,9 @@ WEBDOCK.component().register(function(exports){
         newfiles=newfiles?newfiles:[];
         //}
         for (var i = 0; i < files.length; i++) {
+            var index = newfiles.length;
             newfiles.push(files[i]);
-            getImage(i,files[i]);
+            getImage(index,files[i]);
             //console.log();
         }
         
@@ -189,8 +219,11 @@ WEBDOCK.component().register(function(exports){
     }
 
     function clearProfile(){
-        bindData.item={};
-        showSearch=false;
+        bindData.product=defaultProduct();
+        bindData.image="";
+        bindData.p_image=[];
+        bindData.p_removed=[];
+        newfiles=[];
     }
 
     function loadInitialData(){
@@ -209,23 +242,27 @@ WEBDOCK.component().register(function(exports){
                         .then(function(r){
                             console.log(JSON.stringify(r));
                             if(r.success){
-                                for (var i=0;i<r.result.productcat.length;i++)
+                                bindData.categories=[];
+                                bindData.uoms=[];
+                                for (var i=0;i<(r.result.productcat || []).length;i++)
                                     bindData.categories.push(r.result.productcat[i].name);
                                 
-                                for (var i=0;i<r.result.uom.length;i++)
+                                for (var i=0;i<(r.result.uom || []).length;i++)
                                     bindData.uoms.push(r.result.uom[i]["symbol"]);
                                 
                                
-                               if(r.result.products!=null){
+                               if(r.result.products && r.result.products.length!=0){
                                 bindData.product = r.result.products[0];
                                 $("#txtcaption").data("editor").html(bindData.product.caption);
-                                if(r.result.products_attributes.length!=0)
+                                if(r.result.products_attributes && r.result.products_attributes.length!=0)
                                     bindData.product.attributes=r.result.products_attributes[0];
                                 else
                                     bindData.product.attributes={};
                                 
-                                changType(bindData.product.sellstype);
-                                bindData.image = 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl;
+                                if(bindData.product.sellstype){
+                                    changType(bindData.product.sellstype);
+                                }
+                                bindData.image = bindData.product.imgurl ? 'components/dock/soss-uploader/service/get/products/' + bindData.product.itemid+'-'+bindData.product.imgurl : "";
                                 if(r.result.products_image!=null){
                                     bindData.p_image =[];
                                     
@@ -240,7 +277,7 @@ WEBDOCK.component().register(function(exports){
                             }
                         })
                         .error(function(error){
-                            
+                            console.log(error && error.responseJSON ? error.responseJSON : error);
             });
         
 
@@ -295,52 +332,12 @@ WEBDOCK.component().register(function(exports){
 
     function gotoProducts(){
         //location.href = "#/admin-allproducts";
-        handler1 = exports.getShellComponent("soss-routes");
-        handler1.appNavigate("..");
+        var routeHandler = exports.getShellComponent("soss-routes");
+        routeHandler.appNavigate("..");
     }
 
     function searchItems(columncode,columnvalue){
-        console.log(bindData.items)
-        profileHandler.services.Search({q:columncode+":"+columnvalue})
-        .then(function(response){
-            console.log(JSON.stringify(response));
-            if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                /*
-                    response.result.forEach(element => {
-                        //var o=;
-                        //if(bindData.items.includes(element)){
-                            
-                        var found=false;
-                        bindData.items.forEach(searchEl => {
-                                if(searchEl.id==element.id){
-                                    found=true;
-                                }
-                            
-                          });  
-                          if(!found){
-                            bindData.items.push(element);
-                          }
-                            
-                        //}
-                    });*/
-                    bindData.items=response.result;
-                    bindData.showSearch=true;
-                    console.log(JSON.stringify(bindData.items));
-                }
-            }else{
-                alert (response.error);
-            }
-        })
-        .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
-        });
+        return false;
     }
 
 

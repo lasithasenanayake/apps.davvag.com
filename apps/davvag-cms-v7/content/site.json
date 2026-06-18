@@ -3,13 +3,16 @@
     "tagline": "Lightweight landing pages for DAVVAG apps.",
     "logo": "",
     "favicon": "assets/davvag-cms-v7/favicon.svg?v=0.2",
-    "theme": "clean",
+    "theme": "midnight-mint",
     "startup": {
         "mode": "page",
         "route": "/"
     },
     "nav": {
-        "variant": "minimal",
+        "source": "hybrid",
+        "launcherAppCode": "davvag-cms-v7",
+        "launcherComponent": "nav-bar",
+        "variant": "centered",
         "links": [
             {
                 "label": "Home",
@@ -30,7 +33,7 @@
         }
     },
     "footer": {
-        "variant": "simple",
+        "variant": "minimal",
         "copyright": "Copyright 2026 Davvag CMS v7",
         "links": [
             {
@@ -82,6 +85,90 @@
             "primary": "#2dd4bf",
             "secondary": "#60a5fa",
             "accent": "#fb7185",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "aurora",
+            "label": "Aurora",
+            "background": "#f8fafc",
+            "surface": "#eaf6ff",
+            "text": "#102033",
+            "muted": "#64748b",
+            "primary": "#0891b2",
+            "secondary": "#7c3aed",
+            "accent": "#f97316",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "meadow",
+            "label": "Meadow",
+            "background": "#fbfef7",
+            "surface": "#ecfccb",
+            "text": "#1f2937",
+            "muted": "#64748b",
+            "primary": "#16a34a",
+            "secondary": "#0ea5e9",
+            "accent": "#f43f5e",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "coral-bay",
+            "label": "Coral Bay",
+            "background": "#fffaf7",
+            "surface": "#ffe8df",
+            "text": "#1f2937",
+            "muted": "#6b7280",
+            "primary": "#0f766e",
+            "secondary": "#2563eb",
+            "accent": "#ea580c",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "midnight-mint",
+            "label": "Midnight Mint",
+            "background": "#0b1020",
+            "surface": "#172033",
+            "text": "#f8fafc",
+            "muted": "#b6c2d1",
+            "primary": "#2dd4bf",
+            "secondary": "#818cf8",
+            "accent": "#fbbf24",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "rosewood",
+            "label": "Rosewood",
+            "background": "#fff7f8",
+            "surface": "#ffe4e6",
+            "text": "#2f1720",
+            "muted": "#7f5360",
+            "primary": "#be123c",
+            "secondary": "#0f766e",
+            "accent": "#7c3aed",
+            "font": "Georgia, 'Times New Roman', serif"
+        },
+        {
+            "name": "graphite-lime",
+            "label": "Graphite Lime",
+            "background": "#18181b",
+            "surface": "#27272a",
+            "text": "#fafafa",
+            "muted": "#d4d4d8",
+            "primary": "#84cc16",
+            "secondary": "#22d3ee",
+            "accent": "#fb7185",
+            "font": "Arial, Helvetica, sans-serif"
+        },
+        {
+            "name": "harbor",
+            "label": "Harbor",
+            "background": "#f6fbfb",
+            "surface": "#dff3f2",
+            "text": "#12303a",
+            "muted": "#53717b",
+            "primary": "#0e7490",
+            "secondary": "#4f46e5",
+            "accent": "#f59e0b",
             "font": "Arial, Helvetica, sans-serif"
         }
     ]

@@ -4,64 +4,94 @@
         <div v-if="loading" class="cms-v7-loading">Loading page...</div>
         <div v-if="error" class="cms-v7-error">{{ error }}</div>
         <div v-show="mode == 'page'" class="cms-v7-page">
-            <section v-for="section in page.sections" v-bind:class="sectionClass(section)">
-                <div class="cms-v7-container" v-if="section.type == 'hero'">
-                    <div class="cms-v7-hero-grid">
-                        <div>
-                            <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
-                            <h1>{{ section.title }}</h1>
-                            <p class="cms-v7-lead">{{ section.body }}</p>
-                            <div class="cms-v7-actions">
-                                <a class="cms-v7-button" v-if="section.primaryLabel" v-bind:href="section.primaryUrl">{{ section.primaryLabel }}</a>
-                                <a class="cms-v7-button secondary" v-if="section.secondaryLabel" v-bind:href="section.secondaryUrl">{{ section.secondaryLabel }}</a>
+            <template v-for="block in renderBlocks">
+                <section v-if="block.type == 'heroCarousel'" v-bind:key="block.id" v-bind:class="heroCarouselClass(block)">
+                    <div class="cms-v7-hero-track">
+                        <article v-for="(slide, slideIndex) in block.slides" v-bind:key="block.id + '-' + slideIndex" v-bind:class="heroSlideClass(block, slideIndex)" v-bind:aria-hidden="isHeroSlideActive(block, slideIndex) ? 'false' : 'true'">
+                            <div class="cms-v7-container">
+                                <div class="cms-v7-hero-grid">
+                                    <div>
+                                        <p class="cms-v7-eyebrow" v-if="slide.eyebrow">{{ slide.eyebrow }}</p>
+                                        <h1>{{ slide.title }}</h1>
+                                        <p class="cms-v7-lead">{{ slide.body }}</p>
+                                        <div class="cms-v7-actions">
+                                            <a class="cms-v7-button" v-if="slide.primaryLabel" v-bind:href="slide.primaryUrl">{{ slide.primaryLabel }}</a>
+                                            <a class="cms-v7-button secondary" v-if="slide.secondaryLabel" v-bind:href="slide.secondaryUrl">{{ slide.secondaryLabel }}</a>
+                                        </div>
+                                    </div>
+                                    <div class="cms-v7-media">
+                                        <img v-if="slide.image" v-bind:src="slide.image" v-bind:alt="slide.title">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="cms-v7-media">
-                            <img v-if="section.image" v-bind:src="section.image" v-bind:alt="section.title">
-                        </div>
-                    </div>
-                </div>
-                <div class="cms-v7-container" v-if="section.type == 'features'">
-                    <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
-                    <h2>{{ section.title }}</h2>
-                    <p class="cms-v7-lead">{{ section.body }}</p>
-                    <div class="cms-v7-card-grid">
-                        <article class="cms-v7-card" v-for="item in section.items">
-                            <h3>{{ item.title }}</h3>
-                            <p>{{ item.body }}</p>
                         </article>
                     </div>
-                </div>
-                <div class="cms-v7-container cms-v7-split" v-if="section.type == 'split'">
-                    <div class="cms-v7-media">
-                        <img v-if="section.image" v-bind:src="section.image" v-bind:alt="section.title">
+                    <div class="cms-v7-hero-controls" v-if="block.slides.length > 1">
+                        <button type="button" v-on:click="previousHeroSlide(block)" aria-label="Previous hero slide">&lsaquo;</button>
+                        <div class="cms-v7-hero-dots">
+                            <button type="button" v-for="(slide, slideIndex) in block.slides" v-bind:key="'dot-' + block.id + '-' + slideIndex" v-bind:class="{active: isHeroSlideActive(block, slideIndex)}" v-on:click="selectHeroSlide(block, slideIndex)" v-bind:aria-label="'Show hero slide ' + (slideIndex + 1)"></button>
+                        </div>
+                        <button type="button" v-on:click="nextHeroSlide(block)" aria-label="Next hero slide">&rsaquo;</button>
                     </div>
-                    <div>
-                        <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
-                        <h2>{{ section.title }}</h2>
-                        <p class="cms-v7-copy">{{ section.body }}</p>
-                    </div>
-                </div>
-                <div class="cms-v7-container" v-if="section.type == 'text'">
-                    <p class="cms-v7-eyebrow" v-if="section.eyebrow">{{ section.eyebrow }}</p>
-                    <h2>{{ section.title }}</h2>
-                    <p class="cms-v7-copy">{{ section.body }}</p>
-                </div>
-                <div class="cms-v7-container" v-if="section.type == 'cta'">
-                    <div class="cms-v7-cta">
-                        <h2>{{ section.title }}</h2>
-                        <p>{{ section.body }}</p>
-                        <div class="cms-v7-actions">
-                            <a class="cms-v7-button" v-if="section.primaryLabel" v-bind:href="section.primaryUrl">{{ section.primaryLabel }}</a>
+                </section>
+                <section v-if="block.type == 'section'" v-bind:key="block.id" v-bind:class="sectionClass(block.section)">
+                    <div class="cms-v7-container" v-if="block.section.type == 'hero'">
+                        <div class="cms-v7-hero-grid">
+                            <div>
+                                <p class="cms-v7-eyebrow" v-if="block.section.eyebrow">{{ block.section.eyebrow }}</p>
+                                <h1>{{ block.section.title }}</h1>
+                                <p class="cms-v7-lead">{{ block.section.body }}</p>
+                                <div class="cms-v7-actions">
+                                    <a class="cms-v7-button" v-if="block.section.primaryLabel" v-bind:href="block.section.primaryUrl">{{ block.section.primaryLabel }}</a>
+                                    <a class="cms-v7-button secondary" v-if="block.section.secondaryLabel" v-bind:href="block.section.secondaryUrl">{{ block.section.secondaryLabel }}</a>
+                                </div>
+                            </div>
+                            <div class="cms-v7-media">
+                                <img v-if="block.section.image" v-bind:src="block.section.image" v-bind:alt="block.section.title">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="cms-v7-container" v-if="section.type == 'html'" v-html="section.html"></div>
-            </section>
+                    <div class="cms-v7-container" v-if="block.section.type == 'features'">
+                        <p class="cms-v7-eyebrow" v-if="block.section.eyebrow">{{ block.section.eyebrow }}</p>
+                        <h2>{{ block.section.title }}</h2>
+                        <p class="cms-v7-lead">{{ block.section.body }}</p>
+                        <div class="cms-v7-card-grid">
+                            <article class="cms-v7-card" v-for="item in block.section.items">
+                                <h3>{{ item.title }}</h3>
+                                <p>{{ item.body }}</p>
+                            </article>
+                        </div>
+                    </div>
+                    <div class="cms-v7-container cms-v7-split" v-if="block.section.type == 'split'">
+                        <div class="cms-v7-media">
+                            <img v-if="block.section.image" v-bind:src="block.section.image" v-bind:alt="block.section.title">
+                        </div>
+                        <div>
+                            <p class="cms-v7-eyebrow" v-if="block.section.eyebrow">{{ block.section.eyebrow }}</p>
+                            <h2>{{ block.section.title }}</h2>
+                            <p class="cms-v7-copy">{{ block.section.body }}</p>
+                        </div>
+                    </div>
+                    <div class="cms-v7-container" v-if="block.section.type == 'text'">
+                        <p class="cms-v7-eyebrow" v-if="block.section.eyebrow">{{ block.section.eyebrow }}</p>
+                        <h2>{{ block.section.title }}</h2>
+                        <p class="cms-v7-copy">{{ block.section.body }}</p>
+                    </div>
+                    <div class="cms-v7-container" v-if="block.section.type == 'cta'">
+                        <div class="cms-v7-cta">
+                            <h2>{{ block.section.title }}</h2>
+                            <p>{{ block.section.body }}</p>
+                            <div class="cms-v7-actions">
+                                <a class="cms-v7-button" v-if="block.section.primaryLabel" v-bind:href="block.section.primaryUrl">{{ block.section.primaryLabel }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cms-v7-container" v-if="block.section.type == 'html'" v-html="block.section.html"></div>
+                </section>
+            </template>
             <div v-if="!loading && page.sections.length == 0" class="cms-v7-empty">This page has no sections yet.</div>
         </div>
         <div v-show="mode == 'app'" id="cms-v7-app-renderer"></div>
     </main>
-    <div webdock-component="theme-changer"></div>
     <div webdock-component="footer-bar"></div>
 </div>

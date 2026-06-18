@@ -1,12 +1,12 @@
 .cms7-settings {
-    --s-bg: #f7f8fa;
-    --s-panel: #ffffff;
-    --s-text: #172033;
-    --s-muted: #677386;
-    --s-border: #d8dee8;
-    --s-primary: #0f766e;
-    --s-blue: #2563eb;
-    --s-danger: #b91c1c;
+    --s-bg: var(--cms-bg, #f7f8fa);
+    --s-panel: var(--cms-surface, #ffffff);
+    --s-text: var(--cms-text, #172033);
+    --s-muted: var(--cms-muted, #677386);
+    --s-border: var(--cms-border, #d8dee8);
+    --s-primary: var(--cms-primary, #0f766e);
+    --s-blue: var(--cms-secondary, #2563eb);
+    --s-danger: var(--cms-accent, #b91c1c);
     min-height: 100vh;
     padding: 24px;
     background: var(--s-bg);
@@ -71,7 +71,7 @@
     border-radius: 8px;
     padding: 0 14px;
     background: var(--s-primary);
-    color: #fff;
+    color: var(--cms-bg, #fff);
     cursor: pointer;
     font-weight: 700;
     text-decoration: none;
@@ -83,7 +83,7 @@
 .cms7-btn.ghost,
 .cms7-row-actions button,
 .cms7-section-tools button {
-    background: #fff;
+    background: var(--s-panel);
     color: var(--s-text);
     border-color: var(--s-border);
 }
@@ -208,7 +208,7 @@
     border: 1px solid var(--s-border);
     border-radius: 8px;
     padding: 8px 10px;
-    background: #fff;
+    background: var(--cms-bg, #fff);
     color: var(--s-text);
     font: inherit;
 }
@@ -253,7 +253,7 @@
     min-height: 46px;
     border: 1px solid var(--s-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--s-panel);
     color: var(--s-text);
     cursor: pointer;
     text-align: left;
@@ -304,7 +304,7 @@
     border-radius: 8px;
     padding: 14px;
     margin-top: 12px;
-    background: #fcfcfd;
+    background: color-mix(in srgb, var(--s-panel) 92%, var(--s-bg));
 }
 
 .cms7-section-card-head {
@@ -343,7 +343,7 @@
 .cms7-asset-preview {
     height: 126px;
     border-radius: 8px;
-    background: #eef2f7;
+    background: color-mix(in srgb, var(--s-bg) 82%, var(--s-primary));
     display: flex;
     align-items: center;
     justify-content: center;

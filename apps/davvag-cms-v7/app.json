@@ -106,8 +106,7 @@
                 "soss-data",
                 "soss-routes-vue",
                 "nav-bar",
-                "footer-bar",
-                "theme-changer"
+                "footer-bar"
             ],
             "routes": {
                 "home": "/",
