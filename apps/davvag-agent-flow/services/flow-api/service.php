@@ -37,6 +37,9 @@ class FlowService {
         if (!$this->saveFlows($flows)) {
             return $this->fail("Unable to save the flow document.");
         }
+        if (!$this->savePolicyPages($flow)) {
+            return $this->fail("Flow saved, but policy pages could not be generated.");
+        }
 
         $out = $this->ok();
         $out->flow = $this->safeFlowForClient($flow);
@@ -283,6 +286,7 @@ class FlowService {
             "triggers" => $this->arrayStringList($input, "triggers"),
             "escalationTarget" => $this->arrayString($input, "escalationTarget", ""),
             "notes" => $this->arrayString($input, "notes", ""),
+            "policy" => $this->normalizePolicy(isset($input["policy"]) ? $input["policy"] : array(), isset($existing["policy"]) ? $existing["policy"] : array(), $name === "" ? $flowCode : $name),
             "connectors" => $this->normalizeConnectors(isset($input["connectors"]) ? $input["connectors"] : array(), $existing),
             "createdAt" => isset($existing["createdAt"]) ? $existing["createdAt"] : $now,
             "updatedAt" => $now
@@ -291,6 +295,20 @@ class FlowService {
         $out = $this->ok();
         $out->flow = $flow;
         return $out;
+    }
+
+    private function normalizePolicy($incoming, $existing, $flowName) {
+        $incoming = is_array($incoming) ? $incoming : $this->objectToArray($incoming);
+        $existing = is_array($existing) ? $existing : $this->objectToArray($existing);
+        $today = gmdate("Y-m-d");
+
+        return array(
+            "organizationName" => $this->arrayStringOrExisting($incoming, $existing, "organizationName", $flowName),
+            "contactEmail" => $this->arrayStringOrExisting($incoming, $existing, "contactEmail", ""),
+            "effectiveDate" => $this->arrayStringOrExisting($incoming, $existing, "effectiveDate", $today),
+            "privacyPolicy" => $this->arrayStringOrExisting($incoming, $existing, "privacyPolicy", ""),
+            "termsAndConditions" => $this->arrayStringOrExisting($incoming, $existing, "termsAndConditions", "")
+        );
     }
 
     private function webhookTarget($req) {
@@ -408,6 +426,13 @@ class FlowService {
             "triggers" => array("new message", "support request"),
             "escalationTarget" => "",
             "notes" => "",
+            "policy" => array(
+                "organizationName" => "",
+                "contactEmail" => "",
+                "effectiveDate" => gmdate("Y-m-d"),
+                "privacyPolicy" => "",
+                "termsAndConditions" => ""
+            ),
             "connectors" => $connectors,
             "createdAt" => null,
             "updatedAt" => null
@@ -660,6 +685,10 @@ class FlowService {
         $copy = $flow;
         $defs = $this->connectorDefinitionsByCode();
         $copy["webhookUrls"] = array();
+        $copy["policyUrls"] = array(
+            "privacy" => $this->policyUrl(isset($copy["flowCode"]) ? $copy["flowCode"] : "", "privacy"),
+            "terms" => $this->policyUrl(isset($copy["flowCode"]) ? $copy["flowCode"] : "", "terms")
+        );
         if (isset($copy["connectors"]) && is_array($copy["connectors"])) {
             foreach ($copy["connectors"] as $index => $connector) {
                 $code = isset($connector["code"]) ? $connector["code"] : "";
@@ -680,6 +709,90 @@ class FlowService {
             }
         }
         return $copy;
+    }
+
+    private function savePolicyPages($flow) {
+        if (!isset($flow["flowCode"]) || $flow["flowCode"] === "") {
+            return true;
+        }
+
+        $dir = $this->policyDir($flow["flowCode"]);
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            return false;
+        }
+
+        $privacy = $this->policyHtml($flow, "privacy");
+        $terms = $this->policyHtml($flow, "terms");
+
+        return file_put_contents($dir . "/privacy.html", $privacy) !== false
+            && file_put_contents($dir . "/terms.html", $terms) !== false;
+    }
+
+    private function policyHtml($flow, $type) {
+        $policy = isset($flow["policy"]) && is_array($flow["policy"]) ? $flow["policy"] : array();
+        $title = $type === "terms" ? "Terms and Conditions" : "Privacy Policy";
+        $contentKey = $type === "terms" ? "termsAndConditions" : "privacyPolicy";
+        $flowName = isset($flow["name"]) ? $flow["name"] : $flow["flowCode"];
+        $organization = isset($policy["organizationName"]) && $policy["organizationName"] !== "" ? $policy["organizationName"] : $flowName;
+        $effectiveDate = isset($policy["effectiveDate"]) && $policy["effectiveDate"] !== "" ? $policy["effectiveDate"] : gmdate("Y-m-d");
+        $contactEmail = isset($policy["contactEmail"]) ? $policy["contactEmail"] : "";
+        $content = isset($policy[$contentKey]) ? $policy[$contentKey] : "";
+
+        if (trim($content) === "") {
+            $content = "This " . strtolower($title) . " has not been completed yet. Please contact the service owner for more information.";
+        }
+
+        $contact = "";
+        if ($contactEmail !== "") {
+            $safeEmail = $this->escapeHtml($contactEmail);
+            $contact = '<p class="policy-page__contact">Contact: <a href="mailto:' . $safeEmail . '">' . $safeEmail . '</a></p>';
+        }
+
+        return '<!doctype html>' . "\n"
+            . '<html lang="en">' . "\n"
+            . '<head>' . "\n"
+            . '<meta charset="utf-8">' . "\n"
+            . '<meta name="viewport" content="width=device-width, initial-scale=1.0">' . "\n"
+            . '<title>' . $this->escapeHtml($title . " - " . $organization) . '</title>' . "\n"
+            . '<style>'
+            . 'body{margin:0;background:#f4f6f8;color:#17212b;font-family:Arial,sans-serif;line-height:1.6;}'
+            . '.policy-page{max-width:880px;margin:0 auto;padding:42px 22px 64px;}'
+            . '.policy-page__paper{background:#fff;border:1px solid #d9e1e8;border-radius:8px;padding:30px;box-shadow:0 12px 28px rgba(30,42,54,.08);}'
+            . 'h1{margin:0 0 8px;font-size:30px;line-height:1.15;}'
+            . 'p{margin:0 0 16px;}'
+            . '.policy-page__meta{color:#5f6f82;font-size:14px;margin-bottom:28px;}'
+            . '.policy-page__content{white-space:normal;}'
+            . '.policy-page__content p{margin-bottom:16px;}'
+            . '.policy-page__contact{margin-top:28px;padding-top:18px;border-top:1px solid #d9e1e8;}'
+            . 'a{color:#153f3f;}'
+            . '</style>' . "\n"
+            . '</head>' . "\n"
+            . '<body><main class="policy-page"><article class="policy-page__paper">'
+            . '<h1>' . $this->escapeHtml($title) . '</h1>'
+            . '<p class="policy-page__meta">' . $this->escapeHtml($organization) . ' / Effective ' . $this->escapeHtml($effectiveDate) . '</p>'
+            . '<div class="policy-page__content">' . $this->textToParagraphs($content) . '</div>'
+            . $contact
+            . '</article></main></body></html>';
+    }
+
+    private function policyDir($flowCode) {
+        return $this->appAssetsDir() . "/policies/" . $this->normalizeCode($flowCode);
+    }
+
+    private function appAssetsDir() {
+        if (defined("TENANT_RESOURCE_LOCATION")) {
+            return rtrim(TENANT_RESOURCE_LOCATION, "\\/") . "/apps/davvag-agent-flow/assets";
+        }
+        return dirname(dirname(__DIR__)) . "/assets";
+    }
+
+    private function policyUrl($flowCode, $type) {
+        $flowCode = $this->normalizeCode($flowCode);
+        if ($flowCode === "") {
+            return "";
+        }
+        $file = $type === "terms" ? "terms.html" : "privacy.html";
+        return rtrim($this->publicBaseUrl(), "/") . "/assets/davvag-agent-flow/policies/" . rawurlencode($flowCode) . "/" . $file;
     }
 
     private function webhookUrl($flowCode, $connectorCode) {
@@ -809,6 +922,16 @@ class FlowService {
         return $default;
     }
 
+    private function arrayStringOrExisting($input, $existing, $key, $default) {
+        if (isset($input[$key])) {
+            return trim(substr((string)$input[$key], 0, 50000));
+        }
+        if (isset($existing[$key])) {
+            return trim(substr((string)$existing[$key], 0, 50000));
+        }
+        return $default;
+    }
+
     private function arrayString($input, $key, $default) {
         if (!isset($input[$key])) {
             return $default;
@@ -860,6 +983,22 @@ class FlowService {
         $value = strtolower(trim((string)$value));
         $value = str_replace("_", "-", $value);
         return preg_replace("/[^a-z0-9-]+/", "-", $value);
+    }
+
+    private function escapeHtml($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
+    }
+
+    private function textToParagraphs($value) {
+        $blocks = preg_split("/\r?\n\r?\n+/", trim((string)$value));
+        $html = array();
+        foreach ($blocks as $block) {
+            $text = trim($block);
+            if ($text !== "") {
+                $html[] = "<p>" . nl2br($this->escapeHtml($text)) . "</p>";
+            }
+        }
+        return implode("", $html);
     }
 
     private function ok() {

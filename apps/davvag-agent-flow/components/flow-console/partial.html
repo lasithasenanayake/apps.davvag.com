@@ -65,6 +65,7 @@
             <div class="agent-flow__tabs">
                 <button type="button" class="is-active" data-panel-tab="flow">Flow</button>
                 <button type="button" data-panel-tab="connectors">Connectors</button>
+                <button type="button" data-panel-tab="policy">Policy</button>
                 <button type="button" data-panel-tab="test">Test</button>
                 <button type="button" data-panel-tab="json">JSON</button>
             </div>
@@ -88,6 +89,30 @@
                 <div class="agent-flow__connector-list" data-connector-list></div>
                 <div class="agent-flow__webhooks" data-webhook-list></div>
                 <div class="agent-flow__connector-editor" data-connector-editor></div>
+            </div>
+
+            <div class="agent-flow__panel" data-panel="policy">
+                <div class="agent-flow__policy-urls" data-policy-urls></div>
+                <label class="agent-flow__field">
+                    <span>Organization or app name</span>
+                    <input type="text" data-policy-organization autocomplete="off" placeholder="Support intake" />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Contact email</span>
+                    <input type="email" data-policy-contact autocomplete="off" placeholder="support@example.com" />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Effective date</span>
+                    <input type="date" data-policy-effective-date />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Privacy Policy</span>
+                    <textarea rows="9" data-policy-privacy placeholder="Paste or write the privacy policy for this flow."></textarea>
+                </label>
+                <label class="agent-flow__field">
+                    <span>Terms and Conditions</span>
+                    <textarea rows="9" data-policy-terms placeholder="Paste or write the terms and conditions for this flow."></textarea>
+                </label>
             </div>
 
             <div class="agent-flow__panel" data-panel="test">

@@ -480,7 +480,7 @@
 
 .agent-flow__tabs {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     border-bottom: 1px solid #d9e1e8;
 }
 
@@ -593,6 +593,7 @@
 }
 
 .agent-flow__webhook-row,
+.agent-flow__policy-url-row,
 .agent-flow__copy-field {
     min-width: 0;
     display: grid;
@@ -603,6 +604,11 @@
 
 .agent-flow__webhook-row {
     grid-template-columns: 82px minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.agent-flow__policy-url-row {
+    grid-template-columns: 58px minmax(0, 1fr) auto;
     align-items: center;
 }
 
@@ -621,9 +627,17 @@
 }
 
 .agent-flow__webhook-row input,
+.agent-flow__policy-url-row input,
 .agent-flow__copy-field input {
     font-family: Consolas, "Courier New", monospace;
     font-size: 12px;
+}
+
+.agent-flow__policy-urls {
+    display: grid;
+    gap: 9px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #d9e1e8;
 }
 
 .agent-flow__json-head {

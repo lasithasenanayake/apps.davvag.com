@@ -83,6 +83,13 @@ WEBDOCK.component().register(function(exports) {
             triggers: ["new message", "support request"],
             escalationTarget: "",
             notes: "",
+            policy: {
+                organizationName: "",
+                contactEmail: "",
+                effectiveDate: new Date().toISOString().slice(0, 10),
+                privacyPolicy: "",
+                termsAndConditions: ""
+            },
             connectors: connectorDefaults()
         };
     }
@@ -95,6 +102,12 @@ WEBDOCK.component().register(function(exports) {
         next.status = next.status || "draft";
         next.triggers = $.isArray(next.triggers) ? next.triggers : [];
         next.connectors = $.isArray(next.connectors) ? next.connectors : [];
+        next.policy = next.policy || {};
+        next.policy.organizationName = next.policy.organizationName || "";
+        next.policy.contactEmail = next.policy.contactEmail || "";
+        next.policy.effectiveDate = next.policy.effectiveDate || new Date().toISOString().slice(0, 10);
+        next.policy.privacyPolicy = next.policy.privacyPolicy || "";
+        next.policy.termsAndConditions = next.policy.termsAndConditions || "";
 
         for (var i = 0; i < state.connectors.length; i++) {
             var code = state.connectors[i].code;
@@ -172,6 +185,12 @@ WEBDOCK.component().register(function(exports) {
         state.currentFlow.triggers = splitLines(find("[data-flow-triggers]").val());
         state.currentFlow.escalationTarget = $.trim(find("[data-flow-escalation]").val());
         state.currentFlow.notes = $.trim(find("[data-flow-notes]").val());
+        state.currentFlow.policy = state.currentFlow.policy || {};
+        state.currentFlow.policy.organizationName = $.trim(find("[data-policy-organization]").val());
+        state.currentFlow.policy.contactEmail = $.trim(find("[data-policy-contact]").val());
+        state.currentFlow.policy.effectiveDate = $.trim(find("[data-policy-effective-date]").val());
+        state.currentFlow.policy.privacyPolicy = find("[data-policy-privacy]").val();
+        state.currentFlow.policy.termsAndConditions = find("[data-policy-terms]").val();
         return state.currentFlow;
     }
 
@@ -185,6 +204,11 @@ WEBDOCK.component().register(function(exports) {
         find("[data-flow-triggers]").val((flow.triggers || []).join("\n"));
         find("[data-flow-escalation]").val(flow.escalationTarget || "");
         find("[data-flow-notes]").val(flow.notes || "");
+        find("[data-policy-organization]").val(flow.policy.organizationName || "");
+        find("[data-policy-contact]").val(flow.policy.contactEmail || "");
+        find("[data-policy-effective-date]").val(flow.policy.effectiveDate || "");
+        find("[data-policy-privacy]").val(flow.policy.privacyPolicy || "");
+        find("[data-policy-terms]").val(flow.policy.termsAndConditions || "");
     }
 
     function renderFlows() {
@@ -377,6 +401,48 @@ WEBDOCK.component().register(function(exports) {
         return base + "components/davvag-agent-flow/flow-api/service/Webhook/" + encodeURIComponent(state.currentFlow.flowCode) + "/" + encodeURIComponent(connectorCode);
     }
 
+    function renderPolicyUrls() {
+        var list = find("[data-policy-urls]");
+        list.empty();
+
+        var head = $("<div>").addClass("agent-flow__rail-head");
+        head.append($("<h2>").text("Public policy URLs"));
+        head.append($("<span>").text(state.currentFlow && state.currentFlow.flowCode ? "generated on save" : "save flow first"));
+        list.append(head);
+
+        if (!state.currentFlow || !state.currentFlow.flowCode) {
+            list.append($("<div>").addClass("agent-flow__webhook-empty").text("Save this flow to generate Privacy Policy and Terms URLs."));
+            return;
+        }
+
+        list.append(policyUrlRow("Privacy", "privacy", policyUrlFor("privacy")));
+        list.append(policyUrlRow("Terms", "terms", policyUrlFor("terms")));
+    }
+
+    function policyUrlRow(label, type, url) {
+        var item = $("<div>").addClass("agent-flow__policy-url-row");
+        item.append($("<span>").addClass("agent-flow__webhook-label").text(label));
+        item.append($("<input>").attr("type", "text").attr("readonly", "readonly").val(url || "Save flow to generate URL"));
+        item.append($("<button>").attr("type", "button").addClass("agent-flow__button").attr("data-copy-policy-url", type).text("Copy"));
+        return item;
+    }
+
+    function policyUrlFor(type) {
+        if (state.currentFlow && state.currentFlow.policyUrls && state.currentFlow.policyUrls[type]) {
+            return state.currentFlow.policyUrls[type];
+        }
+        if (!state.currentFlow || !state.currentFlow.flowCode) {
+            return "";
+        }
+
+        var file = type === "terms" ? "terms.html" : "privacy.html";
+        var base = window.location.href.split("#")[0];
+        if (base.charAt(base.length - 1) !== "/") {
+            base += "/";
+        }
+        return base + "assets/davvag-agent-flow/policies/" + encodeURIComponent(state.currentFlow.flowCode) + "/" + file;
+    }
+
     function renderConnectorEditor() {
         var editor = find("[data-connector-editor]");
         var def = getConnectorDef(state.activeConnector) || state.connectors[0];
@@ -456,6 +522,7 @@ WEBDOCK.component().register(function(exports) {
         renderConnectorList();
         renderWebhookList();
         renderConnectorEditor();
+        renderPolicyUrls();
         renderTestConnectorOptions();
         renderJson();
     }
@@ -653,6 +720,27 @@ WEBDOCK.component().register(function(exports) {
         setStatus("Webhook URL copied.", "success");
     }
 
+    function copyPolicyUrl(type) {
+        var url = policyUrlFor(type);
+        if (!url) {
+            setStatus("Save this flow before copying policy URLs.", "error");
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                setStatus("Policy URL copied.", "success");
+            });
+            return;
+        }
+
+        var temp = $("<textarea>").val(url).appendTo(root);
+        temp[0].select();
+        document.execCommand("copy");
+        temp.remove();
+        setStatus("Policy URL copied.", "success");
+    }
+
     function bindEvents() {
         find("[data-new-flow]").on("click", newFlow);
         find("[data-save-flow]").on("click", saveFlow);
@@ -664,12 +752,24 @@ WEBDOCK.component().register(function(exports) {
             event.stopPropagation();
             copyWebhook($(this).attr("data-copy-webhook"));
         });
+        find("[data-panel='policy']").on("click", "[data-copy-policy-url]", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            copyPolicyUrl($(this).attr("data-copy-policy-url"));
+        });
 
         find("[data-flow-code], [data-flow-name], [data-flow-state], [data-flow-triggers], [data-flow-escalation], [data-flow-notes]").on("input change", function() {
             syncFromForm();
             renderCanvas();
             renderWebhookList();
             renderConnectorEditor();
+            renderPolicyUrls();
+            renderJson();
+        });
+
+        find("[data-policy-organization], [data-policy-contact], [data-policy-effective-date], [data-policy-privacy], [data-policy-terms]").on("input change", function() {
+            syncFromForm();
+            renderPolicyUrls();
             renderJson();
         });
 
