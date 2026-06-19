@@ -31,6 +31,12 @@
             "TestAgent": {
                 "method": "POST"
             },
+            "RunAgent": {
+                "method": "POST"
+            },
+            "ClearSession": {
+                "method": "POST"
+            },
             "Providers": {
                 "method": "GET"
             }

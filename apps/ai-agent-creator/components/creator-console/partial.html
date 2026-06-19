@@ -52,6 +52,20 @@
                     </div>
                 </div>
 
+                <div class="agent-creator__section">
+                    <div class="agent-creator__section-head">
+                        <h2>Runtime Skills</h2>
+                        <div class="agent-creator__output-actions">
+                            <button type="button" class="agent-creator__button" data-skill-template="data_query">Data Query</button>
+                            <button type="button" class="agent-creator__button" data-skill-template="service_call">Service Call</button>
+                        </div>
+                    </div>
+                    <label class="agent-creator__field">
+                        <span>Skills JSON</span>
+                        <textarea data-agent-skills rows="10" placeholder='[{"code":"lookup-products","type":"data_query","dataFile":"products.json","queryFields":["name","sku"],"triggerKeywords":["price","stock"]}]'></textarea>
+                    </label>
+                </div>
+
                 <div class="agent-creator__form-grid">
                     <label class="agent-creator__field">
                         <span>Model name/version</span>

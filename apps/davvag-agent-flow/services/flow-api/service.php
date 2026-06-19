@@ -7,6 +7,8 @@ class FlowService {
         $out->connectors = $this->connectorDefinitions();
         $out->agents = array_values($this->safeAgentsForClient($this->loadAgents()));
         $out->flows = array_values($this->safeFlowsForClient($this->loadFlows()));
+        $out->profileCount = count($this->loadProfiles());
+        $out->conversationCount = count($this->loadConversations());
         $out->defaultFlow = $this->safeFlowForClient($this->defaultFlow());
         return $out;
     }
@@ -223,22 +225,66 @@ class FlowService {
         $payload = $this->objectToArray($body);
         $message = $this->messageFromWebhookPayload($target->connectorCode, $payload);
         $sender = $this->senderFromWebhookPayload($target->connectorCode, $payload);
+        if ($sender === "") {
+            $sender = "unknown-" . substr(hash("sha256", json_encode($payload)), 0, 12);
+        }
+
+        $profileCreated = $this->findOrCreateProfile($target->flow, $target->connectorCode, $sender, $payload);
+        if (!$profileCreated->success) {
+            return $profileCreated;
+        }
+
+        $profile = $profileCreated->profile;
+        $sessionId = $this->agentSessionId($target->flow["flowCode"], $target->connectorCode, $profile["profileId"]);
+        $this->recordConversationEvent($target->flow["flowCode"], $profile["profileId"], array(
+            "direction" => "inbound",
+            "connectorCode" => $target->connectorCode,
+            "sender" => $sender,
+            "message" => $message,
+            "payload" => $payload,
+            "at" => gmdate("c")
+        ));
+
+        $agentRun = null;
+        $agentStatus = $target->flow["agentCode"] === "" ? "unassigned" : "ready";
+        if ($target->flow["agentCode"] !== "" && $message !== "") {
+            $agentRun = $this->runAgentForProfile($target->flow, $target->connectorCode, $profile, $sessionId, $message, $payload);
+            $agentStatus = $agentRun->success ? "answered" : "failed";
+            $this->recordConversationEvent($target->flow["flowCode"], $profile["profileId"], array(
+                "direction" => "outbound",
+                "connectorCode" => $target->connectorCode,
+                "sender" => "ai-agent-creator",
+                "message" => $agentRun->success && isset($agentRun->reply) ? $agentRun->reply : (isset($agentRun->message) ? $agentRun->message : ""),
+                "sessionId" => $sessionId,
+                "agentCode" => $target->flow["agentCode"],
+                "skillResults" => $agentRun->success && isset($agentRun->skillResults) ? $agentRun->skillResults : array(),
+                "status" => $agentStatus,
+                "at" => gmdate("c")
+            ));
+        }
 
         $out = $this->ok();
         $out->received = true;
         $out->flowCode = $target->flow["flowCode"];
         $out->connectorCode = $target->connectorCode;
         $out->agentCode = $target->flow["agentCode"];
+        $out->profile = $profile;
+        $out->profileCreated = $profileCreated->created;
+        $out->sessionId = $sessionId;
+        $out->agent = $agentRun;
         $out->route = array(
             "input" => $payload,
             "normalized" => array(
                 "sender" => $sender,
-                "message" => $message
+                "message" => $message,
+                "profileId" => $profile["profileId"],
+                "sessionId" => $sessionId
             ),
             "steps" => array(
                 array("node" => "connector.webhook", "status" => "received", "connector" => $target->connectorCode),
+                array("node" => "customer.profile", "status" => $profileCreated->created ? "created" : "found", "profileId" => $profile["profileId"]),
                 array("node" => "flow.router", "status" => "matched", "flowCode" => $target->flow["flowCode"]),
-                array("node" => "ai-agent-creator", "status" => $target->flow["agentCode"] === "" ? "unassigned" : "ready", "agentCode" => $target->flow["agentCode"])
+                array("node" => "ai-agent-creator", "status" => $agentStatus, "agentCode" => $target->flow["agentCode"])
             )
         );
         return $out;
@@ -596,6 +642,151 @@ class FlowService {
         return array("sender" => $sender, "message" => $message, "receivedAt" => $timestamp);
     }
 
+    private function findOrCreateProfile($flow, $connectorCode, $sender, $payload) {
+        $profiles = $this->loadProfiles();
+        $key = $this->profileKey($flow["flowCode"], $connectorCode, $sender);
+        $now = gmdate("c");
+        $created = false;
+
+        if (isset($profiles[$key]) && is_array($profiles[$key])) {
+            $profile = $profiles[$key];
+        } else {
+            $created = true;
+            $profile = array(
+                "profileId" => "profile-" . substr(hash("sha256", $key), 0, 16),
+                "flowCode" => $flow["flowCode"],
+                "connectorCode" => $connectorCode,
+                "externalId" => $sender,
+                "displayName" => $this->profileDisplayName($connectorCode, $payload, $sender),
+                "source" => "davvag-agent-flow",
+                "messageCount" => 0,
+                "channelIdentities" => array(),
+                "createdAt" => $now,
+                "updatedAt" => $now,
+                "lastSeenAt" => $now
+            );
+        }
+
+        $profile["flowCode"] = $flow["flowCode"];
+        $profile["connectorCode"] = $connectorCode;
+        $profile["externalId"] = $sender;
+        $profile["displayName"] = isset($profile["displayName"]) && $profile["displayName"] !== "" ? $profile["displayName"] : $this->profileDisplayName($connectorCode, $payload, $sender);
+        $profile["messageCount"] = isset($profile["messageCount"]) ? ((int)$profile["messageCount"] + 1) : 1;
+        $profile["updatedAt"] = $now;
+        $profile["lastSeenAt"] = $now;
+        $profile["channelIdentities"] = $this->mergeChannelIdentity(isset($profile["channelIdentities"]) ? $profile["channelIdentities"] : array(), $connectorCode, $sender);
+
+        $profiles[$key] = $profile;
+        if (!$this->saveProfiles($profiles)) {
+            return $this->fail("Unable to save the customer profile.");
+        }
+
+        $out = $this->ok();
+        $out->profile = $profile;
+        $out->created = $created;
+        return $out;
+    }
+
+    private function runAgentForProfile($flow, $connectorCode, $profile, $sessionId, $message, $payload) {
+        $creator = $this->creatorService();
+        if (!$creator->success) {
+            return $creator;
+        }
+
+        $connectors = $this->connectorDefinitionsByCode();
+        $assignment = $this->connectorAssignment($flow, $connectorCode);
+        $connector = isset($connectors[$connectorCode]) ? $connectors[$connectorCode] : array("code" => $connectorCode);
+        $connector["assignmentStatus"] = isset($assignment["status"]) ? $assignment["status"] : "";
+
+        return $creator->service->runAgent(array(
+            "agentCode" => $flow["agentCode"],
+            "message" => $message,
+            "profile" => $profile,
+            "sessionId" => $sessionId,
+            "flow" => array(
+                "flowCode" => $flow["flowCode"],
+                "name" => $flow["name"],
+                "status" => $flow["status"],
+                "triggers" => $flow["triggers"]
+            ),
+            "connector" => $connector,
+            "payload" => $payload
+        ));
+    }
+
+    private function creatorService() {
+        $file = dirname(dirname(dirname(__DIR__))) . "/ai-agent-creator/services/creator-api/service.php";
+        if (!file_exists($file)) {
+            return $this->fail("ai-agent-creator service file was not found.");
+        }
+
+        require_once($file);
+        if (!class_exists("\\ai_agent_creator\\CreatorService")) {
+            return $this->fail("ai-agent-creator service class was not loaded.");
+        }
+
+        $out = $this->ok();
+        $out->service = new \ai_agent_creator\CreatorService();
+        return $out;
+    }
+
+    private function recordConversationEvent($flowCode, $profileId, $event) {
+        $conversations = $this->loadConversations();
+        $key = $flowCode . "|" . $profileId;
+        $now = gmdate("c");
+
+        if (!isset($conversations[$key]) || !is_array($conversations[$key])) {
+            $conversations[$key] = array(
+                "flowCode" => $flowCode,
+                "profileId" => $profileId,
+                "events" => array(),
+                "createdAt" => $now,
+                "updatedAt" => $now
+            );
+        }
+
+        $conversations[$key]["events"][] = $event;
+        $conversations[$key]["events"] = array_slice($conversations[$key]["events"], -120);
+        $conversations[$key]["updatedAt"] = $now;
+        return $this->saveConversations($conversations);
+    }
+
+    private function profileDisplayName($connectorCode, $payload, $sender) {
+        if ($connectorCode === "email" && isset($payload["fromName"])) {
+            return trim((string)$payload["fromName"]);
+        }
+        if (isset($payload["profile"]["name"])) {
+            return trim((string)$payload["profile"]["name"]);
+        }
+        if (isset($payload["sender"]["name"])) {
+            return trim((string)$payload["sender"]["name"]);
+        }
+        return $sender;
+    }
+
+    private function mergeChannelIdentity($identities, $connectorCode, $sender) {
+        $identities = is_array($identities) ? $identities : array();
+        foreach ($identities as $identity) {
+            if (isset($identity["connectorCode"], $identity["externalId"]) && $identity["connectorCode"] === $connectorCode && $identity["externalId"] === $sender) {
+                return $identities;
+            }
+        }
+        $identities[] = array(
+            "connectorCode" => $connectorCode,
+            "externalId" => $sender,
+            "linkedAt" => gmdate("c")
+        );
+        return $identities;
+    }
+
+    private function profileKey($flowCode, $connectorCode, $sender) {
+        return hash("sha256", strtolower($flowCode . "|" . $connectorCode . "|" . $sender));
+    }
+
+    private function agentSessionId($flowCode, $connectorCode, $profileId) {
+        return $this->normalizeCode($flowCode) . "-" . $this->normalizeConnectorCode($connectorCode) . "-" . substr(hash("sha256", $profileId), 0, 16);
+    }
+
     private function loadAgents() {
         $file = $this->agentsFile();
         if (!file_exists($file)) {
@@ -624,6 +815,26 @@ class FlowService {
         return $json;
     }
 
+    private function loadProfiles() {
+        $file = $this->profilesFile();
+        if (!file_exists($file)) {
+            return array();
+        }
+
+        $json = json_decode(file_get_contents($file), true);
+        return is_array($json) ? $json : array();
+    }
+
+    private function loadConversations() {
+        $file = $this->conversationsFile();
+        if (!file_exists($file)) {
+            return array();
+        }
+
+        $json = json_decode(file_get_contents($file), true);
+        return is_array($json) ? $json : array();
+    }
+
     private function saveFlows($flows) {
         $dir = $this->storageDir();
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
@@ -631,6 +842,24 @@ class FlowService {
         }
 
         return file_put_contents($this->flowsFile(), json_encode($flows, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+    }
+
+    private function saveProfiles($profiles) {
+        $dir = $this->storageDir();
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            return false;
+        }
+
+        return file_put_contents($this->profilesFile(), json_encode($profiles, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+    }
+
+    private function saveConversations($conversations) {
+        $dir = $this->storageDir();
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            return false;
+        }
+
+        return file_put_contents($this->conversationsFile(), json_encode($conversations, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
     }
 
     private function storageDir() {
@@ -651,6 +880,14 @@ class FlowService {
         return $this->storageDir() . "/flows.json";
     }
 
+    private function profilesFile() {
+        return $this->storageDir() . "/profiles.json";
+    }
+
+    private function conversationsFile() {
+        return $this->storageDir() . "/conversations.json";
+    }
+
     private function safeAgentsForClient($agents) {
         $safe = array();
         foreach ($agents as $agent) {
@@ -664,6 +901,9 @@ class FlowService {
 
     private function safeAgentForClient($agent) {
         $copy = $agent;
+        if (isset($copy["skills"])) {
+            $copy["skills"] = $this->maskGenericSecrets($copy["skills"]);
+        }
         if (isset($copy["configuration"])) {
             $copy["configuration"] = $this->maskGenericSecrets($copy["configuration"]);
         }
@@ -881,7 +1121,13 @@ class FlowService {
         if (is_array($value)) {
             $out = array();
             foreach ($value as $key => $item) {
-                if (in_array(strtolower($key), array("apikey", "api_key", "key", "token", "secret", "password", "accesstoken"))) {
+                $keyName = strtolower((string)$key);
+                if (in_array($keyName, array("apikey", "api_key", "key", "token", "secret", "password", "accesstoken", "authorization", "authheader", "clientsecret"))
+                    || strpos($keyName, "token") !== false
+                    || strpos($keyName, "secret") !== false
+                    || strpos($keyName, "password") !== false
+                    || strpos($keyName, "authorization") !== false
+                    || strpos($keyName, "api-key") !== false) {
                     $out[$key] = $item === "" ? "" : "********";
                 } else {
                     $out[$key] = $this->maskGenericSecrets($item);

@@ -118,6 +118,7 @@ WEBDOCK.component().register(function(exports) {
             agentName: find("[data-agent-name]").val(),
             description: find("[data-agent-description]").val(),
             capabilities: find("[data-agent-capabilities]").val(),
+            skills: find("[data-agent-skills]").val(),
             provider: state.provider,
             model: find("[data-model]").val(),
             apiKey: find("[data-api-key]").val(),
@@ -164,6 +165,9 @@ WEBDOCK.component().register(function(exports) {
             item.append($("<span>").text(agent.agentCode));
             item.append($("<p>").text(agent.description || ""));
             item.append($("<small>").text((agent.capabilities || []).join(" | ")));
+            if (agent.skills && agent.skills.length) {
+                item.append($("<small>").text(agent.skills.length + " runtime skills"));
+            }
             list.append(item);
         }
 
@@ -298,6 +302,7 @@ WEBDOCK.component().register(function(exports) {
         find("[data-agent-name]").val(agent.name);
         find("[data-agent-description]").val(agent.description || "");
         find("[data-agent-capabilities]").val((agent.capabilities || []).join("\n"));
+        find("[data-agent-skills]").val(JSON.stringify(agent.skills || config.skills || [], null, 2));
 
         setProvider(config.provider.type);
         find("[data-model]").val(config.provider.model);
@@ -337,7 +342,8 @@ WEBDOCK.component().register(function(exports) {
 
         api.services.TestAgent({
             agentCode: agentCode,
-            message: message
+            message: message,
+            profileId: "creator-console"
         })
             .then(function(response) {
                 var result = serviceResult(response);
@@ -348,7 +354,11 @@ WEBDOCK.component().register(function(exports) {
                     return;
                 }
 
-                find("[data-test-response]").text(result.reply || "");
+                find("[data-test-response]").text(JSON.stringify({
+                    reply: result.reply || "",
+                    session: result.session || null,
+                    skillResults: result.skillResults || []
+                }, null, 2));
                 setStatus("Agent response received from " + result.provider + " / " + result.model + ".", "success");
             })
             .error(function(response) {
@@ -422,6 +432,65 @@ WEBDOCK.component().register(function(exports) {
         setStatus("Configuration copied.", "success");
     }
 
+    function skillTemplate(type) {
+        if (type === "service_call") {
+            return {
+                code: "create-order",
+                name: "Create order",
+                type: "service_call",
+                enabled: true,
+                runMode: "triggered",
+                description: "Create an order when the customer asks to buy or place an order.",
+                triggerKeywords: ["order", "buy", "purchase"],
+                method: "POST",
+                url: "http://localhost/git/davvag-core/components/sales/order-api/service/CreateOrder",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                bodyTemplate: {
+                    profileId: "{{profile.profileId}}",
+                    customerRef: "{{profile.externalId}}",
+                    sessionId: "{{session.sessionId}}",
+                    message: "{{message}}"
+                }
+            };
+        }
+
+        return {
+            code: "lookup-products",
+            name: "Lookup products",
+            type: "data_query",
+            enabled: true,
+            runMode: "triggered",
+            description: "Search tenant JSON data for products, orders, invoices, or stock records.",
+            triggerKeywords: ["product", "price", "stock"],
+            dataFile: "products.json",
+            queryFields: ["name", "sku", "description"],
+            limit: 5
+        };
+    }
+
+    function insertSkillTemplate(type) {
+        var field = find("[data-agent-skills]");
+        var current = $.trim(field.val());
+        var skills = [];
+        if (current) {
+            try {
+                skills = JSON.parse(current);
+                if (!$.isArray(skills)) {
+                    skills = [skills];
+                }
+            } catch (error) {
+                setStatus("Skills JSON must be valid before adding a template.", "error");
+                return;
+            }
+        }
+
+        skills.push(skillTemplate(type));
+        field.val(JSON.stringify(skills, null, 2));
+        setStatus("Skill template added.", "muted");
+    }
+
     function bindEvents() {
         find("[data-provider]").on("click", function() {
             find("[data-model]").val("");
@@ -437,6 +506,9 @@ WEBDOCK.component().register(function(exports) {
         find("[data-save-agent]").on("click", saveAgent);
         find("[data-reset-form]").on("click", resetForm);
         find("[data-copy-output]").on("click", copyOutput);
+        find("[data-skill-template]").on("click", function() {
+            insertSkillTemplate($(this).data("skill-template"));
+        });
         find("[data-test-form]").on("submit", testAgent);
         find("[data-delete-agent]").on("click", deleteSelectedAgent);
         find("[data-test-agent]").on("change", function() {

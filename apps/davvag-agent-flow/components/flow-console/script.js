@@ -259,6 +259,9 @@ WEBDOCK.component().register(function(exports) {
             item.append($("<strong>").text(agent.name));
             item.append($("<span>").text(agent.agentCode));
             item.append($("<small>").text((agent.capabilities || []).slice(0, 2).join(" | ")));
+            if (agent.skills && agent.skills.length) {
+                item.append($("<small>").text(agent.skills.length + " runtime skills"));
+            }
             list.append(item);
         }
 
