@@ -1,0 +1,878 @@
+<?php
+namespace davvag_agent_flow;
+
+class FlowService {
+    public function getBootstrap($req, $res) {
+        $out = $this->ok();
+        $out->connectors = $this->connectorDefinitions();
+        $out->agents = array_values($this->safeAgentsForClient($this->loadAgents()));
+        $out->flows = array_values($this->safeFlowsForClient($this->loadFlows()));
+        $out->defaultFlow = $this->safeFlowForClient($this->defaultFlow());
+        return $out;
+    }
+
+    public function getListAgents($req, $res) {
+        $out = $this->ok();
+        $out->agents = array_values($this->safeAgentsForClient($this->loadAgents()));
+        return $out;
+    }
+
+    public function getListFlows($req, $res) {
+        $out = $this->ok();
+        $out->flows = array_values($this->safeFlowsForClient($this->loadFlows()));
+        return $out;
+    }
+
+    public function postSaveFlow($req, $res) {
+        $body = $this->objectToArray($this->body($req));
+        $flows = $this->loadFlows();
+        $normalized = $this->normalizeFlow($body, $flows, true);
+        if (!$normalized->success) {
+            return $normalized;
+        }
+
+        $flow = $normalized->flow;
+        $flows[$flow["flowCode"]] = $flow;
+
+        if (!$this->saveFlows($flows)) {
+            return $this->fail("Unable to save the flow document.");
+        }
+
+        $out = $this->ok();
+        $out->flow = $this->safeFlowForClient($flow);
+        $out->flows = array_values($this->safeFlowsForClient($flows));
+        return $out;
+    }
+
+    public function postDeleteFlow($req, $res) {
+        $body = $this->body($req);
+        $flowCode = $this->normalizeCode($this->stringValue($body, "flowCode", ""));
+        if ($flowCode === "") {
+            return $this->fail("Flow code is required.");
+        }
+
+        $flows = $this->loadFlows();
+        if (isset($flows[$flowCode])) {
+            unset($flows[$flowCode]);
+        }
+
+        if (!$this->saveFlows($flows)) {
+            return $this->fail("Unable to delete the flow document.");
+        }
+
+        $out = $this->ok();
+        $out->flows = array_values($this->safeFlowsForClient($flows));
+        return $out;
+    }
+
+    public function postSimulate($req, $res) {
+        $body = $this->body($req);
+        $input = isset($body->flow) ? $this->objectToArray($body->flow) : array();
+        $flows = $this->loadFlows();
+
+        if (!count($input)) {
+            $flowCode = $this->normalizeCode($this->stringValue($body, "flowCode", ""));
+            if ($flowCode !== "" && isset($flows[$flowCode])) {
+                $input = $flows[$flowCode];
+            }
+        }
+
+        $normalized = $this->normalizeFlow($input, $flows, false);
+        if (!$normalized->success) {
+            return $normalized;
+        }
+
+        $flow = $normalized->flow;
+        $connectorCode = $this->normalizeConnectorCode($this->stringValue($body, "connectorCode", ""));
+        $message = $this->stringValue($body, "message", "");
+        $sender = $this->stringValue($body, "sender", "customer-001");
+
+        if ($connectorCode === "") {
+            return $this->fail("Inbound connector is required.");
+        }
+        if ($message === "") {
+            return $this->fail("Message is required.");
+        }
+        if ($flow["agentCode"] === "") {
+            return $this->fail("Select a saved ai-agent-creator agent before running this flow.");
+        }
+
+        $connectors = $this->connectorDefinitionsByCode();
+        if (!isset($connectors[$connectorCode])) {
+            return $this->fail("Unknown connector.");
+        }
+
+        $assignment = $this->connectorAssignment($flow, $connectorCode);
+        if (!isset($assignment) || empty($assignment["enabled"])) {
+            return $this->fail("Selected connector is disabled for this flow.");
+        }
+
+        $agents = $this->loadAgents();
+        if (!isset($agents[$flow["agentCode"]])) {
+            return $this->fail("The selected agent was not found in ai-agent-creator.");
+        }
+
+        $agent = $agents[$flow["agentCode"]];
+        $connector = $connectors[$connectorCode];
+
+        $run = array(
+            "mode" => "dry_run",
+            "flowCode" => $flow["flowCode"],
+            "flowName" => $flow["name"],
+            "connector" => array(
+                "code" => $connector["code"],
+                "label" => $connector["label"],
+                "status" => $assignment["status"]
+            ),
+            "agent" => array(
+                "agentCode" => $agent["agentCode"],
+                "name" => $agent["name"],
+                "workflow" => isset($agent["workflow"]) ? $agent["workflow"] : null
+            ),
+            "input" => $this->connectorPayload($connectorCode, $message, $sender),
+            "steps" => array(
+                array("node" => "connector.inbound", "status" => "received", "channel" => $connector["label"]),
+                array("node" => "flow.router", "status" => "matched", "triggers" => $flow["triggers"]),
+                array("node" => "ai-agent-creator." . $agent["agentCode"], "status" => "ready", "method" => "creator-api/TestAgent"),
+                array("node" => "connector.outbound", "status" => "prepared", "channel" => $connector["label"])
+            ),
+            "delivery" => array(
+                "channel" => $connector["code"],
+                "deliveryMode" => $connector["deliveryMode"],
+                "replyTarget" => $sender,
+                "message" => "Dry run only. Production delivery should call the platform API with the saved connector settings."
+            )
+        );
+
+        $out = $this->ok();
+        $out->run = $run;
+        return $out;
+    }
+
+    public function postConnectorPayload($req, $res) {
+        $body = $this->body($req);
+        $connectorCode = $this->normalizeConnectorCode($this->stringValue($body, "connectorCode", ""));
+        $message = $this->stringValue($body, "message", "");
+        $sender = $this->stringValue($body, "sender", "customer-001");
+
+        if ($connectorCode === "") {
+            return $this->fail("Connector code is required.");
+        }
+        if ($message === "") {
+            return $this->fail("Message is required.");
+        }
+
+        $connectors = $this->connectorDefinitionsByCode();
+        if (!isset($connectors[$connectorCode])) {
+            return $this->fail("Unknown connector.");
+        }
+
+        $out = $this->ok();
+        $out->payload = $this->connectorPayload($connectorCode, $message, $sender);
+        return $out;
+    }
+
+    public function getWebhook($req, $res) {
+        $target = $this->webhookTarget($req);
+        if (!$target->success) {
+            return $target;
+        }
+
+        $verifyToken = $this->queryValue("hub_verify_token", $this->queryValue("verify_token", ""));
+        $challenge = $this->queryValue("hub_challenge", $this->queryValue("challenge", ""));
+        if ($challenge === "" && isset($_GET["hub.challenge"])) {
+            $challenge = (string)$_GET["hub.challenge"];
+        }
+
+        $assignment = $this->connectorAssignment($target->flow, $target->connectorCode);
+        $savedVerifyToken = isset($assignment["settings"]["verifyToken"]) ? (string)$assignment["settings"]["verifyToken"] : "";
+        $savedVerifyToken = $savedVerifyToken === "" && isset($assignment["settings"]["webhookSecret"]) ? (string)$assignment["settings"]["webhookSecret"] : $savedVerifyToken;
+
+        if ($challenge !== "") {
+            if ($savedVerifyToken !== "" && $verifyToken !== "" && hash_equals($savedVerifyToken, $verifyToken)) {
+                header("Content-Type: text/plain");
+                echo $challenge;
+                exit();
+            }
+            if ($savedVerifyToken === "" && $verifyToken === "") {
+                header("Content-Type: text/plain");
+                echo $challenge;
+                exit();
+            }
+            return $this->fail("Webhook verification token does not match this connector.");
+        }
+
+        $out = $this->ok();
+        $out->flowCode = $target->flow["flowCode"];
+        $out->connectorCode = $target->connectorCode;
+        $out->webhookUrl = $this->webhookUrl($target->flow["flowCode"], $target->connectorCode);
+        $out->message = "Webhook is ready.";
+        return $out;
+    }
+
+    public function postWebhook($req, $res) {
+        $target = $this->webhookTarget($req);
+        if (!$target->success) {
+            return $target;
+        }
+
+        $body = $this->body($req);
+        $payload = $this->objectToArray($body);
+        $message = $this->messageFromWebhookPayload($target->connectorCode, $payload);
+        $sender = $this->senderFromWebhookPayload($target->connectorCode, $payload);
+
+        $out = $this->ok();
+        $out->received = true;
+        $out->flowCode = $target->flow["flowCode"];
+        $out->connectorCode = $target->connectorCode;
+        $out->agentCode = $target->flow["agentCode"];
+        $out->route = array(
+            "input" => $payload,
+            "normalized" => array(
+                "sender" => $sender,
+                "message" => $message
+            ),
+            "steps" => array(
+                array("node" => "connector.webhook", "status" => "received", "connector" => $target->connectorCode),
+                array("node" => "flow.router", "status" => "matched", "flowCode" => $target->flow["flowCode"]),
+                array("node" => "ai-agent-creator", "status" => $target->flow["agentCode"] === "" ? "unassigned" : "ready", "agentCode" => $target->flow["agentCode"])
+            )
+        );
+        return $out;
+    }
+
+    private function normalizeFlow($input, $existingFlows, $requireName) {
+        if (!is_array($input)) {
+            $input = array();
+        }
+
+        $name = $this->arrayString($input, "name", "");
+        $flowCode = $this->normalizeCode($this->arrayString($input, "flowCode", ""));
+        if ($flowCode === "" && $name !== "") {
+            $flowCode = $this->normalizeCode($name);
+        }
+
+        if ($flowCode === "") {
+            return $this->fail("Flow code is required. Use lowercase letters, numbers, hyphens, or underscores.");
+        }
+        if ($requireName && $name === "") {
+            return $this->fail("Flow name is required.");
+        }
+
+        $status = strtolower($this->arrayString($input, "status", "draft"));
+        if (!in_array($status, array("draft", "active", "paused"))) {
+            $status = "draft";
+        }
+
+        $agentCode = $this->normalizeCode($this->arrayString($input, "agentCode", ""));
+        if ($agentCode !== "") {
+            $agents = $this->loadAgents();
+            if (!isset($agents[$agentCode])) {
+                return $this->fail("Selected agent must exist in ai-agent-creator.");
+            }
+        }
+
+        $existing = isset($existingFlows[$flowCode]) && is_array($existingFlows[$flowCode]) ? $existingFlows[$flowCode] : array();
+        $now = gmdate("c");
+
+        $flow = array(
+            "flowCode" => $flowCode,
+            "name" => $name === "" ? $flowCode : $name,
+            "agentCode" => $agentCode,
+            "status" => $status,
+            "triggers" => $this->arrayStringList($input, "triggers"),
+            "escalationTarget" => $this->arrayString($input, "escalationTarget", ""),
+            "notes" => $this->arrayString($input, "notes", ""),
+            "connectors" => $this->normalizeConnectors(isset($input["connectors"]) ? $input["connectors"] : array(), $existing),
+            "createdAt" => isset($existing["createdAt"]) ? $existing["createdAt"] : $now,
+            "updatedAt" => $now
+        );
+
+        $out = $this->ok();
+        $out->flow = $flow;
+        return $out;
+    }
+
+    private function webhookTarget($req) {
+        $route = "";
+        if (isset($req) && isset($req->Params()->route)) {
+            $route = (string)$req->Params()->route;
+        }
+        $parts = array_values(array_filter(explode("/", trim($route, "/")), "strlen"));
+
+        $flowCode = isset($parts[0]) ? $this->normalizeCode($parts[0]) : "";
+        $connectorCode = isset($parts[1]) ? $this->normalizeConnectorCode($parts[1]) : "";
+
+        if ($flowCode === "" || $connectorCode === "") {
+            return $this->fail("Webhook route must include flow code and connector code.");
+        }
+
+        $flows = $this->loadFlows();
+        if (!isset($flows[$flowCode])) {
+            return $this->fail("Webhook flow was not found.");
+        }
+
+        $connectors = $this->connectorDefinitionsByCode();
+        if (!isset($connectors[$connectorCode])) {
+            return $this->fail("Webhook connector was not found.");
+        }
+
+        $assignment = $this->connectorAssignment($flows[$flowCode], $connectorCode);
+        if (!isset($assignment) || empty($assignment["enabled"])) {
+            return $this->fail("Webhook connector is disabled for this flow.");
+        }
+
+        $out = $this->ok();
+        $out->flow = $flows[$flowCode];
+        $out->connectorCode = $connectorCode;
+        return $out;
+    }
+
+    private function normalizeConnectors($incoming, $existingFlow) {
+        $incomingByCode = array();
+        if (is_array($incoming)) {
+            foreach ($incoming as $item) {
+                $row = is_array($item) ? $item : $this->objectToArray($item);
+                $code = $this->normalizeConnectorCode(isset($row["code"]) ? $row["code"] : "");
+                if ($code !== "") {
+                    $incomingByCode[$code] = $row;
+                }
+            }
+        }
+
+        $existingByCode = array();
+        if (isset($existingFlow["connectors"]) && is_array($existingFlow["connectors"])) {
+            foreach ($existingFlow["connectors"] as $item) {
+                $row = is_array($item) ? $item : $this->objectToArray($item);
+                $code = $this->normalizeConnectorCode(isset($row["code"]) ? $row["code"] : "");
+                if ($code !== "") {
+                    $existingByCode[$code] = $row;
+                }
+            }
+        }
+
+        $out = array();
+        foreach ($this->connectorDefinitions() as $definition) {
+            $code = $definition["code"];
+            $row = isset($incomingByCode[$code]) ? $incomingByCode[$code] : array();
+            $existing = isset($existingByCode[$code]) ? $existingByCode[$code] : array();
+            $settings = array();
+            $sourceSettings = isset($row["settings"]) && is_array($row["settings"]) ? $row["settings"] : array();
+            $existingSettings = isset($existing["settings"]) && is_array($existing["settings"]) ? $existing["settings"] : array();
+
+            foreach ($definition["fields"] as $field) {
+                $key = $field["key"];
+                $value = isset($sourceSettings[$key]) ? trim(substr((string)$sourceSettings[$key], 0, 4000)) : "";
+                if (!empty($field["secret"]) && ($value === "" || $value === "********") && isset($existingSettings[$key])) {
+                    $value = $existingSettings[$key];
+                }
+                $settings[$key] = $value;
+            }
+
+            $status = isset($row["status"]) ? strtolower((string)$row["status"]) : (isset($existing["status"]) ? strtolower((string)$existing["status"]) : "draft");
+            if (!in_array($status, array("draft", "ready", "paused"))) {
+                $status = "draft";
+            }
+
+            $out[] = array(
+                "code" => $code,
+                "enabled" => $this->boolFromArray($row, "enabled", isset($existing["enabled"]) ? $existing["enabled"] : true),
+                "status" => $status,
+                "settings" => $settings
+            );
+        }
+
+        return $out;
+    }
+
+    private function defaultFlow() {
+        $connectors = array();
+        foreach ($this->connectorDefinitions() as $definition) {
+            $settings = array();
+            foreach ($definition["fields"] as $field) {
+                $settings[$field["key"]] = "";
+            }
+            $connectors[] = array(
+                "code" => $definition["code"],
+                "enabled" => true,
+                "status" => "draft",
+                "settings" => $settings
+            );
+        }
+
+        return array(
+            "flowCode" => "",
+            "name" => "",
+            "agentCode" => "",
+            "status" => "draft",
+            "triggers" => array("new message", "support request"),
+            "escalationTarget" => "",
+            "notes" => "",
+            "connectors" => $connectors,
+            "createdAt" => null,
+            "updatedAt" => null
+        );
+    }
+
+    private function connectorDefinitionsByCode() {
+        $out = array();
+        foreach ($this->connectorDefinitions() as $connector) {
+            $out[$connector["code"]] = $connector;
+        }
+        return $out;
+    }
+
+    private function connectorDefinitions() {
+        return array(
+            array(
+                "code" => "whatsapp",
+                "label" => "WhatsApp",
+                "category" => "Messaging",
+                "deliveryMode" => "WhatsApp Cloud API",
+                "aliases" => array("whatsapp", "whats app"),
+                "events" => array("messages", "statuses"),
+                "fields" => array(
+                    array("key" => "phoneNumberId", "label" => "Phone number ID", "type" => "text", "placeholder" => "1234567890"),
+                    array("key" => "businessAccountId", "label" => "Business account ID", "type" => "text", "placeholder" => "WABA ID"),
+                    array("key" => "accessToken", "label" => "Access token", "type" => "text", "secret" => true, "placeholder" => "Permanent token"),
+                    array("key" => "verifyToken", "label" => "Webhook verify token", "type" => "text", "secret" => true, "placeholder" => "Verify token")
+                )
+            ),
+            array(
+                "code" => "email",
+                "label" => "Email",
+                "category" => "Inbox",
+                "deliveryMode" => "IMAP/SMTP",
+                "aliases" => array("email", "mail"),
+                "events" => array("new_email", "reply"),
+                "fields" => array(
+                    array("key" => "fromAddress", "label" => "From address", "type" => "email", "placeholder" => "support@example.com"),
+                    array("key" => "inboundMailbox", "label" => "Inbound mailbox", "type" => "email", "placeholder" => "inbox@example.com"),
+                    array("key" => "smtpHost", "label" => "SMTP host", "type" => "text", "placeholder" => "smtp.example.com"),
+                    array("key" => "smtpUser", "label" => "SMTP user", "type" => "text", "placeholder" => "smtp user"),
+                    array("key" => "smtpPassword", "label" => "SMTP password", "type" => "text", "secret" => true, "placeholder" => "SMTP password")
+                )
+            ),
+            array(
+                "code" => "facebook-messenger",
+                "label" => "Facebook Messenger",
+                "category" => "Messaging",
+                "deliveryMode" => "Meta Messenger Platform",
+                "aliases" => array("facebook messager", "facebook messenger", "messenger"),
+                "events" => array("messages", "postbacks"),
+                "fields" => array(
+                    array("key" => "pageId", "label" => "Page ID", "type" => "text", "placeholder" => "Page ID"),
+                    array("key" => "pageAccessToken", "label" => "Page access token", "type" => "text", "secret" => true, "placeholder" => "Page token"),
+                    array("key" => "appSecret", "label" => "App secret", "type" => "text", "secret" => true, "placeholder" => "App secret"),
+                    array("key" => "verifyToken", "label" => "Webhook verify token", "type" => "text", "secret" => true, "placeholder" => "Verify token")
+                )
+            ),
+            array(
+                "code" => "instagram",
+                "label" => "Instagram",
+                "category" => "Social",
+                "deliveryMode" => "Instagram Messaging API",
+                "aliases" => array("instagram", "ig"),
+                "events" => array("messages", "comments"),
+                "fields" => array(
+                    array("key" => "instagramBusinessId", "label" => "Instagram business ID", "type" => "text", "placeholder" => "IG business ID"),
+                    array("key" => "accessToken", "label" => "Access token", "type" => "text", "secret" => true, "placeholder" => "Token"),
+                    array("key" => "webhookSecret", "label" => "Webhook secret", "type" => "text", "secret" => true, "placeholder" => "Webhook secret"),
+                    array("key" => "defaultRecipient", "label" => "Default recipient", "type" => "text", "placeholder" => "Fallback user ID")
+                )
+            ),
+            array(
+                "code" => "tiktok",
+                "label" => "TikTok",
+                "category" => "Social",
+                "deliveryMode" => "TikTok event gateway",
+                "aliases" => array("tiktok", "tik tok"),
+                "events" => array("comment", "lead", "message"),
+                "fields" => array(
+                    array("key" => "businessAccountId", "label" => "Business account ID", "type" => "text", "placeholder" => "Business account"),
+                    array("key" => "clientKey", "label" => "Client key", "type" => "text", "placeholder" => "Client key"),
+                    array("key" => "clientSecret", "label" => "Client secret", "type" => "text", "secret" => true, "placeholder" => "Client secret"),
+                    array("key" => "accessToken", "label" => "Access token", "type" => "text", "secret" => true, "placeholder" => "Access token"),
+                    array("key" => "webhookSecret", "label" => "Webhook secret", "type" => "text", "secret" => true, "placeholder" => "Webhook secret")
+                )
+            )
+        );
+    }
+
+    private function connectorAssignment($flow, $connectorCode) {
+        if (!isset($flow["connectors"]) || !is_array($flow["connectors"])) {
+            return null;
+        }
+        foreach ($flow["connectors"] as $connector) {
+            if (isset($connector["code"]) && $connector["code"] === $connectorCode) {
+                return $connector;
+            }
+        }
+        return null;
+    }
+
+    private function connectorPayload($connectorCode, $message, $sender) {
+        $timestamp = gmdate("c");
+        switch ($connectorCode) {
+            case "whatsapp":
+                return array(
+                    "object" => "whatsapp_business_account",
+                    "entry" => array(array(
+                        "changes" => array(array(
+                            "field" => "messages",
+                            "value" => array(
+                                "messages" => array(array("from" => $sender, "type" => "text", "text" => array("body" => $message))),
+                                "metadata" => array("display_phone_number" => "", "phone_number_id" => "")
+                            )
+                        ))
+                    )),
+                    "receivedAt" => $timestamp
+                );
+            case "email":
+                return array(
+                    "messageId" => "dry-run-" . md5($sender . $message),
+                    "from" => $sender,
+                    "to" => "",
+                    "subject" => "Agent Flow dry run",
+                    "text" => $message,
+                    "receivedAt" => $timestamp
+                );
+            case "facebook-messenger":
+                return array(
+                    "object" => "page",
+                    "entry" => array(array(
+                        "messaging" => array(array(
+                            "sender" => array("id" => $sender),
+                            "message" => array("text" => $message)
+                        ))
+                    )),
+                    "receivedAt" => $timestamp
+                );
+            case "instagram":
+                return array(
+                    "object" => "instagram",
+                    "entry" => array(array(
+                        "changes" => array(array(
+                            "field" => "messages",
+                            "value" => array("from" => $sender, "message" => $message)
+                        ))
+                    )),
+                    "receivedAt" => $timestamp
+                );
+            case "tiktok":
+                return array(
+                    "event" => "message.receive",
+                    "sender" => $sender,
+                    "message" => $message,
+                    "receivedAt" => $timestamp
+                );
+        }
+
+        return array("sender" => $sender, "message" => $message, "receivedAt" => $timestamp);
+    }
+
+    private function loadAgents() {
+        $file = $this->agentsFile();
+        if (!file_exists($file)) {
+            return array();
+        }
+
+        $json = json_decode(file_get_contents($file), true);
+        if (!is_array($json)) {
+            return array();
+        }
+
+        return $json;
+    }
+
+    private function loadFlows() {
+        $file = $this->flowsFile();
+        if (!file_exists($file)) {
+            return array();
+        }
+
+        $json = json_decode(file_get_contents($file), true);
+        if (!is_array($json)) {
+            return array();
+        }
+
+        return $json;
+    }
+
+    private function saveFlows($flows) {
+        $dir = $this->storageDir();
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            return false;
+        }
+
+        return file_put_contents($this->flowsFile(), json_encode($flows, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+    }
+
+    private function storageDir() {
+        if (defined("TENANT_RESOURCE_LOCATION")) {
+            return rtrim(TENANT_RESOURCE_LOCATION, "\\/") . "/data/davvag-agent-flow";
+        }
+        return dirname(dirname(__DIR__)) . "/data";
+    }
+
+    private function agentsFile() {
+        if (defined("TENANT_RESOURCE_LOCATION")) {
+            return rtrim(TENANT_RESOURCE_LOCATION, "\\/") . "/data/ai-agent-creator/agents.json";
+        }
+        return dirname(dirname(dirname(__DIR__))) . "/data/ai-agent-creator/agents.json";
+    }
+
+    private function flowsFile() {
+        return $this->storageDir() . "/flows.json";
+    }
+
+    private function safeAgentsForClient($agents) {
+        $safe = array();
+        foreach ($agents as $agent) {
+            $safe[] = $this->safeAgentForClient($agent);
+        }
+        usort($safe, function($a, $b) {
+            return strcmp(strtolower($a["name"]), strtolower($b["name"]));
+        });
+        return $safe;
+    }
+
+    private function safeAgentForClient($agent) {
+        $copy = $agent;
+        if (isset($copy["configuration"])) {
+            $copy["configuration"] = $this->maskGenericSecrets($copy["configuration"]);
+        }
+        return $copy;
+    }
+
+    private function safeFlowsForClient($flows) {
+        $safe = array();
+        foreach ($flows as $flow) {
+            $safe[] = $this->safeFlowForClient($flow);
+        }
+        usort($safe, function($a, $b) {
+            return strcmp(strtolower($a["name"]), strtolower($b["name"]));
+        });
+        return $safe;
+    }
+
+    private function safeFlowForClient($flow) {
+        $copy = $flow;
+        $defs = $this->connectorDefinitionsByCode();
+        $copy["webhookUrls"] = array();
+        if (isset($copy["connectors"]) && is_array($copy["connectors"])) {
+            foreach ($copy["connectors"] as $index => $connector) {
+                $code = isset($connector["code"]) ? $connector["code"] : "";
+                if (!isset($defs[$code])) {
+                    continue;
+                }
+                if (!isset($copy["connectors"][$index]["settings"]) || !is_array($copy["connectors"][$index]["settings"])) {
+                    $copy["connectors"][$index]["settings"] = array();
+                }
+                $copy["connectors"][$index]["webhookUrl"] = $this->webhookUrl(isset($copy["flowCode"]) ? $copy["flowCode"] : "", $code);
+                $copy["webhookUrls"][$code] = $copy["connectors"][$index]["webhookUrl"];
+                foreach ($defs[$code]["fields"] as $field) {
+                    $key = $field["key"];
+                    if (!empty($field["secret"]) && isset($copy["connectors"][$index]["settings"][$key]) && $copy["connectors"][$index]["settings"][$key] !== "") {
+                        $copy["connectors"][$index]["settings"][$key] = "********";
+                    }
+                }
+            }
+        }
+        return $copy;
+    }
+
+    private function webhookUrl($flowCode, $connectorCode) {
+        $flowCode = $this->normalizeCode($flowCode);
+        $connectorCode = $this->normalizeConnectorCode($connectorCode);
+        if ($flowCode === "" || $connectorCode === "") {
+            return "";
+        }
+        return rtrim($this->publicBaseUrl(), "/") . "/components/davvag-agent-flow/flow-api/service/Webhook/" . rawurlencode($flowCode) . "/" . rawurlencode($connectorCode);
+    }
+
+    private function publicBaseUrl() {
+        $host = isset($_SERVER["HTTP_HOST"]) ? $_SERVER["HTTP_HOST"] : "";
+        $scheme = "http";
+        if ((isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "" && strtolower($_SERVER["HTTPS"]) !== "off") || (isset($_SERVER["SERVER_PORT"]) && (string)$_SERVER["SERVER_PORT"] === "443")) {
+            $scheme = "https";
+        }
+
+        $script = isset($_SERVER["SCRIPT_NAME"]) ? str_replace("\\", "/", $_SERVER["SCRIPT_NAME"]) : "";
+        $basePath = "";
+        $marker = "/components/";
+        $pos = strpos($script, $marker);
+        if ($pos !== false) {
+            $basePath = substr($script, 0, $pos);
+        } elseif ($script !== "") {
+            $basePath = rtrim(dirname($script), "/");
+        }
+
+        if ($host === "") {
+            return $basePath === "" ? "" : $basePath;
+        }
+        return $scheme . "://" . $host . $basePath;
+    }
+
+    private function messageFromWebhookPayload($connectorCode, $payload) {
+        if ($connectorCode === "whatsapp" && isset($payload["entry"][0]["changes"][0]["value"]["messages"][0]["text"]["body"])) {
+            return (string)$payload["entry"][0]["changes"][0]["value"]["messages"][0]["text"]["body"];
+        }
+        if ($connectorCode === "facebook-messenger" && isset($payload["entry"][0]["messaging"][0]["message"]["text"])) {
+            return (string)$payload["entry"][0]["messaging"][0]["message"]["text"];
+        }
+        if ($connectorCode === "instagram" && isset($payload["entry"][0]["changes"][0]["value"]["message"])) {
+            return (string)$payload["entry"][0]["changes"][0]["value"]["message"];
+        }
+        if ($connectorCode === "tiktok" && isset($payload["message"])) {
+            return (string)$payload["message"];
+        }
+        if ($connectorCode === "email" && isset($payload["text"])) {
+            return (string)$payload["text"];
+        }
+        if (isset($payload["message"])) {
+            return is_string($payload["message"]) ? $payload["message"] : json_encode($payload["message"]);
+        }
+        if (isset($payload["text"])) {
+            return (string)$payload["text"];
+        }
+        return "";
+    }
+
+    private function senderFromWebhookPayload($connectorCode, $payload) {
+        if ($connectorCode === "whatsapp" && isset($payload["entry"][0]["changes"][0]["value"]["messages"][0]["from"])) {
+            return (string)$payload["entry"][0]["changes"][0]["value"]["messages"][0]["from"];
+        }
+        if ($connectorCode === "facebook-messenger" && isset($payload["entry"][0]["messaging"][0]["sender"]["id"])) {
+            return (string)$payload["entry"][0]["messaging"][0]["sender"]["id"];
+        }
+        if ($connectorCode === "instagram" && isset($payload["entry"][0]["changes"][0]["value"]["from"])) {
+            return (string)$payload["entry"][0]["changes"][0]["value"]["from"];
+        }
+        if ($connectorCode === "tiktok" && isset($payload["sender"])) {
+            return (string)$payload["sender"];
+        }
+        if ($connectorCode === "email" && isset($payload["from"])) {
+            return (string)$payload["from"];
+        }
+        if (isset($payload["sender"])) {
+            return is_string($payload["sender"]) ? $payload["sender"] : json_encode($payload["sender"]);
+        }
+        if (isset($payload["from"])) {
+            return (string)$payload["from"];
+        }
+        return "";
+    }
+
+    private function maskGenericSecrets($value) {
+        if (is_array($value)) {
+            $out = array();
+            foreach ($value as $key => $item) {
+                if (in_array(strtolower($key), array("apikey", "api_key", "key", "token", "secret", "password", "accesstoken"))) {
+                    $out[$key] = $item === "" ? "" : "********";
+                } else {
+                    $out[$key] = $this->maskGenericSecrets($item);
+                }
+            }
+            return $out;
+        }
+        return $value;
+    }
+
+    private function body($req) {
+        $body = $req->Body(true);
+        return is_object($body) ? $body : new \stdClass();
+    }
+
+    private function objectToArray($value) {
+        if (is_array($value)) {
+            return $value;
+        }
+        if (is_object($value)) {
+            $data = json_decode(json_encode($value), true);
+            return is_array($data) ? $data : array();
+        }
+        return array();
+    }
+
+    private function stringValue($body, $key, $default) {
+        if (!isset($body->$key)) {
+            return $default;
+        }
+        return trim(substr((string)$body->$key, 0, 20000));
+    }
+
+    private function queryValue($key, $default) {
+        if (isset($_GET[$key])) {
+            return trim(substr((string)$_GET[$key], 0, 20000));
+        }
+        return $default;
+    }
+
+    private function arrayString($input, $key, $default) {
+        if (!isset($input[$key])) {
+            return $default;
+        }
+        return trim(substr((string)$input[$key], 0, 20000));
+    }
+
+    private function arrayStringList($input, $key) {
+        if (!isset($input[$key])) {
+            return array();
+        }
+
+        $source = $input[$key];
+        if (!is_array($source)) {
+            $source = preg_split("/[\r\n,]+/", (string)$source);
+        }
+
+        $out = array();
+        foreach ($source as $item) {
+            $value = trim(substr((string)$item, 0, 255));
+            if ($value !== "") {
+                $out[] = $value;
+            }
+        }
+        return array_values(array_unique($out));
+    }
+
+    private function boolFromArray($input, $key, $default) {
+        if (!isset($input[$key])) {
+            return (bool)$default;
+        }
+        if (is_bool($input[$key])) {
+            return $input[$key];
+        }
+        return filter_var($input[$key], FILTER_VALIDATE_BOOLEAN);
+    }
+
+    private function normalizeCode($value) {
+        $value = strtolower(trim((string)$value));
+        $value = preg_replace("/[^a-z0-9_-]+/", "-", $value);
+        $value = trim($value, "-_");
+        if ($value === "" || preg_match("/^[a-z][a-z0-9_-]{1,80}$/", $value) !== 1) {
+            return "";
+        }
+        return $value;
+    }
+
+    private function normalizeConnectorCode($value) {
+        $value = strtolower(trim((string)$value));
+        $value = str_replace("_", "-", $value);
+        return preg_replace("/[^a-z0-9-]+/", "-", $value);
+    }
+
+    private function ok() {
+        $out = new \stdClass();
+        $out->success = true;
+        return $out;
+    }
+
+    private function fail($message) {
+        $out = new \stdClass();
+        $out->success = false;
+        $out->message = $message;
+        return $out;
+    }
+}
+?>

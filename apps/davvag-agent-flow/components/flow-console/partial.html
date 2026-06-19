@@ -1,0 +1,119 @@
+<section class="agent-flow">
+    <header class="agent-flow__topbar">
+        <div class="agent-flow__brand">
+            <span class="agent-flow__mark">AF</span>
+            <div>
+                <p class="agent-flow__eyebrow">DAVVAG workspace</p>
+                <h1>Agent Flow</h1>
+            </div>
+        </div>
+        <div class="agent-flow__status is-muted" data-flow-status>Loading workspace...</div>
+    </header>
+
+    <div class="agent-flow__layout">
+        <aside class="agent-flow__rail" aria-label="Flows and agents">
+            <div class="agent-flow__rail-head">
+                <h2>Flows</h2>
+                <span data-flow-count>0</span>
+            </div>
+            <div class="agent-flow__list" data-flow-list></div>
+            <div class="agent-flow__rail-actions">
+                <button type="button" class="agent-flow__button" data-new-flow>New</button>
+                <button type="button" class="agent-flow__button agent-flow__button--danger" data-delete-flow>Delete</button>
+            </div>
+
+            <div class="agent-flow__rail-head agent-flow__rail-head--spaced">
+                <h2>Agents</h2>
+                <span data-agent-count>0</span>
+            </div>
+            <div class="agent-flow__agent-list" data-agent-list></div>
+        </aside>
+
+        <main class="agent-flow__main" aria-label="Agent flow canvas">
+            <div class="agent-flow__toolbar">
+                <label class="agent-flow__field">
+                    <span>Flow code</span>
+                    <input type="text" data-flow-code autocomplete="off" placeholder="support-intake" />
+                </label>
+                <label class="agent-flow__field agent-flow__field--wide">
+                    <span>Flow name</span>
+                    <input type="text" data-flow-name autocomplete="off" placeholder="Support intake" />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Agent</span>
+                    <select data-flow-agent>
+                        <option value="">No agent</option>
+                    </select>
+                </label>
+                <label class="agent-flow__field">
+                    <span>Status</span>
+                    <select data-flow-state>
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                    </select>
+                </label>
+                <button type="button" class="agent-flow__button agent-flow__button--primary" data-save-flow>Save</button>
+            </div>
+
+            <div class="agent-flow__canvas" data-flow-canvas></div>
+
+            <div class="agent-flow__connector-strip" data-connector-strip></div>
+        </main>
+
+        <aside class="agent-flow__inspector" aria-label="Flow settings">
+            <div class="agent-flow__tabs">
+                <button type="button" class="is-active" data-panel-tab="flow">Flow</button>
+                <button type="button" data-panel-tab="connectors">Connectors</button>
+                <button type="button" data-panel-tab="test">Test</button>
+                <button type="button" data-panel-tab="json">JSON</button>
+            </div>
+
+            <div class="agent-flow__panel is-active" data-panel="flow">
+                <label class="agent-flow__field">
+                    <span>Intent triggers</span>
+                    <textarea rows="5" data-flow-triggers placeholder="One trigger per line"></textarea>
+                </label>
+                <label class="agent-flow__field">
+                    <span>Escalation target</span>
+                    <input type="text" data-flow-escalation autocomplete="off" placeholder="support@example.com" />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Notes</span>
+                    <textarea rows="5" data-flow-notes placeholder="Internal routing notes"></textarea>
+                </label>
+            </div>
+
+            <div class="agent-flow__panel" data-panel="connectors">
+                <div class="agent-flow__connector-list" data-connector-list></div>
+                <div class="agent-flow__webhooks" data-webhook-list></div>
+                <div class="agent-flow__connector-editor" data-connector-editor></div>
+            </div>
+
+            <div class="agent-flow__panel" data-panel="test">
+                <label class="agent-flow__field">
+                    <span>Inbound channel</span>
+                    <select data-test-connector></select>
+                </label>
+                <label class="agent-flow__field">
+                    <span>Sender</span>
+                    <input type="text" data-test-sender autocomplete="off" placeholder="customer-001" />
+                </label>
+                <label class="agent-flow__field">
+                    <span>Message</span>
+                    <textarea rows="6" data-test-message placeholder="I need help with my order"></textarea>
+                </label>
+                <button type="button" class="agent-flow__button agent-flow__button--primary" data-run-test>Run</button>
+                <pre class="agent-flow__run-output" data-run-output>No run yet.</pre>
+            </div>
+
+            <div class="agent-flow__panel" data-panel="json">
+                <div class="agent-flow__json-head">
+                    <span>Flow document</span>
+                    <button type="button" class="agent-flow__button" data-copy-json>Copy</button>
+                </div>
+                <pre class="agent-flow__json" data-flow-json>{}</pre>
+            </div>
+        </aside>
+    </div>
+</section>

@@ -1,0 +1,46 @@
+{
+    "name": "DAVVAG Agent Flow API",
+    "description": "Loads ai-agent-creator agents, connector definitions, and saved agent flows.",
+    "author": "Davvag",
+    "version": "0.1",
+    "gitUrl": "",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "davvag_agent_flow\\FlowService",
+        "methods": {
+            "Bootstrap": {
+                "method": "GET"
+            },
+            "ListAgents": {
+                "method": "GET"
+            },
+            "ListFlows": {
+                "method": "GET"
+            },
+            "SaveFlow": {
+                "method": "POST"
+            },
+            "DeleteFlow": {
+                "method": "POST"
+            },
+            "Simulate": {
+                "method": "POST"
+            },
+            "ConnectorPayload": {
+                "method": "POST"
+            },
+            "Webhook": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

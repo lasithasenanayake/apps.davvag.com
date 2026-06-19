@@ -1,0 +1,24 @@
+{
+    "name": "flow-console",
+    "description": "OpenClaw style agent flow workspace for DAVVAG connectors",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "flow-console.css"
+            }
+        ]
+    }
+}

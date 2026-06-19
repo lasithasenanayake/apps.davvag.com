@@ -6,6 +6,9 @@
         "ai-agent-creator":{
             "version":"latest"
         },
+        "davvag-agent-flow":{
+            "version":"latest"
+        },
         "davvag-flow-designer":{
             "version":"latest"
         },

@@ -1,0 +1,75 @@
+{
+    "test": {
+        "flowCode": "test",
+        "name": "test",
+        "agentCode": "",
+        "status": "draft",
+        "triggers": [
+            "new message",
+            "support request"
+        ],
+        "escalationTarget": "organiser@zavvion.test",
+        "notes": "",
+        "connectors": [
+            {
+                "code": "whatsapp",
+                "enabled": true,
+                "status": "draft",
+                "settings": {
+                    "phoneNumberId": "",
+                    "businessAccountId": "",
+                    "accessToken": "ChangeMe123!",
+                    "verifyToken": ""
+                }
+            },
+            {
+                "code": "email",
+                "enabled": true,
+                "status": "draft",
+                "settings": {
+                    "fromAddress": "",
+                    "inboundMailbox": "",
+                    "smtpHost": "",
+                    "smtpUser": "",
+                    "smtpPassword": ""
+                }
+            },
+            {
+                "code": "facebook-messenger",
+                "enabled": true,
+                "status": "draft",
+                "settings": {
+                    "pageId": "",
+                    "pageAccessToken": "",
+                    "appSecret": "",
+                    "verifyToken": ""
+                }
+            },
+            {
+                "code": "instagram",
+                "enabled": true,
+                "status": "draft",
+                "settings": {
+                    "instagramBusinessId": "",
+                    "accessToken": "",
+                    "webhookSecret": "",
+                    "defaultRecipient": ""
+                }
+            },
+            {
+                "code": "tiktok",
+                "enabled": true,
+                "status": "draft",
+                "settings": {
+                    "businessAccountId": "",
+                    "clientKey": "",
+                    "clientSecret": "",
+                    "accessToken": "",
+                    "webhookSecret": ""
+                }
+            }
+        ],
+        "createdAt": "2026-06-19T09:06:59+00:00",
+        "updatedAt": "2026-06-19T09:06:59+00:00"
+    }
+}

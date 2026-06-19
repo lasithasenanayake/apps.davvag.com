@@ -1,0 +1,43 @@
+{
+    "components": {
+        "flow-console": {
+            "type": "component",
+            "location": "components"
+        },
+        "flow-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "DAVVAG Agent Flow",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": [
+        "showindock","showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "flow-console",
+            "onLoad": [
+                "flow-api"
+            ],
+            "routes": {
+                "partials": {
+                    "/": "flow-console"
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "ai-agent-creator"
+        ],
+        "schemas": [],
+        "workflows": [],
+        "plugins": [],
+        "php-extensions": []
+    }
+}
