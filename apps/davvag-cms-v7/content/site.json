@@ -3,7 +3,7 @@
     "tagline": "Lightweight landing pages for DAVVAG apps.",
     "logo": "",
     "favicon": "assets/davvag-cms-v7/favicon.svg?v=0.2",
-    "theme": "midnight-mint",
+    "theme": "aurora",
     "startup": {
         "mode": "page",
         "route": "/"
