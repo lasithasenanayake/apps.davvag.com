@@ -12,9 +12,55 @@ WEBDOCK.component().register(function(exports){
 
     function clearItems(){
         bindData.data={};
-                 bindData.launcherType="";
-                 bindData.subApp={};
-                 bindData.app={};
+        bindData.launcherType="";
+        bindData.subApp={};
+        bindData.app={};
+        bindData.subApps=[];
+        bindData.inputData=[];
+    }
+
+    function trimValue(value){
+        if(value==null)
+            return "";
+
+        return value.toString().replace(/^\s+|\s+$/g, "");
+    }
+
+    function validateLauncher(){
+        var errors=[];
+        var name=trimValue(bindData.data.name);
+        var shortname=trimValue(bindData.data.shortname);
+        var type=trimValue(bindData.launcherType);
+
+        if(name=="")
+            errors.push("Please enter launcher name");
+
+        if(shortname=="")
+            errors.push("Please enter short name");
+
+        if(shortname.length>10)
+            errors.push("Short name must be 10 characters or less");
+
+        if(pid!=0 && type=="")
+            errors.push("Please select launcher type");
+
+        if(type=="weburi"){
+            var url=trimValue(bindData.data.url);
+            if(url=="")
+                errors.push("Please enter Web URI");
+            else if(/\s/.test(url))
+                errors.push("Web URI cannot contain spaces");
+        }
+
+        if(type=="application" || pid==0){
+            if(!bindData.app || !bindData.app.appCode)
+                errors.push("Please select an application");
+
+            if(!bindData.subApp || !bindData.subApp.Code)
+                errors.push("Please select a sub application");
+        }
+
+        return errors;
     }
 
     var vueData =  {
@@ -23,14 +69,15 @@ WEBDOCK.component().register(function(exports){
                 //window.location="#/app/davvag-app-manager/launcher";
                 window.history.back();
             },
-            submit:submit,
+             submit:submit,
              selectApp:function(x){
-                bindData.subApps=x.Apps;
-                //bindData.inputData=bindData.subApps.inputData;
+                bindData.subApps=x && x.Apps ? x.Apps : [];
+                bindData.subApp={};
+                bindData.inputData=[];
              },
              selectSubApp:function(x){
                 //bindData.subApps=x.Apps;
-                bindData.inputData=x.inputData;
+                bindData.inputData=x && x.inputData ? x.inputData : [];
              },
              open:function(){
                  clearItems();
@@ -80,6 +127,7 @@ WEBDOCK.component().register(function(exports){
             pid=0;
             filter="pid:0";
         }
+        bindData.launcherType=pid==0?"application":bindData.launcherType;
 
             
         service_handler.services.UserGroupsByLauncher({p_appid:pid.toString()}).then(function(d){
@@ -159,7 +207,7 @@ WEBDOCK.component().register(function(exports){
                     for (let x = 0; x < bindData.userGroups.length; x++) {
                         if(bindData.userGroups[x].groupid==GrList[i].groupid){
                             bindData.userGroups[x].selected="Y";
-                            Vue.set(bindData.userGroups, i, bindData.userGroups[i]);
+                            Vue.set(bindData.userGroups, x, bindData.userGroups[x]);
                         }
                     }
                 }
@@ -176,7 +224,11 @@ WEBDOCK.component().register(function(exports){
         if(bindData.data){
             //bindData.data.url="/#/"+bindData.app.appCode+"/"+bindData.subApp.path;
             bindData.launcherType=bindData.data.applicationtype;
-            bindData.inputData=JSON.parse(bindData.data.inputData?bindData.data.inputData:"[]");
+            try{
+                bindData.inputData=JSON.parse(bindData.data.inputData?bindData.data.inputData:"[]");
+            }catch(e){
+                bindData.inputData=[];
+            }
             bindData.applications.forEach(element => {
                 if(element.appCode==bindData.data.appcode){
                     bindData.app=element;
@@ -198,10 +250,10 @@ WEBDOCK.component().register(function(exports){
     function fillData(){
         bindData.data.pid=pid;
         if(pid==0){
-            bindData.launcherType=""; 
+            bindData.launcherType="application"; 
         }
         //bindData.launcherType=bindData.launcherType?bindData.launcherType:"application";
-        if(bindData.launcherType=="application" || pid==0){
+        if((bindData.launcherType=="application" || pid==0) && bindData.app && bindData.app.appCode && bindData.subApp && bindData.subApp.Code){
             bindData.data.url="/#/"+bindData.app.appCode+"/"+bindData.subApp.path;
             bindData.data.applicationtype=bindData.launcherType;
             bindData.data.appcode=bindData.app.appCode;
@@ -210,12 +262,17 @@ WEBDOCK.component().register(function(exports){
         }
     }
     function submit(){
+        scope.submitErrors = [];
+        scope.submitErrors = validateLauncher();
+
+        if(scope.submitErrors.length>0)
+            return;
+
         fillData();
         lockForm();
-        scope.submitErrors = [];
-        scope.submitErrors = validator_profile.validate(); 
+        var validatorErrors = validator_profile.validate(); 
 
-        if (!scope.submitErrors){
+        if (!validatorErrors){
             lockForm();
             scope.submitErrors = [];
             scope.submitInfo=[];
@@ -241,6 +298,7 @@ WEBDOCK.component().register(function(exports){
             });
 
         }else{
+            scope.submitErrors = validatorErrors;
             unlockForm();
         }
     }

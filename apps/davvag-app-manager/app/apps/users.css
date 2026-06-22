@@ -27,3 +27,187 @@
 .select-editable select:focus, .select-editable input:focus {
     outline:none;
 }
+
+.app-permission-manager {
+    color:#222;
+}
+
+.app-permission-manager .panel-body {
+    padding:15px;
+}
+
+.permission-toolbar {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:12px;
+    margin-bottom:12px;
+}
+
+.permission-field {
+    min-width:180px;
+}
+
+.permission-group-field {
+    flex:0 0 220px;
+}
+
+.permission-search-field {
+    flex:1 1 280px;
+}
+
+.permission-field label {
+    display:block;
+    margin-bottom:4px;
+    font-weight:600;
+}
+
+.permission-selected-filter {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:0 0 8px;
+    font-weight:600;
+}
+
+.permission-clear {
+    margin-bottom:0;
+}
+
+.permission-summary {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:8px 0 12px;
+    color:#555;
+    font-size:13px;
+}
+
+.permission-summary span {
+    background:#f2f4f7;
+    border:1px solid #d8dde4;
+    border-radius:4px;
+    padding:4px 8px;
+}
+
+.permission-state {
+    border:1px solid #d8dde4;
+    background:#f8fafc;
+    color:#555;
+    padding:14px;
+    margin:10px 0;
+    border-radius:4px;
+}
+
+.permission-tree {
+    max-height:68vh;
+    overflow:auto;
+    border:1px solid #d8dde4;
+    background:#fff;
+    padding:8px 0;
+}
+
+.permission-tree,
+.permission-tree ul {
+    color:#2b4f73;
+}
+
+.permission-app {
+    border-bottom:1px solid #e7ebef;
+    padding-top:8px;
+    padding-bottom:8px;
+}
+
+.permission-app:last-child {
+    border-bottom:none;
+}
+
+.permission-app-title {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    line-height:1.35;
+}
+
+.permission-app-icon {
+    width:28px;
+    height:28px;
+    object-fit:contain;
+    flex:0 0 28px;
+}
+
+.permission-code {
+    display:block;
+    color:#667085;
+    font-size:12px;
+    font-weight:400;
+}
+
+.permission-badge {
+    margin-left:auto;
+    min-width:24px;
+    text-align:center;
+    border-radius:12px;
+    background:#287f5a;
+    color:#fff;
+    padding:2px 8px;
+    font-size:12px;
+}
+
+.permission-line {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:baseline;
+}
+
+.permission-section-item {
+    padding-top:4px;
+}
+
+.permission-checkbox {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    font-weight:400;
+    line-height:1.5;
+}
+
+.permission-checkbox input {
+    flex:0 0 auto;
+}
+
+.permission-checkbox span {
+    min-width:0;
+    overflow-wrap:anywhere;
+}
+
+.permission-warning {
+    margin:8px 0;
+}
+
+@media screen and (max-width:640px){
+    .permission-toolbar {
+        display:block;
+    }
+
+    .permission-field,
+    .permission-group-field,
+    .permission-search-field {
+        width:100%;
+        margin-bottom:10px;
+    }
+
+    .permission-selected-filter {
+        margin-bottom:10px;
+    }
+
+    .permission-clear {
+        width:100%;
+    }
+
+    .permission-tree {
+        max-height:none;
+    }
+}

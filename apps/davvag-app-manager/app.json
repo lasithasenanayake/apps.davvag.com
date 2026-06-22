@@ -47,7 +47,7 @@
         "dock": {
             "subapps": [
                 {
-                    "name": "App Permision",
+                    "name": "App Permission",
                     "path": "apps"
                 },
                 {

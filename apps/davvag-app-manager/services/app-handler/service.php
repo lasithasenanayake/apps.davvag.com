@@ -205,31 +205,47 @@ class BroadcastService {
         $fileToServe;$errorMsg;
         $apps=array();
         //var_dump($req->Params());
-        if(!isset($_GET["Group"])){
-            $res->SetError("Not a Valied Request");
+        if(!isset($_GET["Group"]) || trim($_GET["Group"])===""){
+            $res->SetError("User group is required.");
             return null;
         }
-        $Group=$_GET["Group"];
+        $Group=trim($_GET["Group"]);
+        if(!$this->isSafeGroupId($Group)){
+            $res->SetError("Invalid user group.");
+            return null;
+        }
+
         $allkeys=CacheData::getObjects($Group,"domain_permision_e");
         if($allkeys)
             return $allkeys;
         
-        if (file_exists($tenantFile)){
-            $jsonContents = file_get_contents($tenantFile);
-            $tenantObj = json_decode($jsonContents);
-            //return $tenantObj;
-            if (isset($tenantObj)){
-                foreach ($tenantObj->apps as $appCode => $appData) {
+        if (!file_exists($tenantFile)){
+            $res->SetError("tenant.json is missing.");
+            return null;
+        }
+
+        $jsonContents = file_get_contents($tenantFile);
+        $tenantObj = json_decode($jsonContents);
+        //return $tenantObj;
+        if (!isset($tenantObj) || !isset($tenantObj->apps)){
+            $res->SetError("tenant.json is invalid.");
+            return null;
+        }
+
+        foreach ($tenantObj->apps as $appCode => $appData) {
                     
                     
                     $appLocation = TENANT_RESOURCE_LOCATION_APPS . "/$appCode/app.json" ;
                     if (file_exists($appLocation)){
                         $jsonObj = json_decode(file_get_contents($appLocation));
+                        if(!isset($jsonObj)){
+                            continue;
+                        }
                         //return $tenantObj->apps;
                         $app=new stdClass();
                         $app->appCode=$appCode;
-                        $app->Name=$jsonObj->description->title;
-                        $app->Icon=$jsonObj->description->icon;
+                        $app->Name=isset($jsonObj->description->title)?$jsonObj->description->title:$appCode;
+                        $app->Icon=isset($jsonObj->description->icon)?$jsonObj->description->icon:"";
                         $app->Services=array();
                         $app->Apps=array();
                         $app->Schemas=array();
@@ -242,17 +258,26 @@ class BroadcastService {
                                 array_push($app->Schemas,$a);
                             }
                         }
+                        if(isset($jsonObj->components))
                         foreach ($jsonObj->components as $Code => $Data){
                             $a=new stdClass();
                             $a->Code=$Code;
+                            if(!isset($Data->location) || !isset($Data->type)){
+                                $app->Error= "Component '$Code' is missing location or type.";
+                                continue;
+                            }
                             $aLocation = TENANT_RESOURCE_LOCATION_APPS . "/$appCode/$Data->location/$Code/component.json";
                             if (file_exists($aLocation)){
                                 $aObj = json_decode(file_get_contents($aLocation));
+                                if(!isset($aObj)){
+                                    $app->Error= "This Location '$aLocation' has invalid JSON.";
+                                    continue;
+                                }
                                 
-                                $a->Name=$aObj->name;
-                                $a->Description=$aObj->description;
-                                $a->author=$aObj->author;
-                                $a->version=$aObj->version;
+                                $a->Name=isset($aObj->name)?$aObj->name:$Code;
+                                $a->Description=isset($aObj->description)?$aObj->description:"";
+                                $a->author=isset($aObj->author)?$aObj->author:"";
+                                $a->version=isset($aObj->version)?$aObj->version:"";
                                 switch($Data->type){
                                     case "partial":
                                         $a->selected=$this->Permistion($Group,$app->appCode,"app",$Code,"");
@@ -323,8 +348,7 @@ class BroadcastService {
                     }
                     
                 }
-            }
-        }
+
         CacheData::setObjects($Group,"domain_permision_e",$apps);
         return $apps;
     }
@@ -346,7 +370,22 @@ class BroadcastService {
     public function postSetAccess($req,$res){
         $bodyAccess= $req->Body(true);
         $assdata=array();
-        $groupid=$bodyAccess->groupid;
+        if(!isset($bodyAccess->groupid) || trim($bodyAccess->groupid)===""){
+            $res->SetError("User group is required.");
+            return null;
+        }
+
+        $groupid=trim($bodyAccess->groupid);
+        if(!$this->isSafeGroupId($groupid)){
+            $res->SetError("Invalid user group.");
+            return null;
+        }
+
+        if(!isset($bodyAccess->data) || !is_array($bodyAccess->data)){
+            $res->SetError("Permission data is required.");
+            return null;
+        }
+
         $descObj =null;
         $descriptorLocation = TENANT_RESOURCE_LOCATION . "/tenant.json" ;
         if (file_exists($descriptorLocation)){
@@ -355,57 +394,114 @@ class BroadcastService {
         }else{
             $res->SetError("Not Configured tenant.json missing");
             return null;
-        }      
+        }
+
+        if(!isset($descObj) || !isset($descObj->apps)){
+            $res->SetError("tenant.json is invalid.");
+            return null;
+        }
+
         $tenatjson=new stdClass();
         $tenatjson->apps=new stdClass();
         foreach($bodyAccess->data as $item){
+            if(!isset($item->appCode) || !isset($descObj->apps->{$item->appCode})){
+                continue;
+            }
+
             $appcode=$item->appCode;
-            foreach($item->Services as $sitem){
+            foreach($this->asArray(isset($item->Services)?$item->Services:array()) as $sitem){
+                if(!isset($sitem->Code)){
+                    continue;
+                }
+
                 $code=$sitem->Code;
                 $type="service";
                 ///var_dump($sitem->methods);
                 if(isset($sitem->methods)){
-                    foreach($sitem->methods as $ops){
-                        if($ops->selected){
-                            if(!isset($tenatjson->{$appcode})){
-                                $tenatjson->apps->{$appcode}=$descObj->apps->{$appcode};
-                            }
+                    foreach($this->asArray($sitem->methods) as $ops){
+                        if(isset($ops->name) && isset($ops->selected) && $this->isSelectedValue($ops->selected)){
+                            $this->addTenantApp($tenatjson,$descObj,$appcode);
                             array_push($assdata,array("groupid"=>$groupid,"appCode"=>$appcode,"type"=>$type,"code"=>$code,"operation"=>$ops->name));
                         }
                     }
                 }
             }
 
-            foreach($item->Apps as $sitem){
+            foreach($this->asArray(isset($item->Apps)?$item->Apps:array()) as $sitem){
+                if(!isset($sitem->Code)){
+                    continue;
+                }
+
                 $code=$sitem->Code;
                 $type="app";
-                if($sitem->selected){
-                    if(!isset($tenatjson->{$appcode})){
-                        $tenatjson->apps->{$appcode}=$descObj->apps->{$appcode};
-                    }
+                if(isset($sitem->selected) && $this->isSelectedValue($sitem->selected)){
+                    $this->addTenantApp($tenatjson,$descObj,$appcode);
                     array_push($assdata,array("groupid"=>$groupid,"appCode"=>$appcode,"type"=>$type,"code"=>$code,"operation"=>""));
                 }
             }
 
-            foreach($item->Schemas as $sitem){
+            foreach($this->asArray(isset($item->Schemas)?$item->Schemas:array()) as $sitem){
+                if(!isset($sitem->Name)){
+                    continue;
+                }
+
                 $code=$sitem->Name;
                 $type="schema";
-                if($sitem->selected){
-                    if(!isset($tenatjson->{$appcode})){
-                        $tenatjson->apps->{$appcode}=$descObj->apps->{$appcode};
-                    }
+                if(isset($sitem->selected) && $this->isSelectedValue($sitem->selected)){
+                    $this->addTenantApp($tenatjson,$descObj,$appcode);
                     array_push($assdata,array("groupid"=>$groupid,"appCode"=>$appcode,"type"=>$type,"code"=>$code,"operation"=>""));
                 }
             }
         }
         CacheData::clearObjects("domain_permision_e");
         CacheData::clearObjects("sys_access");
-        $tenatjson->webdock=$descObj->webdock;
-        file_put_contents(TENANT_RESOURCE_LOCATION ."/$groupid.json",json_encode($tenatjson));
+        $tenatjson->webdock=isset($descObj->webdock)?$descObj->webdock:new stdClass();
+        if(file_put_contents(TENANT_RESOURCE_LOCATION ."/$groupid.json",json_encode($tenatjson))===false){
+            $res->SetError("Unable to write user group tenant file.");
+            return null;
+        }
         
         //Auth::SetAccess($assdata);
-        return  Auth::SetAccess($assdata);
+        if(count($assdata)>0){
+            Auth::SetAccess($assdata);
+        }else{
+            $this->clearGroupAccess($groupid);
+        }
 
+        $result=new stdClass();
+        $result->saved=count($assdata);
+        return $result;
+
+    }
+
+    private function asArray($value){
+        if(!isset($value)){
+            return array();
+        }
+
+        return is_array($value)?$value:(array)$value;
+    }
+
+    private function isSafeGroupId($groupid){
+        return preg_match('/^[A-Za-z0-9_-]+$/',$groupid)===1;
+    }
+
+    private function isSelectedValue($value){
+        return $value===true || $value===1 || $value==="1" || $value==="Y" || $value==="true";
+    }
+
+    private function addTenantApp($tenatjson,$descObj,$appcode){
+        if(!isset($tenatjson->apps->{$appcode}) && isset($descObj->apps->{$appcode})){
+            $tenatjson->apps->{$appcode}=$descObj->apps->{$appcode};
+        }
+    }
+
+    private function clearGroupAccess($groupid){
+        $data=SOSSData::Query("usergroup_permission","domain:".AUTH_DOMAIN.",groupid:".$groupid,null,"asc",100,0,AUTH_DOMAIN,false);
+        while(count($data->result)!=0){
+            SOSSData::Delete("usergroup_permission",$data->result,AUTH_DOMAIN,false);
+            $data=SOSSData::Query("usergroup_permission","domain:".AUTH_DOMAIN.",groupid:".$groupid,null,"asc",100,0,AUTH_DOMAIN,false);
+        }
     }
 
 

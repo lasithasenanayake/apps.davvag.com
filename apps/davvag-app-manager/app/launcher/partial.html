@@ -11,7 +11,7 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
         <div class="modal-header">
-            <h1>New Launnher</h1>
+            <h1>New Launcher</h1>
         </div>
         <div class="modal-body">
           
@@ -25,19 +25,19 @@
             </div>
             <form id="form-details">
               <div class="form-group">
-                <label for="exampleInputEmail1">Caption</label>
-                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="10" maxlength="100" placeholder="Caption" v-model="data.name">
-                <small id="emailHelp" class="form-text text-muted">Caption of the Menu</small>
+                <label for="launcher-caption">Caption</label>
+                <input type="text" class="form-control" id="launcher-caption" aria-describedby="captionHelp" minlength="2" maxlength="100" placeholder="Caption" v-model="data.name">
+                <small id="captionHelp" class="form-text text-muted">Caption of the Menu</small>
               </div>
               <div class="form-group">
-                <label for="exampleInputEmail1">Short Name</label>
-                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" minlength="2" maxlength="10" placeholder="Caption" v-model="data.shortname">
-                <small id="emailHelp" class="form-text text-muted">A name within 10 charactor</small>
+                <label for="launcher-short-name">Short Name</label>
+                <input type="text" class="form-control" id="launcher-short-name" aria-describedby="shortNameHelp" minlength="2" maxlength="10" placeholder="Short name" v-model="data.shortname">
+                <small id="shortNameHelp" class="form-text text-muted">A name within 10 characters</small>
               </div>
               <div class="form-group">
-                <label for="exampleInputEmail1">Order</label>
-                <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"  placeholder="order" v-model="data.order_no">
-                <small id="emailHelp" class="form-text text-muted">Please Input the Order</small>
+                <label for="launcher-order">Order</label>
+                <input type="number" class="form-control" id="launcher-order" aria-describedby="orderHelp" placeholder="Order" v-model="data.order_no">
+                <small id="orderHelp" class="form-text text-muted">Please input the order</small>
               </div>
               <div v-if="pid!=0" class="form-group">
                 <label for="exampleInputPassword1">Launcher Type</label>
@@ -49,9 +49,9 @@
 
               <div v-if="launcherType=='weburi'" id="frmapp">
                 <div class="form-group">
-                  <label for="exampleInputEmail1">Web URI</label>
-                  <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="URL" v-model="data.url">
-                  <small id="emailHelp" class="form-text text-muted">Web URL </small>
+                  <label for="launcher-web-uri">Web URI</label>
+                  <input type="url" class="form-control" id="launcher-web-uri" aria-describedby="webUriHelp" placeholder="URL" v-model="data.url">
+                  <small id="webUriHelp" class="form-text text-muted">Web URL</small>
                 </div>
               </div>
               <div v-if="launcherType=='application'" id="frmweburi">
