@@ -1,0 +1,115 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div><h3>Assignments</h3></div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Timetable</button>
+      <button class="btn btn-default" v-on:click="navigate('../gradebook')"><span class="glyphicon glyphicon-stats"></span> Gradebook</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Assignment</strong>
+          <button class="btn btn-xs btn-default" v-on:click="clearAssignment"><span class="glyphicon glyphicon-plus"></span></button>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Cohort<select v-model="assignmentForm.class_grade_id"><option value="">Select</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
+            <label>Subject<select v-model="assignmentForm.subject_id"><option value="">Select</option><option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option></select></label>
+            <label>Title<input v-model="assignmentForm.title"></label>
+            <label>Description<textarea v-model="assignmentForm.description"></textarea></label>
+            <div class="cm-three">
+              <label>Due<input type="datetime-local" v-model="assignmentForm.due_at"></label>
+              <label>Max Mark<input type="number" v-model="assignmentForm.max_mark"></label>
+              <label>Penalty<input type="number" v-model="assignmentForm.late_penalty_per_day"></label>
+            </div>
+            <label>Status<select v-model="assignmentForm.status"><option>draft</option><option>published</option><option>closed</option></select></label>
+            <button class="btn btn-primary" v-on:click="saveAssignment"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Submission</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Assignment<select v-model="submissionForm.assignment_id"><option value="">Select</option><option v-for="assignment in assignments" v-bind:value="assignment.id">{{ assignment.title }}</option></select></label>
+            <label>Student
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(submissionForm.student_id)" placeholder="No student selected">
+                <button class="btn btn-default" v-on:click="selectSubmissionStudent"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <label>Content<textarea v-model="submissionForm.content"></textarea></label>
+            <label>File URL<input v-model="submissionForm.file_url"></label>
+            <button class="btn btn-primary" v-on:click="submitAssignment"><span class="glyphicon glyphicon-upload"></span> Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Grade</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Submission<select v-model="gradeForm.submission_id"><option value="">Select</option><option v-for="submission in submissions" v-bind:value="submission.id">{{ assignmentTitle(submission.assignment_id) }} - {{ submission.student_name || profileName(submission.student_id) }}</option></select></label>
+            <label>Marks<input type="number" v-model="gradeForm.marks"></label>
+            <label>Feedback<textarea v-model="gradeForm.feedback"></textarea></label>
+            <button class="btn btn-primary" v-on:click="gradeSubmission"><span class="glyphicon glyphicon-ok"></span> Grade</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Assignments</strong></div>
+        <div class="cm-list">
+          <div class="cm-empty" v-if="assignments.length == 0">No assignments.</div>
+          <div class="cm-row" v-for="assignment in assignments">
+            <button class="cm-row-main" v-on:click="selectAssignment(assignment)">
+              <strong>{{ assignment.title }}</strong>
+              <span>{{ classGradeName(assignment.class_grade_id) }} | {{ subjectTitle(assignment.subject_id) }}</span>
+            </button>
+            <div class="cm-inline-actions">
+              <span v-bind:class="statusClass(assignment.status)">{{ assignment.status }}</span>
+              <button class="btn btn-xs btn-default" v-on:click="deleteAssignment(assignment)" title="Delete" aria-label="Delete assignment"><span class="glyphicon glyphicon-trash"></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Submissions</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Assignment</th><th>Student</th><th>Marks</th><th>Grade</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="submission in submissions">
+                <td>{{ assignmentTitle(submission.assignment_id) }}</td>
+                <td>{{ submission.student_name || profileName(submission.student_id) }}</td>
+                <td>{{ submission.marks }}</td>
+                <td>{{ submission.grade_letter }}</td>
+                <td><span v-bind:class="statusClass(submission.status)">{{ submission.status }}</span></td>
+                <td>
+                  <div class="cm-inline-actions">
+                    <button class="btn btn-xs btn-default" v-on:click="selectSubmission(submission)"><span class="glyphicon glyphicon-ok"></span></button>
+                    <button class="btn btn-xs btn-default" v-on:click="deleteSubmission(submission)" title="Delete" aria-label="Delete submission"><span class="glyphicon glyphicon-trash"></span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="submissions.length == 0"><td colspan="6">No submissions.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

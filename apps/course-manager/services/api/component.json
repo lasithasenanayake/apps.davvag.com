@@ -1,0 +1,204 @@
+{
+    "name": "api",
+    "description": "Course Manager service handlers",
+    "author": "DAVVAG",
+    "version": "0.2",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "course_manager\\ApiService",
+        "methods": {
+            "Dashboard": {
+                "method": "POST"
+            },
+            "EndpointCatalog": {
+                "method": "GET"
+            },
+            "SeedSampleData": {
+                "method": "POST"
+            },
+            "ListProfiles": {
+                "method": "POST"
+            },
+            "ListCourses": {
+                "method": "POST"
+            },
+            "SaveCourse": {
+                "method": "POST"
+            },
+            "CreateCourse": {
+                "method": "POST"
+            },
+            "DeleteCourse": {
+                "method": "POST"
+            },
+            "ListSubjects": {
+                "method": "POST"
+            },
+            "SaveSubject": {
+                "method": "POST"
+            },
+            "DeleteSubject": {
+                "method": "POST"
+            },
+            "ListProducts": {
+                "method": "POST"
+            },
+            "ProductCatalog": {
+                "method": "POST"
+            },
+            "SaveProduct": {
+                "method": "POST"
+            },
+            "DeleteProduct": {
+                "method": "POST"
+            },
+            "ListClassGrades": {
+                "method": "POST"
+            },
+            "SaveClassGrade": {
+                "method": "POST"
+            },
+            "DeleteClassGrade": {
+                "method": "POST"
+            },
+            "ListEnrollments": {
+                "method": "POST"
+            },
+            "SaveEnrollment": {
+                "method": "POST"
+            },
+            "DeleteEnrollment": {
+                "method": "POST"
+            },
+            "BulkImportEnrollments": {
+                "method": "POST"
+            },
+            "ListClassrooms": {
+                "method": "POST"
+            },
+            "SaveClassroom": {
+                "method": "POST"
+            },
+            "DeleteClassroom": {
+                "method": "POST"
+            },
+            "ListTimetable": {
+                "method": "POST"
+            },
+            "WeeklyTimetable": {
+                "method": "POST"
+            },
+            "SaveTimetable": {
+                "method": "POST"
+            },
+            "CreateTimetable": {
+                "method": "POST"
+            },
+            "DeleteTimetable": {
+                "method": "POST"
+            },
+            "ListAttendance": {
+                "method": "POST"
+            },
+            "AttendanceRoster": {
+                "method": "POST"
+            },
+            "SaveAttendance": {
+                "method": "POST"
+            },
+            "RecordAttendance": {
+                "method": "POST"
+            },
+            "BulkRecordAttendance": {
+                "method": "POST"
+            },
+            "QrCheckIn": {
+                "method": "POST"
+            },
+            "ExportAttendanceCsv": {
+                "method": "POST"
+            },
+            "ListAssignments": {
+                "method": "POST"
+            },
+            "SaveAssignment": {
+                "method": "POST"
+            },
+            "CreateAssignment": {
+                "method": "POST"
+            },
+            "DeleteAssignment": {
+                "method": "POST"
+            },
+            "ListSubmissions": {
+                "method": "POST"
+            },
+            "SaveSubmission": {
+                "method": "POST"
+            },
+            "SubmitAssignment": {
+                "method": "POST"
+            },
+            "DeleteSubmission": {
+                "method": "POST"
+            },
+            "GradeSubmission": {
+                "method": "POST"
+            },
+            "ListAssessments": {
+                "method": "POST"
+            },
+            "SaveAssessment": {
+                "method": "POST"
+            },
+            "DeleteAssessment": {
+                "method": "POST"
+            },
+            "ListMarks": {
+                "method": "POST"
+            },
+            "SaveMark": {
+                "method": "POST"
+            },
+            "DeleteMark": {
+                "method": "POST"
+            },
+            "ListGradingScales": {
+                "method": "POST"
+            },
+            "SaveGradingScale": {
+                "method": "POST"
+            },
+            "CreateGradingScale": {
+                "method": "POST"
+            },
+            "DeleteGradingScale": {
+                "method": "POST"
+            },
+            "ComputeGrade": {
+                "method": "GET",
+                "parameters": [
+                    "marks"
+                ]
+            },
+            "RecomputeGrades": {
+                "method": "POST"
+            },
+            "FinalGrade": {
+                "method": "POST"
+            },
+            "QueueNotification": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

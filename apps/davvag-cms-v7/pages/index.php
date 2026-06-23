@@ -8,7 +8,7 @@
     <link rel="icon" href="assets/davvag-cms-v7/favicon.svg?v=0.6" type="image/svg+xml">
     <link href="assets/davvag-cms-v7/vendor/bootstrap/bootstrap.min.css?v=0.6" rel="stylesheet">
     <link href="assets/davvag-cms-v7/vendor/font-awesome/font-awesome.min.css?v=0.6" rel="stylesheet">
-    <link href="assets/davvag-cms-v7/cms-v7.css?v=0.6" rel="stylesheet">
+    <link href="assets/davvag-cms-v7/cms-v7.css?v=0.7" rel="stylesheet">
     <link href="assets/davvag-cms-v7/cms-v7-bootstrap-theme.css?v=0.6" rel="stylesheet">
     <style>
         .cms-v7-boot-loader {

@@ -1,0 +1,95 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "assessment_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "assignment_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "submission_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "marks",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "max_mark",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "weight",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "5,2"
+            }
+        },
+        {
+            "fieldName": "grade_letter",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName": "grade_point",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "3,2"
+            }
+        },
+        {
+            "fieldName": "graded_by",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "graded_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "note",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1000,
+                "encoding": "utf8"
+            }
+        }
+    ]
+}

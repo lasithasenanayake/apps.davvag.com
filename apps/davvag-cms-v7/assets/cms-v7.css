@@ -188,6 +188,89 @@ select {
     color: var(--cms-text);
 }
 
+.cms-v7-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cms-v7-nav-action {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--cms-radius);
+    background: transparent;
+    color: var(--cms-muted);
+    cursor: pointer;
+    padding: 0;
+}
+
+.cms-v7-nav-action:hover,
+.cms-v7-nav-action:focus {
+    background: var(--cms-surface);
+    color: var(--cms-text);
+    outline: none;
+}
+
+.cms-v7-notification-bar {
+    position: fixed;
+    top: 76px;
+    right: 16px;
+    z-index: 60;
+    width: min(328px, calc(100vw - 32px));
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    border: 1px solid var(--cms-border);
+    border-radius: var(--cms-radius);
+    background: var(--cms-bg);
+    box-shadow: var(--cms-shadow);
+}
+
+.cms-v7-notification-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.cms-v7-notification-item + .cms-v7-notification-item {
+    border-top: 1px solid var(--cms-border);
+}
+
+.cms-v7-notification-link {
+    width: 100%;
+    display: block;
+    border: 0;
+    background: transparent;
+    color: var(--cms-text);
+    cursor: pointer;
+    padding: 12px 14px;
+    text-align: left;
+}
+
+.cms-v7-notification-link:hover,
+.cms-v7-notification-link:focus {
+    background: var(--cms-surface);
+    outline: none;
+}
+
+.cms-v7-notification-state {
+    padding: 14px;
+    color: var(--cms-muted);
+    font-size: 14px;
+}
+
+#notifyappwindow .modal-body {
+    min-height: 120px;
+}
+
+@media (min-width: 1152px) {
+    .cms-v7-notification-bar {
+        right: calc((100vw - 1120px) / 2);
+    }
+}
+
 .cms-v7-page {
     animation: cms-v7-fade 180ms ease-out;
 }
@@ -611,6 +694,20 @@ select {
         min-width: 100%;
         margin: 0 0 6px;
         box-shadow: none;
+    }
+
+    .cms-v7-nav-actions {
+        justify-content: flex-end;
+        width: 100%;
+        padding-top: 4px;
+    }
+
+    .cms-v7-notification-bar {
+        top: 96px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-height: calc(100vh - 128px);
     }
 
     .cms-v7-hero-grid,

@@ -1,0 +1,47 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "description",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "product_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "duration_weeks",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

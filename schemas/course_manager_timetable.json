@@ -1,0 +1,82 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "teacher_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "teacher_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "room_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "start_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "end_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "is_online",
+            "dataType": "boolean"
+        },
+        {
+            "fieldName": "online_link",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1024
+            }
+        },
+        {
+            "fieldName": "recurrence_rule",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 512
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "scheduled"
+            }
+        },
+        {
+            "fieldName": "override_conflict",
+            "dataType": "boolean"
+        },
+        {
+            "fieldName": "override_reason",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        }
+    ]
+}

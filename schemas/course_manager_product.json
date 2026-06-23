@@ -1,0 +1,57 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "course_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "product_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "product_code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "product_title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "price",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "10,2"
+            }
+        },
+        {
+            "fieldName": "currency_code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

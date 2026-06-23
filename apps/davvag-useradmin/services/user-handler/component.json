@@ -18,7 +18,12 @@
         "methods" : {
             "allusers" : {
                 "method" : "GET"
-            },"UserGroups" : {
+            },
+            "SearchUsersByEmail" : {
+                "method" : "GET",
+                "parameters":["email"]
+            },
+            "UserGroups" : {
                 "method" : "GET"
             },"NewUserGroup" : {
                 "method" : "GET",
@@ -26,6 +31,15 @@
             },"ChangeGroup" : {
                 "method" : "GET",
                 "parameters":["userid","groupid"]
+            },
+            "SaveUserGroup":{
+                "method":"POST"
+            },
+            "DeleteUserGroup":{
+                "method":"POST"
+            },
+            "AdminResetPassword":{
+                "method":"POST"
             },"RegisterUser":{
                 "method":"POST"
             },

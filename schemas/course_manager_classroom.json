@@ -1,0 +1,54 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "capacity",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "location",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "type",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

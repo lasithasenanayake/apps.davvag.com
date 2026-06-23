@@ -1,4 +1,5 @@
 WEBDOCK.component().register(function(exports){
+    var apploader;
     var bindData = {
         site: {
             name: "Davvag CMS v7",
@@ -10,7 +11,13 @@ WEBDOCK.component().register(function(exports){
         openMenuId: "",
         userData: null,
         userAccess: ["public", "guest", "anonymous"],
-        usingLaunchers: false
+        usingLaunchers: false,
+        Notify: [],
+        appTitle: "",
+        notificationOpen: false,
+        notificationLoading: false,
+        notificationError: "",
+        loadingAppError: false
     };
     var launcherRequestId = 0;
     var listenersBound = false;
@@ -20,14 +27,20 @@ WEBDOCK.component().register(function(exports){
         methods: {
             toggleMenu: toggleMenu,
             closeMenu: closeMenu,
-            isMenuOpen: isMenuOpen
+            isMenuOpen: isMenuOpen,
+            notification: toggleNotification,
+            closeNotification: closeNotification,
+            downloadapp: downloadapp,
+            closeNotifyApp: closeNotifyApp
         },
         onReady: function(){
             loadSiteData();
             loadSession(function(){
                 applySiteNavigation();
                 loadLauncherNavigation();
+                loadNotifications();
             });
+            initializeAppLoader();
             bindListeners();
         }
     };
@@ -57,8 +70,11 @@ WEBDOCK.component().register(function(exports){
         listenersBound = true;
         window.addEventListener("cms-v7-site-changed", refreshNavigation);
         document.addEventListener("click", function(event){
-            if(!event.target.closest || !event.target.closest(".cms-v7-nav")){
+            if(!closest(event.target, ".cms-v7-nav")){
                 closeMenu();
+            }
+            if(!closest(event.target, ".cms-v7-notification-bar") && !closest(event.target, ".cms-v7-notification-toggle")){
+                closeNotification();
             }
         });
     }
@@ -109,6 +125,147 @@ WEBDOCK.component().register(function(exports){
     function setUserData(userData){
         bindData.userData = userData || null;
         bindData.userAccess = getUserAccess(userData);
+    }
+
+    function initializeAppLoader(){
+        if(!exports.getAppComponent){
+            return;
+        }
+        exports.getAppComponent("davvag-tools", "davvag-app-downloader", function(_uploader){
+            apploader = _uploader;
+            if(apploader && apploader.initialize){
+                apploader.initialize();
+            }
+        });
+    }
+
+    function loadNotifications(){
+        var handler = exports.getComponent("auth-handler");
+        if(!handler || !handler.services || !handler.services.Notification){
+            bindData.Notify = [];
+            return;
+        }
+        bindData.notificationLoading = true;
+        bindData.notificationError = "";
+        handler.services.Notification()
+            .then(function(result){
+                bindData.Notify = result && result.result ? result.result : [];
+                bindData.notificationLoading = false;
+            })
+            .error(function(){
+                bindData.Notify = [];
+                bindData.notificationLoading = false;
+                bindData.notificationError = "Unable to load notifications.";
+            });
+    }
+
+    function toggleNotification(event){
+        if(event && event.stopPropagation){
+            event.stopPropagation();
+        }
+        bindData.notificationOpen = !bindData.notificationOpen;
+        if(bindData.notificationOpen){
+            closeMenu();
+            loadNotifications();
+        }
+    }
+
+    function closeNotification(){
+        bindData.notificationOpen = false;
+    }
+
+    function downloadapp(appname, form, data, apptitle, notificationItem){
+        var payload = parseNotificationData(data);
+        payload.notfy = notificationItem;
+        bindData.appTitle = apptitle || "Notification";
+        bindData.loadingAppError = false;
+        closeNotification();
+
+        if(!apploader || !apploader.downloadAPP){
+            bindData.notificationError = "Unable to open notification.";
+            return;
+        }
+        showNotifyApp();
+        apploader.downloadAPP(appname, form, "notifyappdock", function(){
+        }, function(error){
+            if(window.console && console.log){
+                console.log(error);
+            }
+            bindData.loadingAppError = true;
+        }, completeResponse, payload);
+    }
+
+    function completeResponse(data){
+        if(data && data.notfy && data.notfy.id){
+            clearNotification(data.notfy);
+        }
+        if(window.console && console.log){
+            console.log(JSON.stringify(data));
+        }
+    }
+
+    function clearNotification(notificationItem){
+        var handler = exports.getComponent("auth-handler");
+        if(!handler || !handler.services || !handler.services.ClearNotiifcatiion){
+            return;
+        }
+        handler.services.ClearNotiifcatiion({id: notificationItem.id.toString()})
+            .then(function(result){
+                if(result.success){
+                    removeNotification(notificationItem.id);
+                    if(notificationItem.closeapp){
+                        closeNotifyApp();
+                    }
+                }else{
+                    alert("Error");
+                }
+            })
+            .error(function(){
+            });
+    }
+
+    function removeNotification(id){
+        var filtered = [];
+        var targetId = id.toString();
+        for(var i = 0; i < bindData.Notify.length; i++){
+            var currentId = bindData.Notify[i].id;
+            if(currentId === undefined || currentId === null || currentId.toString() !== targetId){
+                filtered.push(bindData.Notify[i]);
+            }
+        }
+        bindData.Notify = filtered;
+    }
+
+    function parseNotificationData(data){
+        if(!data){
+            return {};
+        }
+        if(typeof data === "object"){
+            var copy = {};
+            for(var key in data){
+                if(Object.prototype.hasOwnProperty.call(data, key)){
+                    copy[key] = data[key];
+                }
+            }
+            return copy;
+        }
+        try{
+            return JSON.parse(data);
+        }catch(error){
+            return {};
+        }
+    }
+
+    function showNotifyApp(){
+        if(typeof $ !== "undefined" && $.fn && $.fn.modal){
+            $("#notifyappwindow").modal("show");
+        }
+    }
+
+    function closeNotifyApp(){
+        if(typeof $ !== "undefined" && $.fn && $.fn.modal){
+            $("#notifyappwindow").modal("hide");
+        }
     }
 
     function loadLauncherNavigation(){
@@ -442,6 +599,10 @@ WEBDOCK.component().register(function(exports){
 
     function isMenuOpen(item){
         return bindData.openMenuId === item.id;
+    }
+
+    function closest(target, selector){
+        return target && target.closest ? target.closest(selector) : null;
     }
 
     function getCookie(cname) {

@@ -1,0 +1,48 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "course_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "start_date",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "end_date",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "capacity",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "room_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

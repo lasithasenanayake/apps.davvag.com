@@ -27,3 +27,91 @@
 .select-editable select:focus, .select-editable input:focus {
     outline:none;
 }
+
+.user-admin-app {
+    color:#222;
+}
+
+.user-admin-toolbar {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0;
+}
+
+.user-search-form {
+    margin:12px 0;
+}
+
+.user-search-form label {
+    display:block;
+    margin-bottom:4px;
+    font-weight:600;
+}
+
+.user-search-row {
+    display:flex;
+    gap:8px;
+}
+
+.user-search-row .form-control {
+    max-width:420px;
+}
+
+.user-admin-summary {
+    color:#555;
+    font-size:13px;
+    margin:8px 0;
+}
+
+.user-admin-state {
+    border:1px solid #d8dde4;
+    background:#f8fafc;
+    color:#555;
+    padding:14px;
+    margin:10px 0;
+    border-radius:4px;
+}
+
+.user-admin-table td {
+    vertical-align:middle;
+}
+
+.user-admin-actions {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.user-modal-note {
+    margin-bottom:10px;
+    font-weight:600;
+}
+
+#form-user-create .form-control,
+#form-change-group .form-control,
+#form-reset-password .form-control {
+    margin-bottom:10px;
+}
+
+@media screen and (max-width:640px){
+    .user-search-row {
+        display:block;
+    }
+
+    .user-search-row .form-control,
+    .user-search-row .btn {
+        width:100%;
+        max-width:none;
+        margin-bottom:8px;
+    }
+
+    .user-admin-actions {
+        display:block;
+    }
+
+    .user-admin-actions .btn {
+        width:100%;
+        margin-bottom:6px;
+    }
+}

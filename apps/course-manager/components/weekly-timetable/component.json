@@ -1,0 +1,18 @@
+{
+    "name": "weekly-timetable",
+    "description": "Weekly timetable grid with cohort, subject, and attendance actions",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

@@ -1,0 +1,105 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div>
+      <h3>Course Manager</h3>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-primary" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-education"></span> Courses</button>
+      <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Timetable</button>
+      <button class="btn btn-default" v-on:click="navigate('../weekly-timetable')"><span class="glyphicon glyphicon-calendar"></span> Weekly</button>
+      <button class="btn btn-default" v-on:click="navigate('../attendance')"><span class="glyphicon glyphicon-ok"></span> Attendance</button>
+      <button class="btn btn-default" v-on:click="navigate('../gradebook')"><span class="glyphicon glyphicon-stats"></span> Gradebook</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="cm-kpis">
+    <div class="cm-kpi"><span>Courses</span><strong>{{ stats.courses || 0 }}</strong></div>
+    <div class="cm-kpi"><span>Cohorts</span><strong>{{ stats.class_grades || 0 }}</strong></div>
+    <div class="cm-kpi"><span>Enrollments</span><strong>{{ stats.active_enrollments || 0 }}</strong></div>
+    <div class="cm-kpi"><span>Slots</span><strong>{{ stats.scheduled_slots || 0 }}</strong></div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Quick Course</strong>
+          <button class="btn btn-xs btn-default" v-on:click="seedSample"><span class="glyphicon glyphicon-plus"></span></button>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <div class="cm-two">
+              <label>Code<input v-model="quickCourse.code"></label>
+              <label>Weeks<input type="number" v-model="quickCourse.duration_weeks"></label>
+            </div>
+            <label>Title<input v-model="quickCourse.title"></label>
+            <label>Description<textarea v-model="quickCourse.description"></textarea></label>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveQuickCourse"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+              <button class="btn btn-default" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-list-alt"></span> List</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Courses</strong></div>
+        <div class="cm-list">
+          <div class="cm-empty" v-if="courses.length == 0">No courses.</div>
+          <div class="cm-row" v-for="course in courses">
+            <div class="cm-row-main">
+              <strong>{{ course.code }} - {{ course.title }}</strong>
+              <span>{{ course.duration_weeks || 0 }} weeks</span>
+            </div>
+            <span v-bind:class="statusClass(course.status)">{{ course.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Capacity</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Cohort</th><th>Course</th><th>Active</th><th>Capacity</th><th>Open</th></tr></thead>
+            <tbody>
+              <tr v-for="row in capacityRows">
+                <td>{{ row.class_grade.name }}</td>
+                <td>{{ courseTitle(row.class_grade.course_id) }}</td>
+                <td>{{ row.active_enrollments }}</td>
+                <td>{{ row.capacity }}</td>
+                <td>{{ row.remaining === null ? '-' : row.remaining }}</td>
+              </tr>
+              <tr v-if="capacityRows.length == 0"><td colspan="5">No cohorts.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Timetable</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Start</th><th>Cohort</th><th>Teacher</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr v-for="slot in timetable">
+                <td>{{ slot.start_at }}</td>
+                <td>{{ classGradeName(slot.class_grade_id) }}</td>
+                <td>{{ slot.teacher_name || slot.teacher_id }}</td>
+                <td><span v-bind:class="statusClass(slot.status)">{{ slot.status }}</span></td>
+              </tr>
+              <tr v-if="timetable.length == 0"><td colspan="4">No slots.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

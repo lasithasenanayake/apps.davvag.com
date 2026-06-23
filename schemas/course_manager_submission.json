@@ -1,0 +1,98 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "assignment_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "content",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 5000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "file_url",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1024
+            }
+        },
+        {
+            "fieldName": "submitted_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "marks",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "late_penalty",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "grade_letter",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName": "grade_point",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "3,2"
+            }
+        },
+        {
+            "fieldName": "feedback",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 5000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "graded_by",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "graded_at",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

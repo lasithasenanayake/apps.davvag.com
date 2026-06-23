@@ -19,6 +19,41 @@
                 </div>
             </div>
             <a class="cms-v7-button" v-if="cta && cta.label" v-bind:href="cta.url" v-bind:target="cta.target">{{ cta.label }}</a>
+            <div class="cms-v7-nav-actions" aria-label="User actions">
+                <button class="cms-v7-nav-action cms-v7-notification-toggle" type="button" v-on:click="notification($event)" aria-label="Notification" title="Notification">
+                    <i class="fa fa-bell fa-fw fa-lg" aria-hidden="true"></i>
+                </button>
+                <a class="cms-v7-nav-action" href="#/app/userapp/setting" aria-label="Settings" title="Settings">
+                    <i class="fa fa-cog fa-fw fa-lg" aria-hidden="true"></i>
+                </a>
+                <a class="cms-v7-nav-action" href="#/app/userapp" aria-label="User Info" title="User Info">
+                    <i class="fa fa-user fa-fw fa-lg" aria-hidden="true"></i>
+                </a>
+            </div>
         </div>
     </div>
 </nav>
+<nav class="cms-v7-notification-bar" v-show="notificationOpen" aria-label="Notifications" v-on:click.stop>
+    <div class="cms-v7-notification-state" v-if="notificationLoading">Loading notifications...</div>
+    <div class="cms-v7-notification-state" v-if="!notificationLoading && notificationError">{{ notificationError }}</div>
+    <div class="cms-v7-notification-state" v-if="!notificationLoading && !notificationError && !Notify.length">No notifications.</div>
+    <div class="cms-v7-notification-list" v-if="!notificationLoading && !notificationError && Notify.length">
+        <div v-for="nitem in Notify" v-bind:key="nitem.id || nitem.notify_message" v-bind:id="'cms-v7-notfy-' + nitem.id" class="cms-v7-notification-item">
+            <a v-if="nitem.url" v-bind:href="nitem.url" v-on:click="closeNotification" class="cms-v7-notification-link">{{ nitem.notify_message }}</a>
+            <button v-if="!nitem.url" type="button" v-on:click="downloadapp(nitem.appcode, nitem.app, nitem.notify_data, nitem.apptitle, nitem)" class="cms-v7-notification-link">{{ nitem.notify_message }}</button>
+        </div>
+    </div>
+</nav>
+<div class="modal fade" id="notifyappwindow" role="dialog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">{{ appTitle }}</h6>
+                <button type="button" class="close" v-on:click="closeNotifyApp" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="notifyappdock" class="modal-body"></div>
+        </div>
+    </div>
+</div>

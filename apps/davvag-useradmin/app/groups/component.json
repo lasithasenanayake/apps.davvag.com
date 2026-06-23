@@ -1,6 +1,6 @@
 {
-    "name" : "Users",
-    "description":"Vue.JS Plugin for Soss Router",
+    "name" : "User Groups",
+    "description":"User group maintenance component",
     "author":"Lasitha Senanayake",
     "version" : "0.1",
     "gitUrl" : "",

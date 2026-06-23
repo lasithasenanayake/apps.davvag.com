@@ -1,0 +1,73 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "entity_type",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "entity_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profile_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "profile_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "email",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName": "event_type",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "message",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "queued"
+            }
+        },
+        {
+            "fieldName": "created_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "sent_at",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

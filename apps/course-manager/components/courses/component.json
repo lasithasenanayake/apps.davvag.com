@@ -1,0 +1,18 @@
+{
+    "name": "courses",
+    "description": "Course, subject, cohort, product, and enrollment management",
+    "author": "DAVVAG",
+    "version": "0.3",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

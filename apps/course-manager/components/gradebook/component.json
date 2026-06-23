@@ -1,0 +1,18 @@
+{
+    "name": "gradebook",
+    "description": "Course Manager gradebook and grading scale",
+    "author": "DAVVAG",
+    "version": "0.2",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

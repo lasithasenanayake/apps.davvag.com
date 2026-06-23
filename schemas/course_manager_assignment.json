@@ -1,0 +1,70 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "description",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 5000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "due_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "max_mark",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "late_penalty_per_day",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "5,2"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "draft"
+            }
+        },
+        {
+            "fieldName": "created_by",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "created_at",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "min_mark",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "5,2"
+            }
+        },
+        {
+            "fieldName": "max_mark",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "5,2"
+            }
+        },
+        {
+            "fieldName": "grade_letter",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName": "grade_point",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "3,2"
+            }
+        },
+        {
+            "fieldName": "active",
+            "dataType": "boolean"
+        },
+        {
+            "fieldName": "label",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100,
+                "encoding": "utf8"
+            }
+        }
+    ]
+}

@@ -1,0 +1,73 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "timetable_slot_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "recorded_by",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "recorded_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "source",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "check_in_code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "note",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1000,
+                "encoding": "utf8"
+            }
+        }
+    ]
+}

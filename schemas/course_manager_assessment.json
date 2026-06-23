@@ -1,0 +1,61 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "subject_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "assessment_type",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "max_mark",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "8,2"
+            }
+        },
+        {
+            "fieldName": "weight",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "5,2"
+            }
+        },
+        {
+            "fieldName": "due_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+<section class="cm-page cm-popup-page">
+  <div class="cm-filter-strip">
+    <label>Product Search<input v-model="search" v-on:keyup="searchProducts" placeholder="Search by name, id, category, or keywords"></label>
+    <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  </div>
+
+  <div class="cm-muted cm-popup-message">{{ message }}</div>
+
+  <div class="cm-product-picker-list">
+    <div class="cm-empty" v-if="!loading && products.length == 0">No products.</div>
+    <div class="cm-product-picker-row" v-for="product in products">
+      <img v-bind:src="productImage(product)" alt="">
+      <div class="cm-row-main">
+        <strong>#{{ product.product_id }} {{ product.product_title }}</strong>
+        <span>{{ product.category || 'Unassigned' }} | {{ product.uom || '-' }}</span>
+        <span class="cm-muted">{{ product.caption }}</span>
+      </div>
+      <div class="cm-product-picker-side">
+        <strong>{{ formatMoney(product.product_price, product.product_currency_code) }}</strong>
+        <button class="btn btn-primary" v-on:click="selectProduct(product)"><span class="glyphicon glyphicon-ok"></span> Select</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,88 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "course_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "teacher_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "product_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "product_code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "product_title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "product_price",
+            "dataType": "decimal",
+            "annotations": {
+                "decimalPoints": "10,2"
+            }
+        },
+        {
+            "fieldName": "product_currency_code",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10
+            }
+        },
+        {
+            "fieldName": "credits",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "is_core",
+            "dataType": "boolean"
+        },
+        {
+            "fieldName": "metadata",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

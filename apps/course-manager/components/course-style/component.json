@@ -1,0 +1,20 @@
+{
+    "name": "course-style",
+    "description": "Course Manager shared styles",
+    "author": "DAVVAG",
+    "version": "0.7",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "course-manager.css"
+            }
+        ]
+    }
+}

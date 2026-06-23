@@ -1,0 +1,189 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div><h3>Courses</h3></div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../dashboard')"><span class="glyphicon glyphicon-stats"></span> Dashboard</button>
+      <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Timetable</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="cm-tabs">
+    <button class="btn" v-bind:class="tab == 'courses' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('courses')">Courses</button>
+    <button class="btn" v-bind:class="tab == 'subjects' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('subjects')">Subjects</button>
+    <button class="btn" v-bind:class="tab == 'cohorts' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('cohorts')">Cohorts</button>
+    <button class="btn" v-bind:class="tab == 'enrollments' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('enrollments')">Enrollments</button>
+  </div>
+
+  <div class="cm-panel" v-if="tab == 'courses'">
+    <div class="cm-panel-header">
+      <strong>Courses</strong>
+      <button class="btn btn-xs btn-default" v-on:click="courseForm = {code:'', title:'', description:'', duration_weeks:12, status:'active'}"><span class="glyphicon glyphicon-plus"></span></button>
+    </div>
+    <div class="cm-panel-body">
+      <div class="row">
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-list">
+            <div class="cm-empty" v-if="courses.length == 0">No courses.</div>
+            <div class="cm-row" v-for="course in courses">
+              <button class="cm-row-main" v-on:click="selectCourse(course)">
+                <strong>{{ course.code }} - {{ course.title }}</strong>
+                <span>{{ course.duration_weeks || 0 }} weeks</span>
+              </button>
+              <button class="btn btn-xs btn-default" v-on:click="deleteCourse(course)" title="Delete" aria-label="Delete course"><span class="glyphicon glyphicon-trash"></span></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-form-grid">
+            <div class="cm-two">
+              <label>Code<input v-model="courseForm.code"></label>
+              <label>Weeks<input type="number" v-model="courseForm.duration_weeks"></label>
+            </div>
+            <label>Title<input v-model="courseForm.title"></label>
+            <label>Description<textarea v-model="courseForm.description"></textarea></label>
+            <label>Status<select v-model="courseForm.status"><option>active</option><option>paused</option><option>closed</option></select></label>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveCourse"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+              <button class="btn btn-default" v-on:click="resetForms">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cm-panel" v-if="tab == 'subjects'">
+    <div class="cm-panel-header"><strong>Subjects</strong></div>
+    <div class="cm-panel-body">
+      <div class="row">
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-list">
+            <div class="cm-empty" v-if="subjects.length == 0">No subjects.</div>
+            <div class="cm-row" v-for="subject in subjects">
+              <button class="cm-row-main" v-on:click="selectSubject(subject)">
+                <strong>{{ subject.code }} - {{ subject.title }}</strong>
+                <span>{{ courseTitle(subject.course_id) }}</span>
+                <span>{{ productLabel(subject) }}</span>
+              </button>
+              <div class="cm-inline-actions">
+                <button class="btn btn-xs btn-default" v-on:click="mapProductToSubject(subject)" title="Map product"><span class="glyphicon glyphicon-list-alt"></span> Product</button>
+                <button class="btn btn-xs btn-default" v-on:click="deleteSubject(subject)" title="Delete" aria-label="Delete subject"><span class="glyphicon glyphicon-trash"></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-form-grid">
+            <label>Course<select v-model="subjectForm.course_id"><option value="">Select</option><option v-for="course in courses" v-bind:value="course.id">{{ course.code }} - {{ course.title }}</option></select></label>
+            <div class="cm-two">
+              <label>Code<input v-model="subjectForm.code"></label>
+              <label>Credits<input type="number" v-model="subjectForm.credits"></label>
+            </div>
+            <label>Title<input v-model="subjectForm.title"></label>
+            <label>Teacher
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(subjectForm.teacher_id)" placeholder="No teacher selected">
+                <button class="btn btn-default" v-on:click="selectSubjectTeacher"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <label>Mapped Product
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="productLabel(subjectForm)" placeholder="No product mapped">
+                <button class="btn btn-default" v-on:click="selectSubjectProduct"><span class="glyphicon glyphicon-list-alt"></span> Select</button>
+              </div>
+            </label>
+            <div class="cm-two">
+              <label>Product Price<input readonly v-bind:value="subjectForm.product_price"></label>
+              <label>Currency<input readonly v-bind:value="subjectForm.product_currency_code"></label>
+            </div>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveSubject"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+              <button class="btn btn-default" v-on:click="clearSubjectProduct">Clear Product</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cm-panel" v-if="tab == 'cohorts'">
+    <div class="cm-panel-header"><strong>Cohorts</strong></div>
+    <div class="cm-panel-body">
+      <div class="row">
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-list">
+            <div class="cm-empty" v-if="classGrades.length == 0">No cohorts.</div>
+            <div class="cm-row" v-for="classGrade in classGrades">
+              <button class="cm-row-main" v-on:click="selectClassGrade(classGrade)">
+                <strong>{{ classGrade.name }}</strong>
+                <span>{{ courseTitle(classGrade.course_id) }} | {{ classGrade.capacity || 0 }} seats</span>
+              </button>
+              <button class="btn btn-xs btn-default" v-on:click="deleteClassGrade(classGrade)" title="Delete" aria-label="Delete cohort"><span class="glyphicon glyphicon-trash"></span></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-form-grid">
+            <label>Course<select v-model="classGradeForm.course_id"><option value="">Select</option><option v-for="course in courses" v-bind:value="course.id">{{ course.code }} - {{ course.title }}</option></select></label>
+            <label>Name<input v-model="classGradeForm.name"></label>
+            <div class="cm-three">
+              <label>Start<input type="date" v-model="classGradeForm.start_date"></label>
+              <label>End<input type="date" v-model="classGradeForm.end_date"></label>
+              <label>Capacity<input type="number" v-model="classGradeForm.capacity"></label>
+            </div>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveClassGrade"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cm-panel" v-if="tab == 'enrollments'">
+    <div class="cm-panel-header"><strong>Enrollments</strong></div>
+    <div class="cm-panel-body">
+      <div class="row">
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-list">
+            <div class="cm-empty" v-if="enrollments.length == 0">No enrollments.</div>
+            <div class="cm-row" v-for="enrollment in enrollments">
+              <button class="cm-row-main" v-on:click="selectEnrollment(enrollment)">
+                <strong>{{ enrollment.student_name || profileName(enrollment.student_id) }}</strong>
+                <span>{{ classGradeName(enrollment.class_grade_id) }}</span>
+              </button>
+              <button class="btn btn-xs btn-default" v-on:click="deleteEnrollment(enrollment)" title="Delete" aria-label="Delete enrollment"><span class="glyphicon glyphicon-trash"></span></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12">
+          <div class="cm-form-grid">
+            <label>Cohort<select v-model="enrollmentForm.class_grade_id"><option value="">Select</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
+            <label>Student
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(enrollmentForm.student_id)" placeholder="No student selected">
+                <button class="btn btn-default" v-on:click="selectEnrollmentStudent"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <div class="cm-two">
+              <label>Student Name<input v-model="enrollmentForm.student_name"></label>
+              <label>Email<input v-model="enrollmentForm.student_email"></label>
+            </div>
+            <label>Status<select v-model="enrollmentForm.status"><option>active</option><option>completed</option><option>dropped</option></select></label>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveEnrollment"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            </div>
+            <label>CSV<textarea v-model="bulkCsv"></textarea></label>
+            <button class="btn btn-default" v-on:click="importEnrollments"><span class="glyphicon glyphicon-upload"></span> Import</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

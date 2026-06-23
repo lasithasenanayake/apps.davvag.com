@@ -1,0 +1,80 @@
+.user-group-manager {
+    color:#222;
+}
+
+.group-toolbar {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0;
+}
+
+.group-search {
+    margin:12px 0;
+    max-width:420px;
+}
+
+.group-search label {
+    display:block;
+    margin-bottom:4px;
+    font-weight:600;
+}
+
+.group-summary {
+    color:#555;
+    font-size:13px;
+    margin:8px 0;
+}
+
+.group-state {
+    border:1px solid #d8dde4;
+    background:#f8fafc;
+    color:#555;
+    padding:14px;
+    margin:10px 0;
+    border-radius:4px;
+}
+
+.group-table td {
+    vertical-align:middle;
+}
+
+.group-actions {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.group-chip {
+    display:inline-block;
+    border-radius:4px;
+    background:#eef2f7;
+    color:#405268;
+    padding:3px 8px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.group-chip-custom {
+    background:#e6f4ed;
+    color:#287f5a;
+}
+
+#form-group-edit .form-control {
+    margin-top:4px;
+}
+
+@media screen and (max-width:640px){
+    .group-search {
+        max-width:none;
+    }
+
+    .group-actions {
+        display:block;
+    }
+
+    .group-actions .btn {
+        width:100%;
+        margin-bottom:6px;
+    }
+}

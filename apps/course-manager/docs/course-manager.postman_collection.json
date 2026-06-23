@@ -1,0 +1,181 @@
+{
+    "info": {
+        "name": "DAVVAG Course Manager",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Endpoint Catalog",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/components/course-manager/api/service/EndpointCatalog"
+            }
+        },
+        {
+            "name": "Dashboard",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/Dashboard"
+            }
+        },
+        {
+            "name": "Create Course",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"code\":\"CS101\",\"title\":\"Intro to Computer Science\",\"duration_weeks\":12,\"status\":\"active\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/CreateCourse"
+            }
+        },
+        {
+            "name": "List Courses",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"search\":\"CS\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/ListCourses"
+            }
+        },
+        {
+            "name": "Create Timetable",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"class_grade_id\":1,\"subject_id\":1,\"teacher_id\":1,\"room_id\":1,\"start_at\":\"2026-07-01T09:00\",\"end_at\":\"2026-07-01T10:30\",\"is_online\":\"false\",\"status\":\"scheduled\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/CreateTimetable"
+            }
+        },
+        {
+            "name": "Record Attendance",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"timetable_slot_id\":1,\"student_id\":1,\"student_name\":\"Student One\",\"status\":\"present\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/RecordAttendance"
+            }
+        },
+        {
+            "name": "Create Assignment",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"class_grade_id\":1,\"subject_id\":1,\"title\":\"Quiz 1\",\"due_at\":\"2026-07-05T17:00\",\"max_mark\":100,\"status\":\"published\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/CreateAssignment"
+            }
+        },
+        {
+            "name": "Submit Assignment",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"assignment_id\":1,\"student_id\":1,\"student_name\":\"Student One\",\"content\":\"Submission text\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/SubmitAssignment"
+            }
+        },
+        {
+            "name": "Grade Submission",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"submission_id\":1,\"marks\":87,\"feedback\":\"Good work\"}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/GradeSubmission"
+            }
+        },
+        {
+            "name": "Compute Grade",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/components/course-manager/api/service/ComputeGrade?marks=87"
+            }
+        },
+        {
+            "name": "Export Attendance CSV",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{}"
+                },
+                "url": "{{baseUrl}}/components/course-manager/api/service/ExportAttendanceCsv"
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost/git/davvag-core"
+        }
+    ]
+}

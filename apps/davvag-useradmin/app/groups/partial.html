@@ -1,15 +1,83 @@
-<div class="row">
-    <div v-for="group in groups" :key="group.name" class="group">
-      <div class="group-header">
-        <label>
-          <input
-            type="checkbox"
-            :checked="isGroupAllSelected(group)"
-            :indeterminate="isGroupSomeSelected(group) && !isGroupAllSelected(group)"
-            @change="toggleGroup(group, $event.target.checked)"
-          />
-          <strong>{{ group.name }}</strong>
-        </label>
+<div class="user-group-manager">
+  <div class="group-toolbar">
+    <button type="button" class="btn btn-info" v-on:click="openNewGroup" v-bind:disabled="isBusy">New Group</button>
+    <button type="button" class="btn btn-default" v-on:click="loadGroups" v-bind:disabled="isBusy">Reload</button>
+  </div>
+
+  <div class="input-error">
+    <p v-if="submitErrors.length" v-for="error in submitErrors" class="alert alert-danger">{{ error }}</p>
+    <p v-if="submitInfo.length" v-for="info in submitInfo" class="alert alert-info">{{ info }}</p>
+  </div>
+
+  <div class="group-search">
+    <label for="group-search">Search groups</label>
+    <input type="search" id="group-search" class="form-control" placeholder="Group id" v-model="groupSearch" v-bind:disabled="isBusy">
+  </div>
+
+  <div class="group-summary">
+    {{ filteredGroups.length }} of {{ groups.length }} groups
+  </div>
+
+  <div v-if="isBusy" class="group-state">Loading groups...</div>
+  <div v-if="!isBusy && !filteredGroups.length" class="group-state">No groups found.</div>
+
+  <table class="table group-table" v-if="!isBusy && filteredGroups.length">
+    <thead>
+      <tr>
+        <th>Group ID</th>
+        <th>Type</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="group in filteredGroups" v-bind:key="group.groupid">
+        <td>{{ group.groupid }}</td>
+        <td>
+          <span v-if="isProtectedGroup(group.groupid)" class="group-chip">System</span>
+          <span v-if="!isProtectedGroup(group.groupid)" class="group-chip group-chip-custom">Custom</span>
+        </td>
+        <td class="group-actions">
+          <button type="button" class="btn btn-primary btn-sm" v-on:click="editGroup(group)" v-bind:disabled="isProtectedGroup(group.groupid)">Rename</button>
+          <button type="button" class="btn btn-danger btn-sm" v-on:click="confirmDeleteGroup(group)" v-bind:disabled="isProtectedGroup(group.groupid)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="modalGroupEdit" role="dialog" tabindex="-1" style="overflow-x: auto;overflow-y: auto;width:100%;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+      <div class="modal-header">
+        <h1>{{ groupForm.oldGroupId ? 'Rename Group' : 'New Group' }}</h1>
       </div>
-    <div></div>
+      <div class="modal-body">
+        <form id="form-group-edit" v-on:submit.prevent="saveGroup">
+          <label for="group-id">Group ID</label>
+          <input v-model="groupForm.groupid" type="text" id="group-id" class="form-control" placeholder="example_group" required autofocus>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button v-on:click="saveGroup" class="btn btn-primary btn-block" v-bind:disabled="isBusy">Save</button>
+        <button v-on:click="cancelGroupForm" class="btn btn-default btn-block" v-bind:disabled="isBusy">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalGroupDelete" role="dialog" tabindex="-1" style="overflow-x: auto;overflow-y: auto;width:100%;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+      <div class="modal-header">
+        <h1>Delete Group</h1>
+      </div>
+      <div class="modal-body">
+        <p>Delete <strong>{{ groupToDelete.groupid }}</strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <button v-on:click="performDeleteGroup" class="btn btn-danger btn-block" v-bind:disabled="isBusy">Delete</button>
+        <button v-on:click="cancelDeleteGroup" class="btn btn-default btn-block" v-bind:disabled="isBusy">Close</button>
+      </div>
+    </div>
+  </div>
 </div>

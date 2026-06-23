@@ -1,0 +1,101 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div><h3>Profiles</h3></div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-education"></span> Courses</button>
+      <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Timetable</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Profiles</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <div class="input-group">
+              <input class="form-control" v-model="search" v-on:keyup="searchProfiles">
+              <span class="input-group-btn"><button class="btn btn-default" v-on:click="searchProfiles"><span class="glyphicon glyphicon-search"></span></button></span>
+            </div>
+          </div>
+        </div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Category</th></tr></thead>
+            <tbody>
+              <tr v-for="profile in profiles">
+                <td>{{ profile.name }}</td>
+                <td>{{ profile.email }}</td>
+                <td>{{ profile.catogory || profile.category }}</td>
+              </tr>
+              <tr v-if="profiles.length == 0"><td colspan="3">No profiles.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Attendance Export</strong></div>
+        <div class="cm-panel-body">
+          <button class="btn btn-default" v-on:click="exportAttendance"><span class="glyphicon glyphicon-download-alt"></span> Export</button>
+          <label v-if="exportResult">CSV<textarea v-model="exportResult.csv"></textarea></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Rooms</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <div class="cm-two">
+              <label>Code<input v-model="roomForm.code"></label>
+              <label>Capacity<input type="number" v-model="roomForm.capacity"></label>
+            </div>
+            <label>Name<input v-model="roomForm.name"></label>
+            <label>Location<input v-model="roomForm.location"></label>
+            <div class="cm-two">
+              <label>Type<select v-model="roomForm.type"><option>room</option><option>lab</option><option>online</option></select></label>
+              <label>Status<select v-model="roomForm.status"><option>active</option><option>closed</option></select></label>
+            </div>
+            <button class="btn btn-primary" v-on:click="saveRoom"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+          </div>
+        </div>
+        <div class="cm-list">
+          <div class="cm-empty" v-if="rooms.length == 0">No rooms.</div>
+          <div class="cm-row" v-for="room in rooms">
+            <button class="cm-row-main" v-on:click="selectRoom(room)">
+              <strong>{{ room.code }} - {{ room.name }}</strong>
+              <span>{{ room.location }} | {{ room.capacity || 0 }}</span>
+            </button>
+            <button class="btn btn-xs btn-default" v-on:click="deleteRoom(room)" title="Delete" aria-label="Delete room"><span class="glyphicon glyphicon-trash"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Attendance</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Slot</th><th>Student</th><th>Status</th><th>Recorded</th></tr></thead>
+            <tbody>
+              <tr v-for="row in attendance">
+                <td>{{ row.timetable_slot_id }}</td>
+                <td>{{ row.student_name || row.student_id }}</td>
+                <td><span v-bind:class="statusClass(row.status)">{{ row.status }}</span></td>
+                <td>{{ row.recorded_at }}</td>
+              </tr>
+              <tr v-if="attendance.length == 0"><td colspan="4">No attendance.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

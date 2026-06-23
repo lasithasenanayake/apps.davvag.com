@@ -1,0 +1,51 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "class_grade_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "course_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "student_name",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "student_email",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName": "enrolled_at",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "active"
+            }
+        }
+    ]
+}

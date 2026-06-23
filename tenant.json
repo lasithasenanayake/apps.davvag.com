@@ -178,6 +178,9 @@
         },
         "ephraim":{
             "version":"latest"
+        },
+        "course-manager":{
+            "version":"latest"
         }
     },
     "webdock":{

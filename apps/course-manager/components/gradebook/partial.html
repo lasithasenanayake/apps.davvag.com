@@ -1,0 +1,152 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div><h3>Gradebook</h3></div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../assignments')"><span class="glyphicon glyphicon-list-alt"></span> Assignments</button>
+      <button class="btn btn-default" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-education"></span> Courses</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Assessment</strong>
+          <button class="btn btn-xs btn-default" v-on:click="clearForms"><span class="glyphicon glyphicon-plus"></span></button>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Cohort<select v-model="assessmentForm.class_grade_id"><option value="">Select</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
+            <label>Subject<select v-model="assessmentForm.subject_id"><option value="">Select</option><option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option></select></label>
+            <label>Title<input v-model="assessmentForm.title"></label>
+            <div class="cm-three">
+              <label>Type<input v-model="assessmentForm.assessment_type"></label>
+              <label>Max<input type="number" v-model="assessmentForm.max_mark"></label>
+              <label>Weight<input type="number" v-model="assessmentForm.weight"></label>
+            </div>
+            <button class="btn btn-primary" v-on:click="saveAssessment"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Mark</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Assessment<select v-model="markForm.assessment_id"><option value="">Select</option><option v-for="assessment in assessments" v-bind:value="assessment.id">{{ assessment.title }}</option></select></label>
+            <label>Student
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(markForm.student_id)" placeholder="No student selected">
+                <button class="btn btn-default" v-on:click="selectMarkStudent"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <div class="cm-three">
+              <label>Marks<input type="number" v-model="markForm.marks"></label>
+              <label>Max<input type="number" v-model="markForm.max_mark"></label>
+              <label>Weight<input type="number" v-model="markForm.weight"></label>
+            </div>
+            <label>Note<input v-model="markForm.note"></label>
+            <button class="btn btn-primary" v-on:click="saveMark"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Grading Scale</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <div class="cm-three">
+              <label>Min<input type="number" v-model="scaleForm.min_mark"></label>
+              <label>Max<input type="number" v-model="scaleForm.max_mark"></label>
+              <label>Grade<input v-model="scaleForm.grade_letter"></label>
+            </div>
+            <div class="cm-two">
+              <label>Point<input type="number" v-model="scaleForm.grade_point"></label>
+              <label>Active<select v-model="scaleForm.active"><option value="true">true</option><option value="false">false</option></select></label>
+            </div>
+            <label>Label<input v-model="scaleForm.label"></label>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveScale"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+              <button class="btn btn-default" v-on:click="recomputeGrades"><span class="glyphicon glyphicon-refresh"></span> Recompute</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Compute</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Marks<input type="number" v-model="compute.marks"></label>
+            <button class="btn btn-default" v-on:click="computeGrade"><span class="glyphicon glyphicon-stats"></span> Compute</button>
+            <div v-if="compute.result"><strong>{{ compute.result.grade_letter }}</strong> {{ compute.result.grade_point }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Marks</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Student</th><th>Assessment</th><th>Marks</th><th>Grade</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="mark in marks">
+                <td>{{ mark.student_name || profileName(mark.student_id) }}</td>
+                <td>{{ mark.assessment_id }}</td>
+                <td>{{ mark.marks }} / {{ mark.max_mark }}</td>
+                <td>{{ mark.grade_letter }}</td>
+                <td>
+                  <div class="cm-inline-actions">
+                    <button class="btn btn-xs btn-default" v-on:click="selectMark(mark)"><span class="glyphicon glyphicon-ok"></span></button>
+                    <button class="btn btn-xs btn-default" v-on:click="deleteMark(mark)" title="Delete" aria-label="Delete mark"><span class="glyphicon glyphicon-trash"></span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="marks.length == 0"><td colspan="5">No marks.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Scales</strong></div>
+        <div class="cm-list">
+          <div class="cm-empty" v-if="scales.length == 0">No scales.</div>
+          <div class="cm-row" v-for="scale in scales">
+            <button class="cm-row-main" v-on:click="selectScale(scale)">
+              <strong>{{ scale.grade_letter }} | {{ scale.grade_point }}</strong>
+              <span>{{ scale.min_mark }} - {{ scale.max_mark }}</span>
+            </button>
+            <button class="btn btn-xs btn-default" v-on:click="deleteScale(scale)" title="Delete" aria-label="Delete grading scale"><span class="glyphicon glyphicon-trash"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Final Grade</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Student
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(finalRequest.student_id)" placeholder="No student selected">
+                <button class="btn btn-default" v-on:click="selectFinalStudent"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <label>Cohort<select v-model="finalRequest.class_grade_id"><option value="">Any</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
+            <label>Subject<select v-model="finalRequest.subject_id"><option value="">Any</option><option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option></select></label>
+            <button class="btn btn-default" v-on:click="finalGrade"><span class="glyphicon glyphicon-stats"></span> Calculate</button>
+            <div v-if="finalRequest.result"><strong>{{ finalRequest.result.final_mark }}</strong> {{ finalRequest.result.grade_letter }} {{ finalRequest.result.grade_point }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

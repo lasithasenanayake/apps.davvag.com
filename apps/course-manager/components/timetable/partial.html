@@ -1,0 +1,123 @@
+<section class="cm-page">
+  <div class="cm-toolbar">
+    <div><h3>Timetable</h3></div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-education"></span> Courses</button>
+      <button class="btn btn-default" v-on:click="navigate('../weekly-timetable')"><span class="glyphicon glyphicon-calendar"></span> Weekly</button>
+      <button class="btn btn-default" v-on:click="navigate('../attendance')"><span class="glyphicon glyphicon-ok"></span> Attendance</button>
+      <button class="btn btn-default" v-on:click="navigate('../assignments')"><span class="glyphicon glyphicon-list-alt"></span> Assignments</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Slots</strong>
+          <button class="btn btn-xs btn-default" v-on:click="clearSlot"><span class="glyphicon glyphicon-plus"></span></button>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Cohort<select v-model="form.class_grade_id"><option value="">Select</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
+            <label>Subject<select v-model="form.subject_id"><option value="">Select</option><option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option></select></label>
+            <div class="cm-two">
+              <label>Teacher
+                <div class="cm-profile-picker">
+                  <input readonly v-bind:value="profileName(form.teacher_id)" placeholder="No teacher selected">
+                  <button class="btn btn-default" v-on:click="selectTeacherProfile"><span class="glyphicon glyphicon-user"></span> Select</button>
+                </div>
+              </label>
+              <label>Room<select v-model="form.room_id"><option value="">Select</option><option v-for="room in rooms" v-bind:value="room.id">{{ room.code }} - {{ room.name }}</option></select></label>
+            </div>
+            <div class="cm-two">
+              <label>Start<input type="datetime-local" v-model="form.start_at"></label>
+              <label>End<input type="datetime-local" v-model="form.end_at"></label>
+            </div>
+            <div class="cm-two">
+              <label>Online<select v-model="form.is_online"><option value="false">false</option><option value="true">true</option></select></label>
+              <label>Status<select v-model="form.status"><option>scheduled</option><option>completed</option><option>cancelled</option></select></label>
+            </div>
+            <label>Online Link<input v-model="form.online_link"></label>
+            <label>Recurrence<input v-model="form.recurrence_rule"></label>
+            <div class="cm-two">
+              <label>Override<select v-model="form.override_conflict"><option value="false">false</option><option value="true">true</option></select></label>
+              <label>Override Reason<input v-model="form.override_reason"></label>
+            </div>
+            <div class="cm-actions">
+              <button class="btn btn-primary" v-on:click="saveSlot"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Attendance</strong></div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <label>Slot<select v-model="attendanceForm.timetable_slot_id"><option value="">Select</option><option v-for="slot in slots" v-bind:value="slot.id">{{ slot.start_at }} - {{ subjectTitle(slot.subject_id) }}</option></select></label>
+            <label>Student
+              <div class="cm-profile-picker">
+                <input readonly v-bind:value="profileName(attendanceForm.student_id)" placeholder="No student selected">
+                <button class="btn btn-default" v-on:click="selectAttendanceStudent"><span class="glyphicon glyphicon-user"></span> Select</button>
+              </div>
+            </label>
+            <div class="cm-two">
+              <label>Student Name<input v-model="attendanceForm.student_name"></label>
+              <label>Status<select v-model="attendanceForm.status"><option>present</option><option>absent</option><option>late</option><option>excused</option></select></label>
+            </div>
+            <label>Note<input v-model="attendanceForm.note"></label>
+            <button class="btn btn-primary" v-on:click="saveAttendance"><span class="glyphicon glyphicon-ok"></span> Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Schedule</strong></div>
+        <div class="cm-table">
+          <table>
+            <thead><tr><th>Start</th><th>End</th><th>Cohort</th><th>Subject</th><th>Room</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="slot in slots">
+                <td>{{ slot.start_at }}</td>
+                <td>{{ slot.end_at }}</td>
+                <td>{{ classGradeName(slot.class_grade_id) }}</td>
+                <td>{{ subjectTitle(slot.subject_id) }}</td>
+                <td>{{ roomName(slot.room_id) }}</td>
+                <td>
+                  <div class="cm-inline-actions">
+                    <button class="btn btn-xs btn-default" v-on:click="selectSlot(slot)"><span class="glyphicon glyphicon-calendar"></span></button>
+                    <button class="btn btn-xs btn-default" v-on:click="navigate('../attendance?slotId=' + slot.id + '&classGradeId=' + slot.class_grade_id + '&subjectId=' + slot.subject_id)"><span class="glyphicon glyphicon-ok"></span></button>
+                    <button class="btn btn-xs btn-default" v-on:click="deleteSlot(slot)" title="Delete" aria-label="Delete timetable slot"><span class="glyphicon glyphicon-trash"></span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="slots.length == 0"><td colspan="6">No slots.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header"><strong>Check-In Codes</strong></div>
+        <div class="cm-list">
+          <div class="cm-empty" v-if="slots.length == 0">No codes.</div>
+          <div class="cm-row" v-for="slot in slots">
+            <div class="cm-row-main">
+              <strong>{{ checkInCode(slot) }}</strong>
+              <span>{{ slot.start_at }} | {{ subjectTitle(slot.subject_id) }}</span>
+            </div>
+            <span v-bind:class="statusClass(slot.status)">{{ slot.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,30 +1,48 @@
-<div style="color:black;">
-    <div>
-        <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
-          <a class="btn btn-info" v-on:click="navigate(null)">New</a>
-        </div>
+<div class="user-admin-app">
+  <div class="user-admin-toolbar">
+    <button type="button" class="btn btn-info" v-on:click="navigate(null)" v-bind:disabled="isBusy">New User</button>
+    <button type="button" class="btn btn-default" v-on:click="openGroupManager">Manage Groups</button>
+  </div>
+
+  <div class="input-error">
+    <p v-if="submitErrors.length" v-for="error in submitErrors" class="alert alert-danger">{{ error }}</p>
+    <p v-if="submitInfo.length" v-for="info in submitInfo" class="alert alert-info">{{ info }}</p>
+  </div>
+
+  <form class="user-search-form" v-on:submit.prevent="searchUsers">
+    <label for="user-email-search">Search by email</label>
+    <div class="user-search-row">
+      <input type="search" id="user-email-search" class="form-control" placeholder="email@example.com" v-model="userSearchEmail" v-bind:disabled="isBusy">
+      <button type="submit" class="btn btn-primary" v-bind:disabled="isBusy">Search</button>
+      <button type="button" class="btn btn-default" v-on:click="clearSearch" v-bind:disabled="isBusy || !userSearchEmail">Clear</button>
     </div>
-    <br/>
-  <table class="table">
+  </form>
+
+  <div class="user-admin-summary">
+    {{ filteredItems.length }} of {{ items.length }} users
+  </div>
+
+  <div v-if="isBusy" class="user-admin-state">Loading users...</div>
+  <div v-if="!isBusy && !filteredItems.length" class="user-admin-state">No users found.</div>
+
+  <table class="table user-admin-table" v-if="!isBusy && filteredItems.length">
     <thead>
       <tr>
         <th>Email</th>
         <th>User Name</th>
         <th>Full Name</th>
-        <th></th>
-        <th></th>
-        <th></th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items">
+      <tr v-for="item in filteredItems" v-bind:key="item.userid || item.email">
         <td>{{ item.email }}</td>
         <td>{{ item.username }}</td>
         <td>{{ item.name }}</td>
-        <td><a class="btn btn-primary" v-on:click="navigate(item)">Reset Password</a></td>
-        <td><a class="btn btn-primary" v-on:click="navigateGroup(item)">Change Group</a></td>
-        <td><a class="btn btn-warning" v-on:click="navigate(item)">Block</a></td>
-        <td><a class="btn btn-danger" v-on:click="navigate(item)">Delete</a></td>
+        <td class="user-admin-actions">
+          <button type="button" class="btn btn-primary btn-sm" v-on:click="navigateResetPassword(item)">Reset Password</button>
+          <button type="button" class="btn btn-default btn-sm" v-on:click="navigateGroup(item)">Change Group</button>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -37,23 +55,46 @@
               <h1>User Creation</h1>
       </div>
       <div class="modal-body">
-          <form id="form-signup">
+          <form id="form-user-create" v-on:submit.prevent="saveUser">
             <input v-model="item.name" type="text" id="user-name" class="form-control" placeholder="Full name" required="" autofocus="">
             <input v-model="item.email" type="email" id="user-email" class="form-control" placeholder="Email address" required autofocus="">
-            <input v-model="item.contactno" type="email" id="user-contact" class="form-control" placeholder="Contact No" required autofocus="">
-            <input v-if="!item.userid" v-model="item.password" type="password" id="user-pass" class="form-control" placeholder="Password" required autofocus="">
-            <input v-if="!item.userid" v-model="item.confirmpassword" type="password" id="user-repeatpass" class="form-control" placeholder="Repeat Password" required autofocus="">
+            <input v-model="item.contactno" type="tel" id="user-contact" class="form-control" placeholder="Contact No">
+            <input v-model="item.password" type="password" id="user-pass" class="form-control" placeholder="Password" required>
+            <input v-model="item.confirmpassword" type="password" id="user-repeatpass" class="form-control" placeholder="Repeat Password" required>
             <select class="form-control" id="textProductCategory" placeholder="User Group" v-model="item.groupid">
+              <option value="" disabled>Select user group</option>
               <option v-for="g in groups" v-bind:value="g.groupid">{{g.groupid}}</option>
             </select>
           </form>
       </div>
       <div class="modal-footer">
-        <button v-on:click="saveUser" class="btn btn-primary btn-block"><i class="fa fa-user"></i> Sign Up</button>
-          <button v-on:click="canceluserForm()" class="btn btn-primary btn-block"><i class="fa fa-close"></i> Close</button>
+        <button v-on:click="saveUser" class="btn btn-primary btn-block" v-bind:disabled="isBusy"><i class="fa fa-user"></i> Save</button>
+          <button v-on:click="canceluserForm()" class="btn btn-default btn-block" v-bind:disabled="isBusy"><i class="fa fa-close"></i> Close</button>
         </div>
     </div>
   </div>
+  </div>
+  <div class="modal fade" id="modalResetPassword" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
+      
+        <div class="modal-header">
+                <h1>Reset Password</h1>
+        </div>
+        <div class="modal-body">
+            <form id="form-reset-password" v-on:submit.prevent="saveResetPassword">
+              <p class="user-modal-note">{{ resetItem.email }}</p>
+              <input v-model="resetPassword" type="password" id="reset-pass" class="form-control" placeholder="New password" required>
+              <input v-model="resetConfirmPassword" type="password" id="reset-repeatpass" class="form-control" placeholder="Repeat new password" required>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button v-on:click="saveResetPassword" class="btn btn-primary btn-block" v-bind:disabled="isBusy"><i class="fa fa-user"></i> Reset</button>
+            <button v-on:click="cancelResetPassword()" class="btn btn-default btn-block" v-bind:disabled="isBusy"><i class="fa fa-close"></i> Close</button>
+          </div>
+      </div>
+    </div>
+  
   </div>
   <div class="modal fade" id="modalGroup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -63,37 +104,18 @@
                 <h1>Change Group</h1>
         </div>
         <div class="modal-body">
-            <form id="form-signup">
+            <form id="form-change-group" v-on:submit.prevent="changeGroup">
               <select class="form-control" id="textProductCategory" placeholder="User Group" v-model="item.groupid">
+                <option value="" disabled>Select user group</option>
                 <option v-for="g in groups" v-bind:value="g.groupid">{{g.groupid}}</option>
               </select>
               
             </form>
         </div>
         <div class="modal-footer">
-          <button v-on:click="navigateNewGroup" class="btn btn-primary btn-block"><i class="fa fa-usergroup"></i> New Group</button>
-          <button v-on:click="changeGroup" class="btn btn-primary btn-block"><i class="fa fa-user"></i> Change</button>
-            <button v-on:click="cancelgroupForm()" class="btn btn-primary btn-block"><i class="fa fa-close"></i> Close</button>
-          </div>
-      </div>
-    </div>
-  
-  </div>
-  <div class="modal fade" id="modalGroupNew" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
-      
-        <div class="modal-header">
-                <h1>New Group</h1>
-        </div>
-        <div class="modal-body">
-            <form id="form-signup">
-              <input v-model="groupname" type="text" id="user-name" class="form-control" placeholder="New Group Name" required="" autofocus="">
-            </form>
-        </div>
-        <div class="modal-footer">
-          <button v-on:click="newGroup" class="btn btn-primary btn-block"><i class="fa fa-user"></i> Save</button>
-            <button v-on:click="cancelnewgroupForm()" class="btn btn-primary btn-block"><i class="fa fa-close"></i> Close</button>
+          <button v-on:click="openGroupManager" class="btn btn-default btn-block"><i class="fa fa-usergroup"></i> Manage Groups</button>
+          <button v-on:click="changeGroup" class="btn btn-primary btn-block" v-bind:disabled="isBusy"><i class="fa fa-user"></i> Change</button>
+            <button v-on:click="cancelgroupForm()" class="btn btn-default btn-block" v-bind:disabled="isBusy"><i class="fa fa-close"></i> Close</button>
           </div>
       </div>
     </div>
