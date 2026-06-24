@@ -33,30 +33,17 @@
             "secondaryUrl": "#/features"
         },
         {
-            "type": "features",
-            "animation": "slide-left",
+            "type": "html",
+            "animation": "fade-up",
             "eyebrow": "",
-            "title": "Everything needed for lightweight sites",
-            "body": "Use JSON page sections for fast landing pages and keep advanced app screens available through the dock.",
+            "title": "Html",
+            "body": "",
             "image": "",
             "primaryLabel": "",
             "primaryUrl": "",
             "secondaryLabel": "",
             "secondaryUrl": "",
-            "items": [
-                {
-                    "title": "Theme changer",
-                    "body": "Switch brand palettes instantly using CSS variables."
-                },
-                {
-                    "title": "Editable partials",
-                    "body": "Create and edit landing page sections from the settings app."
-                },
-                {
-                    "title": "Custom components",
-                    "body": "Nav bar and footer are separate components with their own templates and styling."
-                }
-            ]
+            "html": "<style>\n  .davvag-container {\n    font-family: 'Segoe UI', sans-serif;\n    color: #1a1a1a;\n    line-height: 1.6;\n  }\n  .davvag-section {\n    padding: 60px 20px;\n    max-width: 1100px;\n    margin: auto;\n  }\n  .davvag-center {\n    text-align: center;\n  }\n  .davvag-title {\n    font-size: 36px;\n    font-weight: 700;\n    margin-bottom: 15px;\n  }\n  .davvag-subtitle {\n    font-size: 18px;\n    color: #555;\n    margin-bottom: 40px;\n  }\n  .davvag-btn {\n    display: inline-block;\n    padding: 12px 28px;\n    background: #0a66ff;\n    color: #fff;\n    text-decoration: none;\n    border-radius: 6px;\n    font-weight: 600;\n  }\n  .davvag-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n    gap: 25px;\n  }\n  .davvag-card {\n    padding: 25px;\n    border-radius: 10px;\n    background: #f9f9f9;\n  }\n  .davvag-highlight {\n    background: #0a66ff;\n    color: white;\n    border-radius: 12px;\n    padding: 40px;\n  }\n  .davvag-footer {\n    text-align: center;\n    font-size: 14px;\n    color: #888;\n    margin-top: 40px;\n  }\n</style>\n\n<div class=\"davvag-container\">\n\n  <div class=\"davvag-section davvag-center\">\n    <div class=\"davvag-title\">All-in-One Digital Platform</div>\n    <div class=\"davvag-subtitle\">\n      Build websites, run eCommerce, automate workflows, and manage everything in one system.\n    </div>\n    <a href=\"#\" class=\"davvag-btn\">Get Started</a>\n  </div>\n\n  <div class=\"davvag-section\">\n    <div class=\"davvag-grid\">\n      <div class=\"davvag-card\">\n        <h3>AI Automation</h3>\n        <p>Automate workflows and business logic using AI-powered tools.</p>\n      </div>\n      <div class=\"davvag-card\">\n        <h3>eCommerce</h3>\n        <p>Products, orders, payments, and inventory in one place.</p>\n      </div>\n      <div class=\"davvag-card\">\n        <h3>CMS</h3>\n        <p>Create and manage websites, content, and pages easily.</p>\n      </div>\n      <div class=\"davvag-card\">\n        <h3>Payments</h3>\n        <p>Multiple payment gateway integrations supported.</p>\n      </div>\n      <div class=\"davvag-card\">\n        <h3>LMS</h3>\n        <p>Courses, students, and learning management tools.</p>\n      </div>\n      <div class=\"davvag-card\">\n        <h3>Messaging</h3>\n        <p>Messenger, email, and communication tools built-in.</p>\n      </div>\n    </div>\n  </div>\n\n  <div class=\"davvag-section davvag-highlight davvag-center\">\n    <h2>One Platform. Everything Connected.</h2>\n    <p>Stop using multiple tools. Manage your entire digital system from one place.</p>\n  </div>\n\n  <div class=\"davvag-section davvag-center\">\n    <div class=\"davvag-title\">Start Today</div>\n    <div class=\"davvag-subtitle\">Build faster. Scale smarter.</div>\n    <a href=\"#\" class=\"davvag-btn\">Request Demo</a>\n  </div>\n\n]\n"
         },
         {
             "type": "cta",

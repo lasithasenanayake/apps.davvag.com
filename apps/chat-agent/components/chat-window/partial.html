@@ -1,0 +1,39 @@
+<section class="chat-agent chat-agent--visitor">
+    <div class="chat-agent__workspace">
+        <header class="chat-agent__topbar">
+            <div>
+                <h1>Chat Agent</h1>
+                <p data-chat-session-label>Starting session</p>
+            </div>
+            <button type="button" class="chat-agent__ghost-button" data-new-session>New Chat</button>
+        </header>
+
+        <div class="chat-agent__notice" data-chat-status></div>
+
+        <div class="chat-agent__thread" data-chat-thread></div>
+
+        <form class="chat-agent__composer" data-chat-form>
+            <div class="chat-agent__identity">
+                <label>
+                    <span>Name</span>
+                    <input type="text" data-visitor-name maxlength="120" autocomplete="name">
+                </label>
+                <label>
+                    <span>Email</span>
+                    <input type="email" data-visitor-email maxlength="180" autocomplete="email">
+                </label>
+                <label>
+                    <span>Agent</span>
+                    <input type="text" data-agent-code maxlength="80" value="chat-agent">
+                </label>
+            </div>
+            <label class="chat-agent__message-box">
+                <span>Message</span>
+                <textarea data-chat-message rows="3" maxlength="5000"></textarea>
+            </label>
+            <div class="chat-agent__actions">
+                <button type="submit" class="chat-agent__primary-button">Send</button>
+            </div>
+        </form>
+    </div>
+</section>

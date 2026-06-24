@@ -138,6 +138,10 @@ class CreatorService {
         return $this->runAgent($this->body($req));
     }
 
+    public function postInteractWithAgent($req, $res) {
+        return $this->interactWithAgent($this->body($req));
+    }
+
     public function postClearSession($req, $res) {
         $body = $this->objectToArray($this->body($req));
         $agentCode = $this->normalizeAgentCode($this->arrayString($body, "agentCode", ""));
@@ -165,6 +169,81 @@ class CreatorService {
         $out = $this->ok();
         $out->cleared = true;
         return $out;
+    }
+
+    public function interactWithAgent($input) {
+        $body = $this->objectToArray($input);
+        $agentCode = $this->normalizeAgentCode($this->arrayString($body, "agentCode", ""));
+        $message = $this->interactionMessage($body);
+        $appCode = $this->normalizeContextCode($this->arrayString($body, "appCode", "davvag-app"), "davvag-app");
+        $appName = $this->arrayString($body, "appName", $appCode);
+        $conversationKey = $this->normalizeSessionId($this->arrayString($body, "conversationKey", ""));
+        if ($conversationKey === "") {
+            $conversationKey = $this->normalizeSessionId($this->arrayString($body, "conversationId", ""));
+        }
+
+        $profile = isset($body["profile"]) ? $this->objectToArray($body["profile"]) : array();
+        $profileId = $this->normalizeProfileId($this->arrayString($profile, "profileId", ""));
+        if ($profileId === "") {
+            $profileId = $this->normalizeProfileId($this->arrayString($body, "profileId", ""));
+        }
+        if ($profileId !== "") {
+            $profile["profileId"] = $profileId;
+        }
+        if (!isset($profile["sourceApp"])) {
+            $profile["sourceApp"] = $appCode;
+        }
+
+        $sessionId = $this->normalizeSessionId($this->arrayString($body, "sessionId", ""));
+        if ($sessionId === "" && $conversationKey !== "" && $agentCode !== "") {
+            $sessionId = $this->appSessionId($appCode, $agentCode, $profileId, $conversationKey);
+        }
+
+        $context = isset($body["context"]) ? $this->objectToArray($body["context"]) : array();
+        $payload = isset($body["payload"]) ? $this->objectToArray($body["payload"]) : array();
+
+        $runInput = array(
+            "agentCode" => $agentCode,
+            "message" => $message,
+            "profile" => $profile,
+            "sessionId" => $sessionId,
+            "flow" => isset($body["flow"]) ? $this->objectToArray($body["flow"]) : array(
+                "flowCode" => $appCode,
+                "name" => $appName,
+                "source" => "app-service"
+            ),
+            "connector" => isset($body["connector"]) ? $this->objectToArray($body["connector"]) : array(
+                "code" => "davvag-app",
+                "label" => "DAVVAG App",
+                "appCode" => $appCode
+            ),
+            "payload" => array(
+                "source" => "app-service",
+                "appCode" => $appCode,
+                "appName" => $appName,
+                "conversationKey" => $conversationKey,
+                "context" => $context,
+                "data" => $payload
+            )
+        );
+
+        $result = $this->runAgent($runInput);
+        if (!$result->success) {
+            return $result;
+        }
+
+        $result->response = isset($result->reply) ? $result->reply : "";
+        $result->interaction = array(
+            "agentCode" => $agentCode,
+            "appCode" => $appCode,
+            "appName" => $appName,
+            "profileId" => isset($result->profile["profileId"]) ? $result->profile["profileId"] : $profileId,
+            "sessionId" => isset($result->session["sessionId"]) ? $result->session["sessionId"] : $sessionId,
+            "conversationKey" => $conversationKey,
+            "context" => $context
+        );
+
+        return $result;
     }
 
     public function runAgent($input) {
@@ -1157,6 +1236,11 @@ class CreatorService {
         return $agentCode . "-" . substr(hash("sha256", $profileId), 0, 16);
     }
 
+    private function appSessionId($appCode, $agentCode, $profileId, $conversationKey) {
+        $profilePart = $profileId === "" ? "anonymous" : $profileId;
+        return $appCode . "-" . $agentCode . "-" . substr(hash("sha256", $profilePart . "|" . $conversationKey), 0, 16);
+    }
+
     private function tenantDataFile($dataFile) {
         $dataFile = str_replace("\\", "/", trim((string)$dataFile));
         if ($dataFile === "" || strpos($dataFile, "..") !== false || preg_match('/^[A-Za-z]:/', $dataFile)) {
@@ -1365,6 +1449,30 @@ class CreatorService {
             return "";
         }
         return substr($value, 0, 160);
+    }
+
+    private function normalizeContextCode($value, $default) {
+        $value = strtolower(trim((string)$value));
+        $value = preg_replace("/[^a-z0-9_-]+/", "-", $value);
+        $value = trim($value, "-_");
+        if ($value === "") {
+            return $default;
+        }
+        return substr($value, 0, 80);
+    }
+
+    private function interactionMessage($body) {
+        $message = $this->arrayString($body, "message", "");
+        if ($message !== "") {
+            return $message;
+        }
+
+        $message = $this->arrayString($body, "prompt", "");
+        if ($message !== "") {
+            return $message;
+        }
+
+        return $this->arrayString($body, "question", "");
     }
 
     private function boolFromArray($input, $key, $default) {

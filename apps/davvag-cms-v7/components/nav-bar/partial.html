@@ -1,32 +1,35 @@
 <nav class="cms-v7-nav" v-bind:data-variant="site.nav.variant">
     <div class="cms-v7-container cms-v7-nav-inner">
-        <a class="cms-v7-brand" href="#/">
+        <a class="cms-v7-brand" href="#/" v-on:click="closeNavigation">
             <span class="cms-v7-brand-mark">
                 <img v-if="site.logo" v-bind:src="site.logo" v-bind:alt="site.name">
                 <span v-if="!site.logo">{{ initials }}</span>
             </span>
             <span>{{ site.name }}</span>
         </a>
-        <div class="cms-v7-nav-links">
+        <button class="cms-v7-nav-toggle" type="button" v-on:click="toggleMobileNav($event)" v-bind:aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-label="Toggle navigation">
+            <i v-bind:class="mobileNavOpen ? 'fa fa-times' : 'fa fa-bars'" aria-hidden="true"></i>
+        </button>
+        <div class="cms-v7-nav-links" v-bind:class="{'open': mobileNavOpen}">
             <div class="cms-v7-nav-item" v-for="item in navItems" v-bind:key="item.id" v-bind:class="{'open': isMenuOpen(item), 'has-children': item.children.length}">
-                <a class="cms-v7-nav-link" v-if="!item.children.length" v-bind:href="item.url" v-bind:target="item.target">{{ item.label }}</a>
+                <a class="cms-v7-nav-link" v-if="!item.children.length" v-bind:href="item.url" v-bind:target="item.target" v-on:click="closeMobileNav">{{ item.label }}</a>
                 <button class="cms-v7-nav-menu-button" v-if="item.children.length" type="button" v-on:click="toggleMenu(item, $event)" v-bind:aria-expanded="isMenuOpen(item) ? 'true' : 'false'">
                     <span>{{ item.label }}</span>
                     <span class="cms-v7-nav-caret"></span>
                 </button>
                 <div class="cms-v7-nav-menu" v-if="item.children.length">
-                    <a v-for="child in item.children" v-bind:key="child.id" v-bind:href="child.url" v-bind:target="child.target" v-on:click="closeMenu">{{ child.label }}</a>
+                    <a v-for="child in item.children" v-bind:key="child.id" v-bind:href="child.url" v-bind:target="child.target" v-on:click="closeNavigation">{{ child.label }}</a>
                 </div>
             </div>
-            <a class="cms-v7-button" v-if="cta && cta.label" v-bind:href="cta.url" v-bind:target="cta.target">{{ cta.label }}</a>
+            <a class="cms-v7-button" v-if="cta && cta.label" v-bind:href="cta.url" v-bind:target="cta.target" v-on:click="closeMobileNav">{{ cta.label }}</a>
             <div class="cms-v7-nav-actions" aria-label="User actions">
                 <button class="cms-v7-nav-action cms-v7-notification-toggle" type="button" v-on:click="notification($event)" aria-label="Notification" title="Notification">
                     <i class="fa fa-bell fa-fw fa-lg" aria-hidden="true"></i>
                 </button>
-                <a class="cms-v7-nav-action" href="#/app/userapp/setting" aria-label="Settings" title="Settings">
+                <a class="cms-v7-nav-action" href="#/app/userapp/setting" v-on:click="closeMobileNav" aria-label="Settings" title="Settings">
                     <i class="fa fa-cog fa-fw fa-lg" aria-hidden="true"></i>
                 </a>
-                <a class="cms-v7-nav-action" href="#/app/userapp" aria-label="User Info" title="User Info">
+                <a class="cms-v7-nav-action" href="#/app/userapp" v-on:click="closeMobileNav" aria-label="User Info" title="User Info">
                     <i class="fa fa-user fa-fw fa-lg" aria-hidden="true"></i>
                 </a>
             </div>

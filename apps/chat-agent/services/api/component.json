@@ -1,9 +1,8 @@
 {
-    "name": "AI Agent Creator API",
-    "description": "Validates AI provider settings and generates structured agent configuration objects.",
-    "author": "Davvag",
-    "version": "0.3",
-    "gitUrl": "",
+    "name": "api",
+    "description": "Chat Agent service handlers",
+    "author": "DAVVAG",
+    "version": "0.1",
     "resources": {
         "files": [
             {
@@ -14,34 +13,31 @@
     },
     "serviceHandler": {
         "file": "service.php",
-        "class": "ai_agent_creator\\CreatorService",
+        "class": "chat_agent\\ApiService",
         "methods": {
-            "GenerateConfig": {
+            "Bootstrap": {
                 "method": "POST"
             },
-            "SaveAgent": {
+            "SendMessage": {
                 "method": "POST"
             },
-            "ListAgents": {
-                "method": "GET"
-            },
-            "DeleteAgent": {
+            "PollSession": {
                 "method": "POST"
             },
-            "TestAgent": {
+            "ListSessions": {
                 "method": "POST"
             },
-            "RunAgent": {
+            "ListMessages": {
                 "method": "POST"
             },
-            "InteractWithAgent": {
+            "HumanReply": {
                 "method": "POST"
             },
-            "ClearSession": {
+            "MarkSessionRead": {
                 "method": "POST"
             },
-            "Providers": {
-                "method": "GET"
+            "UpdateSession": {
+                "method": "POST"
             }
         }
     },

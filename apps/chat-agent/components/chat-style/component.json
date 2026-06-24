@@ -1,0 +1,20 @@
+{
+    "name": "chat-style",
+    "description": "Shared styles for Chat Agent",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "chat-agent.css"
+            }
+        ]
+    }
+}

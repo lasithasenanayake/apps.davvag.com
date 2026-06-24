@@ -349,7 +349,7 @@ WEBDOCK.component().register(function (exports) {
             setError("Product popup is not loaded.");
             return;
         }
-        popup.open("course-manager", "product-list-popup", {}, function (product, instance) {
+        popup.open("productapp-v2", "frmproduct-list-popup", {}, function (product, instance) {
             var selected = normalizeProduct(product);
             if (selected && selected.product_id) {
                 onSelect(selected);

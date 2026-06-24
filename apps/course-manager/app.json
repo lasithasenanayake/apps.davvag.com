@@ -48,7 +48,7 @@
     "description": {
         "title": "Course Manager",
         "author": "DAVVAG",
-        "version": "0.7",
+        "version": "0.8",
         "icon": "appicon.png"
     },
     "tags": [
@@ -110,7 +110,9 @@
         }
     },
     "dependencies": {
-        "apps": [],
+        "apps": [
+            "productapp-v2"
+        ],
         "schemas": [
             "course_manager_course",
             "course_manager_subject",

@@ -1,0 +1,79 @@
+{
+    "components": {
+        "chat-window": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-console": {
+            "type": "component",
+            "location": "components"
+        },
+        "chat-style": {
+            "type": "component",
+            "location": "components"
+        },
+        "api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Chat Agent",
+        "author": "DAVVAG",
+        "version": "0.1",
+        "icon": "appicon.png"
+    },
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "chatAgent": {
+            "defaultAgentCode": "chat-agent"
+        },
+        "webdock": {
+            "startupComponent": "chat-window",
+            "onLoad": [
+                "chat-style",
+                "api"
+            ],
+            "routes": {
+                "partials": {
+                    "/": "chat-window",
+                    "/chat": "chat-window",
+                    "/admin": "admin-console"
+                }
+            }
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Chat",
+                    "path": "chat"
+                },
+                {
+                    "name": "Human Agent",
+                    "path": "admin"
+                }
+            ]
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "ai-agent-creator"
+        ],
+        "schemas": [
+            "chat_agent_session",
+            "chat_agent_message",
+            "profile"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "sossdata"
+        ],
+        "php-extensions": [
+            "curl"
+        ]
+    }
+}

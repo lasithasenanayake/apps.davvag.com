@@ -20,6 +20,12 @@
       <option value="showonstore">Store flag</option>
       <option value="keywords">Keywords</option>
     </select>
+    <select class="form-control" v-model="TypeFilter" v-on:change="searchItems">
+      <option value="all">All record types</option>
+      <option value="inventory">Inventory records</option>
+      <option value="service">Service records</option>
+      <option value="other">Other records</option>
+    </select>
     <input class="form-control" type="text" placeholder="Search products..." v-model="SearchItem" v-on:input="searchItems">
     <button class="btn btn-default" v-on:click="clearSearch">
       <i class="fa fa-times"></i> Clear
@@ -41,6 +47,7 @@
           <th style="width: 88px;">Image</th>
           <th>Product</th>
           <th style="width: 150px;">Category</th>
+          <th style="width: 120px;">Type</th>
           <th style="width: 110px;">UOM</th>
           <th style="width: 120px;">Price</th>
           <th style="width: 110px;">Status</th>
@@ -49,10 +56,10 @@
       </thead>
       <tbody>
         <tr v-show="loading">
-          <td colspan="7" class="product-empty-state">Loading products...</td>
+          <td colspan="8" class="product-empty-state">Loading products...</td>
         </tr>
         <tr v-show="!loading && items.length === 0">
-          <td colspan="7" class="product-empty-state">No products found.</td>
+          <td colspan="8" class="product-empty-state">No products found.</td>
         </tr>
         <tr v-for="product in items">
           <td>
@@ -64,6 +71,7 @@
             <div class="product-muted" v-show="product.keywords"><i class="fa fa-tags"></i> {{ product.keywords }}</div>
           </td>
           <td>{{ product.catogory || 'Unassigned' }}</td>
+          <td>{{ product.invType || '-' }}</td>
           <td>{{ product.uom || '-' }}</td>
           <td>{{ formatMoney(product.price) }}</td>
           <td>

@@ -1,0 +1,43 @@
+<section class="chat-agent chat-agent--admin">
+    <div class="chat-agent__admin-layout">
+        <aside class="chat-agent__sessions">
+            <header class="chat-agent__panel-header">
+                <div>
+                    <h1>Human Agent</h1>
+                    <p data-admin-status>Loading sessions</p>
+                </div>
+                <button type="button" class="chat-agent__ghost-button" data-refresh-sessions>Refresh</button>
+            </header>
+            <div class="chat-agent__filters">
+                <input type="search" data-session-search placeholder="Search sessions">
+                <select data-session-status>
+                    <option value="all">All</option>
+                    <option value="open">Open</option>
+                    <option value="waiting_human">Waiting</option>
+                    <option value="ai_answered">AI answered</option>
+                    <option value="human_replied">Replied</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <div class="chat-agent__session-list" data-session-list></div>
+        </aside>
+
+        <main class="chat-agent__conversation">
+            <header class="chat-agent__conversation-header" data-conversation-header>
+                <div>
+                    <h2>Select a session</h2>
+                    <p>Messages appear here.</p>
+                </div>
+            </header>
+            <div class="chat-agent__thread chat-agent__thread--admin" data-admin-thread></div>
+            <form class="chat-agent__composer chat-agent__composer--admin" data-admin-reply-form>
+                <textarea data-admin-reply rows="3" maxlength="5000"></textarea>
+                <div class="chat-agent__actions">
+                    <button type="button" class="chat-agent__ghost-button" data-assign-session>Assign</button>
+                    <button type="button" class="chat-agent__ghost-button" data-close-session>Close</button>
+                    <button type="submit" class="chat-agent__primary-button">Reply</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</section>

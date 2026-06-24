@@ -3,6 +3,7 @@ WEBDOCK.component().register(function(exports){
         submitErrors: undefined,
         SearchItem:"",
         SearchColumn:"all",
+        TypeFilter:"all",
         allItems:[],
         items:[],
         loading:false,
@@ -88,6 +89,7 @@ WEBDOCK.component().register(function(exports){
             catogory:element.catogory || "",
             catogoryid:element.catogoryid || "",
             invType:element.invType || "",
+            recordtype:element.recordtype,
             showonstore:element.showonstore || "",
             sellstype:element.sellstype || "",
             qty:element.qty,
@@ -131,16 +133,22 @@ WEBDOCK.component().register(function(exports){
     function applyProductFilter(){
         var term=(bindData.SearchItem || "").toString().trim().toLowerCase();
         var column=(bindData.SearchColumn || "all").toString();
-        if(term === ""){
-            bindData.items=bindData.allItems.slice();
-        }else{
-            bindData.items=bindData.allItems.filter(function(product){
+        var typeFilter=(bindData.TypeFilter || "all").toString().toLowerCase();
+
+        bindData.items=bindData.allItems.filter(function(product){
+            if(typeFilter !== "all" && normalizeType(product.invType) !== typeFilter){
+                return false;
+            }
+
+            if(term !== ""){
                 if(column === "all"){
                     return searchableText(product).indexOf(term) >= 0;
                 }
                 return recordValue(product,column).toLowerCase().indexOf(term) >= 0;
-            });
-        }
+            }
+
+            return true;
+        });
 
         bindData.Message=bindData.items.length === 0
             ? "No products found."
@@ -150,7 +158,16 @@ WEBDOCK.component().register(function(exports){
     function clearSearch(){
         bindData.SearchItem="";
         bindData.SearchColumn="all";
+        bindData.TypeFilter="all";
         applyProductFilter();
+    }
+
+    function normalizeType(value){
+        value=(value || "").toString().trim().toLowerCase();
+        if(value === "inventry"){
+            return "inventory";
+        }
+        return value;
     }
 
     function productStatus(product){

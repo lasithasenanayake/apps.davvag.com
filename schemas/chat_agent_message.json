@@ -1,0 +1,85 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "messageId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "sessionKey",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "senderType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "senderId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "senderName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "body",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 5000,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "direction",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "agentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "raw",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

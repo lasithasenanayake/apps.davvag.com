@@ -12,6 +12,7 @@ WEBDOCK.component().register(function(exports){
         userData: null,
         userAccess: ["public", "guest", "anonymous"],
         usingLaunchers: false,
+        mobileNavOpen: false,
         Notify: [],
         appTitle: "",
         notificationOpen: false,
@@ -27,6 +28,9 @@ WEBDOCK.component().register(function(exports){
         methods: {
             toggleMenu: toggleMenu,
             closeMenu: closeMenu,
+            toggleMobileNav: toggleMobileNav,
+            closeMobileNav: closeMobileNav,
+            closeNavigation: closeNavigation,
             isMenuOpen: isMenuOpen,
             notification: toggleNotification,
             closeNotification: closeNotification,
@@ -72,6 +76,7 @@ WEBDOCK.component().register(function(exports){
         document.addEventListener("click", function(event){
             if(!closest(event.target, ".cms-v7-nav")){
                 closeMenu();
+                closeMobileNav();
             }
             if(!closest(event.target, ".cms-v7-notification-bar") && !closest(event.target, ".cms-v7-notification-toggle")){
                 closeNotification();
@@ -166,6 +171,7 @@ WEBDOCK.component().register(function(exports){
         bindData.notificationOpen = !bindData.notificationOpen;
         if(bindData.notificationOpen){
             closeMenu();
+            closeMobileNav();
             loadNotifications();
         }
     }
@@ -295,6 +301,7 @@ WEBDOCK.component().register(function(exports){
             if(launchers.length){
                 bindData.navItems = filterAllowedItems(normalizeLauncherRoots(launchers));
                 bindData.usingLaunchers = true;
+                closeMobileNav();
                 closeMenu();
                 return;
             }
@@ -321,6 +328,7 @@ WEBDOCK.component().register(function(exports){
         var nav = bindData.site.nav || {};
         bindData.navItems = filterAllowedItems(normalizeSiteLinks(nav.links || []));
         applyCta();
+        closeMobileNav();
         closeMenu();
     }
 
@@ -595,6 +603,25 @@ WEBDOCK.component().register(function(exports){
 
     function closeMenu(){
         bindData.openMenuId = "";
+    }
+
+    function toggleMobileNav(event){
+        if(event && event.stopPropagation){
+            event.stopPropagation();
+        }
+        bindData.mobileNavOpen = !bindData.mobileNavOpen;
+        if(!bindData.mobileNavOpen){
+            closeMenu();
+        }
+    }
+
+    function closeMobileNav(){
+        bindData.mobileNavOpen = false;
+    }
+
+    function closeNavigation(){
+        closeMenu();
+        closeMobileNav();
     }
 
     function isMenuOpen(item){

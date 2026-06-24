@@ -61,7 +61,7 @@
   align-items: stretch;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(180px, 240px) minmax(240px, 1fr) auto auto;
+  grid-template-columns: minmax(160px, 220px) minmax(160px, 220px) minmax(240px, 1fr) auto auto;
   margin-bottom: 14px;
   padding: 12px;
 }
@@ -265,7 +265,7 @@
   }
 
   .product-v2-app .table {
-    min-width: 760px;
+    min-width: 900px;
   }
 }
 

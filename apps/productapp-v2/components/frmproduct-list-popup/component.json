@@ -1,0 +1,37 @@
+{
+    "name": "frmproduct-list-popup",
+    "description": "Reusable product selector popup",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "gitUrl": "",
+    "inputData": [
+        {"name": "search", "datatype": "string"},
+        {"name": "q", "datatype": "string"},
+        {"name": "invType", "datatype": "string"},
+        {"name": "type", "datatype": "string"},
+        {"name": "column", "datatype": "string"}
+    ],
+    "outputData": [
+        {"name": "itemid", "datatype": "int"},
+        {"name": "product_id", "datatype": "int"},
+        {"name": "product_code", "datatype": "string"},
+        {"name": "product_title", "datatype": "string"},
+        {"name": "product_price", "datatype": "float"},
+        {"name": "product_currency_code", "datatype": "string"},
+        {"name": "catogory", "datatype": "string"},
+        {"name": "uom", "datatype": "string"},
+        {"name": "invType", "datatype": "string"}
+    ],
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

@@ -94,6 +94,26 @@ select {
     object-fit: contain;
 }
 
+.cms-v7-nav-toggle {
+    width: 40px;
+    height: 40px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cms-border);
+    border-radius: var(--cms-radius);
+    background: transparent;
+    color: var(--cms-text);
+    cursor: pointer;
+    padding: 0;
+}
+
+.cms-v7-nav-toggle:hover,
+.cms-v7-nav-toggle:focus {
+    background: var(--cms-surface);
+    outline: none;
+}
+
 .cms-v7-nav-links {
     display: flex;
     align-items: center;
@@ -661,21 +681,48 @@ select {
 }
 
 @media (max-width: 760px) {
-    .cms-v7-nav-inner,
     .cms-v7-footer-grid {
         align-items: flex-start;
         flex-direction: column;
     }
 
     .cms-v7-nav-inner {
-        padding: 14px 0;
+        min-height: 60px;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 0;
+    }
+
+    .cms-v7-brand {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .cms-v7-brand > span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cms-v7-nav-toggle {
+        display: inline-flex;
     }
 
     .cms-v7-nav-links {
         align-items: flex-start;
         flex-direction: column;
-        gap: 6px;
+        display: none;
+        gap: 4px;
         width: 100%;
+        margin-top: 2px;
+        padding: 8px 0 4px;
+        border-top: 1px solid var(--cms-border);
+    }
+
+    .cms-v7-nav-links.open {
+        display: flex;
     }
 
     .cms-v7-nav-item,
@@ -696,6 +743,10 @@ select {
         box-shadow: none;
     }
 
+    .cms-v7-nav-links > .cms-v7-button {
+        width: 100%;
+    }
+
     .cms-v7-nav-actions {
         justify-content: flex-end;
         width: 100%;
@@ -703,11 +754,11 @@ select {
     }
 
     .cms-v7-notification-bar {
-        top: 96px;
+        top: 76px;
         left: 16px;
         right: 16px;
         width: auto;
-        max-height: calc(100vh - 128px);
+        max-height: calc(100vh - 108px);
     }
 
     .cms-v7-hero-grid,

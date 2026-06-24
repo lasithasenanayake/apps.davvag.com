@@ -1,0 +1,128 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "sessionKey",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "visitorKey",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "visitorType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "visitorId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "visitorName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "visitorEmail",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255
+            }
+        },
+        {
+            "fieldName": "agentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "default": "open"
+            }
+        },
+        {
+            "fieldName": "needsHumanReview",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10,
+                "default": "false"
+            }
+        },
+        {
+            "fieldName": "humanUnreadCount",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "visitorUnreadCount",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "lastSender",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "lastMessagePreview",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "lastMessageAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "assignedAgentId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "assignedAgentName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

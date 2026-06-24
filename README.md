@@ -157,8 +157,6 @@ Do not remove existing app entries.
 Grant group access by adding the same app entry to one or more group files:
 
 ```text
-anonymous.json
-web_user.json
 sysadmin.json
 ```
 
@@ -333,6 +331,9 @@ apps/my-new-app/services/api/service.php
       "List": {
         "method": "GET"
       },
+      "AdvancedReport": {
+        "method": "POST"
+      },
       "Delete": {
         "method": "POST"
       }
@@ -371,6 +372,19 @@ class ApiService {
     public function postDelete($req, $res) {
         $data = $req->Body(true);
         return SOSSData::Delete("my_new_app_items", $data);
+    }
+
+    public function postAdvancedReport($req, $res) {
+        $data = $req->Body(true);
+
+        $params = new \stdClass();
+        $params->parameters = new \stdClass();
+        $params->parameters->page = isset($data->page) ? max(0, (int)$data->page) : 0;
+        $params->parameters->size = isset($data->size) ? min(100, max(1, (int)$data->size)) : 25;
+        $params->parameters->startdate = isset($data->startdate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data->startdate) ? $data->startdate : date("Y-m-01");
+        $params->parameters->enddate = isset($data->enddate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data->enddate) ? $data->enddate : date("Y-m-d");
+
+        return SOSSData::ExecuteRaw("my_new_app_sales_report", $params);
     }
 }
 ?>
@@ -542,26 +556,88 @@ SOSSData::Query("my_new_app_items", "status:Active,title:Test");
 
 Security note: the current SQL connector builds SQL strings directly. Validate user input before passing it into query strings.
 
-## 9. Create Raw Query Helpers
+## 9. Create Advanced Raw Queries for Reports and Joins
 
-For complex queries, create a schema with `rawquery`, or place SQL helpers under:
+Use `SOSSData::ExecuteRaw()` when normal `SOSSData::Query()` filters are not enough, such as reports, summaries, joins, aggregates, subqueries, or stored procedure calls.
+
+The executable definition is a tenant schema file with a `rawquery` block:
 
 ```text
-schemas/mysqlquery/
-schemas/query/
+schemas/{namespace}.json
+```
+
+Example:
+
+```text
+schemas/my_new_app_sales_report.json
+```
+
+```json
+{
+  "rawquery": {
+    "type": "sql",
+    "parameters": ["startdate", "enddate", "page", "size"],
+    "query": "SELECT DATE_FORMAT(oh.invoiceDate, '%Y-%m') AS reportMonth, p.id AS profileId, p.name AS profileName, SUM(od.qty) AS qty, SUM(od.total) AS total FROM orderheader oh INNER JOIN orderdetails od ON oh.invoiceNo = od.invoiceNo INNER JOIN profile p ON oh.profileId = p.id WHERE oh.invoiceDate BETWEEN '$startdate' AND '$enddate' GROUP BY DATE_FORMAT(oh.invoiceDate, '%Y-%m'), p.id, p.name ORDER BY reportMonth DESC LIMIT $page,$size"
+  },
+  "fields": [
+    {"fieldName": "reportMonth", "dataType": "java.lang.String"},
+    {"fieldName": "profileId", "dataType": "int"},
+    {"fieldName": "profileName", "dataType": "java.lang.String"},
+    {"fieldName": "qty", "dataType": "float"},
+    {"fieldName": "total", "dataType": "float"}
+  ]
+}
 ```
 
 Service usage:
 
 ```php
-$params = new \stdClass();
-$params->parameters = new \stdClass();
-$params->parameters->status = "Active";
+public function postAdvancedReport($req, $res) {
+    $data = $req->Body(true);
 
-return SOSSData::ExecuteRaw("my_new_app_report", $params);
+    $params = new \stdClass();
+    $params->parameters = new \stdClass();
+    $params->parameters->page = isset($data->page) ? max(0, (int)$data->page) : 0;
+    $params->parameters->size = isset($data->size) ? min(100, max(1, (int)$data->size)) : 25;
+    $params->parameters->startdate = isset($data->startdate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data->startdate) ? $data->startdate : date("Y-m-01");
+    $params->parameters->enddate = isset($data->enddate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data->enddate) ? $data->enddate : date("Y-m-d");
+
+    return SOSSData::ExecuteRaw("my_new_app_sales_report", $params);
+}
 ```
 
-Use existing files in `schemas/mysqlquery/` as examples.
+The current tenant already uses this pattern:
+
+| Service | Raw namespace | Purpose |
+| --- | --- | --- |
+| `apps/com_qti_students/services/productsvr/service.php` | `profiles_search` | Joined profile/status search with pagination parameters. |
+| `apps/davvag-cms/shell/auth-handler/service.php` | `davvag_launchers_query` | Launcher query filtered by app, component, group, and parent launcher. |
+| `apps/davvag-cms/shell/auth-handler/service.php` | `davvag_launchers_subquery` | Child launcher query filtered by group and parent launcher. |
+
+How `ExecuteRaw()` is resolved by the MySQL adapter:
+
+1. `SOSSData::ExecuteRaw("my_new_app_sales_report", $params)` loads `schemas/my_new_app_sales_report.json`.
+2. The adapter reads `rawquery.query`.
+3. Every `$name` placeholder is replaced from `$params->parameters->name`.
+4. The SQL is executed.
+5. Returned rows are mapped through the schema `fields` list.
+
+Rules for reliable report queries:
+
+1. Alias every selected expression to a unique `fieldName`, especially when joining tables that share names such as `id`, `status`, or `name`.
+2. Add every returned alias to `fields`; missing aliases come back as `"{fieldName} NOt Found."`.
+3. Cast numeric parameters in PHP before calling `ExecuteRaw()`, for example page, size, IDs, and limits.
+4. Validate dates and whitelist enum values before placing them in the parameter object.
+5. Do not pass raw SQL fragments, column names, sort clauses, or user-entered `WHERE` clauses from the browser.
+6. Raw queries do not automatically apply `sysviewobject` filtering, so add access conditions in the SQL or expose the endpoint only to trusted groups.
+
+For stored procedures, keep the callable query in `schemas/{namespace}.json`, for example `call report_proc($page,$size);`. A matching setup script can live at:
+
+```text
+schemas/mysqlquery/{namespace}.sql
+```
+
+The MySQL adapter runs that script when a missing procedure error is returned, then retries the raw query. `schemas/query/` contains older helper examples; prefer the schema `rawquery` pattern for new work.
 
 ## 10. Create a Workflow
 

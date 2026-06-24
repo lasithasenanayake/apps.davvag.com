@@ -1,0 +1,78 @@
+<div class="product-v2-app product-list-popup">
+  <div class="product-toolbar">
+    <select class="form-control" v-model="SearchColumn" v-on:change="searchProducts">
+      <option value="all">All fields</option>
+      <option value="itemid">Product ID</option>
+      <option value="name">Name</option>
+      <option value="catogory">Category</option>
+      <option value="uom">UOM</option>
+      <option value="invType">Type</option>
+      <option value="showonstore">Store flag</option>
+      <option value="keywords">Keywords</option>
+    </select>
+    <select class="form-control" v-model="TypeFilter" v-on:change="searchProducts">
+      <option value="all">All record types</option>
+      <option value="inventory">Inventory records</option>
+      <option value="service">Service records</option>
+      <option value="other">Other records</option>
+    </select>
+    <input class="form-control" type="text" placeholder="Search products..." v-model="SearchItem" v-on:input="searchProducts">
+    <button class="btn btn-default" v-on:click="clearSearch">
+      <i class="fa fa-times"></i> Clear
+    </button>
+    <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading">
+      <i class="fa fa-refresh"></i> Refresh
+    </button>
+  </div>
+
+  <div class="product-summary">
+    <i class="fa fa-info-circle"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+
+  <div class="product-table-wrap">
+    <table class="table table-bordered product-table">
+      <thead>
+        <tr>
+          <th style="width: 88px;">Image</th>
+          <th>Product</th>
+          <th style="width: 140px;">Category</th>
+          <th style="width: 110px;">Type</th>
+          <th style="width: 130px;">Price</th>
+          <th style="width: 120px;" class="text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="loading">
+          <td colspan="6" class="product-empty-state">Loading products...</td>
+        </tr>
+        <tr v-show="!loading && products.length === 0">
+          <td colspan="6" class="product-empty-state">No products found.</td>
+        </tr>
+        <tr v-for="product in products">
+          <td>
+            <img alt="" v-bind:src="product.image" class="product-image">
+          </td>
+          <td>
+            <div class="product-name">#{{ product.itemid }} {{ product.name }}</div>
+            <div class="product-muted">{{ product.caption }}</div>
+            <div class="product-muted" v-show="product.keywords"><i class="fa fa-tags"></i> {{ product.keywords }}</div>
+            <div>
+              <span v-bind:class="product.showonstore === 'Y' ? 'label label-success' : 'label label-default'">{{ productStatus(product) }}</span>
+            </div>
+          </td>
+          <td>{{ product.catogory || 'Unassigned' }}</td>
+          <td>{{ product.invType || '-' }}</td>
+          <td>{{ formatMoney(product.price, product.currencycode) }}</td>
+          <td class="text-right">
+            <button class="btn btn-primary btn-sm" v-on:click="selectProduct(product)">
+              <i class="fa fa-check"></i> Select
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -9,6 +9,9 @@
         "davvag-agent-flow": {
             "version": "latest"
         },
+        "chat-agent": {
+            "version": "latest"
+        },
         "davvag-flow-designer": {
             "version": "latest"
         },
