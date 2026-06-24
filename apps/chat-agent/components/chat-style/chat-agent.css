@@ -133,8 +133,50 @@
 .chat-agent__bubble-body {
     font-size: 15px;
     line-height: 1.5;
-    white-space: normal;
+    white-space: pre-wrap;
     overflow-wrap: anywhere;
+}
+
+.chat-agent__bubble-body--formatted {
+    white-space: normal;
+}
+
+.chat-agent__bubble-body--formatted p {
+    margin: 0 0 8px;
+}
+
+.chat-agent__bubble-body--formatted p:last-child {
+    margin-bottom: 0;
+}
+
+.chat-agent__message-heading {
+    margin: 12px 0 6px;
+    color: #17212b;
+    font-size: 16px;
+    line-height: 1.35;
+}
+
+.chat-agent__message-heading:first-child {
+    margin-top: 0;
+}
+
+.chat-agent__message-rule {
+    border: 0;
+    border-top: 1px solid #cbd8e6;
+    margin: 12px 0;
+}
+
+.chat-agent__message-space {
+    height: 8px;
+}
+
+.chat-agent__bubble.is-pending {
+    opacity: .78;
+}
+
+.chat-agent__bubble.is-pending .chat-agent__bubble-body {
+    color: #66788a;
+    font-style: italic;
 }
 
 .chat-agent__composer {
@@ -143,6 +185,27 @@
     padding: 14px;
     display: grid;
     gap: 12px;
+}
+
+.chat-agent .is-hidden {
+    display: none !important;
+}
+
+.chat-agent__profile-summary {
+    border: 1px solid #c8d3df;
+    background: #ffffff;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: #475467;
+    font-size: 13px;
+}
+
+.chat-agent__profile-summary strong {
+    color: #17212b;
+    font-size: 14px;
 }
 
 .chat-agent__composer label {
@@ -203,6 +266,7 @@
 .chat-agent__primary-button:disabled,
 .chat-agent__ghost-button:disabled,
 .chat-agent input:disabled,
+.chat-agent select:disabled,
 .chat-agent textarea:disabled {
     opacity: .65;
     cursor: wait;
@@ -248,6 +312,43 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.chat-agent__agent-list {
+    min-height: 0;
+    max-height: 320px;
+    border: 1px solid #d9e2ec;
+    background: #ffffff;
+    padding: 10px;
+}
+
+.chat-agent__agent-row {
+    width: 100%;
+    text-align: left;
+    border: 1px solid #d9e2ec;
+    background: #ffffff;
+    color: #17212b;
+    padding: 10px;
+    display: grid;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.chat-agent__agent-row.is-selected {
+    border-color: #153f3f;
+    box-shadow: inset 3px 0 0 #153f3f;
+}
+
+.chat-agent__agent-row strong {
+    font-size: 14px;
+}
+
+.chat-agent__agent-row span,
+.chat-agent__agent-row p {
+    margin: 0;
+    color: #66788a;
+    font-size: 13px;
+    overflow-wrap: anywhere;
 }
 
 .chat-agent__session-row {

@@ -2,37 +2,63 @@
     <div class="chat-agent__workspace">
         <header class="chat-agent__topbar">
             <div>
-                <h1>Chat Agent</h1>
-                <p data-chat-session-label>Starting session</p>
+                <h1>Customer Inquiry</h1>
+                <p data-chat-session-label>{{ sessionLabel }}</p>
             </div>
-            <button type="button" class="chat-agent__ghost-button" data-new-session>New Chat</button>
+            <button type="button" class="chat-agent__ghost-button" data-new-session v-on:click="newChat" v-bind:disabled="busy || !profileReady">New Chat</button>
         </header>
 
-        <div class="chat-agent__notice" data-chat-status></div>
+        <div class="chat-agent__notice" data-chat-status v-bind:class="statusClass">{{ status.message }}</div>
 
-        <div class="chat-agent__thread" data-chat-thread></div>
+        <div class="chat-agent__thread" data-chat-thread>
+            <div class="chat-agent__empty" v-show="messages.length === 0">No messages yet.</div>
+            <article class="chat-agent__bubble" tabindex="-1" data-chat-message-item v-for="message in messages" v-bind:key="message.messageId || message.id || message.localId" v-bind:class="bubbleClasses(message)">
+                <div class="chat-agent__bubble-meta">
+                    <span>{{ displaySender(message) }}</span>
+                    <time>{{ message.createdAt || "" }}</time>
+                </div>
+                <div class="chat-agent__bubble-body chat-agent__bubble-body--formatted" v-html="formatMessage(message)"></div>
+            </article>
+        </div>
 
-        <form class="chat-agent__composer" data-chat-form>
+        <form class="chat-agent__composer" data-profile-form v-show="!profileReady" v-on:submit.prevent="saveProfile">
             <div class="chat-agent__identity">
                 <label>
                     <span>Name</span>
-                    <input type="text" data-visitor-name maxlength="120" autocomplete="name">
+                    <input type="text" maxlength="120" autocomplete="name" data-visitor-name v-model="profileForm.name" v-on:change="saveInputs" v-bind:disabled="busy" required>
                 </label>
                 <label>
                     <span>Email</span>
-                    <input type="email" data-visitor-email maxlength="180" autocomplete="email">
+                    <input type="email" maxlength="180" autocomplete="email" data-visitor-email v-model="profileForm.email" v-on:change="saveInputs" v-bind:disabled="busy" required>
                 </label>
                 <label>
-                    <span>Agent</span>
-                    <input type="text" data-agent-code maxlength="80" value="chat-agent">
+                    <span>Phone</span>
+                    <input type="tel" maxlength="40" autocomplete="tel" data-visitor-phone v-model="profileForm.phone" v-on:change="saveInputs" v-bind:disabled="busy" required>
                 </label>
             </div>
             <label class="chat-agent__message-box">
-                <span>Message</span>
-                <textarea data-chat-message rows="3" maxlength="5000"></textarea>
+                <span>Other details</span>
+                <textarea rows="2" maxlength="1200" data-visitor-details v-model="profileForm.details" v-on:change="saveInputs" v-bind:disabled="busy"></textarea>
             </label>
             <div class="chat-agent__actions">
-                <button type="submit" class="chat-agent__primary-button">Send</button>
+                <button type="submit" class="chat-agent__primary-button" data-save-profile v-bind:disabled="busy">Save Profile</button>
+            </div>
+        </form>
+
+        <div class="chat-agent__profile-summary" data-profile-summary v-show="profileReady">
+            <span data-profile-id>Profile #{{ profileValue("id") }}</span>
+            <strong data-profile-name>{{ profileValue("name") || "Visitor" }}</strong>
+            <span data-profile-email>{{ profileValue("email") }}</span>
+            <span data-profile-phone>{{ profileValue("contactno") || profileValue("phone") }}</span>
+        </div>
+
+        <form class="chat-agent__composer" data-chat-form v-show="profileReady" v-on:submit.prevent="sendMessage">
+            <label class="chat-agent__message-box">
+                <span>Message</span>
+                <textarea rows="3" maxlength="5000" data-chat-message v-model="messageText" v-bind:disabled="busy"></textarea>
+            </label>
+            <div class="chat-agent__actions">
+                <button type="submit" class="chat-agent__primary-button" data-send-message v-bind:disabled="busy">Send</button>
             </div>
         </form>
     </div>

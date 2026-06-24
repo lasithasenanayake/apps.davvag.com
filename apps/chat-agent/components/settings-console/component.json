@@ -1,8 +1,8 @@
 {
-    "name": "chat-window",
-    "description": "Visitor chat interface for Chat Agent",
+    "name": "settings-console",
+    "description": "Chat Agent settings console",
     "author": "DAVVAG",
-    "version": "0.6",
+    "version": "0.1",
     "resources": {
         "files": [
             {

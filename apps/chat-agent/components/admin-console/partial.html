@@ -4,13 +4,14 @@
             <header class="chat-agent__panel-header">
                 <div>
                     <h1>Human Agent</h1>
-                    <p data-admin-status>Loading sessions</p>
+                    <p data-admin-status v-bind:class="statusClass">{{ status.message }}</p>
                 </div>
-                <button type="button" class="chat-agent__ghost-button" data-refresh-sessions>Refresh</button>
+                <button type="button" class="chat-agent__ghost-button" data-refresh-sessions v-on:click="refreshSessions" v-bind:disabled="busy || loading">Refresh</button>
             </header>
+
             <div class="chat-agent__filters">
-                <input type="search" data-session-search placeholder="Search sessions">
-                <select data-session-status>
+                <input type="search" data-session-search placeholder="Search sessions" v-model="filters.search" v-on:input="filterChanged" v-bind:disabled="busy">
+                <select data-session-status v-model="filters.status" v-on:change="loadSessions" v-bind:disabled="busy">
                     <option value="all">All</option>
                     <option value="open">Open</option>
                     <option value="waiting_human">Waiting</option>
@@ -19,23 +20,56 @@
                     <option value="closed">Closed</option>
                 </select>
             </div>
-            <div class="chat-agent__session-list" data-session-list></div>
+
+            <div class="chat-agent__session-list" data-session-list>
+                <div class="chat-agent__empty" v-if="sessions.length === 0">No sessions found.</div>
+                <button type="button" class="chat-agent__session-row" v-for="session in sessions" v-bind:key="session.sessionKey" v-bind:class="sessionClass(session)" v-bind:data-session-key="session.sessionKey" v-on:click="selectSession(session.sessionKey)">
+                    <span class="chat-agent__session-name">{{ session.visitorName || "Visitor" }}</span>
+                    <span class="chat-agent__session-status">{{ session.status || "open" }}</span>
+                    <span class="chat-agent__session-preview">{{ session.lastMessagePreview || "" }}</span>
+                    <span class="chat-agent__session-meta">
+                        <span>{{ session.lastMessageAt || "" }}</span>
+                        <strong v-if="unreadCount(session) > 0">{{ unreadCount(session) }}</strong>
+                    </span>
+                </button>
+            </div>
         </aside>
 
         <main class="chat-agent__conversation">
             <header class="chat-agent__conversation-header" data-conversation-header>
-                <div>
+                <div v-if="selected">
+                    <h2>{{ selected.visitorName || "Visitor" }}</h2>
+                    <p>{{ selected.sessionKey || "" }}</p>
+                </div>
+                <div v-else>
                     <h2>Select a session</h2>
                     <p>Messages appear here.</p>
                 </div>
+                <div class="chat-agent__conversation-meta" v-if="selected">
+                    <span>{{ selected.status || "open" }}</span>
+                    <span>{{ selected.agentCode || "no-agent" }}</span>
+                    <span v-if="selected.assignedAgentName">{{ selected.assignedAgentName }}</span>
+                </div>
             </header>
-            <div class="chat-agent__thread chat-agent__thread--admin" data-admin-thread></div>
-            <form class="chat-agent__composer chat-agent__composer--admin" data-admin-reply-form>
-                <textarea data-admin-reply rows="3" maxlength="5000"></textarea>
+
+            <div class="chat-agent__thread chat-agent__thread--admin" data-admin-thread>
+                <div class="chat-agent__empty" v-if="selected && messages.length === 0">No messages yet.</div>
+                <div class="chat-agent__empty" v-if="!selected">No session selected.</div>
+                <article class="chat-agent__bubble" v-for="message in messages" v-bind:key="message.messageId || message.id" v-bind:class="'chat-agent__bubble--' + bubbleClass(message)">
+                    <div class="chat-agent__bubble-meta">
+                        <span>{{ displaySender(message) }}</span>
+                        <time>{{ message.createdAt || "" }}</time>
+                    </div>
+                    <div class="chat-agent__bubble-body">{{ message.body || "" }}</div>
+                </article>
+            </div>
+
+            <form class="chat-agent__composer chat-agent__composer--admin" data-admin-reply-form v-on:submit.prevent="sendHumanReply">
+                <textarea data-admin-reply rows="3" maxlength="5000" v-model="replyText" v-bind:disabled="busy || !selected"></textarea>
                 <div class="chat-agent__actions">
-                    <button type="button" class="chat-agent__ghost-button" data-assign-session>Assign</button>
-                    <button type="button" class="chat-agent__ghost-button" data-close-session>Close</button>
-                    <button type="submit" class="chat-agent__primary-button">Reply</button>
+                    <button type="button" class="chat-agent__ghost-button" data-assign-session v-on:click="assignSelected" v-bind:disabled="busy || !selected">Assign</button>
+                    <button type="button" class="chat-agent__ghost-button" data-close-session v-on:click="closeSelected" v-bind:disabled="busy || !selected">Close</button>
+                    <button type="submit" class="chat-agent__primary-button" v-bind:disabled="busy || !selected">Reply</button>
                 </div>
             </form>
         </main>

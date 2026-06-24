@@ -27,17 +27,23 @@ class ApiService {
 
         $body = $this->body($req);
         $identity = $this->currentIdentity($this->boolValue($body, "newSession", false));
-        $session = $this->findOrCreateSession($identity, $this->stringValue($body, "agentCode", $this->defaultAgentCode), $body, $res);
+        $out = $this->ok();
+        $out->identity = $identity;
+        $out->defaultAgentCode = $this->configuredAgentCode();
+        if (!$this->shouldBootstrapSession($identity, $body)) {
+            $out->session = null;
+            $out->messages = array();
+            return $out;
+        }
+
+        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
         if ($session === null) {
             return null;
         }
 
         $session = $this->clearVisitorUnread($session);
-        $out = $this->ok();
-        $out->identity = $identity;
         $out->session = $session;
         $out->messages = $this->messagesForSession($session->sessionKey, 200, true);
-        $out->defaultAgentCode = $this->defaultAgentCode;
         return $out;
     }
 
@@ -48,7 +54,14 @@ class ApiService {
 
         $body = $this->body($req);
         $identity = $this->currentIdentity(false);
-        $session = $this->findOrCreateSession($identity, $this->stringValue($body, "agentCode", $this->defaultAgentCode), $body, $res);
+        if (!$this->shouldBootstrapSession($identity, $body)) {
+            $out = $this->ok();
+            $out->session = null;
+            $out->messages = array();
+            return $out;
+        }
+
+        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
         if ($session === null) {
             return null;
         }
@@ -57,6 +70,33 @@ class ApiService {
         $out = $this->ok();
         $out->session = $session;
         $out->messages = $this->messagesForSession($session->sessionKey, 200, true);
+        return $out;
+    }
+
+    public function postResolveProfile($req, $res) {
+        if (!$this->ensureStore($res)) {
+            return null;
+        }
+
+        $body = $this->body($req);
+        $profileResult = $this->resolveProfileForBody($body, $res);
+        if ($profileResult === null) {
+            return null;
+        }
+
+        $body->profileId = (string)$profileResult->profile->id;
+        $identity = $this->currentIdentity(false);
+        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
+        if ($session === null) {
+            return null;
+        }
+
+        $out = $this->ok();
+        $out->profile = $profileResult->profile;
+        $out->createdProfile = $profileResult->created;
+        $out->session = $session;
+        $out->messages = $this->messagesForSession($session->sessionKey, 200, true);
+        $out->defaultAgentCode = $this->configuredAgentCode();
         return $out;
     }
 
@@ -73,7 +113,13 @@ class ApiService {
         }
 
         $identity = $this->currentIdentity(false);
-        $session = $this->findOrCreateSession($identity, $this->stringValue($body, "agentCode", $this->defaultAgentCode), $body, $res);
+        $profileResult = $this->resolveProfileForBody($body, $res);
+        if ($profileResult === null) {
+            return null;
+        }
+
+        $body->profileId = (string)$profileResult->profile->id;
+        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
         if ($session === null) {
             return null;
         }
@@ -81,11 +127,19 @@ class ApiService {
         $now = $this->now();
         $visitorName = $this->stringValue($body, "visitorName", "");
         $visitorEmail = $this->stringValue($body, "visitorEmail", "");
+        $visitorPhone = $this->stringValue($body, "visitorPhone", "");
+        $visitorDetails = $this->stringValue($body, "visitorDetails", "");
         if ($visitorName !== "") {
             $session->visitorName = $visitorName;
         }
         if ($visitorEmail !== "") {
             $session->visitorEmail = $visitorEmail;
+        }
+        if ($visitorPhone !== "") {
+            $session->visitorPhone = $visitorPhone;
+        }
+        if ($visitorDetails !== "") {
+            $session->visitorDetails = $visitorDetails;
         }
 
         $visitorMessage = $this->insertMessage($session->sessionKey, "visitor", $session->visitorKey, $session->visitorName, $text, "inbound", "sent", $session->agentCode, null, $res);
@@ -137,9 +191,11 @@ class ApiService {
         }
 
         $out = $this->ok();
+        $out->profile = $profileResult->profile;
         $out->session = $session;
         $out->messages = $this->messagesForSession($session->sessionKey, 200, true);
         $out->agent = $agentRun;
+        $out->defaultAgentCode = $this->configuredAgentCode();
         return $out;
     }
 
@@ -311,16 +367,89 @@ class ApiService {
         return $out;
     }
 
+    public function postSettings($req, $res) {
+        if (!$this->requireHumanAgent($res)) {
+            return null;
+        }
+
+        $creator = $this->savedAgentsForSettings();
+        $out = $this->ok();
+        $out->settings = $this->chatSettings();
+        $out->defaultAgentCode = $this->configuredAgentCode();
+        $out->agents = $creator->agents;
+        if (!$creator->success) {
+            $out->agentLoadMessage = $creator->message;
+        }
+        return $out;
+    }
+
+    public function postSaveSettings($req, $res) {
+        if (!$this->requireHumanAgent($res)) {
+            return null;
+        }
+
+        $body = $this->body($req);
+        $agentCode = $this->normalizeCode($this->stringValue($body, "defaultAgentCode", ""));
+        if ($agentCode === "") {
+            $agentCode = $this->normalizeCode($this->stringValue($body, "agentCode", ""));
+        }
+        if ($agentCode === "") {
+            $res->SetError("Select an AI agent before saving settings.");
+            return null;
+        }
+
+        $creator = $this->savedAgentsForSettings();
+        if (!$this->agentExists($creator->agents, $agentCode)) {
+            $res->SetError("Selected AI agent was not found. Save the agent in AI Agent Creator first.");
+            return null;
+        }
+
+        $settings = $this->chatSettings();
+        $settings->defaultAgentCode = $agentCode;
+        $settings->updatedAt = $this->now();
+        $human = $this->currentHumanAgent();
+        $settings->updatedBy = $human->name;
+
+        if (!$this->saveChatSettings($settings)) {
+            $res->SetError("Unable to save Chat Agent settings.");
+            return null;
+        }
+
+        $out = $this->ok();
+        $out->settings = $settings;
+        $out->defaultAgentCode = $agentCode;
+        $out->agents = $creator->agents;
+        return $out;
+    }
+
+    private function shouldBootstrapSession($identity, $body) {
+        $profileId = $this->normalizeProfileId($this->stringValue($body, "profileId", ""));
+        if ($profileId !== "") {
+            return true;
+        }
+        if ($this->boolValue($body, "forceSession", false)) {
+            return true;
+        }
+        return false;
+    }
+
     private function findOrCreateSession($identity, $agentCode, $body, $res) {
         $session = $this->sessionByKey($identity->sessionKey, true);
         $agentCode = $this->normalizeCode($agentCode);
+        $profileId = $this->normalizeProfileId($this->stringValue($body, "profileId", ""));
         $visitorName = $this->stringValue($body, "visitorName", "");
         $visitorEmail = $this->stringValue($body, "visitorEmail", "");
+        $visitorPhone = $this->stringValue($body, "visitorPhone", "");
+        $visitorDetails = $this->stringValue($body, "visitorDetails", "");
 
         if ($session !== null) {
             $changed = false;
             if ($agentCode !== "" && $this->value($session, "agentCode", "") !== $agentCode) {
                 $session->agentCode = $agentCode;
+                $changed = true;
+            }
+            if ($profileId !== "" && $this->value($session, "visitorId", "") !== $profileId) {
+                $session->visitorId = $profileId;
                 $changed = true;
             }
             if ($visitorName !== "" && $this->value($session, "visitorName", "") !== $visitorName) {
@@ -329,6 +458,14 @@ class ApiService {
             }
             if ($visitorEmail !== "" && $this->value($session, "visitorEmail", "") !== $visitorEmail) {
                 $session->visitorEmail = $visitorEmail;
+                $changed = true;
+            }
+            if ($visitorPhone !== "" && $this->value($session, "visitorPhone", "") !== $visitorPhone) {
+                $session->visitorPhone = $visitorPhone;
+                $changed = true;
+            }
+            if ($visitorDetails !== "" && $this->value($session, "visitorDetails", "") !== $visitorDetails) {
+                $session->visitorDetails = $visitorDetails;
                 $changed = true;
             }
             if ($changed) {
@@ -343,9 +480,11 @@ class ApiService {
         $session->sessionKey = $identity->sessionKey;
         $session->visitorKey = $identity->visitorKey;
         $session->visitorType = $identity->type;
-        $session->visitorId = $identity->profileId;
+        $session->visitorId = $profileId !== "" ? $profileId : $identity->profileId;
         $session->visitorName = $visitorName !== "" ? $visitorName : $identity->name;
         $session->visitorEmail = $visitorEmail !== "" ? $visitorEmail : $identity->email;
+        $session->visitorPhone = $visitorPhone;
+        $session->visitorDetails = $visitorDetails;
         $session->agentCode = $agentCode;
         $session->status = "open";
         $session->needsHumanReview = "false";
@@ -417,13 +556,12 @@ class ApiService {
         $message->senderType = $senderType;
         $message->senderId = (string)$senderId;
         $message->senderName = $senderName;
-        $message->body = $body;
+        $message->body = $this->messageText($body);
         $message->direction = $direction;
         $message->status = $status;
         $message->agentCode = $agentCode;
-        $message->raw = $raw;
+        $message->raw = $this->messageRaw($raw);
         $message->createdAt = $this->now();
-
         $result = \SOSSData::Insert($this->messageNamespace, $message);
         if (!$result->success) {
             $res->SetError(isset($result->message) ? $result->message : "Chat message save failed.");
@@ -435,12 +573,205 @@ class ApiService {
         return $message;
     }
 
+    private function messageText($input) {
+        $input = trim((string)$input);
+        $input = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $input);
+        return substr($input, 0, 5000);
+    }
+
+    private function messageRaw($raw) {
+        if ($raw === null) {
+            return null;
+        }
+
+        $out = new \stdClass();
+        $out->success = $this->value($raw, "success", null);
+        $out->message = $this->value($raw, "message", "");
+        $out->agentCode = $this->value($raw, "agentCode", "");
+        $out->provider = $this->value($raw, "provider", "");
+        $out->model = $this->value($raw, "model", "");
+        $reply = $this->value($raw, "response", $this->value($raw, "reply", ""));
+        $out->replyLength = strlen((string)$reply);
+        $out->interaction = $this->value($raw, "interaction", null);
+        $out->skillResults = $this->value($raw, "skillResults", null);
+        return $out;
+    }
+
     private function messagesForSession($sessionKey, $limit, $viewObject) {
         $rows = $this->rows($this->messageNamespace, "sessionKey:" . $sessionKey, "asc", $limit, 0, $viewObject);
         usort($rows, function($a, $b) {
             return strcmp((string)$this->value($a, "createdAt", ""), (string)$this->value($b, "createdAt", ""));
         });
         return $rows;
+    }
+
+    private function resolveProfileForBody($body, $res) {
+        $profileId = $this->normalizeProfileId($this->stringValue($body, "profileId", ""));
+        $name = $this->limit($this->stringValue($body, "visitorName", ""), 200);
+        $email = strtolower($this->limit($this->stringValue($body, "visitorEmail", ""), 200));
+        $phone = $this->limit($this->stringValue($body, "visitorPhone", ""), 20);
+        $details = $this->limit($this->stringValue($body, "visitorDetails", ""), 1200);
+
+        $created = false;
+        $profile = null;
+
+        if ($email !== "" && $this->isSafeProfileEmail($email)) {
+            $profile = $this->profileByEmail($email);
+        }
+
+        if ($profile === null) {
+            $profile = $this->profileById($profileId);
+        }
+
+        if ($profile === null) {
+            if ($name === "") {
+                $res->SetError("Name is required before starting chat.");
+                return null;
+            }
+            if (!$this->isSafeProfileEmail($email)) {
+                $res->SetError("A valid email is required before starting chat.");
+                return null;
+            }
+            if ($phone === "") {
+                $res->SetError("Phone is required before starting chat.");
+                return null;
+            }
+
+            $profile = $this->profileByEmail($email);
+            if ($profile === null) {
+                $profile = $this->createProfile($name, $email, $phone, $res);
+                if ($profile === null) {
+                    return null;
+                }
+                $created = true;
+            }
+        }
+
+        $profile = $this->saveProfileFormFields($profile, $name, $email, $phone, $res);
+        if ($profile === null) {
+            return null;
+        }
+
+        if ($details !== "" && isset($profile->id)) {
+            $this->saveProfileDetails($profile->id, $details);
+            $profile->details = $details;
+        }
+
+        $out = $this->ok();
+        $out->profile = $profile;
+        $out->created = $created;
+        return $out;
+    }
+
+    private function saveProfileFormFields($profile, $name, $email, $phone, $res) {
+        if ($profile === null || !isset($profile->id)) {
+            return $profile;
+        }
+
+        $changed = false;
+        if ($name !== "" && $this->value($profile, "name", "") !== $name) {
+            $profile->name = $name;
+            $changed = true;
+        }
+        if ($email !== "" && $this->isSafeProfileEmail($email) && strtolower($this->value($profile, "email", "")) !== $email) {
+            $profile->email = $email;
+            $changed = true;
+        }
+        if ($phone !== "" && $this->value($profile, "contactno", "") !== $phone) {
+            $profile->contactno = $phone;
+            $changed = true;
+        }
+
+        if (!$changed) {
+            return $profile;
+        }
+
+        $result = \SOSSData::Update("profile", $profile, null);
+        if (!$result->success) {
+            $res->SetError(isset($result->message) ? $result->message : "Profile update failed.");
+            return null;
+        }
+        return $profile;
+    }
+
+    private function profileById($profileId) {
+        if ($profileId === "" || intval($profileId) <= 0) {
+            return null;
+        }
+        $result = \SOSSData::Query("profile", urlencode("id:" . intval($profileId)), null, "desc", 1, 0, null, false);
+        if ($result->success && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function profileByEmail($email) {
+        $email = strtolower(trim((string)$email));
+        if ($email === "") {
+            return null;
+        }
+        $result = \SOSSData::Query("profile", urlencode("email:" . $email), null, "desc", 1, 0, null, false);
+        if ($result->success && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function createProfile($name, $email, $phone, $res) {
+        $profile = new \stdClass();
+        $profile->name = $name;
+        $profile->email = $email;
+        $profile->contactno = $phone;
+        $profile->catogory = "Customer";
+        $profile->country = "Sri Lanka";
+        $profile->createdate = date_format(new \DateTime(), "m-d-Y H:i:s");
+        $profile->Status = "inactive";
+
+        if (class_exists("\\Auth")) {
+            $user = \Auth::Autendicate();
+            if (isset($user->userid)) {
+                $profile->userid = $user->userid;
+            }
+        }
+
+        $result = \SOSSData::Insert("profile", $profile, null);
+        if (!$result->success) {
+            $res->SetError(isset($result->message) ? $result->message : "Profile save failed.");
+            return null;
+        }
+        if (isset($result->result->generatedId)) {
+            $profile->id = $result->result->generatedId;
+        }
+        return $profile;
+    }
+
+    private function saveProfileDetails($profileId, $details) {
+        $profileId = intval($profileId);
+        $details = $this->limit($details, 600);
+        if ($profileId <= 0 || $details === "") {
+            return;
+        }
+
+        $result = \SOSSData::Query("profile_attributes", urlencode("id:" . $profileId), null, "desc", 1, 0, null, false);
+        if ($result->success && count($result->result) > 0) {
+            $attributes = $result->result[0];
+            if (!isset($attributes->notes) || trim((string)$attributes->notes) === "") {
+                $attributes->notes = $details;
+                \SOSSData::Update("profile_attributes", $attributes, null);
+            }
+            return;
+        }
+
+        $attributes = new \stdClass();
+        $attributes->id = $profileId;
+        $attributes->notes = $details;
+        \SOSSData::Insert("profile_attributes", $attributes, null);
+    }
+
+    private function isSafeProfileEmail($email) {
+        return $email !== ""
+            && filter_var($email, FILTER_VALIDATE_EMAIL)
+            && preg_match("/^[A-Za-z0-9._%+@-]+$/", $email) === 1;
     }
 
     private function askAgent($session, $message, $body) {
@@ -464,14 +795,18 @@ class ApiService {
             "profile" => array(
                 "profileId" => $profileId,
                 "name" => $this->value($session, "visitorName", ""),
-                "email" => $this->value($session, "visitorEmail", "")
+                "email" => $this->value($session, "visitorEmail", ""),
+                "phone" => $this->value($session, "visitorPhone", ""),
+                "details" => $this->value($session, "visitorDetails", "")
             ),
             "conversationKey" => $session->sessionKey,
             "context" => array(
                 "chatSession" => array(
                     "sessionKey" => $session->sessionKey,
                     "status" => $this->value($session, "status", ""),
-                    "needsHumanReview" => $this->value($session, "needsHumanReview", "false")
+                    "needsHumanReview" => $this->value($session, "needsHumanReview", "false"),
+                    "visitorPhone" => $this->value($session, "visitorPhone", ""),
+                    "visitorDetails" => $this->value($session, "visitorDetails", "")
                 ),
                 "appContext" => $context
             ),
@@ -609,10 +944,116 @@ class ApiService {
             $this->value($session, "sessionKey", ""),
             $this->value($session, "visitorName", ""),
             $this->value($session, "visitorEmail", ""),
+            $this->value($session, "visitorPhone", ""),
+            $this->value($session, "visitorDetails", ""),
             $this->value($session, "agentCode", ""),
             $this->value($session, "lastMessagePreview", ""),
             $this->value($session, "status", "")
         ));
+    }
+
+    private function agentCodeFromBody($body) {
+        return $this->configuredAgentCode();
+    }
+
+    private function configuredAgentCode() {
+        $settings = $this->chatSettings();
+        $agentCode = isset($settings->defaultAgentCode) ? (string)$settings->defaultAgentCode : "";
+        $agentCode = $this->normalizeCode($agentCode);
+        return $agentCode !== "" ? $agentCode : $this->appConfiguredAgentCode();
+    }
+
+    private function appConfiguredAgentCode() {
+        $config = $this->appConfig();
+        $agentCode = $this->defaultAgentCode;
+        if (isset($config->configuration) && isset($config->configuration->chatAgent) && isset($config->configuration->chatAgent->defaultAgentCode)) {
+            $agentCode = (string)$config->configuration->chatAgent->defaultAgentCode;
+        }
+
+        $agentCode = $this->normalizeCode($agentCode);
+        return $agentCode !== "" ? $agentCode : $this->defaultAgentCode;
+    }
+
+    private function chatSettings() {
+        $settings = new \stdClass();
+        $settings->defaultAgentCode = $this->appConfiguredAgentCode();
+        $settings->updatedAt = "";
+        $settings->updatedBy = "";
+
+        $file = $this->settingsFile();
+        if (file_exists($file)) {
+            $stored = json_decode(file_get_contents($file));
+            if (is_object($stored)) {
+                foreach ($stored as $key => $value) {
+                    $settings->$key = $value;
+                }
+            }
+        }
+
+        $settings->defaultAgentCode = $this->normalizeCode(isset($settings->defaultAgentCode) ? $settings->defaultAgentCode : "");
+        if ($settings->defaultAgentCode === "") {
+            $settings->defaultAgentCode = $this->appConfiguredAgentCode();
+        }
+        return $settings;
+    }
+
+    private function saveChatSettings($settings) {
+        $dir = dirname($this->settingsFile());
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            return false;
+        }
+        return file_put_contents($this->settingsFile(), json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+    }
+
+    private function settingsFile() {
+        if (defined("TENANT_RESOURCE_LOCATION")) {
+            return rtrim(TENANT_RESOURCE_LOCATION, "\\/") . "/data/chat-agent/settings.json";
+        }
+        return dirname(dirname(__DIR__)) . "/data/settings.json";
+    }
+
+    private function savedAgentsForSettings() {
+        $out = $this->ok();
+        $out->agents = array();
+
+        $creator = $this->creatorService();
+        if (!$creator->success) {
+            $out->success = false;
+            $out->message = $creator->message;
+            return $out;
+        }
+
+        $list = $creator->service->getListAgents(null, null);
+        if (!isset($list->success) || !$list->success) {
+            $out->success = false;
+            $out->message = isset($list->message) ? $list->message : "Unable to load saved AI agents.";
+            return $out;
+        }
+
+        $out->agents = isset($list->agents) && is_array($list->agents) ? $list->agents : array();
+        return $out;
+    }
+
+    private function agentExists($agents, $agentCode) {
+        foreach ($agents as $agent) {
+            if (is_array($agent) && isset($agent["agentCode"]) && $agent["agentCode"] === $agentCode) {
+                return true;
+            }
+            if (is_object($agent) && isset($agent->agentCode) && $agent->agentCode === $agentCode) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function appConfig() {
+        $file = dirname(dirname(__DIR__)) . "/app.json";
+        if (!file_exists($file)) {
+            return new \stdClass();
+        }
+
+        $config = json_decode(file_get_contents($file));
+        return is_object($config) ? $config : new \stdClass();
     }
 
     private function body($req) {
@@ -665,9 +1106,20 @@ class ApiService {
         return substr($value, 0, 80);
     }
 
+    private function normalizeProfileId($value) {
+        $value = trim((string)$value);
+        $value = preg_replace("/[^A-Za-z0-9@._:-]+/", "-", $value);
+        $value = trim($value, "-_");
+        return substr($value, 0, 120);
+    }
+
     private function preview($value) {
         $value = trim(preg_replace("/\s+/", " ", (string)$value));
         return substr($value, 0, 220);
+    }
+
+    private function limit($value, $length) {
+        return substr(trim((string)$value), 0, $length);
     }
 
     private function value($object, $key, $default) {

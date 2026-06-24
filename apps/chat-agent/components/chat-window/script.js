@@ -1,31 +1,146 @@
 WEBDOCK.component().register(function(exports) {
     var api;
     var pollTimer = null;
+    var initialized = false;
+    var renderElement = null;
+    var vueInstance = null;
+    var fallbackMode = false;
+    var localMessageCounter = 0;
+    var knownMessageKeys = {};
+    var messageHistoryReady = false;
+    var audioContext = null;
+    var notificationSoundReady = false;
 
-    var state = {
+    var bindData = {
         session: null,
         messages: [],
-        busy: false
+        profile: null,
+        profileReady: false,
+        profileForm: {
+            name: "",
+            email: "",
+            phone: "",
+            details: ""
+        },
+        messageText: "",
+        defaultAgentCode: "chat-agent",
+        busy: false,
+        status: {
+            message: "",
+            tone: ""
+        }
     };
 
-    exports.onReady = function() {
+    var vueData = {
+        data: bindData,
+        computed: {
+            sessionLabel: function() {
+                return bindData.session && bindData.session.sessionKey
+                    ? "Session " + bindData.session.sessionKey
+                    : "Starting session";
+            },
+            statusClass: function() {
+                return bindData.status.tone ? "is-" + bindData.status.tone : "";
+            }
+        },
+        methods: {
+            saveProfile: saveProfile,
+            sendMessage: sendMessage,
+            newChat: newChat,
+            displaySender: displaySender,
+            bubbleClass: bubbleClass,
+            bubbleClasses: bubbleClasses,
+            formatMessage: formatMessage,
+            profileValue: profileValue,
+            saveInputs: saveInputs
+        },
+        onReady: function(data, element) {
+            if (element) {
+                renderElement = element;
+            }
+            bindSoundUnlock();
+            initialize();
+        }
+    };
+
+    exports.vue = vueData;
+    exports.chatAgentOwnMount = true;
+    exports.onReady = function(element) {
+        renderElement = element || renderElement;
+        if (mountVue(renderElement)) {
+            return;
+        }
+        fallbackMode = true;
+        bindFallbackEvents();
+        bindSoundUnlock();
+        renderFallback();
+        initialize();
+    };
+
+    function mountVue(element) {
+        if (typeof Vue === "undefined") {
+            return false;
+        }
+
+        var node = elementNode(element);
+        if (!node) {
+            return false;
+        }
+
+        if (node.__vue__) {
+            vueInstance = node.__vue__;
+            fallbackMode = false;
+            bindSoundUnlock();
+            initialize();
+            return true;
+        }
+
+        var target = $(node);
+        if (!target.attr("id")) {
+            target.attr("id", "chat_agent_window_" + new Date().getTime());
+        }
+
+        exports.vue.el = "#" + target.attr("id");
+        vueInstance = new Vue(exports.vue);
+        fallbackMode = false;
+        bindSoundUnlock();
+        if (exports.vue.onReady) {
+            exports.vue.onReady(exports.vue.data, target);
+        }
+        return true;
+    }
+
+    function elementNode(element) {
+        if (!element) {
+            return null;
+        }
+        if (element.jquery) {
+            return element.length ? element[0] : null;
+        }
+        return element.nodeType ? element : null;
+    }
+
+    function initialize() {
+        if (initialized) {
+            return;
+        }
+
         api = exports.getComponent("api");
+        if (!api) {
+            setStatus("Loading chat service...", "muted");
+            window.setTimeout(initialize, 300);
+            return;
+        }
+
+        initialized = true;
         restoreInputs();
-        bindEvents();
+        renderFallback();
         loadSession(false);
         pollTimer = window.setInterval(function() {
-            if (!state.busy) {
+            if (!bindData.busy && bindData.profileReady) {
                 pollSession();
             }
         }, 8000);
-    };
-
-    function bindEvents() {
-        find("[data-chat-form]").on("submit", sendMessage);
-        find("[data-new-session]").on("click", function() {
-            loadSession(true);
-        });
-        find("[data-visitor-name], [data-visitor-email], [data-agent-code]").on("change keyup", saveInputs);
     }
 
     function loadSession(newSession) {
@@ -33,8 +148,9 @@ WEBDOCK.component().register(function(exports) {
             setStatus("Chat service is not loaded.", "error");
             return;
         }
+
         setBusy(true);
-        api.services.Bootstrap(payload({ newSession: !!newSession }))
+        callApi("Bootstrap", payload({ newSession: !!newSession }))
             .then(function(response) {
                 setBusy(false);
                 var result = serviceResult(response);
@@ -42,60 +158,112 @@ WEBDOCK.component().register(function(exports) {
                     setStatus(result.message || "Unable to start chat.", "error");
                     return;
                 }
-                state.session = result.session || null;
-                state.messages = result.messages || [];
-                render();
-                setStatus("", "");
+                applyServiceState(result);
+                setStatus(bindData.profileReady ? "" : "Save your profile to start chatting.", "muted");
             })
             .error(function(response) {
                 setBusy(false);
-                var result = serviceResult(response && response.responseJSON ? response.responseJSON : response);
-                setStatus(result.message || "Unable to start chat.", "error");
+                setStatus(errorMessage(response, "Unable to start chat."), "error");
+            });
+    }
+
+    function newChat(event) {
+        preventEvent(event);
+        if (!bindData.profileReady) {
+            setStatus("Save your profile before starting a new chat.", "error");
+            return;
+        }
+        messageHistoryReady = false;
+        knownMessageKeys = {};
+        loadSession(true);
+    }
+
+    function saveProfile(event) {
+        preventEvent(event);
+        readFallbackInputs();
+        if (!api || bindData.busy) {
+            return;
+        }
+
+        var validation = validateProfile();
+        if (validation !== "") {
+            setStatus(validation, "error");
+            return;
+        }
+
+        saveInputs();
+        setBusy(true);
+        setStatus("Saving profile...", "muted");
+        callApi("ResolveProfile", payload({}))
+            .then(function(response) {
+                setBusy(false);
+                var result = serviceResult(response);
+                if (result.success === false) {
+                    setStatus(result.message || "Profile was not saved.", "error");
+                    return;
+                }
+                applyServiceState(result);
+                bindData.profileReady = !!(bindData.profile && bindData.profile.id);
+                saveInputs();
+                setStatus("Profile ready. You can send your message now.", "success");
+            })
+            .error(function(response) {
+                setBusy(false);
+                setStatus(errorMessage(response, "Profile was not saved."), "error");
             });
     }
 
     function pollSession() {
-        if (!api || !state.session) {
+        if (!api || !bindData.session) {
             return;
         }
-        api.services.PollSession(payload({}))
+
+        callApi("PollSession", payload({}))
             .then(function(response) {
                 var result = serviceResult(response);
                 if (result.success === false) {
                     return;
                 }
-                state.session = result.session || state.session;
-                state.messages = result.messages || state.messages;
-                render();
+                applyServiceState(result);
             });
     }
 
     function sendMessage(event) {
-        event.preventDefault();
-        if (!api || state.busy) {
+        preventEvent(event);
+        readFallbackInputs();
+        if (!api || bindData.busy) {
+            return;
+        }
+        if (!bindData.profileReady) {
+            setStatus("Save your profile before sending a message.", "error");
             return;
         }
 
-        var message = $.trim(find("[data-chat-message]").val());
+        var message = $.trim(bindData.messageText || "");
         if (!message) {
             setStatus("Type a message before sending.", "error");
             return;
         }
 
+        unlockNotificationSound();
+        saveInputs();
+        var requestData = payload({ message: message });
+        bindData.messageText = "";
+        appendLocalMessage(localVisitorMessage(message));
+        appendLocalMessage(localAgentWaitingMessage());
         setBusy(true);
-        setStatus("Sending...", "muted");
-        api.services.SendMessage(payload({ message: message }))
+        setStatus("Waiting for AI agent...", "muted");
+        scrollThread();
+        callApi("SendMessage", requestData)
             .then(function(response) {
+                removeLocalWaitingMessages();
                 setBusy(false);
                 var result = serviceResult(response);
                 if (result.success === false) {
                     setStatus(result.message || "Message was not sent.", "error");
                     return;
                 }
-                find("[data-chat-message]").val("");
-                state.session = result.session || state.session;
-                state.messages = result.messages || [];
-                render();
+                applyServiceState(result);
                 if (result.agent && result.agent.success === false) {
                     setStatus(result.agent.message || "A human agent will review this chat.", "muted");
                 } else {
@@ -103,50 +271,102 @@ WEBDOCK.component().register(function(exports) {
                 }
             })
             .error(function(response) {
+                removeLocalWaitingMessages();
                 setBusy(false);
-                var result = serviceResult(response && response.responseJSON ? response.responseJSON : response);
-                setStatus(result.message || "Message was not sent.", "error");
+                setStatus(errorMessage(response, "Message was not sent."), "error");
             });
     }
 
+    function applyServiceState(result) {
+        var shouldFocusLatest = false;
+        if (result.defaultAgentCode) {
+            bindData.defaultAgentCode = result.defaultAgentCode;
+        }
+        if (result.profile) {
+            bindData.profile = result.profile;
+            bindData.profileReady = !!result.profile.id;
+            writeProfileToForm(result.profile);
+        }
+        if (result.session) {
+            bindData.session = result.session;
+            if (!bindData.profile && result.session.visitorId) {
+                bindData.profile = {
+                    id: result.session.visitorId,
+                    name: result.session.visitorName || "",
+                    email: result.session.visitorEmail || "",
+                    contactno: result.session.visitorPhone || "",
+                    details: result.session.visitorDetails || ""
+                };
+            }
+            if (result.session.visitorId) {
+                bindData.profileReady = true;
+            }
+            writeSessionToForm(result.session);
+        }
+        if (result.messages) {
+            shouldFocusLatest = notifyForNewMessages(result.messages);
+            bindData.messages = result.messages;
+        }
+        renderFallback();
+        if (shouldFocusLatest) {
+            scrollThread();
+        }
+    }
+
     function payload(extra) {
+        readFallbackInputs();
         var data = {
-            visitorName: $.trim(find("[data-visitor-name]").val()),
-            visitorEmail: $.trim(find("[data-visitor-email]").val()),
-            agentCode: $.trim(find("[data-agent-code]").val()) || "chat-agent"
+            profileId: bindData.profile && bindData.profile.id ? bindData.profile.id : storageGet("chatAgentProfileId", ""),
+            visitorName: $.trim(bindData.profileForm.name || ""),
+            visitorEmail: $.trim(bindData.profileForm.email || ""),
+            visitorPhone: $.trim(bindData.profileForm.phone || ""),
+            visitorDetails: $.trim(bindData.profileForm.details || ""),
+            agentCode: bindData.defaultAgentCode || "chat-agent"
         };
         return $.extend(data, extra || {});
     }
 
-    function render() {
-        var label = state.session && state.session.sessionKey ? state.session.sessionKey : "";
-        find("[data-chat-session-label]").text(label ? "Session " + label : "Starting session");
-        renderMessages();
+    function callApi(method, data) {
+        if (api && api.services && typeof api.services[method] === "function") {
+            return api.services[method](data);
+        }
+        return ajaxServiceCall(method, data);
     }
 
-    function renderMessages() {
-        var thread = find("[data-chat-thread]");
-        if (!state.messages.length) {
-            thread.html('<div class="chat-agent__empty">No messages yet.</div>');
-            return;
-        }
+    function ajaxServiceCall(method, data) {
+        var appId = api && api.getAppId ? api.getAppId() : "chat-agent";
+        var componentId = api && api.getId ? api.getId() : "api";
+        var request = $.ajax({
+            url: "components/" + appId + "/" + componentId + "/service/" + method,
+            type: "POST",
+            xhrFields: { withCredentials: true },
+            contentType: "application/json",
+            data: JSON.stringify(data || {})
+        });
 
-        var html = [];
-        for (var i = 0; i < state.messages.length; i++) {
-            var message = state.messages[i];
-            var type = message.senderType || "system";
-            html.push(
-                '<article class="chat-agent__bubble chat-agent__bubble--' + escapeAttr(type) + '">' +
-                    '<div class="chat-agent__bubble-meta">' +
-                        '<span>' + escapeHtml(displaySender(message)) + '</span>' +
-                        '<time>' + escapeHtml(message.createdAt || "") + '</time>' +
-                    '</div>' +
-                    '<div class="chat-agent__bubble-body">' + nl2br(escapeHtml(message.body || "")) + '</div>' +
-                '</article>'
-            );
+        return {
+            then: function(callback) {
+                request.done(callback);
+                return this;
+            },
+            error: function(callback) {
+                request.fail(callback);
+                return this;
+            }
+        };
+    }
+
+    function validateProfile() {
+        if ($.trim(bindData.profileForm.name || "") === "") {
+            return "Name is required.";
         }
-        thread.html(html.join(""));
-        thread.scrollTop(thread[0].scrollHeight);
+        if ($.trim(bindData.profileForm.email || "") === "") {
+            return "Email is required.";
+        }
+        if ($.trim(bindData.profileForm.phone || "") === "") {
+            return "Phone is required.";
+        }
+        return "";
     }
 
     function displaySender(message) {
@@ -162,60 +382,476 @@ WEBDOCK.component().register(function(exports) {
         return message.senderName || "System";
     }
 
+    function bubbleClass(message) {
+        return escapeClass(message && message.senderType ? message.senderType : "system");
+    }
+
+    function bubbleClasses(message) {
+        var classes = ["chat-agent__bubble--" + bubbleClass(message)];
+        if (message && message.pending) {
+            classes.push("is-pending");
+        }
+        return classes.join(" ");
+    }
+
+    function formatMessage(message) {
+        var body = message && message.body ? String(message.body) : "";
+        if (body === "") {
+            return "";
+        }
+
+        var lines = escapeHtml(body).split(/\r?\n/);
+        var html = [];
+        $.each(lines, function(index, line) {
+            var trimmed = $.trim(line);
+            var heading = line.match(/^(#{1,3})\s+(.+)$/);
+
+            if (trimmed === "") {
+                html.push('<div class="chat-agent__message-space"></div>');
+                return;
+            }
+            if (/^-{3,}$/.test(trimmed)) {
+                html.push('<hr class="chat-agent__message-rule">');
+                return;
+            }
+            if (heading) {
+                html.push('<h3 class="chat-agent__message-heading">' + formatInline(heading[2]) + '</h3>');
+                return;
+            }
+
+            html.push('<p>' + formatInline(line) + '</p>');
+        });
+        return html.join("");
+    }
+
+    function formatInline(value) {
+        return value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    }
+
+    function appendLocalMessage(message) {
+        bindData.messages = (bindData.messages || []).concat([message]);
+        renderFallback();
+        scrollThread();
+    }
+
+    function removeLocalWaitingMessages() {
+        bindData.messages = $.grep(bindData.messages || [], function(message) {
+            return !(message && message.localOnly && message.pending);
+        });
+        renderFallback();
+    }
+
+    function localVisitorMessage(body) {
+        localMessageCounter++;
+        return {
+            localId: "visitor-local-" + localMessageCounter,
+            messageId: "visitor-local-" + localMessageCounter,
+            senderType: "visitor",
+            senderName: profileValue("name") || "You",
+            body: body,
+            direction: "inbound",
+            status: "sending",
+            agentCode: bindData.defaultAgentCode || "",
+            createdAt: "Sending"
+        };
+    }
+
+    function localAgentWaitingMessage() {
+        localMessageCounter++;
+        return {
+            localId: "agent-waiting-" + localMessageCounter,
+            messageId: "agent-waiting-" + localMessageCounter,
+            senderType: "ai_agent",
+            senderName: "AI Agent",
+            body: "AI Agent is responding...",
+            direction: "outbound",
+            status: "pending",
+            agentCode: bindData.defaultAgentCode || "",
+            createdAt: "",
+            pending: true,
+            localOnly: true
+        };
+    }
+
+    function profileValue(key) {
+        if (bindData.profile && bindData.profile[key]) {
+            return bindData.profile[key];
+        }
+        if (bindData.session) {
+            if (key === "id") {
+                return bindData.session.visitorId || "";
+            }
+            if (key === "name") {
+                return bindData.session.visitorName || "";
+            }
+            if (key === "email") {
+                return bindData.session.visitorEmail || "";
+            }
+            if (key === "contactno" || key === "phone") {
+                return bindData.session.visitorPhone || "";
+            }
+        }
+        return "";
+    }
+
     function setBusy(isBusy) {
-        state.busy = isBusy;
-        find("button, input, textarea").prop("disabled", isBusy);
+        bindData.busy = isBusy;
+        renderFallback();
     }
 
     function setStatus(message, tone) {
-        var node = find("[data-chat-status]");
-        node.removeClass("is-error is-muted is-success");
-        if (tone) {
-            node.addClass("is-" + tone);
-        }
-        node.text(message || "");
+        bindData.status.message = message || "";
+        bindData.status.tone = tone || "";
+        renderFallback();
     }
 
     function serviceResult(response) {
         if (!response || response.success !== true) {
+            var message = "DAVVAG service call failed.";
+            if (response) {
+                if (response.result && response.result.message) {
+                    message = response.result.message;
+                } else if (typeof response.result === "string") {
+                    message = response.result;
+                } else if (response.message) {
+                    message = response.message;
+                }
+            }
             return {
                 success: false,
-                message: response && response.result && response.result.message ? response.result.message : "DAVVAG service call failed."
+                message: message
             };
         }
         return response.result || { success: false, message: "DAVVAG service returned an empty response." };
     }
 
+    function errorMessage(response, fallback) {
+        var result = serviceResult(response && response.responseJSON ? response.responseJSON : response);
+        return result.message || fallback;
+    }
+
     function restoreInputs() {
-        find("[data-visitor-name]").val(window.localStorage.getItem("chatAgentVisitorName") || "");
-        find("[data-visitor-email]").val(window.localStorage.getItem("chatAgentVisitorEmail") || "");
-        find("[data-agent-code]").val(window.localStorage.getItem("chatAgentAgentCode") || "chat-agent");
+        bindData.profileForm.name = storageGet("chatAgentVisitorName", "");
+        bindData.profileForm.email = storageGet("chatAgentVisitorEmail", "");
+        bindData.profileForm.phone = storageGet("chatAgentVisitorPhone", "");
+        bindData.profileForm.details = storageGet("chatAgentVisitorDetails", "");
+
+        var profileId = storageGet("chatAgentProfileId", "");
+        if (profileId !== "") {
+            bindData.profile = {
+                id: profileId,
+                name: bindData.profileForm.name,
+                email: bindData.profileForm.email,
+                contactno: bindData.profileForm.phone,
+                details: bindData.profileForm.details
+            };
+            bindData.profileReady = true;
+        }
     }
 
     function saveInputs() {
-        window.localStorage.setItem("chatAgentVisitorName", find("[data-visitor-name]").val());
-        window.localStorage.setItem("chatAgentVisitorEmail", find("[data-visitor-email]").val());
-        window.localStorage.setItem("chatAgentAgentCode", find("[data-agent-code]").val());
+        readFallbackInputs();
+        storageSet("chatAgentVisitorName", bindData.profileForm.name || "");
+        storageSet("chatAgentVisitorEmail", bindData.profileForm.email || "");
+        storageSet("chatAgentVisitorPhone", bindData.profileForm.phone || "");
+        storageSet("chatAgentVisitorDetails", bindData.profileForm.details || "");
+        if (bindData.profile && bindData.profile.id) {
+            storageSet("chatAgentProfileId", bindData.profile.id);
+        }
     }
 
-    function find(selector) {
-        return $(exports.element).find(selector);
+    function writeProfileToForm(profile) {
+        if (!profile) {
+            return;
+        }
+        if (profile.name) {
+            bindData.profileForm.name = profile.name;
+        }
+        if (profile.email) {
+            bindData.profileForm.email = profile.email;
+        }
+        if (profile.contactno) {
+            bindData.profileForm.phone = profile.contactno;
+        }
+        if (profile.details) {
+            bindData.profileForm.details = profile.details;
+        }
+        saveInputs();
+    }
+
+    function writeSessionToForm(session) {
+        if (!session || bindData.profileReady) {
+            return;
+        }
+        if (!bindData.profileForm.name && session.visitorName) {
+            bindData.profileForm.name = session.visitorName;
+        }
+        if (!bindData.profileForm.email && session.visitorEmail) {
+            bindData.profileForm.email = session.visitorEmail;
+        }
+        if (!bindData.profileForm.phone && session.visitorPhone) {
+            bindData.profileForm.phone = session.visitorPhone;
+        }
+        if (!bindData.profileForm.details && session.visitorDetails) {
+            bindData.profileForm.details = session.visitorDetails;
+        }
+    }
+
+    function scrollThread() {
+        window.setTimeout(focusLatestMessage, 0);
+        window.setTimeout(focusLatestMessage, 80);
+    }
+
+    function focusLatestMessage() {
+        var thread = componentRoot().find("[data-chat-thread]");
+        if (!thread.length) {
+            return;
+        }
+
+        var latest = thread.find("[data-chat-message-item]").last();
+        if (!latest.length) {
+            thread.scrollTop(thread[0].scrollHeight);
+            return;
+        }
+
+        thread.scrollTop(thread[0].scrollHeight);
+        latest.attr("tabindex", "-1");
+        try {
+            latest[0].focus({ preventScroll: true });
+        } catch (ignore) {
+            latest[0].focus();
+        }
+        if (latest[0].scrollIntoView) {
+            latest[0].scrollIntoView({ block: "end", inline: "nearest", behavior: "smooth" });
+        }
+        thread.scrollTop(thread[0].scrollHeight);
+    }
+
+    function notifyForNewMessages(messages) {
+        var shouldPlay = false;
+        var hasNewMessages = false;
+        var wasReady = messageHistoryReady;
+        $.each(messages || [], function(index, message) {
+            var key = messageKey(message);
+            if (!key) {
+                return;
+            }
+            if (!knownMessageKeys[key]) {
+                knownMessageKeys[key] = true;
+                hasNewMessages = true;
+                if (messageHistoryReady && isIncomingMessage(message)) {
+                    shouldPlay = true;
+                }
+            }
+        });
+        messageHistoryReady = true;
+        if (shouldPlay) {
+            playNotificationSound();
+        }
+        return hasNewMessages || !wasReady;
+    }
+
+    function messageKey(message) {
+        if (!message) {
+            return "";
+        }
+        return String(message.messageId || message.id || message.localId || [
+            message.senderType || "",
+            message.createdAt || "",
+            message.body || ""
+        ].join("|"));
+    }
+
+    function isIncomingMessage(message) {
+        return !!message && !message.localOnly && (message.senderType === "ai_agent" || message.senderType === "human");
+    }
+
+    function bindSoundUnlock() {
+        var root = componentRoot();
+        if (!root.length) {
+            return;
+        }
+        root.off(".chatAgentSound");
+        root.one("pointerdown.chatAgentSound keydown.chatAgentSound", unlockNotificationSound);
+    }
+
+    function unlockNotificationSound() {
+        if (notificationSoundReady) {
+            return;
+        }
+        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            return;
+        }
+        try {
+            audioContext = audioContext || new AudioContextClass();
+            if (audioContext.state === "suspended" && audioContext.resume) {
+                audioContext.resume();
+            }
+            notificationSoundReady = true;
+        } catch (ignore) {
+        }
+    }
+
+    function playNotificationSound() {
+        unlockNotificationSound();
+        if (!audioContext) {
+            return;
+        }
+        try {
+            var start = audioContext.currentTime;
+            var gain = audioContext.createGain();
+            var first = audioContext.createOscillator();
+            var second = audioContext.createOscillator();
+            gain.connect(audioContext.destination);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(0.08, start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.24);
+            first.type = "sine";
+            second.type = "sine";
+            first.frequency.setValueAtTime(740, start);
+            second.frequency.setValueAtTime(980, start + 0.08);
+            first.connect(gain);
+            second.connect(gain);
+            first.start(start);
+            first.stop(start + 0.12);
+            second.start(start + 0.08);
+            second.stop(start + 0.24);
+        } catch (ignore) {
+        }
+    }
+
+    function bindFallbackEvents() {
+        var root = componentRoot();
+        if (!root.length) {
+            return;
+        }
+        root.off(".chatAgentVisitor");
+        root.on("submit.chatAgentVisitor", "[data-profile-form]", saveProfile);
+        root.on("submit.chatAgentVisitor", "[data-chat-form]", sendMessage);
+        root.on("click.chatAgentVisitor", "[data-new-session]", newChat);
+        root.on("input.chatAgentVisitor change.chatAgentVisitor", "[data-visitor-name],[data-visitor-email],[data-visitor-phone],[data-visitor-details],[data-chat-message]", function() {
+            readFallbackInputs();
+            saveInputs();
+        });
+    }
+
+    function readFallbackInputs() {
+        if (!fallbackMode) {
+            return;
+        }
+        var root = componentRoot();
+        if (!root.length) {
+            return;
+        }
+        bindData.profileForm.name = root.find("[data-visitor-name]").val() || "";
+        bindData.profileForm.email = root.find("[data-visitor-email]").val() || "";
+        bindData.profileForm.phone = root.find("[data-visitor-phone]").val() || "";
+        bindData.profileForm.details = root.find("[data-visitor-details]").val() || "";
+        bindData.messageText = root.find("[data-chat-message]").val() || "";
+    }
+
+    function renderFallback() {
+        if (!fallbackMode || vueInstance) {
+            return;
+        }
+
+        var root = componentRoot();
+        if (!root.length) {
+            return;
+        }
+
+        root.find("[data-chat-session-label]").text(sessionLabelText());
+        root.find("[data-new-session]").prop("disabled", !!bindData.busy || !bindData.profileReady);
+
+        var status = root.find("[data-chat-status]");
+        status.removeClass("is-error is-success is-muted");
+        if (bindData.status.tone) {
+            status.addClass("is-" + bindData.status.tone);
+        }
+        status.text(bindData.status.message || "");
+
+        renderFallbackMessages(root);
+        root.find("[data-profile-form]").toggle(!bindData.profileReady);
+        root.find("[data-profile-summary]").toggle(!!bindData.profileReady);
+        root.find("[data-chat-form]").toggle(!!bindData.profileReady);
+
+        root.find("[data-visitor-name]").val(bindData.profileForm.name || "");
+        root.find("[data-visitor-email]").val(bindData.profileForm.email || "");
+        root.find("[data-visitor-phone]").val(bindData.profileForm.phone || "");
+        root.find("[data-visitor-details]").val(bindData.profileForm.details || "");
+        root.find("[data-chat-message]").val(bindData.messageText || "");
+
+        root.find("[data-profile-id]").text("Profile #" + (profileValue("id") || ""));
+        root.find("[data-profile-name]").text(profileValue("name") || "Visitor");
+        root.find("[data-profile-email]").text(profileValue("email") || "");
+        root.find("[data-profile-phone]").text(profileValue("contactno") || profileValue("phone") || "");
+
+        root.find("[data-save-profile],[data-send-message],[data-visitor-name],[data-visitor-email],[data-visitor-phone],[data-visitor-details],[data-chat-message]").prop("disabled", !!bindData.busy);
+    }
+
+    function renderFallbackMessages(root) {
+        var thread = root.find("[data-chat-thread]");
+        if (!thread.length) {
+            return;
+        }
+
+        if (!bindData.messages || bindData.messages.length === 0) {
+            thread.html('<div class="chat-agent__empty">No messages yet.</div>');
+            return;
+        }
+
+        var html = [];
+        $.each(bindData.messages, function(index, message) {
+            html.push(
+                '<article class="chat-agent__bubble ' + bubbleClasses(message) + '" tabindex="-1" data-chat-message-item>' +
+                    '<div class="chat-agent__bubble-meta">' +
+                        '<span>' + escapeHtml(displaySender(message)) + '</span>' +
+                        '<time>' + escapeHtml(message && message.createdAt ? message.createdAt : "") + '</time>' +
+                    '</div>' +
+                    '<div class="chat-agent__bubble-body chat-agent__bubble-body--formatted">' + formatMessage(message) + '</div>' +
+                '</article>'
+            );
+        });
+        thread.html(html.join(""));
+    }
+
+    function sessionLabelText() {
+        return bindData.session && bindData.session.sessionKey
+            ? "Session " + bindData.session.sessionKey
+            : "Profile not saved";
+    }
+
+    function componentRoot() {
+        return $(renderElement || exports.element || []);
+    }
+
+    function preventEvent(event) {
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
     }
 
     function escapeHtml(value) {
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return $("<div>").text(value === null || typeof value === "undefined" ? "" : String(value)).html();
     }
 
-    function escapeAttr(value) {
+    function storageGet(key, fallback) {
+        try {
+            return window.localStorage.getItem(key) || fallback;
+        } catch (ignore) {
+            return fallback;
+        }
+    }
+
+    function storageSet(key, value) {
+        try {
+            window.localStorage.setItem(key, value);
+        } catch (ignore) {
+        }
+    }
+
+    function escapeClass(value) {
         return String(value).replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
-    }
-
-    function nl2br(value) {
-        return value.replace(/\n/g, "<br>");
     }
 });

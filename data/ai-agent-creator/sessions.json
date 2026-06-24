@@ -1,0 +1,290 @@
+{
+    "acd6da8c0762390f746c6b5f691d5f7c91e739df5726d1bd1229c15782d43010": {
+        "sessionId": "creator-console-creator-console",
+        "agentCode": "gema",
+        "profileId": "creator-console",
+        "context": {
+            "lastUserMessage": "hi",
+            "lastAssistantReply": "Hello! I'm your Davvag AI Sales Consultant. I specialize in helping businesses build custom applications and automate workflows faster and more efficiently.\n\nTo help me provide the best advice for your needs, could you tell me a little bit about your situation?\n\n1. What type of business or organization do you operate?\n2. What are the main software or process challenges you're currently facing? (e.g., relying on spreadsheets, slow manual processes, or legacy systems that don't talk to each other?)\n3. Are you looking to build something for internal use or a customer-facing application?\n\nI'm looking forward to hearing about what you're working on!",
+            "lastSkillResults": [],
+            "lastFlow": {
+                "flowCode": "creator-console",
+                "name": "Creator Console"
+            },
+            "lastConnector": {
+                "code": "creator-console",
+                "label": "Creator Console"
+            }
+        },
+        "history": [
+            {
+                "role": "user",
+                "content": "hi",
+                "at": "2026-06-24T08:42:00+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "Hello! I'm your Davvag AI Sales Consultant. I specialize in helping businesses build custom applications and automate workflows faster and more efficiently.\n\nTo help me provide the best advice for your needs, could you tell me a little bit about your situation?\n\n1. What type of business or organization do you operate?\n2. What are the main software or process challenges you're currently facing? (e.g., relying on spreadsheets, slow manual processes, or legacy systems that don't talk to each other?)\n3. Are you looking to build something for internal use or a customer-facing application?\n\nI'm looking forward to hearing about what you're working on!",
+                "at": "2026-06-24T08:42:00+00:00"
+            }
+        ],
+        "messageCount": 1,
+        "createdAt": "2026-06-24T08:41:53+00:00",
+        "updatedAt": "2026-06-24T08:42:00+00:00"
+    },
+    "2536db1470eb0f0980014bb65bfcafce4bf2119e431cedcc3b5a4103b4f0689c": {
+        "sessionId": "chat-agent-gema-6f79d8c7d72b659e",
+        "agentCode": "gema",
+        "profileId": "230",
+        "context": {
+            "lastUserMessage": "yes",
+            "lastAssistantReply": "Excellent, Lasitha! I\u2019m looking forward to discussing how we can modernize the systems at **Lanka Bible College**.\n\nTo keep things moving, would any of these times work for you (Sri Lanka Time)?\n\n*   **Tomorrow (Wednesday) at 10:00 AM?**\n*   **Thursday at 2:30 PM?**\n*   **Or please suggest a day and time that is most convenient for you.**\n\nI have your email as **lasitha.senanayake@gmail.com** and your phone number as **+94719285741**. Should I send the meeting invite to your email, or would you prefer a quick confirmation via WhatsApp?\n\n**During our 15-minute call, we will:**\n1.  Briefly map out your current accounting \"bottlenecks.\"\n2.  Show you how Davvag handles student fees and reporting.\n3.  Discuss a rough timeline and budget to present to your leadership.\n\nLooking forward to it!",
+            "lastSkillResults": [],
+            "lastFlow": {
+                "flowCode": "chat-agent",
+                "name": "Chat Agent",
+                "source": "app-service"
+            },
+            "lastConnector": {
+                "code": "davvag-app",
+                "label": "DAVVAG App",
+                "appCode": "chat-agent"
+            }
+        },
+        "history": [
+            {
+                "role": "user",
+                "content": "hi",
+                "at": "2026-06-24T10:50:00+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "Hello Lasitha! It's great to connect with you.\n\nI'm here to help you explore how the Davvag Framework can streamline your operations and accelerate your digital projects. To get us started and ensure I provide the most relevant information, could you tell me a bit about the type of business or project you're currently focused on?",
+                "at": "2026-06-24T10:50:00+00:00"
+            },
+            {
+                "role": "user",
+                "content": "hi",
+                "at": "2026-06-24T10:50:09+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "Hello again, Lasitha! I'm eager to dive in and see how we can help.\n\nTo give you the best advice, could you tell me a little more about your current situation? For example:\n\n1.  **What type of business or organization are you representing?** (e.g., Startup, Enterprise, NGO, etc.)\n2.  **What are the main software challenges you're facing right now?** Are you looking to replace manual processes, upgrade a legacy system, or build something entirely new?\n3.  **Are you currently using spreadsheets (like Excel or Google Sheets) to manage any of your core operations?**\n\nUnderstanding these details will help me show you exactly how the Davvag Framework can speed up your development and reduce costs.",
+                "at": "2026-06-24T10:50:09+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T10:50:38+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing great, thank you for asking, Lasitha! I'm excited to be here and help you explore ways to make your software development faster and more efficient.\n\nI'd love to hear more about what you're working on. Are you currently managing a specific project or looking for ways to automate some of your business processes? \n\nKnowing a bit about your goals\u2014whether it's building a new application, replacing manual spreadsheets, or speeding up your current development\u2014will help me provide the most helpful information.",
+                "at": "2026-06-24T10:50:38+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T10:50:47+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing wonderful, Lasitha! Thank you for the friendly check-in.\n\nI'm really looking forward to learning how I can assist you with your digital goals. Many of the people I speak with are looking to move away from slow, manual processes or expensive, time-consuming development cycles.\n\nTo help me give you the best advice, are you currently facing any specific challenges\u2014like managing too many spreadsheets, dealing with a legacy system that's hard to update, or perhaps you're looking for a way to build a custom application faster using AI?\n\nI'd love to hear what's on your mind!",
+                "at": "2026-06-24T10:50:47+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:00:13+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing fantastic, Lasitha! I appreciate your kindness. I'm always energized when I get to talk about how technology can solve real business headaches.\n\nSince we've got a good vibe going, I'd love to learn a bit more about your world. What kind of project or business are you currently focused on? \n\nFor instance, are you looking to build something new from scratch, or are you trying to find a way to make your current team more productive with AI-assisted development?",
+                "at": "2026-06-24T11:00:13+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:00:58+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm still doing great, Lasitha! Ready and waiting to help you build something amazing. \n\nTo make our chat as helpful as possible for you, I'd love to dive into your business needs. Many of our clients come to us because they are tired of slow development cycles or are struggling to manage complex data in spreadsheets.\n\nAre you currently looking for a way to automate a specific business process, or perhaps you're interested in how our AI-assisted development can cut your software building time by up to 70%? \n\nWhat's the biggest \"bottleneck\" in your work right now?",
+                "at": "2026-06-24T11:00:58+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:03:09+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing very well, Lasitha, thank you! I'm fully charged and ready to help you find the right software solutions for your business.\n\nSince we've exchanged a few pleasantries, I'd love to get down to business so I can be of real value to you. \n\nMany of the professionals I speak with are frustrated because their **software development is moving too slowly** or they are **stuck managing critical business data in Excel spreadsheets** that are becoming hard to track.\n\nDoes either of those sound like a challenge you're facing right now? Or are you looking for something else entirely, like integrating AI into your existing workflows?",
+                "at": "2026-06-24T11:03:09+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:12:48+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing excellent, Lasitha! I appreciate your consistency. \n\nTo make sure I'm not just a friendly voice but also a helpful partner for your business, I\u2019d love to learn a bit more about what brought you here today. \n\nAt Davvag, we specialize in helping businesses move away from **manual processes and slow development cycles**. \n\nCould you tell me:\n1. What type of business do you operate or work for?\n2. Are you currently facing any \"bottlenecks\"\u2014like being stuck with too many spreadsheets or a legacy system that just won't scale?\n\nI'm curious to see if we can help you build your next solution in days instead of months!",
+                "at": "2026-06-24T11:12:48+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:12:59+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing wonderful, Lasitha! Still full of energy and ready to help you transform your business processes.\n\nI've been checking in because I'm really keen to show you how the Davvag Framework can save you significant time and money. Even if you're just exploring right now, I'd love to know what sparked your interest in AI-powered development today.\n\nAre you perhaps a **developer** looking to speed up your coding workflow, or a **business leader** looking for a custom system to manage your operations?",
+                "at": "2026-06-24T11:12:59+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how are you",
+                "at": "2026-06-24T11:16:09+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'm doing fantastic, Lasitha! Thank you for the continued kindness.\n\nI'd really love to make this conversation valuable for you. To give you an idea of how I can help, many of our clients use the **Davvag Framework** to:\n\n*   **Build custom CRMs or ERPs** in a fraction of the usual time.\n*   **Automate manual workflows** that are currently stuck in Excel or paper.\n*   **Create AI-powered agents** to handle customer queries or internal data.\n\nDo any of these sound like something that would help your business grow right now? Or is there another specific challenge you're trying to solve?",
+                "at": "2026-06-24T11:16:09+00:00"
+            },
+            {
+                "role": "user",
+                "content": "can you tell me about \"CRMs\" and \"ERPs\"",
+                "at": "2026-06-24T11:17:41+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "I'd be happy to explain those! They are the backbone of most modern businesses.\n\n### **CRM (Customer Relationship Management)**\nThink of a CRM as the **\"Brain of your Sales and Customer Service.\"**\nIt\u2019s a system designed to manage every interaction your business has with customers and potential leads.\n*   **What it does:** Tracks contact info, follows up on sales leads, records customer history, and manages support tickets.\n*   **The Goal:** To make sure no customer is forgotten and to help you close more deals.\n\n### **ERP (Enterprise Resource Planning)**\nThink of an ERP as the **\"Central Nervous System of your Company.\"**\nIt\u2019s a more comprehensive system that connects all the different departments of your business so they can share data.\n*   **What it does:** Integrates things like accounting, inventory management, HR/payroll, procurement, and project tracking into one single database.\n*   **The Goal:** To eliminate \"data silos\" (where one department doesn't know what the other is doing) and automate manual back-office tasks.\n\n---\n\n### **How Davvag changes the game for CRMs and ERPs:**\nOften, businesses find that \"off-the-shelf\" CRMs or ERPs are either:\n1.  **Too expensive** (monthly fees per user add up fast).\n2.  **Too complicated** (they have 1,000 features you\u2019ll never use).\n3.  **Too rigid** (they won't adapt to your specific business workflow).\n\nWith the **Davvag Framework**, we help you build a **custom CRM or ERP** that fits your business exactly. Because of our AI-assisted development, we can build these systems in **days or weeks** rather than months, and you **own the software** without being locked into a subscription.\n\n**Are you currently using any specific software to track your customers or manage your internal operations, or are you mostly using spreadsheets and manual processes?**",
+                "at": "2026-06-24T11:17:41+00:00"
+            },
+            {
+                "role": "user",
+                "content": "how can i buy this application",
+                "at": "2026-06-24T11:26:43+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "That's a great question, Lasitha! \n\nIt\u2019s important to clarify that **Davvag is a powerful development framework** rather than a single \"off-the-shelf\" app. This means we use it to build a custom solution\u2014like a CRM, ERP, or HR system\u2014that is tailored specifically to your business rules.\n\nThe process of getting started is very straightforward:\n\n### 1. Discovery & Scoping\nWe first need to understand exactly what you want to build. For example:\n*   Are you looking for an internal system (like an ERP for your staff) or a customer-facing portal?\n*   How many users will need access?\n*   What are the \"must-have\" features (e.g., automated reporting, mobile access, AI integration)?\n\n### 2. Personalized Demonstration\nOnce I understand your needs, we can schedule a **live demo**. I can show you how the Davvag Framework generates modules, forms, and workflows in real-time so you can see the speed for yourself.\n\n### 3. Proof of Concept (POC)\nFor many clients, we start with a small \"Pilot\" or a single workflow to prove the ROI. Because Davvag uses AI-assisted development, we can often have a working prototype ready in just a few days.\n\n### 4. Implementation & Ownership\nUnlike most SaaS platforms where you pay forever, with Davvag, you have the option to **self-host** the application. This means you own your data and your software, significantly reducing long-term costs.\n\n---\n\n**To help me guide you toward the right package, could you tell me:**\n\n1.  **What is the primary problem you want this application to solve first?**\n2.  **Roughly how many people in your organization would be using it?**\n3.  **Do you have a specific timeline or launch date in mind?**\n\nOnce I have these details, I can provide you with a clear path forward and, if you're ready, schedule a demo!",
+                "at": "2026-06-24T11:26:43+00:00"
+            },
+            {
+                "role": "user",
+                "content": "i need to implement to my school to do accounting",
+                "at": "2026-06-24T11:31:14+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "That is a fantastic use case, Lasitha! Schools have very specific accounting needs that general software often misses\u2014like tracking student fees, managing scholarships, handling payroll for teachers, and generating reports for the board.\n\nImplementing a **School Accounting System** via the Davvag Framework is a smart move because it allows you to build exactly what your school needs without the high monthly fees of \"per-student\" software.\n\nTo give you the best recommendation, could you tell me a little more about the school's requirements?\n\n1.  **Current Method:** How are you managing the accounts right now? (e.g., manual ledgers, Excel spreadsheets, or an older software?)\n2.  **Key Features:** Besides basic bookkeeping, do you need specific features like:\n    *   Automated student fee invoicing and receipts?\n    *   Tracking of overdue payments/arrears?\n    *   Staff payroll and expense management?\n    *   A portal for parents to see their payment history?\n3.  **Scale:** Roughly how many students and staff members would the system need to manage?\n4.  **Decision Making:** Are you the person who will be making the final decision on this project, or are you gathering information for the School Principal or Board?\n\n**Why Davvag works well for School Accounting:**\n*   **Security:** You can set strict roles so only the Bursar can edit financial data, while the Principal can only view reports.\n*   **Automation:** We can set up AI-assisted workflows to send reminders to parents when fees are due.\n*   **Ownership:** The school can own the system and the data entirely, which is vital for long-term compliance and privacy.\n\nOnce I have those details, I can show you a **Proof of Concept** of how a school accounting module would look!",
+                "at": "2026-06-24T11:31:14+00:00"
+            },
+            {
+                "role": "user",
+                "content": "what else can this app do",
+                "at": "2026-06-24T11:34:28+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "The beauty of the **Davvag Framework** is that it isn't limited to just one function. Since it is a development platform, you can expand it to manage almost every aspect of your school\u2019s operations within the same system. \n\nBeyond accounting, here is what else we can build for your school:\n\n### 1. Student Information System (SIS)\n*   **Digital Enrolment:** Manage student profiles, medical records, and emergency contacts.\n*   **Attendance Tracking:** Record daily attendance for students and staff with automated alerts to parents for absences.\n*   **Academic Records:** Track grades, generate digital report cards, and manage exam schedules.\n\n### 2. HR & Payroll\n*   **Staff Management:** Track teacher certifications, contracts, and leave requests.\n*   **Payroll:** Automatically calculate salaries based on attendance and deductions, integrated directly with your accounting module.\n\n### 3. Parent & Student Portal\n*   A secure login where parents can pay fees online, view their child\u2019s grades, and receive school announcements.\n\n### 4. AI-Powered School Assistant\n*   **Automated Support:** We can integrate an AI agent to answer common parent questions (e.g., \"When is the next sports day?\" or \"What are the term dates?\") 24/7.\n*   **Smart Reporting:** Ask the AI, *\"Show me a list of students who haven't paid their fees this month,\"* and it can generate the report for you instantly.\n\n### 5. Inventory & Facility Management\n*   Track school equipment, library books, or even manage the booking of school halls and sports fields.\n\n### 6. Communication Tools\n*   Send bulk SMS or email notifications for emergency closures, event reminders, or fee deadlines.\n\n---\n\n### Why this is better than buying separate apps:\nInstead of having one app for accounting, another for attendance, and another for emails\u2014where none of them \"talk\" to each other\u2014**Davvag allows everything to live in one place.** Your data stays consistent, and you only have one system to maintain.\n\n**Of these features, which one would be the most helpful for your school to have alongside the accounting system?** \n\nAlso, to help me prepare a better proposal for you: \n*   **What is the name of your school?**\n*   **When would you ideally like to have the new system up and running?**",
+                "at": "2026-06-24T11:34:28+00:00"
+            },
+            {
+                "role": "user",
+                "content": "Lanka Bible College is the school name its in sri lanka",
+                "at": "2026-06-24T11:49:41+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "That is wonderful to know, Lasitha! **Lanka Bible College** is a well-respected institution. \n\nBeing a theological college in Sri Lanka, you likely have some very specific needs that go beyond standard school software\u2014such as managing student sponsorships, tracking ministry placements, and perhaps handling donations alongside student fees.\n\nThe **Davvag Framework** is a perfect fit for an institution like LBC because it is flexible enough to handle these unique requirements while keeping your costs low.\n\nTo move this forward and help me tailor a solution for LBC, could you share a bit more detail:\n\n1.  **Student & Staff Count:** Roughly how many students and staff members are currently at the college?\n2.  **The Main Pain Point:** Right now, what is the biggest headache for your finance or admin team? (e.g., \"It takes too long to find out who owes fees\" or \"We are drowning in paper forms\").\n3.  **Timeline:** When would you ideally like to have the new accounting system (and perhaps other modules) live?\n4.  **Budget & Decision:** Are you looking for a budget estimate to present to the college board or leadership?\n\n### **A Special Benefit for LBC:**\nSince you are in Sri Lanka, we can ensure the system handles **LKR transactions**, integrates with local bank reporting, and even manages **bilingual data** (English/Sinhala/Tamil) if needed for your records or parent communications.\n\n**Would you be open to a brief 15-minute online discovery call?** \n\nI can show you a quick demo of how we can build the LBC Accounting and Student Management system using Davvag. What day this week works best for you?",
+                "at": "2026-06-24T11:49:41+00:00"
+            },
+            {
+                "role": "user",
+                "content": "yes",
+                "at": "2026-06-24T11:52:43+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "Excellent, Lasitha! I\u2019m looking forward to discussing how we can modernize the systems at **Lanka Bible College**.\n\nTo keep things moving, would any of these times work for you (Sri Lanka Time)?\n\n*   **Tomorrow (Wednesday) at 10:00 AM?**\n*   **Thursday at 2:30 PM?**\n*   **Or please suggest a day and time that is most convenient for you.**\n\nI have your email as **lasitha.senanayake@gmail.com** and your phone number as **+94719285741**. Should I send the meeting invite to your email, or would you prefer a quick confirmation via WhatsApp?\n\n**During our 15-minute call, we will:**\n1.  Briefly map out your current accounting \"bottlenecks.\"\n2.  Show you how Davvag handles student fees and reporting.\n3.  Discuss a rough timeline and budget to present to your leadership.\n\nLooking forward to it!",
+                "at": "2026-06-24T11:52:43+00:00"
+            }
+        ],
+        "messageCount": 16,
+        "createdAt": "2026-06-24T10:49:52+00:00",
+        "updatedAt": "2026-06-24T11:52:43+00:00"
+    },
+    "949b9411942b986b0c68cb38b5d4983f811467d70e665319297c82e4469357c5": {
+        "sessionId": "chat-agent-gema-80988a50b45bbec6",
+        "agentCode": "gema",
+        "profileId": "probe-profile",
+        "context": {
+            "lastUserMessage": "Hello, reply with one short sentence.",
+            "lastAssistantReply": "Hello! How can I help you streamline your business operations today?",
+            "lastSkillResults": [],
+            "lastFlow": {
+                "flowCode": "chat-agent",
+                "name": "Chat Agent",
+                "source": "app-service"
+            },
+            "lastConnector": {
+                "code": "davvag-app",
+                "label": "DAVVAG App",
+                "appCode": "chat-agent"
+            }
+        },
+        "history": [
+            {
+                "role": "user",
+                "content": "Hello, reply with one short sentence.",
+                "at": "2026-06-24T11:09:29+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "Hello! How can I help you streamline your business operations today?",
+                "at": "2026-06-24T11:09:29+00:00"
+            }
+        ],
+        "messageCount": 1,
+        "createdAt": "2026-06-24T11:09:25+00:00",
+        "updatedAt": "2026-06-24T11:09:29+00:00"
+    },
+    "98ab6ac60b8385f5d7ed82ec99d2b50272291e9041ef1f0a9ff8d78025decb45": {
+        "sessionId": "chat-agent-gema-baa15298177ff834",
+        "agentCode": "gema",
+        "profileId": "249",
+        "context": {
+            "lastUserMessage": "I'm testing apostrophes in chat. Please reply in one short sentence.",
+            "lastAssistantReply": "It's great to see you're testing the system's capabilities today.",
+            "lastSkillResults": [],
+            "lastFlow": {
+                "flowCode": "chat-agent",
+                "name": "Chat Agent",
+                "source": "app-service"
+            },
+            "lastConnector": {
+                "code": "davvag-app",
+                "label": "DAVVAG App",
+                "appCode": "chat-agent"
+            }
+        },
+        "history": [
+            {
+                "role": "user",
+                "content": "I'm testing apostrophes in chat. Please reply in one short sentence.",
+                "at": "2026-06-24T11:16:37+00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "It's great to see you're testing the system's capabilities today.",
+                "at": "2026-06-24T11:16:37+00:00"
+            }
+        ],
+        "messageCount": 1,
+        "createdAt": "2026-06-24T11:16:29+00:00",
+        "updatedAt": "2026-06-24T11:16:37+00:00"
+    }
+}

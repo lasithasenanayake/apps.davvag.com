@@ -1,0 +1,42 @@
+<section class="chat-agent chat-agent--settings">
+    <div class="chat-agent__workspace">
+        <header class="chat-agent__topbar">
+            <div>
+                <h1>Chat Settings</h1>
+                <p>Default AI agent for chat replies</p>
+            </div>
+            <button type="button" class="chat-agent__ghost-button" data-refresh-settings v-on:click="loadSettings" v-bind:disabled="loading || saving">Refresh</button>
+        </header>
+
+        <div class="chat-agent__notice" data-settings-status v-bind:class="statusClass">{{ status.message }}</div>
+
+        <form class="chat-agent__composer" data-settings-form v-on:submit.prevent="saveSettings">
+            <label>
+                <span>Default AI Agent</span>
+                <select data-default-agent v-model="form.defaultAgentCode" v-bind:disabled="loading || saving">
+                    <option value="">Select saved AI agent</option>
+                    <option v-for="agent in agents" v-bind:key="agent.agentCode" v-bind:value="agent.agentCode">{{ agentLabel(agent) }}</option>
+                </select>
+            </label>
+
+            <div class="chat-agent__profile-summary" data-current-agent>
+                <span>Current</span>
+                <strong>{{ selectedAgent ? selectedAgent.name : (form.defaultAgentCode || "Not selected") }}</strong>
+                <span>{{ form.defaultAgentCode }}</span>
+            </div>
+
+            <div class="chat-agent__actions">
+                <button type="submit" class="chat-agent__primary-button" data-save-settings v-bind:disabled="loading || saving || !form.defaultAgentCode">Save Settings</button>
+            </div>
+        </form>
+
+        <div class="chat-agent__session-list chat-agent__agent-list" data-agent-list>
+            <div class="chat-agent__empty" v-if="agents.length === 0">No saved AI agents found.</div>
+            <button type="button" class="chat-agent__agent-row" v-for="agent in agents" v-bind:key="agent.agentCode" v-bind:class="{ 'is-selected': agent.agentCode === form.defaultAgentCode }" v-on:click="selectAgent(agent.agentCode)">
+                <strong>{{ agent.name || agent.agentCode }}</strong>
+                <span>{{ agent.agentCode }}</span>
+                <p>{{ agent.description || "" }}</p>
+            </button>
+        </div>
+    </div>
+</section>

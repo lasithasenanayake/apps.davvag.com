@@ -2,7 +2,7 @@
     "name": "api",
     "description": "Chat Agent service handlers",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.5",
     "resources": {
         "files": [
             {
@@ -24,6 +24,9 @@
             "PollSession": {
                 "method": "POST"
             },
+            "ResolveProfile": {
+                "method": "POST"
+            },
             "ListSessions": {
                 "method": "POST"
             },
@@ -37,6 +40,12 @@
                 "method": "POST"
             },
             "UpdateSession": {
+                "method": "POST"
+            },
+            "Settings": {
+                "method": "POST"
+            },
+            "SaveSettings": {
                 "method": "POST"
             }
         }

@@ -8,6 +8,10 @@
             "type": "component",
             "location": "components"
         },
+        "settings-console": {
+            "type": "component",
+            "location": "components"
+        },
         "chat-style": {
             "type": "component",
             "location": "components"
@@ -20,7 +24,7 @@
     "description": {
         "title": "Chat Agent",
         "author": "DAVVAG",
-        "version": "0.1",
+        "version": "0.8",
         "icon": "appicon.png"
     },
     "tags": [
@@ -41,7 +45,8 @@
                 "partials": {
                     "/": "chat-window",
                     "/chat": "chat-window",
-                    "/admin": "admin-console"
+                    "/admin": "admin-console",
+                    "/settings": "settings-console"
                 }
             }
         },
@@ -54,6 +59,10 @@
                 {
                     "name": "Human Agent",
                     "path": "admin"
+                },
+                {
+                    "name": "Settings",
+                    "path": "settings"
                 }
             ]
         }
@@ -65,7 +74,8 @@
         "schemas": [
             "chat_agent_session",
             "chat_agent_message",
-            "profile"
+            "profile",
+            "profile_attributes"
         ],
         "workflows": [],
         "plugins": [

@@ -52,6 +52,21 @@
             }
         },
         {
+            "fieldName": "visitorPhone",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40
+            }
+        },
+        {
+            "fieldName": "visitorDetails",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1200,
+                "encoding": "utf8"
+            }
+        },
+        {
             "fieldName": "agentCode",
             "dataType": "java.lang.String",
             "annotations": {
