@@ -1,3 +1,7 @@
 apps/davvag-hosting-console/backups/localhost_DATA.zip
 apps/davvag-hosting-console/backups/s_localhost.sql
 apps/davvag-hosting-console/backups/s_localhost.zip
+apps/davvag-cms-v7/content/pages/contact.json
+apps/davvag-cms-v7/content/pages/home.json
+apps/davvag-cms-v7/content/pages/features.json
+apps/davvag-cms-v7/content/site.json
