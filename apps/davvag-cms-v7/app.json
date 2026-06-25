@@ -113,6 +113,7 @@
                 "notFound": "/not-found",
                 "partials": {
                     "/": "home",
+                    "/home": "home",
                     "/app/@appName/*appRoute": "partial-app",
                     "/not-found": "partial-404",
                     "/notFound": "partial-404"
