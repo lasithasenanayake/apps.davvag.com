@@ -147,6 +147,13 @@ button.btn {
 
 .btn-link {
     color: var(--cms-primary);
+    text-decoration: none;
+}
+
+.btn-link:hover,
+.btn-link:focus {
+    color: color-mix(in srgb, var(--cms-primary) 84%, var(--cms-text));
+    text-decoration: none;
 }
 
 .form-control,

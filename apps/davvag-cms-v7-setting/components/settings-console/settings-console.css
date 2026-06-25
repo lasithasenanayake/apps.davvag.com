@@ -18,6 +18,18 @@
     box-sizing: border-box;
 }
 
+.cms7-settings a,
+.cms7-settings a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cms7-settings a:hover,
+.cms7-settings a:focus {
+    color: var(--s-primary);
+    text-decoration: none;
+}
+
 .cms7-topbar,
 .cms7-panel {
     width: min(1240px, 100%);
@@ -78,6 +90,32 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    line-height: 1.15;
+    text-align: center;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.cms7-btn:hover,
+.cms7-btn:focus,
+.cms7-upload:hover,
+.cms7-upload:focus-within {
+    background: color-mix(in srgb, var(--s-primary) 88%, var(--s-text));
+    border-color: color-mix(in srgb, var(--s-primary) 84%, var(--s-text));
+    color: var(--cms-bg, #fff);
+    outline: none;
+    text-decoration: none;
+}
+
+.cms7-settings a.cms7-btn,
+.cms7-settings a.cms7-btn:visited,
+.cms7-settings a.cms7-btn:hover,
+.cms7-settings a.cms7-btn:focus {
+    color: var(--cms-bg, #fff);
+}
+
+.cms7-btn:focus-visible,
+.cms7-upload:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--s-primary) 28%, transparent);
 }
 
 .cms7-btn.ghost,
@@ -88,9 +126,46 @@
     border-color: var(--s-border);
 }
 
+.cms7-btn.ghost:hover,
+.cms7-btn.ghost:focus,
+.cms7-row-actions button:hover,
+.cms7-row-actions button:focus,
+.cms7-section-tools button:hover,
+.cms7-section-tools button:focus {
+    background: color-mix(in srgb, var(--s-primary) 10%, var(--s-panel));
+    border-color: var(--s-primary);
+    color: var(--s-primary);
+    outline: none;
+    text-decoration: none;
+}
+
+.cms7-settings a.cms7-btn.ghost,
+.cms7-settings a.cms7-btn.ghost:visited {
+    color: var(--s-text);
+}
+
+.cms7-settings a.cms7-btn.ghost:hover,
+.cms7-settings a.cms7-btn.ghost:focus {
+    color: var(--s-primary);
+}
+
 .cms7-btn.danger {
     background: var(--s-danger);
     border-color: var(--s-danger);
+}
+
+.cms7-btn.danger:hover,
+.cms7-btn.danger:focus {
+    background: color-mix(in srgb, var(--s-danger) 88%, var(--s-text));
+    border-color: color-mix(in srgb, var(--s-danger) 84%, var(--s-text));
+    color: var(--cms-bg, #fff);
+}
+
+.cms7-settings a.cms7-btn.danger,
+.cms7-settings a.cms7-btn.danger:visited,
+.cms7-settings a.cms7-btn.danger:hover,
+.cms7-settings a.cms7-btn.danger:focus {
+    color: var(--cms-bg, #fff);
 }
 
 .cms7-alert {
@@ -135,6 +210,12 @@
 .cms7-tabs button.active {
     color: var(--s-text);
     border-bottom-color: var(--s-primary);
+}
+
+.cms7-tabs button:hover,
+.cms7-tabs button:focus {
+    color: var(--s-text);
+    outline: none;
 }
 
 .cms7-panel {
@@ -263,6 +344,13 @@
 .cms7-side-list button.active {
     border-color: var(--s-primary);
     box-shadow: inset 3px 0 0 var(--s-primary);
+}
+
+.cms7-side-list button:hover,
+.cms7-side-list button:focus {
+    border-color: var(--s-primary);
+    color: var(--s-text);
+    outline: none;
 }
 
 .cms7-side-list strong,

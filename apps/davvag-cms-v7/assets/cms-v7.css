@@ -6,6 +6,7 @@
     --cms-primary: #0f766e;
     --cms-secondary: #2563eb;
     --cms-accent: #e11d48;
+    --cms-on-primary: var(--cms-bg);
     --cms-border: rgba(24,32,47,0.12);
     --cms-radius: 8px;
     --cms-shadow: 0 10px 35px rgba(15, 23, 42, 0.10);
@@ -27,6 +28,12 @@ body {
 
 a {
     color: inherit;
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: var(--cms-primary);
     text-decoration: none;
 }
 
@@ -73,7 +80,14 @@ select {
     display: flex;
     align-items: center;
     gap: 10px;
+    color: var(--cms-text);
     font-weight: 700;
+}
+
+.cms-v7-brand:hover,
+.cms-v7-brand:focus {
+    color: var(--cms-text);
+    text-decoration: none;
 }
 
 .cms-v7-brand-mark {
@@ -132,8 +146,11 @@ select {
 }
 
 .cms-v7-nav-links a:hover,
-.cms-v7-nav-menu-button:hover {
+.cms-v7-nav-links a:focus,
+.cms-v7-nav-menu-button:hover,
+.cms-v7-nav-menu-button:focus {
     color: var(--cms-text);
+    text-decoration: none;
 }
 
 .cms-v7-nav-link,
@@ -197,15 +214,52 @@ select {
     border-radius: var(--cms-radius);
     border: 1px solid var(--cms-primary);
     background: var(--cms-primary);
-    color: #fff;
+    color: var(--cms-on-primary);
     cursor: pointer;
     font-weight: 600;
+    text-decoration: none;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.cms-v7-button:visited {
+    color: var(--cms-on-primary);
+}
+
+.cms-v7-button:hover,
+.cms-v7-button:focus {
+    border-color: color-mix(in srgb, var(--cms-primary) 84%, var(--cms-text));
+    background: color-mix(in srgb, var(--cms-primary) 88%, var(--cms-text));
+    color: var(--cms-on-primary);
+    text-decoration: none;
+    outline: none;
+}
+
+.cms-v7-button:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cms-primary) 28%, transparent);
 }
 
 .cms-v7-button.secondary {
     border-color: var(--cms-border);
     background: transparent;
     color: var(--cms-text);
+}
+
+.cms-v7-button.secondary:visited {
+    color: var(--cms-text);
+}
+
+.cms-v7-button.secondary:hover,
+.cms-v7-button.secondary:focus {
+    border-color: var(--cms-primary);
+    background: color-mix(in srgb, var(--cms-primary) 10%, var(--cms-bg));
+    color: var(--cms-primary);
+}
+
+.cms-v7-nav-links .cms-v7-button,
+.cms-v7-nav-links .cms-v7-button:visited,
+.cms-v7-nav-links .cms-v7-button:hover,
+.cms-v7-nav-links .cms-v7-button:focus {
+    color: var(--cms-on-primary);
 }
 
 .cms-v7-nav-actions {

@@ -3,7 +3,7 @@
         <header class="chat-agent__topbar">
             <div>
                 <h1>Customer Inquiry</h1>
-                <p data-chat-session-label>{{ sessionLabel }}</p>
+                <p> Let us help you to Automate your business processes. Our Agents are ready to assist you 24/7. </p>
             </div>
             <button type="button" class="chat-agent__ghost-button" data-new-session v-on:click="newChat" v-bind:disabled="busy || !profileReady">New Chat</button>
         </header>
@@ -41,7 +41,7 @@
                 <textarea rows="2" maxlength="1200" data-visitor-details v-model="profileForm.details" v-on:change="saveInputs" v-bind:disabled="busy"></textarea>
             </label>
             <div class="chat-agent__actions">
-                <button type="submit" class="chat-agent__primary-button" data-save-profile v-bind:disabled="busy">Save Profile</button>
+                <button type="submit" class="chat-agent__primary-button" data-save-profile v-bind:disabled="busy">Save and Continue Chat with our Agents</button>
             </div>
         </form>
 
