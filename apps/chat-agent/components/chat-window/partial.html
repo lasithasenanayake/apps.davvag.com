@@ -16,7 +16,7 @@
                 <div class="chat-agent__bubble-meta">
                     <span class="chat-agent__sender">
                         <span class="chat-agent__sender-avatar">
-                            <img data-message-avatar v-bind:src="senderImageUrl(message)" alt="" />
+                            <img data-message-avatar v-if="senderImageUrl(message)" v-bind:src="senderImageUrl(message)" alt="" />
                             <span>{{ senderInitial(message) }}</span>
                         </span>
                         <span>{{ displaySender(message) }}</span>

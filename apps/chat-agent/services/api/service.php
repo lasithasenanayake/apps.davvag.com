@@ -153,7 +153,8 @@ class ApiService {
             $session->visitorDetails = $visitorDetails;
         }
 
-        $visitorMessage = $this->insertMessage($session->sessionKey, "visitor", $session->visitorKey, $session->visitorName, $text, "inbound", "sent", $session->agentCode, null, $res);
+        $visitorSenderId = $this->value($session, "visitorId", "") !== "" ? $this->value($session, "visitorId", "") : $session->visitorKey;
+        $visitorMessage = $this->insertMessage($session->sessionKey, "visitor", $visitorSenderId, $session->visitorName, $text, "inbound", "sent", $session->agentCode, null, $res);
         if ($visitorMessage === null) {
             return null;
         }
@@ -635,11 +636,12 @@ class ApiService {
         usort($rows, function($a, $b) {
             return strcmp((string)$this->value($a, "createdAt", ""), (string)$this->value($b, "createdAt", ""));
         });
-        return $this->enrichMessageSenders($rows);
+        return $this->enrichMessageSenders($rows, $this->sessionByKey($sessionKey, false));
     }
 
-    private function enrichMessageSenders($messages) {
+    private function enrichMessageSenders($messages, $session) {
         $agentIdentities = array();
+        $visitorProfileId = $session ? $this->numericProfileId($this->value($session, "visitorId", "")) : 0;
         foreach ($messages as $message) {
             if (!is_object($message)) {
                 continue;
@@ -658,7 +660,20 @@ class ApiService {
                 if ($identity->senderId !== "") {
                     $message->senderId = $identity->senderId;
                 }
-            } elseif ($senderType === "visitor" || $senderType === "human") {
+            } elseif ($senderType === "visitor") {
+                $profileId = $this->numericProfileId($this->value($message, "senderId", ""));
+                if ($profileId <= 0) {
+                    $profileId = $visitorProfileId;
+                }
+                if ($profileId > 0) {
+                    $message->senderProfileId = $profileId;
+                    $message->senderImage = $this->profileImageUrl($profileId);
+                    $message->senderId = (string)$profileId;
+                }
+                if ($session && $this->value($message, "senderName", "") === "") {
+                    $message->senderName = $this->value($session, "visitorName", "Visitor");
+                }
+            } elseif ($senderType === "human") {
                 $profileId = $this->numericProfileId($this->value($message, "senderId", ""));
                 if ($profileId > 0) {
                     $message->senderProfileId = $profileId;

@@ -423,7 +423,7 @@ WEBDOCK.component().register(function(exports) {
             return profileImageUrlForId(message.senderProfileId);
         }
         if (message.senderType === "visitor") {
-            return profileImageUrlForId(message.senderId || profileValue("id"));
+            return profileImageUrlForId(message.senderId) || profileImageUrlForId(profileValue("id"));
         }
         if ((message.senderType === "ai_agent" || message.senderType === "human") && message.senderId) {
             return profileImageUrlForId(message.senderId);
