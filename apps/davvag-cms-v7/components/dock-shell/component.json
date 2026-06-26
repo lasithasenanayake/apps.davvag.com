@@ -2,7 +2,7 @@
     "name": "dock-shell",
     "description": "Davvag CMS v7 lightweight dock shell",
     "author": "Davvag",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "files": [
             {
