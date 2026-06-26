@@ -29,6 +29,9 @@ class ApiService {
         $identity = $this->currentIdentity($this->boolValue($body, "newSession", false));
         $out = $this->ok();
         $out->identity = $identity;
+        if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
+            $out->profile = $identity->profile;
+        }
         $out->defaultAgentCode = $this->configuredAgentCode();
         if (!$this->shouldBootstrapSession($identity, $body)) {
             $out->session = null;
@@ -56,6 +59,10 @@ class ApiService {
         $identity = $this->currentIdentity(false);
         if (!$this->shouldBootstrapSession($identity, $body)) {
             $out = $this->ok();
+            $out->identity = $identity;
+            if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
+                $out->profile = $identity->profile;
+            }
             $out->session = null;
             $out->messages = array();
             return $out;
@@ -68,6 +75,10 @@ class ApiService {
 
         $session = $this->clearVisitorUnread($session);
         $out = $this->ok();
+        $out->identity = $identity;
+        if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
+            $out->profile = $identity->profile;
+        }
         $out->session = $session;
         $out->messages = $this->messagesForSession($session->sessionKey, 200, true);
         return $out;
@@ -423,6 +434,10 @@ class ApiService {
     }
 
     private function shouldBootstrapSession($identity, $body) {
+        if (isset($identity->type) && $identity->type === "authenticated") {
+            return true;
+        }
+
         $profileId = $this->normalizeProfileId($this->stringValue($body, "profileId", ""));
         if ($profileId !== "") {
             return true;
@@ -441,6 +456,23 @@ class ApiService {
         $visitorEmail = $this->stringValue($body, "visitorEmail", "");
         $visitorPhone = $this->stringValue($body, "visitorPhone", "");
         $visitorDetails = $this->stringValue($body, "visitorDetails", "");
+        if (isset($identity->type) && $identity->type === "authenticated") {
+            $profileId = isset($identity->profileId) ? $this->normalizeProfileId($identity->profileId) : "";
+            $visitorName = isset($identity->name) ? $identity->name : $visitorName;
+            $visitorEmail = isset($identity->email) ? $identity->email : $visitorEmail;
+            $visitorPhone = isset($identity->phone) ? $identity->phone : $visitorPhone;
+        } elseif ($profileId === "" && isset($identity->profileId)) {
+            $profileId = $this->normalizeProfileId($identity->profileId);
+        }
+        if ($visitorName === "" && isset($identity->name)) {
+            $visitorName = $identity->name;
+        }
+        if ($visitorEmail === "" && isset($identity->email)) {
+            $visitorEmail = $identity->email;
+        }
+        if ($visitorPhone === "" && isset($identity->phone)) {
+            $visitorPhone = $identity->phone;
+        }
 
         if ($session !== null) {
             $changed = false;
@@ -606,6 +638,19 @@ class ApiService {
     }
 
     private function resolveProfileForBody($body, $res) {
+        $identity = $this->currentIdentity(false);
+        if (isset($identity->type) && $identity->type === "authenticated") {
+            if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
+                $out = $this->ok();
+                $out->profile = $identity->profile;
+                $out->created = false;
+                return $out;
+            }
+
+            $res->SetError("Your signed-in user does not have a registered profile.");
+            return null;
+        }
+
         $profileId = $this->normalizeProfileId($this->stringValue($body, "profileId", ""));
         $name = $this->limit($this->stringValue($body, "visitorName", ""), 200);
         $email = strtolower($this->limit($this->stringValue($body, "visitorEmail", ""), 200));
@@ -727,11 +772,9 @@ class ApiService {
         $profile->createdate = date_format(new \DateTime(), "m-d-Y H:i:s");
         $profile->Status = "inactive";
 
-        if (class_exists("\\Auth")) {
-            $user = \Auth::Autendicate();
-            if (isset($user->userid)) {
-                $profile->userid = $user->userid;
-            }
+        $user = $this->currentUser();
+        if (isset($user->userid)) {
+            $profile->userid = $user->userid;
         }
 
         $result = \SOSSData::Insert("profile", $profile, null);
@@ -835,11 +878,7 @@ class ApiService {
             @session_start();
         }
 
-        $user = null;
-        if (class_exists("\\Auth")) {
-            $user = \Auth::Autendicate();
-        }
-
+        $user = $this->currentUser();
         $profile = $this->currentProfile();
         if (isset($user->userid)) {
             $token = isset($_COOKIE["securityToken"]) ? $_COOKIE["securityToken"] : (isset($user->token) ? $user->token : $user->userid);
@@ -848,9 +887,13 @@ class ApiService {
             $identity->type = "authenticated";
             $identity->visitorKey = $key;
             $identity->sessionKey = $key;
-            $identity->profileId = isset($profile->id) ? (string)$profile->id : (string)$user->userid;
+            $identity->profileId = isset($profile->id) && intval($profile->id) > 0 ? (string)$profile->id : "";
             $identity->name = isset($profile->name) && $profile->name !== "Unknown" ? $profile->name : (isset($user->email) ? $user->email : "Signed-in user");
-            $identity->email = isset($user->email) ? $user->email : "";
+            $identity->email = isset($profile->email) && $profile->email !== "" ? $profile->email : (isset($user->email) ? $user->email : "");
+            $identity->phone = isset($profile->contactno) ? $profile->contactno : "";
+            if (isset($profile->id) && intval($profile->id) > 0) {
+                $identity->profile = $profile;
+            }
             return $identity;
         }
 
@@ -873,6 +916,7 @@ class ApiService {
         $identity->profileId = "";
         $identity->name = "Visitor";
         $identity->email = "";
+        $identity->phone = "";
         return $identity;
     }
 
@@ -889,26 +933,88 @@ class ApiService {
         $out->id = 0;
         $out->name = "Unknown";
         if (class_exists("\\Profile")) {
-            $profile = \Profile::getUserProfile();
-            if (isset($profile->profile) && isset($profile->profile->id)) {
-                $out->id = $profile->profile->id;
-                $out->name = isset($profile->profile->name) ? $profile->profile->name : "Unknown";
-                return $out;
+            try {
+                $profile = \Profile::getUserProfile();
+                if (isset($profile->profile) && isset($profile->profile->id)) {
+                    return $this->normalizeProfileObject($profile->profile);
+                }
+            } catch (\Throwable $th) {
             }
         }
-        if (class_exists("\\Auth")) {
-            $user = \Auth::Autendicate();
-            if (isset($user->userid) && class_exists("\\SOSSData")) {
-                $profileResult = \SOSSData::Query("profile", "linkeduserid:" . $user->userid);
-                if ($profileResult->success && count($profileResult->result) > 0) {
-                    $out->id = $profileResult->result[0]->id;
-                    $out->name = isset($profileResult->result[0]->name) ? $profileResult->result[0]->name : "Unknown";
-                    return $out;
-                }
-                $out->name = isset($user->email) ? $user->email : "Unknown";
+
+        $user = $this->currentUser();
+        if (isset($user->userid) && class_exists("\\SOSSData")) {
+            $profileResult = \SOSSData::Query("profile", "linkeduserid:" . $user->userid);
+            if ($profileResult->success && count($profileResult->result) > 0) {
+                return $this->normalizeProfileObject($profileResult->result[0]);
             }
+            if (isset($user->email)) {
+                $profileResult = \SOSSData::Query("profile", urlencode("email:" . strtolower((string)$user->email)), null, "desc", 1, 0, null, false);
+                if ($profileResult->success && count($profileResult->result) > 0) {
+                    return $this->normalizeProfileObject($profileResult->result[0]);
+                }
+            }
+            $out->name = isset($user->email) ? $user->email : "Unknown";
+            $out->email = isset($user->email) ? $user->email : "";
         }
         return $out;
+    }
+
+    private function normalizeProfileObject($profile) {
+        $out = new \stdClass();
+        $out->id = isset($profile->id) ? $profile->id : 0;
+        $out->name = isset($profile->name) ? $profile->name : "Unknown";
+        $out->email = isset($profile->email) ? $profile->email : "";
+        $out->contactno = isset($profile->contactno) ? $profile->contactno : "";
+        $out->phone = $out->contactno;
+        $out->catogory = isset($profile->catogory) ? $profile->catogory : "";
+        $out->linkeduserid = isset($profile->linkeduserid) ? $profile->linkeduserid : "";
+        $out->userid = isset($profile->userid) ? $profile->userid : "";
+        return $out;
+    }
+
+    private function currentUser() {
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        if (isset($_SESSION["authData"]) && is_object($_SESSION["authData"])) {
+            return $_SESSION["authData"];
+        }
+
+        if (isset($_COOKIE["authData"])) {
+            $user = json_decode($_COOKIE["authData"]);
+            if (is_object($user)) {
+                return $user;
+            }
+        }
+
+        if (!class_exists("\\Auth")) {
+            return null;
+        }
+
+        try {
+            $method = new \ReflectionMethod("\\Auth", "Autendicate");
+            if ($method->getNumberOfRequiredParameters() === 0) {
+                $user = \Auth::Autendicate();
+                if (is_object($user)) {
+                    return $user;
+                }
+            }
+        } catch (\Throwable $th) {
+        }
+
+        if (isset($_COOKIE["securityToken"]) && method_exists("\\Auth", "GetSession")) {
+            try {
+                $user = \Auth::GetSession($_COOKIE["securityToken"]);
+                if (is_object($user)) {
+                    return $user;
+                }
+            } catch (\Throwable $th) {
+            }
+        }
+
+        return null;
     }
 
     private function requireHumanAgent($res) {
@@ -916,11 +1022,9 @@ class ApiService {
         if (in_array($group, array("sysadmin", "admin", "staff", "human_agent", "agent"))) {
             return true;
         }
-        if (class_exists("\\Auth")) {
-            $user = \Auth::Autendicate();
-            if (isset($user->group) && in_array(strtolower($user->group), array("sysadmin", "admin", "staff", "human_agent", "agent"))) {
-                return true;
-            }
+        $user = $this->currentUser();
+        if (isset($user->group) && in_array(strtolower($user->group), array("sysadmin", "admin", "staff", "human_agent", "agent"))) {
+            return true;
         }
         $res->SetError("Human agent access is required.");
         return false;

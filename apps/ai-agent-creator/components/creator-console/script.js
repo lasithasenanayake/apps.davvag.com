@@ -1,6 +1,9 @@
 WEBDOCK.component().register(function(exports) {
     var api;
     var root;
+    var profileCropper;
+    var profileUploader;
+    var pendingProfileFile;
     var state = {
         provider: "openai",
         format: "json",
@@ -85,6 +88,45 @@ WEBDOCK.component().register(function(exports) {
         find("button, input, textarea, select").prop("disabled", isBusy);
     }
 
+    function profileImageUrl(profileId) {
+        return profileId > 0 ? "components/dock/soss-uploader/service/get/profile/" + profileId : "";
+    }
+
+    function setProfileImage(src) {
+        var image = find("[data-profile-image]");
+        var fallback = find("[data-profile-fallback]");
+        if (src) {
+            image.attr("src", src).show();
+            fallback.hide();
+        } else {
+            image.removeAttr("src").hide();
+            fallback.show();
+        }
+    }
+
+    function agentIdentity(agent) {
+        var config = agent && agent.configuration ? agent.configuration : {};
+        var configAgent = config.agent || {};
+        var profile = configAgent.profile || {};
+        var user = configAgent.user || config.systemUser || {};
+        return {
+            profileId: parseInt(agent && agent.profileId ? agent.profileId : (profile.profileId || configAgent.profileId || 0), 10) || 0,
+            userId: agent && agent.userId ? agent.userId : (user.userid || configAgent.userId || ""),
+            email: profile.email || user.email || "",
+            phone: profile.phone || "",
+            image: profile.image || configAgent.profileImage || ""
+        };
+    }
+
+    function applyAgentIdentity(agent) {
+        var identity = agentIdentity(agent || {});
+        find("[data-profile-id]").val(identity.profileId || "");
+        find("[data-user-id]").val(identity.userId || "");
+        find("[data-agent-email]").val(identity.email || "");
+        find("[data-agent-phone]").val(identity.phone || "");
+        setProfileImage(identity.image || profileImageUrl(identity.profileId));
+    }
+
     function setProvider(provider) {
         var meta = providers[provider] || providers.openai;
         state.provider = provider;
@@ -116,6 +158,11 @@ WEBDOCK.component().register(function(exports) {
         return {
             agentCode: find("[data-agent-code]").val(),
             agentName: find("[data-agent-name]").val(),
+            agentProfileName: find("[data-agent-name]").val(),
+            agentEmail: find("[data-agent-email]").val(),
+            agentPhone: find("[data-agent-phone]").val(),
+            profileId: find("[data-profile-id]").val(),
+            userId: find("[data-user-id]").val(),
             description: find("[data-agent-description]").val(),
             capabilities: find("[data-agent-capabilities]").val(),
             skills: find("[data-agent-skills]").val(),
@@ -253,14 +300,15 @@ WEBDOCK.component().register(function(exports) {
         api.services.SaveAgent(collectForm())
             .then(function(response) {
                 var result = serviceResult(response);
-                setBusy(false);
                 if (result.success === false) {
+                    setBusy(false);
                     setStatus(result.message || "Agent was not saved.", "error");
                     return;
                 }
 
                 state.agents = result.agents || [];
                 state.selectedAgentCode = result.agent ? result.agent.agentCode : find("[data-agent-code]").val();
+                applyAgentIdentity(result.agent || {});
                 if (result.agent && result.agent.configuration) {
                     state.output.json = JSON.stringify(result.agent.configuration, null, 2);
                     state.output.yaml = "";
@@ -270,7 +318,19 @@ WEBDOCK.component().register(function(exports) {
                     renderOutput();
                 }
                 renderAgents();
-                setStatus("Agent saved. Workflows can call creator-api/TestAgent with agentCode \"" + state.selectedAgentCode + "\".", "success");
+
+                var identity = agentIdentity(result.agent || {});
+                if (pendingProfileFile && identity.profileId > 0) {
+                    setStatus("Uploading profile icon...", "muted");
+                    uploadProfileIcon(identity.profileId, function() {
+                        setBusy(false);
+                        setStatus("Agent saved with profile and sysuser mapping. Workflows can call creator-api/TestAgent with agentCode \"" + state.selectedAgentCode + "\".", "success");
+                    });
+                    return;
+                }
+
+                setBusy(false);
+                setStatus("Agent saved with profile and sysuser mapping. Workflows can call creator-api/TestAgent with agentCode \"" + state.selectedAgentCode + "\".", "success");
             })
             .error(function(response) {
                 setBusy(false);
@@ -303,6 +363,7 @@ WEBDOCK.component().register(function(exports) {
         find("[data-agent-description]").val(agent.description || "");
         find("[data-agent-capabilities]").val((agent.capabilities || []).join("\n"));
         find("[data-agent-skills]").val(JSON.stringify(agent.skills || config.skills || [], null, 2));
+        applyAgentIdentity(agent);
 
         setProvider(config.provider.type);
         find("[data-model]").val(config.provider.model);
@@ -401,10 +462,61 @@ WEBDOCK.component().register(function(exports) {
             });
     }
 
+    function initializeProfileTools() {
+        exports.getAppComponent("davvag-tools", "davvag-img-cropper", function(cropper) {
+            cropper.initialize(300, 300);
+            profileCropper = cropper;
+        });
+    }
+
+    function chooseProfileIcon() {
+        if (!profileCropper) {
+            initializeProfileTools();
+            setStatus("Profile image cropper is still loading.", "muted");
+            return;
+        }
+
+        profileCropper.crope(1, 1, function(result) {
+            if (!result || !result.fileData) {
+                return;
+            }
+            pendingProfileFile = result.fileData;
+            setProfileImage(result.data || "");
+            setStatus("Profile icon selected. Save agent to upload it.", "muted");
+        });
+    }
+
+    function uploadProfileIcon(profileId, callback) {
+        var runUpload = function(uploader) {
+            uploader.initialize();
+            pendingProfileFile.name = profileId;
+            uploader.upload([pendingProfileFile], "profile", null, function() {
+                pendingProfileFile = null;
+                setProfileImage(profileImageUrl(profileId) + "?v=" + new Date().getTime());
+                if (typeof uploader.close === "function") {
+                    uploader.close();
+                }
+                callback();
+            });
+        };
+
+        if (profileUploader) {
+            runUpload(profileUploader);
+            return;
+        }
+
+        exports.getAppComponent("davvag-tools", "davvag-file-uploader", function(uploader) {
+            profileUploader = uploader;
+            runUpload(profileUploader);
+        });
+    }
+
     function resetForm() {
         find("[data-creator-form]")[0].reset();
         find("[data-temperature-value]").text("0.7");
         state.selectedAgentCode = "";
+        pendingProfileFile = null;
+        setProfileImage("");
         state.output = { json: "{}", yaml: "" };
         renderOutput();
         setProvider("openai");
@@ -506,6 +618,10 @@ WEBDOCK.component().register(function(exports) {
         find("[data-save-agent]").on("click", saveAgent);
         find("[data-reset-form]").on("click", resetForm);
         find("[data-copy-output]").on("click", copyOutput);
+        find("[data-profile-image-change]").on("click", chooseProfileIcon);
+        find("[data-profile-image]").on("error", function() {
+            setProfileImage("");
+        });
         find("[data-skill-template]").on("click", function() {
             insertSkillTemplate($(this).data("skill-template"));
         });
@@ -529,6 +645,7 @@ WEBDOCK.component().register(function(exports) {
         root = element;
         api = exports.getComponent("creator-api");
         bindEvents();
+        initializeProfileTools();
         setProvider("openai");
         renderOutput();
         loadAgents();

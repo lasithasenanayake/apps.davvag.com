@@ -2,7 +2,7 @@
     "name": "AI ChatGPT Agent API",
     "description": "Server-side service for storing AI agent configuration and calling the OpenAI Responses API.",
     "author": "Davvag",
-    "version": "0.1",
+    "version": "0.2",
     "gitUrl": "",
     "resources": {
         "files": [

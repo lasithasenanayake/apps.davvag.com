@@ -2,7 +2,7 @@
     "name": "AI Agent Creator API",
     "description": "Validates AI provider settings and generates structured agent configuration objects.",
     "author": "Davvag",
-    "version": "0.3",
+    "version": "0.4",
     "gitUrl": "",
     "resources": {
         "files": [

@@ -1,24 +1,49 @@
 <?php
 namespace ai_chatgpt_agent;
 
+if (defined("PLUGIN_PATH")) {
+    if (file_exists(PLUGIN_PATH . "/sossdata/SOSSData.php")) {
+        require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
+    }
+    if (file_exists(PLUGIN_PATH . "/phpcache/cache.php")) {
+        require_once(PLUGIN_PATH . "/phpcache/cache.php");
+    }
+    if (file_exists(PLUGIN_PATH . "/auth/auth.php")) {
+        require_once(PLUGIN_PATH . "/auth/auth.php");
+    }
+}
+
 class AgentService {
     private $defaultModel = "gpt-4.1-mini";
     private $defaultInstructions = "You are a helpful AI assistant inside the DAVVAG Framework. Be concise, practical, and safe.";
 
     public function getConfig($req, $res) {
         $config = $this->loadConfig();
+        $profile = $this->loadAgentProfile($config);
+        $profileId = isset($config->profileId) ? (int)$config->profileId : 0;
         $out = $this->ok();
         $out->apiKeyConfigured = !empty($config->apiKey);
         $out->model = $config->model;
         $out->temperature = $config->temperature;
         $out->maxOutputTokens = $config->maxOutputTokens;
         $out->instructions = $config->instructions;
+        $out->profileRegistered = $profile !== null;
+        $out->profileId = $profile ? (int)$profile->id : $profileId;
+        $out->profileName = $profile && isset($profile->name) ? $profile->name : $config->profileName;
+        $out->profileEmail = $profile && isset($profile->email) ? $profile->email : $config->profileEmail;
+        $out->profilePhone = $profile && isset($profile->contactno) ? $profile->contactno : $config->profilePhone;
+        $out->profileImage = $out->profileId > 0 ? $this->profileImageUrl($out->profileId) : "";
         return $out;
     }
 
     public function postSaveConfig($req, $res) {
         $body = $this->body($req);
         $config = $this->loadConfig();
+        $profileInput = $this->agentProfileInput($body, $config);
+        $profileValidation = $this->validateAgentProfileInput($profileInput);
+        if (!$profileValidation->success) {
+            return $profileValidation;
+        }
 
         $apiKey = $this->stringValue($body, "apiKey", "");
         if ($apiKey !== "") {
@@ -38,12 +63,29 @@ class AgentService {
         $config->temperature = $this->numberValue($body, "temperature", 1, 0, 2);
         $config->maxOutputTokens = $this->integerValue($body, "maxOutputTokens", 1000, 1, 8192);
 
+        $profileResult = $this->saveAgentProfile($profileInput);
+        if (!$profileResult->success) {
+            return $profileResult;
+        }
+
+        $profile = $profileResult->profile;
+        $config->profileId = isset($profile->id) ? (int)$profile->id : 0;
+        $config->profileName = isset($profile->name) ? $profile->name : $profileInput->name;
+        $config->profileEmail = isset($profile->email) ? $profile->email : $profileInput->email;
+        $config->profilePhone = isset($profile->contactno) ? $profile->contactno : $profileInput->phone;
+
         if (!$this->saveConfig($config)) {
             return $this->fail("Unable to save the AI agent configuration on the server.");
         }
 
         $out = $this->ok();
         $out->apiKeyConfigured = !empty($config->apiKey);
+        $out->profileRegistered = $config->profileId > 0;
+        $out->profileId = $config->profileId;
+        $out->profileName = $config->profileName;
+        $out->profileEmail = $config->profileEmail;
+        $out->profilePhone = $config->profilePhone;
+        $out->profileImage = $config->profileId > 0 ? $this->profileImageUrl($config->profileId) : "";
         return $out;
     }
 
@@ -63,6 +105,10 @@ class AgentService {
     public function postChat($req, $res) {
         $body = $this->body($req);
         $config = $this->loadConfig();
+
+        if (!$this->loadAgentProfile($config)) {
+            return $this->fail("AI agent profile is not registered. Save the agent profile before chatting.");
+        }
 
         if (empty($config->apiKey)) {
             return $this->fail("No OpenAI API key is configured for this tenant.");
@@ -150,6 +196,10 @@ class AgentService {
         $config->instructions = $this->defaultInstructions;
         $config->temperature = 1;
         $config->maxOutputTokens = 1000;
+        $config->profileId = 0;
+        $config->profileName = "ChatGPT Agent";
+        $config->profileEmail = "";
+        $config->profilePhone = "";
         return $config;
     }
 
@@ -172,6 +222,173 @@ class AgentService {
 
     private function configFile() {
         return $this->configDir() . "/config.json";
+    }
+
+    private function agentProfileInput($body, $config) {
+        $input = new \stdClass();
+        $input->id = $this->integerValue($body, "profileId", isset($config->profileId) ? $config->profileId : 0, 0, 2147483647);
+        $input->name = $this->limitText($this->stringValue($body, "profileName", isset($config->profileName) ? $config->profileName : ""), 200);
+        $input->email = strtolower($this->limitText($this->stringValue($body, "profileEmail", isset($config->profileEmail) ? $config->profileEmail : ""), 200));
+        $input->phone = $this->limitText($this->stringValue($body, "profilePhone", isset($config->profilePhone) ? $config->profilePhone : ""), 20);
+        return $input;
+    }
+
+    private function validateAgentProfileInput($input) {
+        if ($input->name === "" || $input->email === "" || $input->phone === "") {
+            return $this->fail("Agent profile name, email, and phone are required.");
+        }
+
+        if (!filter_var($input->email, FILTER_VALIDATE_EMAIL)) {
+            return $this->fail("Agent profile email is not valid.");
+        }
+
+        if (preg_match("/^[A-Za-z0-9._%+@-]+$/", $input->email) !== 1) {
+            return $this->fail("Agent profile email contains unsupported characters.");
+        }
+
+        return $this->ok();
+    }
+
+    private function saveAgentProfile($input) {
+        if (!class_exists("\\SOSSData")) {
+            return $this->fail("The profile datastore is not available. Install the sossdata plugin before saving an AI agent.");
+        }
+
+        $profile = null;
+        if ($input->id > 0) {
+            $profile = $this->profileById($input->id);
+            if (!$profile) {
+                return $this->fail("The selected AI agent profile was not found. Clear the profile id and save again.");
+            }
+            if (!$this->isAgentProfile($profile)) {
+                return $this->fail("The selected profile is not tagged as an AI Agent. Use a dedicated AI agent profile.");
+            }
+        }
+
+        $emailProfile = $this->profileByEmail($input->email);
+        if ($emailProfile && (!$profile || (int)$emailProfile->id !== (int)$profile->id)) {
+            if (!$this->isAgentProfile($emailProfile)) {
+                return $this->fail("A non-agent profile already uses this email. Use a dedicated email for the AI agent.");
+            }
+            $profile = $emailProfile;
+        }
+
+        $isNew = $profile === null;
+        if ($isNew) {
+            $profile = new \stdClass();
+            $profile->createdate = date_format(new \DateTime(), "m-d-Y H:i:s");
+            $profile->Status = "Active";
+        }
+
+        $profile->name = $input->name;
+        $profile->email = $input->email;
+        $profile->contactno = $input->phone;
+        $profile->catogory = "AI Agent";
+
+        $userId = $this->currentUserId();
+        if ($userId !== "" && (!isset($profile->userid) || trim((string)$profile->userid) === "")) {
+            $profile->userid = $userId;
+        }
+
+        $result = $isNew ? \SOSSData::Insert("profile", $profile, null) : \SOSSData::Update("profile", $profile, null);
+        if (!$result->success) {
+            return $this->fail(isset($result->message) ? $result->message : "AI agent profile could not be saved.");
+        }
+
+        if ($isNew && isset($result->result) && isset($result->result->generatedId)) {
+            $profile->id = $result->result->generatedId;
+        }
+
+        $this->clearProfileCache();
+        $out = $this->ok();
+        $out->profile = $profile;
+        return $out;
+    }
+
+    private function loadAgentProfile($config) {
+        if (!isset($config->profileId) || (int)$config->profileId <= 0 || !class_exists("\\SOSSData")) {
+            return null;
+        }
+        return $this->profileById((int)$config->profileId);
+    }
+
+    private function profileById($profileId) {
+        if (!class_exists("\\SOSSData") || (int)$profileId <= 0) {
+            return null;
+        }
+
+        $result = \SOSSData::Query("profile", urlencode("id:" . (int)$profileId), null, "desc", 1, 0, null, false);
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function profileByEmail($email) {
+        if (!class_exists("\\SOSSData")) {
+            return null;
+        }
+
+        $email = strtolower(trim((string)$email));
+        if ($email === "") {
+            return null;
+        }
+
+        $result = \SOSSData::Query("profile", urlencode("email:" . $email), null, "desc", 1, 0, null, false);
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function isAgentProfile($profile) {
+        return isset($profile->catogory) && strtolower(trim((string)$profile->catogory)) === "ai agent";
+    }
+
+    private function currentUserId() {
+        $user = $this->authUserFromGlobals();
+        if (is_object($user) && isset($user->userid)) {
+            return trim((string)$user->userid);
+        }
+
+        if (!class_exists("\\Auth")) {
+            return "";
+        }
+
+        try {
+            $user = \Auth::Autendicate();
+            if (is_object($user) && isset($user->userid)) {
+                return trim((string)$user->userid);
+            }
+        } catch (\Throwable $th) {
+        }
+
+        return "";
+    }
+
+    private function authUserFromGlobals() {
+        if (isset($_SESSION) && isset($_SESSION["authData"]) && is_object($_SESSION["authData"])) {
+            return $_SESSION["authData"];
+        }
+
+        if (isset($_COOKIE["authData"])) {
+            $user = json_decode($_COOKIE["authData"]);
+            if (is_object($user)) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    private function clearProfileCache() {
+        if (class_exists("\\CacheData")) {
+            \CacheData::clearObjects("profile");
+        }
+    }
+
+    private function profileImageUrl($profileId) {
+        return "components/dock/soss-uploader/service/get/profile/" . (int)$profileId;
     }
 
     private function buildInput($body, $message) {
@@ -271,6 +488,11 @@ class AgentService {
             return $default;
         }
         return trim((string)$body->$key);
+    }
+
+    private function limitText($value, $maxLength) {
+        $value = trim((string)$value);
+        return substr($value, 0, $maxLength);
     }
 
     private function numberValue($body, $key, $default, $min, $max) {

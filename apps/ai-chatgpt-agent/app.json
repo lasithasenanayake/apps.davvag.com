@@ -12,7 +12,7 @@
     "description": {
         "title": "AI ChatGPT Agent",
         "author": "Davvag",
-        "version": "0.1",
+        "version": "0.2",
         "icon": ""
     },
     "tags": [
@@ -32,10 +32,18 @@
         }
     },
     "dependencies": {
-        "apps": [],
-        "schemas": [],
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "profile"
+        ],
         "workflows": [],
-        "plugins": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
         "php-extensions": [
             "curl"
         ]

@@ -21,7 +21,7 @@
             </article>
         </div>
 
-        <form class="chat-agent__composer" data-profile-form v-show="!profileReady" v-on:submit.prevent="saveProfile">
+        <form class="chat-agent__composer" data-profile-form v-show="!profileReady && !authenticated" v-on:submit.prevent="saveProfile">
             <div class="chat-agent__identity">
                 <label>
                     <span>Name</span>
@@ -46,8 +46,14 @@
         </form>
 
         <div class="chat-agent__profile-summary" data-profile-summary v-show="profileReady">
-            <span data-profile-id>Profile #{{ profileValue("id") }}</span>
-            <strong data-profile-name>{{ profileValue("name") || "Visitor" }}</strong>
+            <div class="chat-agent__profile-avatar">
+                <img data-profile-avatar v-bind:src="profileImageUrl()" alt="" />
+                <span data-profile-initial>{{ profileInitial() }}</span>
+            </div>
+            <div class="chat-agent__profile-copy">
+                <strong data-profile-name>{{ profileValue("name") || "Visitor" }}</strong>
+                <span data-profile-id>Profile #{{ profileValue("id") }}</span>
+            </div>
             <span data-profile-email>{{ profileValue("email") }}</span>
             <span data-profile-phone>{{ profileValue("contactno") || profileValue("phone") }}</span>
         </div>

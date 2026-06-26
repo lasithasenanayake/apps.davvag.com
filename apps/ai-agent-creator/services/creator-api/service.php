@@ -1,6 +1,18 @@
 <?php
 namespace ai_agent_creator;
 
+if (defined("PLUGIN_PATH")) {
+    if (file_exists(PLUGIN_PATH . "/sossdata/SOSSData.php")) {
+        require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
+    }
+    if (file_exists(PLUGIN_PATH . "/phpcache/cache.php")) {
+        require_once(PLUGIN_PATH . "/phpcache/cache.php");
+    }
+    if (file_exists(PLUGIN_PATH . "/auth/auth.php")) {
+        require_once(PLUGIN_PATH . "/auth/auth.php");
+    }
+}
+
 class CreatorService {
     public function getProviders($req, $res) {
         $out = $this->ok();
@@ -49,6 +61,12 @@ class CreatorService {
 
         $agentCode = $created->agentCode;
         $existing = isset($agents[$agentCode]) && is_array($agents[$agentCode]) ? $agents[$agentCode] : array();
+        $identity = $this->ensureAgentSystemIdentity($body, $created, $existing);
+        if (!$identity->success) {
+            return $identity;
+        }
+        $created->config = $this->attachSystemIdentityToConfig($created->config, $identity);
+
         $now = gmdate("c");
 
         $agent = array(
@@ -58,6 +76,8 @@ class CreatorService {
             "capabilities" => $created->capabilities,
             "skills" => $created->skills,
             "configuration" => $created->config,
+            "profileId" => $identity->profileId,
+            "userId" => $identity->userId,
             "workflow" => array(
                 "appCode" => "ai-agent-creator",
                 "componentCode" => "creator-api",
@@ -269,6 +289,11 @@ class CreatorService {
 
         $agent = $agents[$agentCode];
         $config = $agent["configuration"];
+        $identityStatus = $this->validateSavedAgentIdentity($config);
+        if (!$identityStatus->success) {
+            return $identityStatus;
+        }
+
         $profile = isset($body["profile"]) ? $this->objectToArray($body["profile"]) : array();
         $profileId = $this->normalizeProfileId($this->arrayString($profile, "profileId", ""));
         if ($profileId === "") {
@@ -565,6 +590,342 @@ class CreatorService {
             ),
             "createdAt" => gmdate("c")
         );
+    }
+
+    private function ensureAgentSystemIdentity($body, $created, $existing) {
+        if (!class_exists("\\SOSSData")) {
+            return $this->fail("The profile datastore is not available. Install the sossdata plugin before saving an agent.");
+        }
+        if (!class_exists("\\Auth")) {
+            return $this->fail("The auth plugin is not available. Install auth before saving an agent system user.");
+        }
+
+        $existingConfig = isset($existing["configuration"]) && is_array($existing["configuration"]) ? $existing["configuration"] : array();
+        $existingIdentity = $this->identityFromConfig($existingConfig);
+        $profileInput = $this->agentProfileInput($body, $created, $existingIdentity);
+        $validation = $this->validateAgentProfileInput($profileInput);
+        if (!$validation->success) {
+            return $validation;
+        }
+
+        $userPassword = $profileInput["userPassword"] !== "" ? $profileInput["userPassword"] : $this->randomPassword();
+        $userResult = $this->ensureAgentUser($profileInput, $existingIdentity, $userPassword);
+        if (!$userResult->success) {
+            return $userResult;
+        }
+
+        $profileResult = $this->ensureAgentProfile($profileInput, $existingIdentity, $userResult);
+        if (!$profileResult->success) {
+            return $profileResult;
+        }
+
+        $out = $this->ok();
+        $out->profileId = $profileResult->profileId;
+        $out->profile = array(
+            "profileId" => $profileResult->profileId,
+            "name" => $profileInput["name"],
+            "email" => $profileInput["email"],
+            "phone" => $profileInput["phone"],
+            "image" => $this->profileImageUrl($profileResult->profileId),
+            "catogory" => "AI Agent"
+        );
+        $out->userId = $userResult->userId;
+        $out->user = array(
+            "userid" => $userResult->userId,
+            "username" => $profileInput["email"],
+            "email" => $profileInput["email"],
+            "name" => $profileInput["name"],
+            "groupid" => "sysuser",
+            "password" => $userPassword
+        );
+        return $out;
+    }
+
+    private function agentProfileInput($body, $created, $existingIdentity) {
+        $profile = isset($existingIdentity["profile"]) && is_array($existingIdentity["profile"]) ? $existingIdentity["profile"] : array();
+        $user = isset($existingIdentity["user"]) && is_array($existingIdentity["user"]) ? $existingIdentity["user"] : array();
+
+        return array(
+            "profileId" => $this->integerString($this->stringValue($body, "profileId", isset($profile["profileId"]) ? $profile["profileId"] : "0")),
+            "userId" => $this->stringValue($body, "userId", isset($user["userid"]) ? $user["userid"] : ""),
+            "name" => $this->limitText($this->stringValue($body, "agentProfileName", $created->agentName), 200),
+            "email" => strtolower($this->limitText($this->stringValue($body, "agentEmail", isset($profile["email"]) ? $profile["email"] : ""), 200)),
+            "phone" => $this->limitText($this->stringValue($body, "agentPhone", isset($profile["phone"]) ? $profile["phone"] : ""), 20),
+            "userPassword" => isset($user["password"]) && $user["password"] !== "********" ? (string)$user["password"] : ""
+        );
+    }
+
+    private function validateAgentProfileInput($input) {
+        if ($input["name"] === "" || $input["email"] === "" || $input["phone"] === "") {
+            return $this->fail("Agent profile name, email, and phone are required.");
+        }
+        if (!filter_var($input["email"], FILTER_VALIDATE_EMAIL)) {
+            return $this->fail("Agent email is not valid.");
+        }
+        if (preg_match("/^[A-Za-z0-9._%+@-]+$/", $input["email"]) !== 1) {
+            return $this->fail("Agent email contains unsupported characters.");
+        }
+        return $this->ok();
+    }
+
+    private function ensureAgentUser($input, $existingIdentity, $password) {
+        $existingUserId = $input["userId"] !== "" ? $input["userId"] : $this->pathValue($existingIdentity, "user.userid");
+        $user = $existingUserId !== "" ? $this->userById($existingUserId) : null;
+        $emailUser = $this->userByEmail($input["email"]);
+
+        if ($emailUser && (!$user || (string)$emailUser->userid !== (string)$user->userid)) {
+            return $this->fail("This email is already registered to another user. Use a dedicated email for the AI agent.");
+        }
+
+        if (!$user) {
+            $created = $this->createAgentUser($input, $password);
+            if (!$created->success) {
+                return $created;
+            }
+            $userId = $created->userId;
+        } else {
+            $userId = isset($user->userid) ? (string)$user->userid : "";
+            $this->updateAgentUserRecord($user, $input, $password);
+        }
+
+        if ($userId === "") {
+            return $this->fail("AI agent user could not be resolved.");
+        }
+
+        $join = \Auth::Join($this->authHostName(), $userId, "sysuser");
+        if (is_object($join) && isset($join->success) && $join->success === false) {
+            return $this->fail("AI agent user was created, but could not be joined to the sysuser group.");
+        }
+        $this->clearUserCaches();
+
+        $out = $this->ok();
+        $out->userId = $userId;
+        $out->joinResult = $join;
+        return $out;
+    }
+
+    private function createAgentUser($input, $password) {
+        $user = new \stdClass();
+        $user->username = $input["email"];
+        $user->email = $input["email"];
+        $user->name = $input["name"];
+        $user->password = $password;
+
+        $created = \Auth::SaveUser($user);
+        if (!is_object($created) || !isset($created->userid)) {
+            return $this->fail("AI agent system user could not be created.");
+        }
+
+        $out = $this->ok();
+        $out->userId = (string)$created->userid;
+        return $out;
+    }
+
+    private function updateAgentUserRecord($user, $input, $password) {
+        if (!class_exists("\\SOSSData")) {
+            return;
+        }
+
+        $changed = false;
+        if (!isset($user->email) || strtolower((string)$user->email) !== $input["email"]) {
+            $user->email = $input["email"];
+            $changed = true;
+        }
+        if (!isset($user->username) || strtolower((string)$user->username) !== $input["email"]) {
+            $user->username = $input["email"];
+            $changed = true;
+        }
+        if (!isset($user->name) || (string)$user->name !== $input["name"]) {
+            $user->name = $input["name"];
+            $changed = true;
+        }
+        if (!isset($user->password) || (string)$user->password === "") {
+            $user->password = md5($password);
+            $changed = true;
+        }
+
+        if ($changed) {
+            \SOSSData::Update("users", $user);
+        }
+    }
+
+    private function ensureAgentProfile($input, $existingIdentity, $userResult) {
+        $profile = null;
+        $profileId = (int)$input["profileId"];
+        if ($profileId > 0) {
+            $profile = $this->profileById($profileId);
+            if (!$profile) {
+                return $this->fail("The selected AI agent profile was not found.");
+            }
+            if (!$this->isAgentProfile($profile)) {
+                return $this->fail("The selected profile is not tagged as an AI Agent.");
+            }
+        }
+
+        $emailProfile = $this->profileByEmail($input["email"]);
+        if ($emailProfile && (!$profile || (int)$emailProfile->id !== (int)$profile->id)) {
+            if (!$this->isAgentProfile($emailProfile)) {
+                return $this->fail("A non-agent profile already uses this email. Use a dedicated email for the AI agent.");
+            }
+            $profile = $emailProfile;
+        }
+
+        $isNew = $profile === null;
+        if ($isNew) {
+            $profile = new \stdClass();
+            $profile->createdate = date_format(new \DateTime(), "m-d-Y H:i:s");
+            $profile->Status = "Active";
+        }
+
+        $profile->name = $input["name"];
+        $profile->email = $input["email"];
+        $profile->contactno = $input["phone"];
+        $profile->catogory = "AI Agent";
+        $profile->userid = $userResult->userId;
+        $profile->linkeduserid = $userResult->userId;
+
+        $result = $isNew ? \SOSSData::Insert("profile", $profile, null) : \SOSSData::Update("profile", $profile, null);
+        if (!$result->success) {
+            return $this->fail(isset($result->message) ? $result->message : "AI agent profile could not be saved.");
+        }
+
+        if ($isNew && isset($result->result) && isset($result->result->generatedId)) {
+            $profile->id = $result->result->generatedId;
+        }
+
+        $this->clearProfileCache();
+        $savedProfileId = isset($profile->id) ? (int)$profile->id : 0;
+        if ($savedProfileId <= 0) {
+            return $this->fail("AI agent profile was saved, but no profile id was returned.");
+        }
+
+        $out = $this->ok();
+        $out->profileId = $savedProfileId;
+        return $out;
+    }
+
+    private function attachSystemIdentityToConfig($config, $identity) {
+        $config["agent"]["profile"] = $identity->profile;
+        $config["agent"]["profileId"] = $identity->profileId;
+        $config["agent"]["profileImage"] = $identity->profile["image"];
+        $config["agent"]["user"] = $identity->user;
+        $config["agent"]["userId"] = $identity->userId;
+        $config["agent"]["userGroup"] = "sysuser";
+        $config["systemUser"] = $identity->user;
+        return $config;
+    }
+
+    private function validateSavedAgentIdentity($config) {
+        $identity = $this->identityFromConfig($config);
+        if (empty($identity["profile"]["profileId"]) || empty($identity["user"]["userid"])) {
+            return $this->fail("Saved agent is missing its mapped profile or sysuser account. Re-save the agent before running it.");
+        }
+        if (isset($identity["user"]["groupid"]) && $identity["user"]["groupid"] !== "sysuser") {
+            return $this->fail("Saved agent user is not mapped to the sysuser group.");
+        }
+        return $this->ok();
+    }
+
+    private function identityFromConfig($config) {
+        if (!is_array($config)) {
+            return array("profile" => array(), "user" => array());
+        }
+        $agent = isset($config["agent"]) && is_array($config["agent"]) ? $config["agent"] : array();
+        $profile = isset($agent["profile"]) && is_array($agent["profile"]) ? $agent["profile"] : array();
+        $user = isset($agent["user"]) && is_array($agent["user"]) ? $agent["user"] : array();
+        if (!count($user) && isset($config["systemUser"]) && is_array($config["systemUser"])) {
+            $user = $config["systemUser"];
+        }
+        return array("profile" => $profile, "user" => $user);
+    }
+
+    private function userByEmail($email) {
+        if (!class_exists("\\SOSSData") || trim((string)$email) === "") {
+            return null;
+        }
+        $result = \SOSSData::Query("users", "email:" . strtolower(trim((string)$email)));
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function userById($userId) {
+        if (!class_exists("\\SOSSData") || trim((string)$userId) === "") {
+            return null;
+        }
+        $result = \SOSSData::Query("users", "userid:" . trim((string)$userId));
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function profileById($profileId) {
+        if (!class_exists("\\SOSSData") || (int)$profileId <= 0) {
+            return null;
+        }
+        $result = \SOSSData::Query("profile", urlencode("id:" . (int)$profileId), null, "desc", 1, 0, null, false);
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function profileByEmail($email) {
+        if (!class_exists("\\SOSSData") || trim((string)$email) === "") {
+            return null;
+        }
+        $result = \SOSSData::Query("profile", urlencode("email:" . strtolower(trim((string)$email))), null, "desc", 1, 0, null, false);
+        if ($result->success && isset($result->result) && count($result->result) > 0) {
+            return $result->result[0];
+        }
+        return null;
+    }
+
+    private function isAgentProfile($profile) {
+        return isset($profile->catogory) && strtolower(trim((string)$profile->catogory)) === "ai agent";
+    }
+
+    private function randomPassword() {
+        if (function_exists("random_bytes")) {
+            $bytes = random_bytes(12);
+        } elseif (function_exists("openssl_random_pseudo_bytes")) {
+            $bytes = openssl_random_pseudo_bytes(12);
+        } else {
+            $bytes = hash("sha256", uniqid("agent", true), true);
+        }
+        $token = rtrim(strtr(base64_encode($bytes), "+/", "AZ"), "=");
+        return "Ai" . substr($token, 0, 14) . "7";
+    }
+
+    private function authHostName() {
+        if (defined("HOST_NAME")) {
+            return HOST_NAME;
+        }
+        if (defined("AUTH_DOMAIN")) {
+            return AUTH_DOMAIN;
+        }
+        return isset($_SERVER["HTTP_HOST"]) ? $_SERVER["HTTP_HOST"] : "localhost";
+    }
+
+    private function profileImageUrl($profileId) {
+        return "components/dock/soss-uploader/service/get/profile/" . (int)$profileId;
+    }
+
+    private function clearProfileCache() {
+        if (class_exists("\\CacheData")) {
+            \CacheData::clearObjects("profile");
+        }
+    }
+
+    private function clearUserCaches() {
+        if (class_exists("\\CacheData")) {
+            \CacheData::clearObjects("users");
+            \CacheData::clearObjects("usergroups");
+            \CacheData::clearObjects("sys_access");
+            \CacheData::clearObjects("domain_permision_e");
+        }
     }
 
     private function callProvider($config, $message, $runtimeContext = array(), $history = array()) {
@@ -1361,6 +1722,15 @@ class CreatorService {
             return $default;
         }
         return trim(substr((string)$body->$key, 0, 20000));
+    }
+
+    private function limitText($value, $maxLength) {
+        return trim(substr((string)$value, 0, $maxLength));
+    }
+
+    private function integerString($value) {
+        $value = trim((string)$value);
+        return ctype_digit($value) ? $value : "0";
     }
 
     private function arrayString($input, $key, $default) {

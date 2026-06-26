@@ -16,6 +16,7 @@ WEBDOCK.component().register(function(exports) {
         messages: [],
         profile: null,
         profileReady: false,
+        authenticated: false,
         profileForm: {
             name: "",
             email: "",
@@ -52,6 +53,8 @@ WEBDOCK.component().register(function(exports) {
             bubbleClasses: bubbleClasses,
             formatMessage: formatMessage,
             profileValue: profileValue,
+            profileImageUrl: profileImageUrl,
+            profileInitial: profileInitial,
             saveInputs: saveInputs
         },
         onReady: function(data, element) {
@@ -134,6 +137,7 @@ WEBDOCK.component().register(function(exports) {
 
         initialized = true;
         restoreInputs();
+        bindProfileAvatarFallback();
         renderFallback();
         loadSession(false);
         pollTimer = window.setInterval(function() {
@@ -159,7 +163,7 @@ WEBDOCK.component().register(function(exports) {
                     return;
                 }
                 applyServiceState(result);
-                setStatus(bindData.profileReady ? "" : "Save your profile to start chatting.", "muted");
+                setStatus(bindData.profileReady ? "" : profileRequiredMessage(), "muted");
             })
             .error(function(response) {
                 setBusy(false);
@@ -170,7 +174,7 @@ WEBDOCK.component().register(function(exports) {
     function newChat(event) {
         preventEvent(event);
         if (!bindData.profileReady) {
-            setStatus("Save your profile before starting a new chat.", "error");
+            setStatus(profileRequiredMessage(), "error");
             return;
         }
         messageHistoryReady = false;
@@ -182,6 +186,10 @@ WEBDOCK.component().register(function(exports) {
         preventEvent(event);
         readFallbackInputs();
         if (!api || bindData.busy) {
+            return;
+        }
+        if (bindData.authenticated) {
+            setStatus("Signed-in users chat with their registered profile.", "muted");
             return;
         }
 
@@ -235,7 +243,7 @@ WEBDOCK.component().register(function(exports) {
             return;
         }
         if (!bindData.profileReady) {
-            setStatus("Save your profile before sending a message.", "error");
+            setStatus(profileRequiredMessage(), "error");
             return;
         }
 
@@ -282,6 +290,26 @@ WEBDOCK.component().register(function(exports) {
         if (result.defaultAgentCode) {
             bindData.defaultAgentCode = result.defaultAgentCode;
         }
+        if (result.identity) {
+            bindData.authenticated = result.identity.type === "authenticated";
+            if (bindData.authenticated) {
+                bindData.profile = {
+                    id: result.identity.profileId || "",
+                    name: result.identity.name || "",
+                    email: result.identity.email || "",
+                    contactno: result.identity.phone || ""
+                };
+                bindData.profileReady = !!result.identity.profileId;
+            } else if (!bindData.profile && result.identity.profileId) {
+                bindData.profile = {
+                    id: result.identity.profileId,
+                    name: result.identity.name || "",
+                    email: result.identity.email || "",
+                    contactno: result.identity.phone || ""
+                };
+                bindData.profileReady = true;
+            }
+        }
         if (result.profile) {
             bindData.profile = result.profile;
             bindData.profileReady = !!result.profile.id;
@@ -308,7 +336,7 @@ WEBDOCK.component().register(function(exports) {
             bindData.messages = result.messages;
         }
         renderFallback();
-        if (shouldFocusLatest) {
+        if (result.messages || shouldFocusLatest) {
             scrollThread();
         }
     }
@@ -316,7 +344,7 @@ WEBDOCK.component().register(function(exports) {
     function payload(extra) {
         readFallbackInputs();
         var data = {
-            profileId: bindData.profile && bindData.profile.id ? bindData.profile.id : storageGet("chatAgentProfileId", ""),
+            profileId: bindData.authenticated ? (bindData.profile && bindData.profile.id ? bindData.profile.id : "") : (bindData.profile && bindData.profile.id ? bindData.profile.id : storageGet("chatAgentProfileId", "")),
             visitorName: $.trim(bindData.profileForm.name || ""),
             visitorEmail: $.trim(bindData.profileForm.email || ""),
             visitorPhone: $.trim(bindData.profileForm.phone || ""),
@@ -494,6 +522,22 @@ WEBDOCK.component().register(function(exports) {
         return "";
     }
 
+    function profileImageUrl() {
+        var profileId = profileValue("id");
+        return profileId ? "components/dock/soss-uploader/service/get/profile/" + profileId : "";
+    }
+
+    function profileInitial() {
+        var name = $.trim(profileValue("name") || "Visitor");
+        return name ? name.charAt(0).toUpperCase() : "V";
+    }
+
+    function profileRequiredMessage() {
+        return bindData.authenticated
+            ? "Your signed-in user does not have a registered profile."
+            : "Register your profile to start chatting.";
+    }
+
     function setBusy(isBusy) {
         bindData.busy = isBusy;
         renderFallback();
@@ -551,6 +595,9 @@ WEBDOCK.component().register(function(exports) {
 
     function saveInputs() {
         readFallbackInputs();
+        if (bindData.authenticated) {
+            return;
+        }
         storageSet("chatAgentVisitorName", bindData.profileForm.name || "");
         storageSet("chatAgentVisitorEmail", bindData.profileForm.email || "");
         storageSet("chatAgentVisitorPhone", bindData.profileForm.phone || "");
@@ -598,8 +645,12 @@ WEBDOCK.component().register(function(exports) {
     }
 
     function scrollThread() {
+        if (vueInstance && typeof vueInstance.$nextTick === "function") {
+            vueInstance.$nextTick(focusLatestMessage);
+        }
         window.setTimeout(focusLatestMessage, 0);
         window.setTimeout(focusLatestMessage, 80);
+        window.setTimeout(focusLatestMessage, 240);
     }
 
     function focusLatestMessage() {
@@ -736,6 +787,17 @@ WEBDOCK.component().register(function(exports) {
         });
     }
 
+    function bindProfileAvatarFallback() {
+        var root = componentRoot();
+        if (!root.length) {
+            return;
+        }
+        root.off("error.chatAgentAvatar", "[data-profile-avatar]");
+        root.on("error.chatAgentAvatar", "[data-profile-avatar]", function() {
+            $(this).hide();
+        });
+    }
+
     function readFallbackInputs() {
         if (!fallbackMode) {
             return;
@@ -772,7 +834,7 @@ WEBDOCK.component().register(function(exports) {
         status.text(bindData.status.message || "");
 
         renderFallbackMessages(root);
-        root.find("[data-profile-form]").toggle(!bindData.profileReady);
+        root.find("[data-profile-form]").toggle(!bindData.profileReady && !bindData.authenticated);
         root.find("[data-profile-summary]").toggle(!!bindData.profileReady);
         root.find("[data-chat-form]").toggle(!!bindData.profileReady);
 
@@ -786,6 +848,14 @@ WEBDOCK.component().register(function(exports) {
         root.find("[data-profile-name]").text(profileValue("name") || "Visitor");
         root.find("[data-profile-email]").text(profileValue("email") || "");
         root.find("[data-profile-phone]").text(profileValue("contactno") || profileValue("phone") || "");
+        root.find("[data-profile-initial]").text(profileInitial());
+        var avatar = root.find("[data-profile-avatar]");
+        var avatarUrl = profileImageUrl();
+        if (avatarUrl) {
+            avatar.attr("src", avatarUrl).show();
+        } else {
+            avatar.removeAttr("src").hide();
+        }
 
         root.find("[data-save-profile],[data-send-message],[data-visitor-name],[data-visitor-email],[data-visitor-phone],[data-visitor-details],[data-chat-message]").prop("disabled", !!bindData.busy);
     }

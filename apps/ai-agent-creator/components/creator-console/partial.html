@@ -29,6 +29,24 @@
                         <h2>Agent Identity</h2>
                         <span>Workflow addressable</span>
                     </div>
+                    <div class="agent-creator__identity-card">
+                        <button type="button" class="agent-creator__avatar-button" data-profile-image-change aria-label="Change profile icon">
+                            <img class="agent-creator__avatar" data-profile-image alt="" />
+                            <span class="agent-creator__avatar-fallback" data-profile-fallback>AI</span>
+                        </button>
+                        <div class="agent-creator__identity-fields">
+                            <input type="hidden" data-profile-id />
+                            <input type="hidden" data-user-id />
+                            <label class="agent-creator__field">
+                                <span>Agent email</span>
+                                <input type="email" data-agent-email autocomplete="off" placeholder="agent@example.com" />
+                            </label>
+                            <label class="agent-creator__field">
+                                <span>Agent phone</span>
+                                <input type="tel" data-agent-phone autocomplete="off" placeholder="+94710000000" />
+                            </label>
+                        </div>
+                    </div>
                     <div class="agent-creator__form-grid">
                         <label class="agent-creator__field">
                             <span>Agent code</span>

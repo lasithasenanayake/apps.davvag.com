@@ -2,7 +2,7 @@
     "name": "chat-window",
     "description": "Visitor chat interface for Chat Agent",
     "author": "DAVVAG",
-    "version": "0.6",
+    "version": "0.7",
     "resources": {
         "files": [
             {

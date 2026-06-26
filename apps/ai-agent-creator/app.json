@@ -12,7 +12,7 @@
     "description": {
         "title": "AI Agent Creator",
         "author": "Davvag",
-        "version": "0.3",
+        "version": "0.4",
         "icon": ""
     },
     "tags": [
@@ -32,10 +32,21 @@
         }
     },
     "dependencies": {
-        "apps": [],
-        "schemas": [],
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "profile",
+            "users",
+            "usergroups",
+            "domain_permision"
+        ],
         "workflows": [],
-        "plugins": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "sossdata"
+        ],
         "php-extensions": [
             "curl"
         ]

@@ -10,6 +10,32 @@
 
         <div class="ai-agent__status" data-agent-status>Loading configuration...</div>
 
+        <section class="ai-agent__profile" aria-label="AI agent profile">
+            <button type="button" class="ai-agent__avatar-button" data-agent-profile-image-change aria-label="Change profile icon">
+                <img class="ai-agent__avatar" data-agent-profile-image alt="" />
+                <span class="ai-agent__avatar-fallback" data-agent-profile-fallback>AI</span>
+            </button>
+
+            <div class="ai-agent__profile-fields">
+                <input type="hidden" data-agent-profile-id />
+
+                <label class="ai-agent__field">
+                    <span>Agent name</span>
+                    <input type="text" data-agent-profile-name placeholder="ChatGPT Agent" />
+                </label>
+
+                <label class="ai-agent__field">
+                    <span>Agent email</span>
+                    <input type="email" data-agent-profile-email autocomplete="off" placeholder="agent@example.com" />
+                </label>
+
+                <label class="ai-agent__field">
+                    <span>Agent phone</span>
+                    <input type="tel" data-agent-profile-phone autocomplete="off" placeholder="+94710000000" />
+                </label>
+            </div>
+        </section>
+
         <label class="ai-agent__field">
             <span>OpenAI API key</span>
             <input type="password" data-agent-api-key autocomplete="off" placeholder="sk-..." />

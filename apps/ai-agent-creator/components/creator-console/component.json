@@ -2,7 +2,7 @@
     "name": "creator-console",
     "description": "AI agent configuration builder interface",
     "author": "Davvag",
-    "version": "0.2",
+    "version": "0.4",
     "gitUrl": "",
     "resources": {
         "files": [
