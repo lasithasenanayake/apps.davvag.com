@@ -125,9 +125,43 @@
 
 .chat-agent__bubble-meta {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 6px;
+}
+
+.chat-agent__sender {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 7px;
+    font-weight: 700;
+}
+
+.chat-agent__sender-avatar {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    overflow: hidden;
+    border: 1px solid #c8d3df;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #153f3f;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.chat-agent__sender-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #ffffff;
 }
 
 .chat-agent__bubble-body {

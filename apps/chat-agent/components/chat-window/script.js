@@ -52,6 +52,8 @@ WEBDOCK.component().register(function(exports) {
             bubbleClass: bubbleClass,
             bubbleClasses: bubbleClasses,
             formatMessage: formatMessage,
+            senderImageUrl: senderImageUrl,
+            senderInitial: senderInitial,
             profileValue: profileValue,
             profileImageUrl: profileImageUrl,
             profileInitial: profileInitial,
@@ -402,12 +404,36 @@ WEBDOCK.component().register(function(exports) {
             return message.senderName || "You";
         }
         if (message.senderType === "ai_agent") {
-            return "AI Agent";
+            return message.senderName || "AI Agent";
         }
         if (message.senderType === "human") {
             return message.senderName || "Human Agent";
         }
         return message.senderName || "System";
+    }
+
+    function senderImageUrl(message) {
+        if (!message) {
+            return "";
+        }
+        if (message.senderImage) {
+            return message.senderImage;
+        }
+        if (message.senderProfileId) {
+            return profileImageUrlForId(message.senderProfileId);
+        }
+        if (message.senderType === "visitor") {
+            return profileImageUrlForId(message.senderId || profileValue("id"));
+        }
+        if ((message.senderType === "ai_agent" || message.senderType === "human") && message.senderId) {
+            return profileImageUrlForId(message.senderId);
+        }
+        return "";
+    }
+
+    function senderInitial(message) {
+        var name = $.trim(displaySender(message) || "C");
+        return name ? name.charAt(0).toUpperCase() : "C";
     }
 
     function bubbleClass(message) {
@@ -490,8 +516,8 @@ WEBDOCK.component().register(function(exports) {
             localId: "agent-waiting-" + localMessageCounter,
             messageId: "agent-waiting-" + localMessageCounter,
             senderType: "ai_agent",
-            senderName: "AI Agent",
-            body: "AI Agent is responding...",
+            senderName: currentAgentName(),
+            body: currentAgentName() + " is responding...",
             direction: "outbound",
             status: "pending",
             agentCode: bindData.defaultAgentCode || "",
@@ -499,6 +525,16 @@ WEBDOCK.component().register(function(exports) {
             pending: true,
             localOnly: true
         };
+    }
+
+    function currentAgentName() {
+        var messages = bindData.messages || [];
+        for (var i = messages.length - 1; i >= 0; i--) {
+            if (messages[i] && messages[i].senderType === "ai_agent" && messages[i].senderName) {
+                return messages[i].senderName;
+            }
+        }
+        return "AI Agent";
     }
 
     function profileValue(key) {
@@ -523,8 +559,15 @@ WEBDOCK.component().register(function(exports) {
     }
 
     function profileImageUrl() {
-        var profileId = profileValue("id");
-        return profileId ? "components/dock/soss-uploader/service/get/profile/" + profileId : "";
+        return profileImageUrlForId(profileValue("id"));
+    }
+
+    function profileImageUrlForId(profileId) {
+        profileId = $.trim(profileId || "");
+        if (!/^\d+$/.test(profileId)) {
+            return "";
+        }
+        return "components/dock/soss-uploader/service/get/profile/" + profileId;
     }
 
     function profileInitial() {
@@ -667,14 +710,6 @@ WEBDOCK.component().register(function(exports) {
 
         thread.scrollTop(thread[0].scrollHeight);
         latest.attr("tabindex", "-1");
-        try {
-            latest[0].focus({ preventScroll: true });
-        } catch (ignore) {
-            latest[0].focus();
-        }
-        if (latest[0].scrollIntoView) {
-            latest[0].scrollIntoView({ block: "end", inline: "nearest", behavior: "smooth" });
-        }
         thread.scrollTop(thread[0].scrollHeight);
     }
 
@@ -792,8 +827,8 @@ WEBDOCK.component().register(function(exports) {
         if (!root.length) {
             return;
         }
-        root.off("error.chatAgentAvatar", "[data-profile-avatar]");
-        root.on("error.chatAgentAvatar", "[data-profile-avatar]", function() {
+        root.off("error.chatAgentAvatar", "[data-profile-avatar],[data-message-avatar]");
+        root.on("error.chatAgentAvatar", "[data-profile-avatar],[data-message-avatar]", function() {
             $(this).hide();
         });
     }
@@ -873,10 +908,18 @@ WEBDOCK.component().register(function(exports) {
 
         var html = [];
         $.each(bindData.messages, function(index, message) {
+            var imageUrl = senderImageUrl(message);
+            var imageHtml = imageUrl ? '<img data-message-avatar src="' + escapeHtml(imageUrl) + '" alt="">' : "";
             html.push(
                 '<article class="chat-agent__bubble ' + bubbleClasses(message) + '" tabindex="-1" data-chat-message-item>' +
                     '<div class="chat-agent__bubble-meta">' +
-                        '<span>' + escapeHtml(displaySender(message)) + '</span>' +
+                        '<span class="chat-agent__sender">' +
+                            '<span class="chat-agent__sender-avatar">' +
+                                imageHtml +
+                                '<span>' + escapeHtml(senderInitial(message)) + '</span>' +
+                            '</span>' +
+                            '<span>' + escapeHtml(displaySender(message)) + '</span>' +
+                        '</span>' +
                         '<time>' + escapeHtml(message && message.createdAt ? message.createdAt : "") + '</time>' +
                     '</div>' +
                     '<div class="chat-agent__bubble-body chat-agent__bubble-body--formatted">' + formatMessage(message) + '</div>' +

@@ -14,7 +14,13 @@
             <div class="chat-agent__empty" v-show="messages.length === 0">No messages yet.</div>
             <article class="chat-agent__bubble" tabindex="-1" data-chat-message-item v-for="message in messages" v-bind:key="message.messageId || message.id || message.localId" v-bind:class="bubbleClasses(message)">
                 <div class="chat-agent__bubble-meta">
-                    <span>{{ displaySender(message) }}</span>
+                    <span class="chat-agent__sender">
+                        <span class="chat-agent__sender-avatar">
+                            <img data-message-avatar v-bind:src="senderImageUrl(message)" alt="" />
+                            <span>{{ senderInitial(message) }}</span>
+                        </span>
+                        <span>{{ displaySender(message) }}</span>
+                    </span>
                     <time>{{ message.createdAt || "" }}</time>
                 </div>
                 <div class="chat-agent__bubble-body chat-agent__bubble-body--formatted" v-html="formatMessage(message)"></div>

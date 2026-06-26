@@ -176,7 +176,8 @@ class ApiService {
             if ($agentRun->success) {
                 $reply = isset($agentRun->response) ? $agentRun->response : (isset($agentRun->reply) ? $agentRun->reply : "");
                 if ($reply !== "") {
-                    $aiMessage = $this->insertMessage($session->sessionKey, "ai_agent", $session->agentCode, "AI Agent", $reply, "outbound", "sent", $session->agentCode, $agentRun, $res);
+                    $agentIdentity = $this->agentIdentityForCode($session->agentCode);
+                    $aiMessage = $this->insertMessage($session->sessionKey, "ai_agent", $agentIdentity->senderId, $agentIdentity->name, $reply, "outbound", "sent", $session->agentCode, $agentRun, $res);
                     if ($aiMessage === null) {
                         return null;
                     }
@@ -634,7 +635,38 @@ class ApiService {
         usort($rows, function($a, $b) {
             return strcmp((string)$this->value($a, "createdAt", ""), (string)$this->value($b, "createdAt", ""));
         });
-        return $rows;
+        return $this->enrichMessageSenders($rows);
+    }
+
+    private function enrichMessageSenders($messages) {
+        $agentIdentities = array();
+        foreach ($messages as $message) {
+            if (!is_object($message)) {
+                continue;
+            }
+
+            $senderType = $this->value($message, "senderType", "");
+            if ($senderType === "ai_agent") {
+                $agentCode = $this->value($message, "agentCode", "");
+                if (!isset($agentIdentities[$agentCode])) {
+                    $agentIdentities[$agentCode] = $this->agentIdentityForCode($agentCode);
+                }
+                $identity = $agentIdentities[$agentCode];
+                $message->senderName = $identity->name;
+                $message->senderProfileId = $identity->profileId;
+                $message->senderImage = $identity->image;
+                if ($identity->senderId !== "") {
+                    $message->senderId = $identity->senderId;
+                }
+            } elseif ($senderType === "visitor" || $senderType === "human") {
+                $profileId = $this->numericProfileId($this->value($message, "senderId", ""));
+                if ($profileId > 0) {
+                    $message->senderProfileId = $profileId;
+                    $message->senderImage = $this->profileImageUrl($profileId);
+                }
+            }
+        }
+        return $messages;
     }
 
     private function resolveProfileForBody($body, $res) {
@@ -1138,6 +1170,55 @@ class ApiService {
         return $out;
     }
 
+    private function agentIdentityForCode($agentCode) {
+        $identity = new \stdClass();
+        $identity->senderId = $agentCode;
+        $identity->profileId = "";
+        $identity->name = "AI Agent";
+        $identity->image = "";
+
+        $agentCode = $this->normalizeCode($agentCode);
+        if ($agentCode === "") {
+            return $identity;
+        }
+
+        $agents = $this->savedAgentsForSettings();
+        if (!isset($agents->agents) || !is_array($agents->agents)) {
+            return $identity;
+        }
+
+        foreach ($agents->agents as $agent) {
+            $agentData = $this->objectToArray($agent);
+            if ($this->value($agentData, "agentCode", "") !== $agentCode) {
+                continue;
+            }
+
+            $identity->name = $this->value($agentData, "name", "AI Agent");
+            $config = isset($agentData["configuration"]) && is_array($agentData["configuration"]) ? $agentData["configuration"] : array();
+            $agentConfig = isset($config["agent"]) && is_array($config["agent"]) ? $config["agent"] : array();
+            $profile = isset($agentConfig["profile"]) && is_array($agentConfig["profile"]) ? $agentConfig["profile"] : array();
+
+            $profileName = $this->value($profile, "name", "");
+            if ($profileName !== "") {
+                $identity->name = $profileName;
+            }
+
+            $profileId = $this->numericProfileId($this->value($profile, "profileId", $this->value($agentConfig, "profileId", "")));
+            if ($profileId > 0) {
+                $identity->profileId = (string)$profileId;
+                $identity->senderId = (string)$profileId;
+                $identity->image = $this->value($profile, "image", $this->value($agentConfig, "profileImage", ""));
+                if ($identity->image === "") {
+                    $identity->image = $this->profileImageUrl($profileId);
+                }
+            }
+
+            return $identity;
+        }
+
+        return $identity;
+    }
+
     private function agentExists($agents, $agentCode) {
         foreach ($agents as $agent) {
             if (is_array($agent) && isset($agent["agentCode"]) && $agent["agentCode"] === $agentCode) {
@@ -1215,6 +1296,15 @@ class ApiService {
         $value = preg_replace("/[^A-Za-z0-9@._:-]+/", "-", $value);
         $value = trim($value, "-_");
         return substr($value, 0, 120);
+    }
+
+    private function numericProfileId($value) {
+        $value = trim((string)$value);
+        return ctype_digit($value) ? intval($value) : 0;
+    }
+
+    private function profileImageUrl($profileId) {
+        return "components/dock/soss-uploader/service/get/profile/" . intval($profileId);
     }
 
     private function preview($value) {
