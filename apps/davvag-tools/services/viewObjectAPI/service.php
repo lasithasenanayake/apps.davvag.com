@@ -32,22 +32,14 @@ class ViewObjectApi {
             return null;
         }
 
-        $keySort = array();
-        foreach ($rows as $row) {
-            array_push($keySort, $row->item_type . "-" . $row->item_value . "-" . $row->item_permision);
-        }
-        sort($keySort);
-        $keyValue = md5(implode("_", $keySort));
+        $keyValue = $this->keyForRows($rows);
 
-        $header = null;
-        $existing = SOSSData::Query("user_object", "keyValue:" . $keyValue . ",owner:" . $user->userid, null, "asc", 1, 0, null, false);
-        if ($existing->success && count($existing->result) > 0) {
-            $header = $existing->result[0];
-        }
+        $header = $this->findHeaderByKey($keyValue, $user->userid);
 
         if ($header === null) {
             $header = new stdClass();
             $header->keyValue = $keyValue;
+            $header->keyvalue = $keyValue;
             $header->owner = $user->userid;
             $result = SOSSData::Insert("user_object", $header);
             if (!$result->success) {
@@ -68,6 +60,13 @@ class ViewObjectApi {
             foreach ($rows as $row) {
                 $row->viewObjectID = $header->viewObjectID;
             }
+            if (count($this->findRows($header->viewObjectID)) === 0) {
+                $insert = SOSSData::Insert("user_view_objects", $rows);
+                if (!$insert->success) {
+                    $res->SetError($insert);
+                    return null;
+                }
+            }
         }
 
         $this->clearPermissionCaches();
@@ -84,78 +83,79 @@ class ViewObjectApi {
 
     public function getUserVieObjects($req,$res){
         $user=Auth::Autendicate();
-        $objects=array();
-        $glob=new stdClass();
-        $glob->tag="public";
-        $glob->viewObjectID=0;
-        $glob->keyvalue="";
-        array_push($objects,$glob);
-        if(isset($user->userid)){
-            $objects=CacheData::getObjects($user->userid,"user_object");
-            if(isset($objects)){
-                return $objects;
-            }else{
-
-                $d =SOSSData::Query("user_object","owner:".$user->userid, null, "asc", 100, 0, null, false);
-                if($d->success){
-                    $keySort=array($user->userid."-full");
-                    $keyValue=md5(implode("_",$keySort));
-                    $hasOnlyMe=false;
-                    $header=null;
-                    foreach ($d->result as $key => $value) {
-                        # code...
-                        $value->tag="Custom";
-                        if(isset($value->keyValue) && $value->keyValue==$keyValue){
-                            $hasOnlyMe=true;
-                            $header=$value;
-                        }
-                        array_push($objects,$value);
-                    }
-                    if(!$hasOnlyMe){
-                        $header=new stdClass();
-                        $header->keyvalue=$keyValue;
-                        $header->owner=$user->userid;
-                        $result =SOSSData::Insert("user_object",$header);
-                        if($result->success){
-                            $header->viewObjectID=$result->result->generatedId;
-                            $header->tag="Only Me";
-                            array_push($objects,$header);
-                            $data=array();
-                            $uprm =new stdClass();
-                            $uprm->viewObjectID=$header->viewObjectID;
-                            $uprm->item_type="user";
-                            $uprm->item_permision="full";
-                            $uprm->item_value=$user->userid;
-                            $uprm->item_text=$user->email;
-                            array_push($keySort,$user->userid."-full");
-                            array_push($data,$uprm);
-                            SOSSData::Insert("user_view_objects",$data);
-                        }else{
-                            $res->SetError($result);
-                            return null;
-                        }
-                       
-                        
-                    }
-
-                }else{
-                    $res->SetError($d);
-                    return null;
-                }
-            }
-            
-
+        $objects=$this->publicObjects();
+        if(!isset($user->userid)){
+            return $objects;
         }
+
+        $cached=CacheData::getObjects($user->userid,"user_object");
+        if(isset($cached) && is_array($cached) && count($cached) > 0){
+            return $this->withPublicObject($cached);
+        }
+
+        $d =SOSSData::Query("user_object","owner:".$user->userid, null, "asc", 100, 0, null, false);
+        if(!$d->success){
+            $res->SetError($d);
+            return null;
+        }
+
+        $onlyMeKeyValue=$this->keyForRows(array($this->onlyMeRow($user, 0)));
+        $legacyOnlyMeKeyValue=md5($user->userid."-full");
+        $hasOnlyMe=false;
+        foreach ($d->result as $key => $value) {
+            $value->tag="Custom";
+            $valueKey=$this->objectKeyValue($value);
+            if($valueKey==$onlyMeKeyValue || $valueKey==$legacyOnlyMeKeyValue){
+                $hasOnlyMe=true;
+                $value->tag="Only Me";
+            }
+            array_push($objects,$value);
+        }
+
+        if(!$hasOnlyMe){
+            $header=new stdClass();
+            $header->keyValue=$onlyMeKeyValue;
+            $header->keyvalue=$onlyMeKeyValue;
+            $header->owner=$user->userid;
+            $result =SOSSData::Insert("user_object",$header);
+            if(!$result->success){
+                $res->SetError($result);
+                return null;
+            }
+
+            $header->viewObjectID=$result->result->generatedId;
+            $header->tag="Only Me";
+            array_push($objects,$header);
+
+            $data=array($this->onlyMeRow($user, $header->viewObjectID));
+            $insert=SOSSData::Insert("user_view_objects",$data);
+            if(!$insert->success){
+                $res->SetError($insert);
+                return null;
+            }
+            $this->clearPermissionCaches();
+        }
+
         return $objects;
+    }
+
+    public function getUserViewObjects($req,$res){
+        return $this->getUserVieObjects($req,$res);
     }
     
     public function getPermisionValues($req,$res){
         $data_sent=array();
-        switch ($req->Query()->item_type) {
+        $query=$req->Query();
+        $itemType=isset($query->item_type) ? $query->item_type : "";
+        switch ($itemType) {
             case 'group':
                 # code...
                 array_push($data_sent,array("val"=>"anonymous","text"=>"Anonymous / public visitors"));
                 $data=SOSSData::Query("usergroups","", null, "asc", 1000, 0, null, false);
+                if(!$data->success){
+                    $res->SetError($data);
+                    return null;
+                }
                 
                 foreach ($data->result as $key => $value) {
                     # code...
@@ -167,6 +167,10 @@ class ViewObjectApi {
                 # code...
                 array_push($data_sent,array("val"=>"*","text"=>"All signed-in users"));
                 $data=SOSSData::Query("users","", null, "asc", 1000, 0, null, false);
+                if(!$data->success){
+                    $res->SetError($data);
+                    return null;
+                }
                 
                 foreach ($data->result as $key => $value) {
                     # code...
@@ -180,6 +184,83 @@ class ViewObjectApi {
                 break;
         }
         return $data_sent;
+    }
+
+    public function getPermissionValues($req,$res){
+        return $this->getPermisionValues($req,$res);
+    }
+
+    private function findHeaderByKey($keyValue, $owner) {
+        $queries = array(
+            "keyValue:" . $keyValue . ",owner:" . $owner,
+            "keyvalue:" . $keyValue . ",owner:" . $owner
+        );
+        foreach ($queries as $query) {
+            $existing = SOSSData::Query("user_object", $query, null, "asc", 1, 0, null, false);
+            if ($existing->success && count($existing->result) > 0) {
+                $header = $existing->result[0];
+                if (!isset($header->keyValue)) {
+                    $header->keyValue = $this->objectKeyValue($header);
+                }
+                if (!isset($header->keyvalue)) {
+                    $header->keyvalue = $this->objectKeyValue($header);
+                }
+                return $header;
+            }
+        }
+        return null;
+    }
+
+    private function publicObjects() {
+        $glob=new stdClass();
+        $glob->tag="Public";
+        $glob->viewObjectID=0;
+        $glob->keyValue="";
+        $glob->keyvalue="";
+        return array($glob);
+    }
+
+    private function withPublicObject($objects) {
+        $out=$this->publicObjects();
+        foreach ($objects as $object) {
+            if (isset($object->viewObjectID) && intval($object->viewObjectID) === 0) {
+                continue;
+            }
+            if (!isset($object->tag) || $object->tag === "") {
+                $object->tag="Custom";
+            }
+            array_push($out, $object);
+        }
+        return $out;
+    }
+
+    private function onlyMeRow($user, $viewObjectID) {
+        $uprm =new stdClass();
+        $uprm->viewObjectID=$viewObjectID;
+        $uprm->item_type="user";
+        $uprm->item_permision="Full";
+        $uprm->item_value=$user->userid;
+        $uprm->item_text=isset($user->email) ? $user->email : $user->userid;
+        return $uprm;
+    }
+
+    private function objectKeyValue($object) {
+        if (isset($object->keyValue)) {
+            return $object->keyValue;
+        }
+        if (isset($object->keyvalue)) {
+            return $object->keyvalue;
+        }
+        return "";
+    }
+
+    private function keyForRows($rows) {
+        $keySort = array();
+        foreach ($rows as $row) {
+            array_push($keySort, $row->item_type . "-" . $row->item_value . "-" . $row->item_permision);
+        }
+        sort($keySort);
+        return md5(implode("_", $keySort));
     }
 
     private function findRows($objectId) {

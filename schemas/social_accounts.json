@@ -1,0 +1,76 @@
+{
+    "fields": [
+        {
+            "fieldName": "socialAccountId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "accountName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "accountHandle",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "accountId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "connectionType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "connectionStatus",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "scopes",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "notes",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "raw",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

@@ -1,0 +1,69 @@
+{
+    "fields": [
+        {
+            "fieldName": "platformMetricId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "externalId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220
+            }
+        },
+        {
+            "fieldName": "metricDate",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "views",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "likes",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "comments",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "shares",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "watchTime",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "ctr",
+            "dataType": "float"
+        },
+        {
+            "fieldName": "raw",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

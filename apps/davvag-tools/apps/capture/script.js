@@ -1,83 +1,114 @@
-WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,player,captureButton,handleSuccess;
-
-    
-
-    var handleSuccess = function(stream) {
-        // Attach the video stream to the video element and autoplay.
-        player.srcObject = stream;
-    };
+WEBDOCK.component().register(function(exports) {
+    var root = null;
+    var player = null;
+    var snapshotCanvas = null;
+    var stream = null;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{},items:[]
+        cameraReady: false,
+        capturing: false,
+        submitErrors: [],
+        submitInfo: []
     };
 
-    var vueData =  {
-        methods:{
-            capture:function(){
-                var context = snapshot.getContext('2d');
-                // Draw the video frame to the canvas.
-                context.drawImage(player, 0, 0, snapshotCanvas.width,
-                    snapshotCanvas.height);
-                    const stream = player.srcObject;
-                    const tracks = stream.getTracks();
-                    
-                    tracks.forEach(function(track) {
-                      track.stop();
-                    });
-                    player.srcObject=null;
-                     exports.Complete(context.canvas.toDataURL());
-                //console.log();
-            }
-            
-           
+    exports.vue = {
+        data: bindData,
+        methods: {
+            capture: capture,
+            retry: startCamera,
+            cancel: cancel
         },
-        data :bindData,
-        onReady: function(s,data){
-            scope=s;
+        onReady: function() {
             initialize();
+        }
+    };
+
+    exports.onReady = function() {};
+    exports.onDestroy = stopCamera;
+
+    function initialize() {
+        root = exports.renderDiv ? $(exports.renderDiv) : $("[data-capture-root]").last();
+        player = root.find("[data-capture-player]")[0];
+        snapshotCanvas = root.find("[data-capture-snapshot]")[0];
+        startCamera();
+    }
+
+    function startCamera() {
+        clearMessages();
+        bindData.capturing = true;
+        bindData.cameraReady = false;
+        stopCamera();
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            bindData.capturing = false;
+            setError("Camera capture is not supported by this browser.");
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(mediaStream) {
+                stream = mediaStream;
+                if (player) {
+                    player.srcObject = stream;
+                }
+                bindData.cameraReady = true;
+                bindData.capturing = false;
+            })
+            .catch(function() {
+                bindData.capturing = false;
+                setError("Could not access the camera. Please check browser permissions and try again.");
+            });
+    }
+
+    function capture() {
+        clearMessages();
+        if (!player || !snapshotCanvas || !stream) {
+            setError("Camera is not ready yet.");
+            return;
+        }
+
+        var width = player.videoWidth || snapshotCanvas.width || 320;
+        var height = player.videoHeight || snapshotCanvas.height || 240;
+        snapshotCanvas.width = width;
+        snapshotCanvas.height = height;
+
+        var context = snapshotCanvas.getContext("2d");
+        context.drawImage(player, 0, 0, width, height);
+        var dataUrl = snapshotCanvas.toDataURL("image/png");
+        stopCamera();
+
+        if (typeof exports.Complete === "function") {
+            exports.Complete(dataUrl);
         }
     }
 
-    function initialize(){
-         player = document.getElementById('player');
-         snapshotCanvas = document.getElementById('snapshot');
-         captureButton = document.getElementById('capture');
-         navigator.mediaDevices.getUserMedia({video: true})
-      .then(handleSuccess);
-        //exports.Complete({});
-        loadValidator();
+    function cancel() {
+        stopCamera();
+        if (typeof exports.Complete === "function") {
+            exports.Complete(null);
+        }
     }
 
-
-    
-
-    function lockForm(){
-        $("#form-details :input").prop("disabled", true);
-        $("#form-details :button").prop("disabled", true);
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+            stream = null;
+        }
+        if (player) {
+            player.srcObject = null;
+        }
+        bindData.cameraReady = false;
     }
 
-    function unlockForm(){
-        $("#form-details :input").prop("disabled", false);
-        $("#form-details :button").prop("disabled", false);
+    function setError(message) {
+        bindData.submitErrors = [message];
+        bindData.submitInfo = [];
     }
 
-    function loadValidator(){
-        var validatorInstance = exports.getShellComponent ("soss-validator");
-
-        validator_profile = validatorInstance.newValidator (scope);
-        validator_profile.map ("data.email",true, "Please enter your full name");
-        validator_profile.map ("data.password",true, "Please enter your contact number");
-        validator_profile.map ("data.contactno","numeric", "Phone number should only consist of numbers");
-        validator_profile.map ("data.contactno","minlength:9", "Phone number should consit of 10 numbers");
-
-        
-        
+    function clearMessages() {
+        bindData.submitErrors = [];
+        bindData.submitInfo = [];
     }
-
-    exports.vue = vueData;
-    exports.onReady = function(element){
-        
-    }
-
 });

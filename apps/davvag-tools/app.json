@@ -26,9 +26,9 @@
         }
     },
     "description": {
-        "title": "App Downloader",
+        "title": "DAVVAG Tools",
         "author": "Davvag",
-        "version": "0.1",
+        "version": "0.7",
         "icon": ""
     },
     "tags": [

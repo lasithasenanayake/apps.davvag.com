@@ -6,6 +6,9 @@
         "ai-agent-creator":{
             "version":"latest"
         },
+        "davvag-viral-content-manager":{
+            "version":"latest"
+        },
         "davvag-agent-flow":{
             "version":"latest"
         },

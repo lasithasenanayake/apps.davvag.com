@@ -1,0 +1,60 @@
+{
+    "fields": [
+        {
+            "fieldName": "publishQueueId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "queueType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "scheduledAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "payload",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "notes",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

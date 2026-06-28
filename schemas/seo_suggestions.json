@@ -1,0 +1,74 @@
+{
+    "fields": [
+        {
+            "fieldName": "suggestionId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "suggestionType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName": "titleOptions",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "descriptionSuggestion",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "tags",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "hashtags",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "thumbnailPrompts",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "cta",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 800,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "pinnedComment",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1200,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "scoreBefore",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "scoreAfter",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

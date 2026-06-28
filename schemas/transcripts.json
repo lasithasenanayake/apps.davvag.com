@@ -1,0 +1,56 @@
+{
+    "fields": [
+        {
+            "fieldName": "transcriptId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "language",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "source",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName": "transcriptText",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "segments",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "wordCount",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

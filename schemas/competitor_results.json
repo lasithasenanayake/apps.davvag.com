@@ -1,0 +1,80 @@
+{
+    "fields": [
+        {
+            "fieldName": "competitorResultId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "keyword",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "channelName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "url",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1200
+            }
+        },
+        {
+            "fieldName": "rankPosition",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "reason",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "metrics",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "source",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

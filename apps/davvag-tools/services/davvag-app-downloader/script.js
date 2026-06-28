@@ -14,8 +14,14 @@ WEBDOCK.component().register(function(exports, scope){
 
 
     exports.launchApp=function(launcherInfo,cb,er,cbcompleted,data){
+        if (!launcherInfo) {
+            if (er) {
+                er("Launcher information is required.");
+            }
+            return;
+        }
         let launcher_data=GetLauncherData(launcherInfo,data);
-        let id=launcherInfo.appcode+"_"+launcherInfo.subappcode;
+        let id=safeId((launcherInfo.appcode || "app")+"_"+(launcherInfo.subappcode || "main"));
         window.launcher_data=window.launcher_data?window.launcher_data:{};
         //{:launcher_data}
         
@@ -62,17 +68,29 @@ WEBDOCK.component().register(function(exports, scope){
            
             var component = $(this).attr("webdock-component");
             var app=$(this).attr("webdock-app");
-            var data=$(this).attr("webdock-data")?JSON.parse(btoa($(this).attr("webdock-data"))):_data;
-            var element_id=app+"-"+component+(new Date()).getTime();
+            if (!app || !component) {
+                return;
+            }
+            var data=parseDataAttribute($(this).attr("webdock-data"), _data);
+            var element_id=safeId(app+"-"+component+"-"+(new Date()).getTime()+"-"+i);
             $(this).attr('id', element_id);
             applist.push({"component":component,"app":app,"data":data,"element_id":element_id,
             "Completed":Completed,"Error":Error,"appComplete":appComplete});
         });
 
+        if (applist.length === 0) {
+            if (appComplete) {
+                appComplete(_data);
+            }
+            return;
+        }
         loadApp();
     }
 
     function loadApp(){
+        if (!applist[AppIndex]) {
+            return;
+        }
         RenderApplication(applist[AppIndex].app,applist[AppIndex].component,applist[AppIndex].element_id,function(r){
             AppIndex++;
             if(applist.length>AppIndex){
@@ -87,21 +105,21 @@ WEBDOCK.component().register(function(exports, scope){
     }
 
     function popup_large(id,title){
-        wa= document.getElementById(id+"_popup");
+        var wa= document.getElementById(id+"_popup");
         if(wa){
             wa.remove();
         }
-        bodyEt=$("body");
-        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true' intert><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        var bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_title' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title'>"+escapeHtml(title || "")+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div></div>");
     }
 
     function popup_small(id,title){
-        wa= document.getElementById(id+"_popup");
+        var wa= document.getElementById(id+"_popup");
         if(wa){
             wa.remove();
         }
-        bodyEt=$("body");
-        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        var bodyEt=$("body");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_title' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title'>"+escapeHtml(title || "")+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div></div>");
     }
 
     function Popup(id,appId,startupComponent,cb,er,cbcompleted,data){
@@ -124,14 +142,14 @@ WEBDOCK.component().register(function(exports, scope){
         
         RenderApplication(appId,startupComponent,id+"_window",cb,er,function(d){
             $modal[id]=$("#"+id+'_popup');
-            $modal[id].on('hidden.bs.modal', function () {
+            $modal[id].off('hidden.bs.modal.davvagDownloader').one('hidden.bs.modal.davvagDownloader', function () {
                 if(cbcompleted)
                     cbcompleted(d);
 
                 dispose(id);
                 
             });
-            $modal[id].modal('toggle');
+            $modal[id].modal('hide');
 
             
         },data);
@@ -139,16 +157,19 @@ WEBDOCK.component().register(function(exports, scope){
 
     function GetLauncherData(launcher,data){
         try{
+            if (!launcher.inputData) {
+                return data || null;
+            }
             let data_interpreter=JSON.parse(launcher.inputData);
             let returnData={}
             //{"name":"comments","datatype":"string","mappingfield":""}]
             data_interpreter.forEach(element => {
-                returnData[element.name]=data[element.mappingfield]?data[element.mappingfield]:null;
+                returnData[element.name]=data && data[element.mappingfield] !== undefined ? data[element.mappingfield]:null;
             });
             return returnData;
         }catch(e){
             console.log(e);
-            return null;
+            return data || null;
         }
     }
     
@@ -160,17 +181,25 @@ WEBDOCK.component().register(function(exports, scope){
         completed[id]=cbcompleted;
         data_collected[id]=d;
         var leftMenu = exports.getShellComponent("left-menu");
+        if (!leftMenu || typeof leftMenu.getApps !== "function") {
+            renderLoadError(id, "Application menu service is not available.");
+            if (er) {
+                er("Application menu service is not available.");
+            }
+            return;
+        }
         leftMenu.getApps(function(apps){
             var renderDiv = $("#" + id);
             renderDiv.empty();
-            var appObj = apps[appId];
+            var appObj = apps && apps[appId] ? apps[appId] : null;
             if(appObj==null){
-                console.log("Error Downloading Application (Check Permission).....");
-                //var renderDiv = $("#" + id);
-                renderDiv.html('<h2 class="alert-danger">Error Downloading Application</h2><div class="alert alert-danger" role="alert">App Null Exception.</div>');
+                renderLoadError(id, "App was not found or permission is missing.");
+                if (er) {
+                    er("App was not found or permission is missing.");
+                }
                 return;
             }
-            var loadID="dft_" + id+"_app0001";
+            var loadID=safeId("dft_" + id+"_app0001");
             window[loadID]=window[loadID]?window[loadID]:{loading:false,apps:{app:{}}};
             window[loadID].apps[appId]=window[loadID].apps[appId]?window[loadID].apps[appId]:{loading:false,app:{}};
             //var appdock= window[loadID].apps[appId];
@@ -182,23 +211,27 @@ WEBDOCK.component().register(function(exports, scope){
             window[loadID].loading=true;
             
 
-            let MemoryApp= Object.assign({},WEBDOCK.componentManager.getMemoryApp(appId,startupComponent));
-            if(MemoryApp){
+            let MemoryApp= WEBDOCK.componentManager.getMemoryApp(appId,startupComponent);
+            if(MemoryApp && MemoryApp.results){
                 try {
                     
-                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance,appid);
+                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance,appId);
                     window[loadID].loading=false;
                     console.log("Memory Loaded..");
                     return; 
                 } catch (error) {
-                    renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">Error Loading from Memory.</div>');
+                    renderLoadError(id, "Error loading application from memory.");
+                    window[loadID].loading=false;
+                    if (er) {
+                        er(error);
+                    }
 
                     //console.log("Error Loading from Memory");
                     //alert("App not Loaded or permission Issue");
                 }
                 
             }
-            ver="9.0";
+            var ver="9.0";
             //var appObj = apps[appId];
             WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
                 WEBDOCK.componentManager.downloadComponents(appId, descriptor,function(){
@@ -208,13 +241,19 @@ WEBDOCK.component().register(function(exports, scope){
                                 renderApp(results,id,desc,instance,appId);
                                 
                             } catch (error) {
-                                renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">App not Loaded or permission Issue.</div>');
+                                renderLoadError(id, "App did not load. Please check permission and component registration.");
+                                if (er) {
+                                    er(error);
+                                }
 
                                 //alert("App not Loaded or permission Issue");
                             }
                             
                         }else{
-                            renderDiv.html('<h2>Error Downloading Application</h2><div class="alert alert-danger" role="alert">App not Loaded or permission Issue.</div>');
+                            renderLoadError(id, "App did not load. Please check permission and component registration.");
+                            if (er) {
+                                er("App instance was not created.");
+                            }
 
                             //alert("App not Loaded or permission Issue");
                         }
@@ -260,14 +299,18 @@ WEBDOCK.component().register(function(exports, scope){
                 if (instance.vue.onReady){
                     if(completed[id]){
                         var obj={};
-                        Object.assign(obj,data_collected[id]);
+                        if (data_collected[id] && typeof data_collected[id] === "object") {
+                            Object.assign(obj,data_collected[id]);
+                        }
                         instance.dataObject=data_collected[id];
                         instance.Complete=completed[id];
                         instance.renderDiv=renderDiv;
                         instance.vue.onReady(scope,{status:"internalcall",data:data_collected[id],completedEvent:completed,renderDiv:renderDiv});
                     }else{
                         instance.Complete=function(data){
-                            instance.onStatusChange(data);
+                            if (typeof instance.onStatusChange === "function") {
+                                instance.onStatusChange(data);
+                            }
                         };
                         instance.renderDiv=renderDiv;
                         instance.vue.onReady(scope,renderDiv);
@@ -278,7 +321,9 @@ WEBDOCK.component().register(function(exports, scope){
             if (canCallOnReady && instance.onReady)
                 instance.onReady(renderDiv);
             
-                callback[id](desc);
+                if(callback[id]){
+                    callback[id](desc);
+                }
         } catch (e){
             console.log ("Error Occured While Loading...");
             console.log (e);
@@ -286,6 +331,43 @@ WEBDOCK.component().register(function(exports, scope){
                 errCallback[id](e);
         }
     }
+
+    function parseDataAttribute(value, fallback) {
+        if (!value) {
+            return fallback;
+        }
+        try {
+            return JSON.parse(value);
+        } catch (e1) {
+            try {
+                return JSON.parse(decodeURIComponent(value));
+            } catch (e2) {
+                try {
+                    return JSON.parse(window.atob(value));
+                } catch (e3) {
+                    return fallback;
+                }
+            }
+        }
+    }
+
+    function renderLoadError(id, message) {
+        $("#" + id).html("<h2 class='davvag-app-downloader-error'>Error Downloading Application</h2><div class='alert alert-danger' role='alert'>" + escapeHtml(message) + "</div>");
+    }
+
+    function safeId(value) {
+        return String(value || "app").replace(/[^A-Za-z0-9_-]/g, "_");
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     exports.RenderHTML=RenderHTML;
     exports.downloadAPP=RenderApplication;
 

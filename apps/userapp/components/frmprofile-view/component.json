@@ -2,7 +2,7 @@
     "name" : "frmprofile-view",
     "description":"",
     "author":"Laistha Senanayake",
-    "version" : "0.1",
+    "version" : "0.4",
     "gitUrl" : "",
     "inputData":[
             {"name":"invoiceNo","datatype":"int"},

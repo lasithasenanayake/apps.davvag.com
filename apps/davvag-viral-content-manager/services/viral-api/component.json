@@ -1,0 +1,60 @@
+{
+    "name": "viral-api",
+    "description": "Viral Content Manager service handlers",
+    "author": "DAVVAG",
+    "version": "0.2",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "ViralContentManagerService",
+        "methods": {
+            "AnalyzeUrl": {
+                "method": "POST"
+            },
+            "FetchUrlDetails": {
+                "method": "POST"
+            },
+            "GeneratePost": {
+                "method": "POST"
+            },
+            "FindShorts": {
+                "method": "POST"
+            },
+            "ListHistory": {
+                "method": "POST"
+            },
+            "ListAccounts": {
+                "method": "POST"
+            },
+            "SaveAccount": {
+                "method": "POST"
+            },
+            "StartOAuth": {
+                "method": "POST"
+            },
+            "OAuthCallback": {
+                "method": "GET"
+            },
+            "QueuePublish": {
+                "method": "POST"
+            },
+            "MetricsOverview": {
+                "method": "POST"
+            },
+            "AgentCatalog": {
+                "method": "POST"
+            },
+            "SaveAgentMappings": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

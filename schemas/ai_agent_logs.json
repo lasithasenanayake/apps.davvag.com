@@ -1,0 +1,56 @@
+{
+    "fields": [
+        {
+            "fieldName": "logId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "agentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "action",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "prompt",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "response",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "error",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

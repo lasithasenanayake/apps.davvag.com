@@ -1,0 +1,95 @@
+{
+    "components": {
+        "viral-dashboard": {
+            "type": "component",
+            "location": "components"
+        },
+        "viral-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "DAVVAG VCM",
+        "author": "DAVVAG",
+        "version": "0.2",
+        "icon": ""
+    },
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "viral-dashboard",
+            "onLoad": [
+                "viral-api"
+            ],
+            "routes": {
+                "partials": {
+                    "/": "viral-dashboard",
+                    "/optimize": "viral-dashboard",
+                    "/generate": "viral-dashboard",
+                    "/shorts": "viral-dashboard",
+                    "/accounts": "viral-dashboard",
+                    "/agents": "viral-dashboard",
+                    "/history": "viral-dashboard"
+                }
+            }
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Optimize",
+                    "path": "optimize"
+                },
+                {
+                    "name": "Generate",
+                    "path": "generate"
+                },
+                {
+                    "name": "Shorts",
+                    "path": "shorts"
+                },
+                {
+                    "name": "Accounts",
+                    "path": "accounts"
+                },
+                {
+                    "name": "Agents",
+                    "path": "agents"
+                },
+                {
+                    "name": "History",
+                    "path": "history"
+                }
+            ]
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "ai-agent-creator"
+        ],
+        "schemas": [
+            "social_accounts",
+            "content_items",
+            "content_analysis",
+            "seo_suggestions",
+            "competitor_results",
+            "transcripts",
+            "short_clip_suggestions",
+            "publishing_queue",
+            "platform_metrics",
+            "ai_agent_logs",
+            "viral_agent_mappings"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "sossdata"
+        ],
+        "php-extensions": [
+            "curl"
+        ]
+    }
+}

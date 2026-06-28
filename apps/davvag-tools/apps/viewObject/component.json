@@ -2,7 +2,7 @@
     "name" : "viewObject",
     "description":"Record permission editor",
     "author":"DAVVAG",
-    "version" : "0.2",
+    "version" : "0.3",
     "gitUrl" : "",
     "resources": {
         "files":[

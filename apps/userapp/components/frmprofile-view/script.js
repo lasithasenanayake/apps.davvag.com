@@ -50,9 +50,12 @@ WEBDOCK.component().register(function(exports){
                         uploader.initialize();
                         var files=[];
                         newFile.name=bindData.item.id;
+                        newFile.uploadName=bindData.item.id;
                         files.push(newFile);
                         uploader.upload(files, "profile", null,function(e){
                             console.log(e);
+                            uploader.close();
+                            bindData.image = 'components/dock/soss-uploader/service/get/profile/' + bindData.item.id + '?v=' + (new Date()).getTime();
                         });
                     });
                 });

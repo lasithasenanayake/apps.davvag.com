@@ -1,0 +1,24 @@
+{
+    "name": "viral-dashboard",
+    "description": "Viral content optimization workspace",
+    "author": "DAVVAG",
+    "version": "0.2",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "viral-dashboard.css"
+            }
+        ]
+    }
+}

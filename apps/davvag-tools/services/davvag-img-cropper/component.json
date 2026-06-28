@@ -1,8 +1,8 @@
 {
     "name" : "Image Cropper",
-    "description":"Internationalization component for davvag",
+    "description":"Reusable image cropper for app forms and profile images",
     "author":"Lasitha Senanayake",
-    "version" : "0.1",
+    "version" : "0.5",
     "gitUrl" : "",
     "resources": {
         "files":[

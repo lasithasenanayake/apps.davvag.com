@@ -153,6 +153,8 @@ WEBDOCK.component().register(function (exports) {
         bindData.items.splice(index, 1);
         if (bindData.editingIndex === index) {
             clearEditor();
+        } else if (bindData.editingIndex > index) {
+            bindData.editingIndex--;
         }
         setInfo("Permission row removed.");
     }
@@ -167,7 +169,11 @@ WEBDOCK.component().register(function (exports) {
     function submit() {
         clearMessages();
         if (bindData.custom === "public") {
-            exports.Complete(0);
+            complete(0);
+            return;
+        }
+        if (!serviceHandler || !serviceHandler.services || typeof serviceHandler.services.Save !== "function") {
+            setError("Permission service has not loaded.");
             return;
         }
         if (bindData.items.length === 0) {
@@ -182,11 +188,11 @@ WEBDOCK.component().register(function (exports) {
                 bindData.items = normalizeItems(result.result || []);
                 if (bindData.items.length > 0 && bindData.items[0].viewObjectID !== undefined) {
                     bindData.viewObjectID = bindData.items[0].viewObjectID;
-                    exports.Complete(bindData.items[0].viewObjectID);
+                    complete(bindData.items[0].viewObjectID);
                 } else if (exports.dataObject !== undefined && exports.dataObject !== null) {
-                    exports.Complete(exports.dataObject);
+                    complete(exports.dataObject);
                 } else {
-                    exports.Complete(0);
+                    complete(0);
                 }
             } else {
                 setError("Could not save permissions.");
@@ -199,9 +205,15 @@ WEBDOCK.component().register(function (exports) {
 
     function cancel() {
         if (exports.dataObject !== undefined && exports.dataObject !== null) {
-            exports.Complete(exports.dataObject);
+            complete(exports.dataObject);
         } else {
-            exports.Complete(0);
+            complete(0);
+        }
+    }
+
+    function complete(value) {
+        if (typeof exports.Complete === "function") {
+            exports.Complete(value);
         }
     }
 

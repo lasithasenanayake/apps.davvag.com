@@ -1,3 +1,8 @@
-.close_button{
-    display: none;
+.davvag-file-upload-modal .modal-title {
+    margin: 0;
+}
+
+.davvag-file-upload-status {
+    color: #4d5967;
+    margin-top: 10px;
 }

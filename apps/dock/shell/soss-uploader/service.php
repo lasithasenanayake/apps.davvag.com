@@ -33,31 +33,37 @@ class UploaderService {
         //echo $type;
        
         if($type=='image/png' || $type=='image/jpeg' || $type=='image/gif'){
-            //var_dump($type);
             $info = getimagesize("$folder/$tmpname");
-            //var_dump($info);
-            if ($info['mime'] == 'image/jpeg'){
-                $image = imagecreatefromjpeg("$folder/$tmpname");
-                //unlink("$destination");
-                imagejpeg($image, $destination, $quality);
-                imagedestroy($image);
-            } 
-            elseif ($info['mime'] == 'image/gif'){
-                $image = imagecreatefromjpeg("$folder/$tmpname");
-                //unlink("$folder/$tmpname");
-                imagejpeg($image, $destination, $quality);
-                imagedestroy($image);
-            } 
-            elseif ($info['mime'] == 'image/png'){
+            $image = null;
+
+            if (function_exists("imagejpeg") && is_array($info) && isset($info['mime'])) {
+                if ($info['mime'] == 'image/jpeg' && function_exists("imagecreatefromjpeg")){
+                    $image = imagecreatefromjpeg("$folder/$tmpname");
+                } 
+                elseif ($info['mime'] == 'image/gif' && function_exists("imagecreatefromgif")){
+                    $image = imagecreatefromgif("$folder/$tmpname");
+                } 
+                elseif ($info['mime'] == 'image/png' && function_exists("imagecreatefrompng")){
                     $image = imagecreatefrompng("$folder/$tmpname");
-                    imagejpeg($image, $destination, $quality);
-                    imagedestroy($image);
-            }else{
-                //unlink("$folder/$tmpname");
+                }
+            }
+
+            if ($image) {
+                $saved = false;
+                if ($info['mime'] == 'image/png' && function_exists("imagepng")) {
+                    $saved = imagepng($image, $destination);
+                } elseif ($info['mime'] == 'image/gif' && function_exists("imagegif")) {
+                    $saved = imagegif($image, $destination);
+                } elseif ($info['mime'] == 'image/jpeg' && function_exists("imagejpeg")) {
+                    $saved = imagejpeg($image, $destination, $quality);
+                }
+                imagedestroy($image);
+                if (!$saved) {
+                    file_put_contents($destination, $source);
+                }
+            } else {
                 file_put_contents($destination, $source);
             }
-            
-            
         }else{
             file_put_contents($destination, $source);
         }
@@ -71,16 +77,36 @@ class UploaderService {
 
         $info = getimagesize($source);
       
-        if ($info['mime'] == 'image/jpeg') 
+        if (!function_exists("imagejpeg")) {
+            copy($source, $destination);
+            return;
+        }
+
+        if ($info['mime'] == 'image/jpeg' && function_exists("imagecreatefromjpeg")) 
           $image = imagecreatefromjpeg($source);
       
-        elseif ($info['mime'] == 'image/gif') 
+        elseif ($info['mime'] == 'image/gif' && function_exists("imagecreatefromgif")) 
           $image = imagecreatefromgif($source);
       
-        elseif ($info['mime'] == 'image/png') 
+        elseif ($info['mime'] == 'image/png' && function_exists("imagecreatefrompng")) 
           $image = imagecreatefrompng($source);
-      
-        imagejpeg($image, $destination, $quality);
+
+        if (isset($image) && $image) {
+            $saved = false;
+            if ($info['mime'] == 'image/png' && function_exists("imagepng")) {
+                $saved = imagepng($image, $destination);
+            } elseif ($info['mime'] == 'image/gif' && function_exists("imagegif")) {
+                $saved = imagegif($image, $destination);
+            } elseif ($info['mime'] == 'image/jpeg' && function_exists("imagejpeg")) {
+                $saved = imagejpeg($image, $destination, $quality);
+            }
+            imagedestroy($image);
+            if (!$saved) {
+                copy($source, $destination);
+            }
+        } else {
+            copy($source, $destination);
+        }
       
     }
 

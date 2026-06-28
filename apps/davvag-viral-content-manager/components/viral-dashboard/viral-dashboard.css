@@ -1,0 +1,511 @@
+.viral-content-manager-body {
+    background: #f5f7f9;
+}
+
+.vcm-shell {
+    color: #1d2733;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0 auto;
+    max-width: 1440px;
+    padding: 18px;
+}
+
+.vcm-header {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #d8dee6;
+    border-left: 5px solid #10806f;
+    border-radius: 8px;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 18px 20px;
+}
+
+.vcm-header h1,
+.vcm-panel h2,
+.vcm-block h3 {
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.vcm-header h1 {
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.vcm-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.vcm-kpis span {
+    background: #eef4f3;
+    border: 1px solid #c8d9d5;
+    border-radius: 999px;
+    color: #234c47;
+    font-size: 12px;
+    padding: 5px 9px;
+}
+
+.vcm-tabs {
+    background: #ffffff;
+    border: 1px solid #d8dee6;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 14px 0;
+    padding: 8px;
+}
+
+.vcm-tabs button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #475569;
+    font-weight: 700;
+    min-height: 38px;
+    padding: 8px 13px;
+}
+
+.vcm-tabs button.is-active {
+    background: #17212f;
+    border-color: #17212f;
+    color: #ffffff;
+}
+
+.vcm-workspace {
+    display: grid;
+    gap: 14px;
+}
+
+.vcm-panel {
+    background: #ffffff;
+    border: 1px solid #d8dee6;
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.vcm-panel-title,
+.vcm-result-head,
+.vcm-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.vcm-panel h2 {
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.vcm-form {
+    display: grid;
+    gap: 14px;
+}
+
+.vcm-form label {
+    color: #334155;
+    display: grid;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 6px;
+    min-width: 0;
+}
+
+.vcm-form input,
+.vcm-form select,
+.vcm-form textarea {
+    background: #fbfcfd;
+    border: 1px solid #c9d2dd;
+    border-radius: 6px;
+    color: #111827;
+    font: inherit;
+    font-size: 14px;
+    min-height: 40px;
+    padding: 9px 10px;
+    width: 100%;
+}
+
+.vcm-form textarea {
+    line-height: 1.45;
+    min-height: 94px;
+    resize: vertical;
+}
+
+.vcm-toggle {
+    align-items: center;
+    display: inline-flex !important;
+    gap: 8px !important;
+}
+
+.vcm-toggle input {
+    min-height: auto;
+    width: auto;
+}
+
+.vcm-grid {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.vcm-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vcm-grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vcm-grid.four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.vcm-button {
+    background: #10806f;
+    border: 1px solid #0d6f61;
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+    min-height: 40px;
+    padding: 9px 14px;
+}
+
+.vcm-button:hover {
+    background: #0c6d60;
+}
+
+.vcm-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.vcm-button-light {
+    background: #ffffff;
+    border-color: #c9d2dd;
+    color: #263241;
+}
+
+.vcm-button-light:hover {
+    background: #f1f5f9;
+}
+
+.vcm-link-button {
+    background: transparent;
+    border: 0;
+    color: #2563eb;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    padding: 0;
+    text-align: left;
+}
+
+.vcm-link-button:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.vcm-alerts {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.vcm-alert {
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 10px 12px;
+}
+
+.vcm-alert-error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+}
+
+.vcm-alert-info {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+}
+
+.vcm-fetch-status {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: -4px 0 0;
+    padding: 8px 10px;
+}
+
+.vcm-result-head p {
+    color: #64748b;
+    margin: 5px 0 0;
+}
+
+.vcm-score {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.vcm-score span,
+.vcm-score strong {
+    align-items: center;
+    border-radius: 8px;
+    display: inline-flex;
+    font-size: 18px;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 56px;
+    padding: 6px;
+}
+
+.vcm-score span {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.vcm-score strong {
+    background: #17212f;
+    color: #ffffff;
+}
+
+.vcm-block {
+    border-top: 1px solid #e2e8f0;
+    min-width: 0;
+    padding-top: 12px;
+}
+
+.vcm-block h3 {
+    color: #182434;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.vcm-block p,
+.vcm-row p {
+    line-height: 1.5;
+    margin: 0;
+}
+
+.vcm-copy {
+    white-space: pre-wrap;
+}
+
+.vcm-block ol,
+.vcm-block ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.vcm-block li {
+    margin: 6px 0;
+}
+
+.vcm-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.vcm-chips span {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    color: #3730a3;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 8px;
+}
+
+.vcm-list {
+    display: grid;
+    gap: 10px;
+}
+
+.vcm-row,
+.vcm-agent {
+    background: #fbfcfd;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+}
+
+.vcm-row strong,
+.vcm-agent strong {
+    color: #111827;
+}
+
+.vcm-row span,
+.vcm-row small,
+.vcm-agent span {
+    color: #64748b;
+}
+
+.vcm-row-clip {
+    gap: 10px;
+}
+
+.vcm-table {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.vcm-table-row {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 130px 150px minmax(0, 1fr) 110px 80px;
+    min-height: 42px;
+    padding: 10px 12px;
+}
+
+.vcm-table-row + .vcm-table-row {
+    border-top: 1px solid #e2e8f0;
+}
+
+.vcm-table-row span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.vcm-table-head {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+}
+
+.vcm-agent-grid,
+.vcm-agent-map-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vcm-agent-map {
+    background: #fbfcfd;
+    border: 1px solid #d8dee6;
+    border-radius: 8px;
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+}
+
+.vcm-agent-map-head {
+    align-items: flex-start;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.vcm-agent-map-head div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.vcm-agent-map-head strong,
+.vcm-agent-map-head span {
+    overflow-wrap: anywhere;
+}
+
+.vcm-agent-map-head span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.vcm-agent-map-head em {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    color: #9a3412;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    padding: 4px 8px;
+}
+
+.vcm-agent-map-head em.is-mapped {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.vcm-agent-map label {
+    color: #334155;
+    display: grid;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 6px;
+    min-width: 0;
+}
+
+.vcm-agent-map select,
+.vcm-agent-map textarea {
+    background: #ffffff;
+    border: 1px solid #c9d2dd;
+    border-radius: 6px;
+    color: #111827;
+    font: inherit;
+    font-size: 14px;
+    min-height: 40px;
+    padding: 9px 10px;
+    width: 100%;
+}
+
+.vcm-agent-map textarea {
+    line-height: 1.45;
+    min-height: 170px;
+    resize: vertical;
+}
+
+@media (max-width: 960px) {
+    .vcm-grid.two,
+    .vcm-grid.three,
+    .vcm-grid.four,
+    .vcm-agent-grid,
+    .vcm-agent-map-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vcm-table-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .vcm-shell {
+        padding: 10px;
+    }
+
+    .vcm-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .vcm-header h1 {
+        font-size: 20px;
+    }
+
+    .vcm-tabs button,
+    .vcm-button {
+        flex: 1 1 auto;
+    }
+}

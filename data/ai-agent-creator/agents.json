@@ -183,5 +183,389 @@
         },
         "createdAt": "2026-06-12T14:26:02+00:00",
         "updatedAt": "2026-06-12T14:33:21+00:00"
+    },
+    "content-url-analyzer-agent": {
+        "agentCode": "content-url-analyzer-agent",
+        "name": "content-url-analyzer-agent",
+        "description": "Content URL Analyzer Agent",
+        "capabilities": [
+            "Checks Agents and Optimizer"
+        ],
+        "skills": [],
+        "configuration": {
+            "provider": {
+                "type": "google",
+                "name": "Google AI API",
+                "model": "gemini-3.5-flash-lite"
+            },
+            "connection": {
+                "method": "Generative Language API",
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+                "httpMethod": "POST",
+                "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                "resource": "models/gemini-3.5-flash-lite:generateContent",
+                "auth": {
+                    "type": "api_key",
+                    "apiKey": ""
+                }
+            },
+            "agent": {
+                "code": "content-url-analyzer-agent",
+                "name": "content-url-analyzer-agent",
+                "description": "Content URL Analyzer Agent",
+                "capabilities": [
+                    "Checks Agents and Optimizer"
+                ],
+                "skills": [],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are the Content URL Analyzer Agent for DAVVAG Viral Content Manager. Analyze YouTube, TikTok, Facebook, and Instagram content URLs. Use the provided URL, title, description, transcript, platform, audience, and metadata to identify the topic, viewer intent, content strengths, weak metadata, missing search signals, and clear optimization actions. Return concise structured recommendations for title angle, description angle, target audience, keywords, hashtags, CTA, pinned comment, and risks. Do not claim live API access unless data is provided in the payload.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are the Content URL Analyzer Agent for DAVVAG Viral Content Manager. Analyze YouTube, TikTok, Facebook, and Instagram content URLs. Use the provided URL, title, description, transcript, platform, audience, and metadata to identify the topic, viewer intent, content strengths, weak metadata, missing search signals, and clear optimization actions. Return concise structured recommendations for title angle, description angle, target audience, keywords, hashtags, CTA, pinned comment, and risks. Do not claim live API access unless data is provided in the payload."
+                    }
+                ],
+                "profile": {
+                    "profileId": 251,
+                    "name": "content-url-analyzer-agent",
+                    "email": "cuaa@davvag.com",
+                    "phone": "2324234234",
+                    "image": "components/dock/soss-uploader/service/get/profile/251",
+                    "catogory": "AI Agent"
+                },
+                "profileId": 251,
+                "profileImage": "components/dock/soss-uploader/service/get/profile/251",
+                "user": {
+                    "userid": "6a3fe14914fa9",
+                    "username": "cuaa@davvag.com",
+                    "email": "cuaa@davvag.com",
+                    "name": "content-url-analyzer-agent",
+                    "groupid": "sysuser",
+                    "password": "AiUtbVJ1VHn0llqR7"
+                },
+                "userId": "6a3fe14914fa9",
+                "userGroup": "sysuser"
+            },
+            "skills": [],
+            "parameters": {
+                "temperature": 0.7,
+                "maxTokens": 2048,
+                "streaming": false
+            },
+            "createdAt": "2026-06-27T14:47:01+00:00",
+            "systemUser": {
+                "userid": "6a3fe14914fa9",
+                "username": "cuaa@davvag.com",
+                "email": "cuaa@davvag.com",
+                "name": "content-url-analyzer-agent",
+                "groupid": "sysuser",
+                "password": "AiUtbVJ1VHn0llqR7"
+            }
+        },
+        "profileId": 251,
+        "userId": "6a3fe14914fa9",
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "RunAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "content-url-analyzer-agent",
+                "message": "scopData.inputData.message",
+                "profile": "scopData.inputData.profile",
+                "sessionId": "scopData.inputData.sessionId"
+            }
+        },
+        "createdAt": "2026-06-27T14:42:21+00:00",
+        "updatedAt": "2026-06-27T14:47:01+00:00"
+    },
+    "transcript-analyzer-agent": {
+        "agentCode": "transcript-analyzer-agent",
+        "name": "Transcript Analyzer Agent",
+        "description": "Transcript Analyzer Agent",
+        "capabilities": [
+            "Transcript Analyzer Agent"
+        ],
+        "skills": [],
+        "configuration": {
+            "provider": {
+                "type": "google",
+                "name": "Google AI API",
+                "model": "gemini-3.1-flash-lite"
+            },
+            "connection": {
+                "method": "Generative Language API",
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+                "httpMethod": "POST",
+                "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                "resource": "models/gemini-3.1-flash-lite:generateContent",
+                "auth": {
+                    "type": "api_key",
+                    "apiKey": ""
+                }
+            },
+            "agent": {
+                "code": "transcript-analyzer-agent",
+                "name": "Transcript Analyzer Agent",
+                "description": "Transcript Analyzer Agent",
+                "capabilities": [
+                    "Transcript Analyzer Agent"
+                ],
+                "skills": [],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are the Transcript Analyzer Agent for DAVVAG Viral Content Manager. Analyze creator transcripts for topic clusters, hooks, emotional peaks, teachable moments, audience questions, retention drops, quotable lines, and search-friendly phrasing. Return a structured summary with key themes, audience intent, strongest moments, weak sections, keyword opportunities, and transcript-based rewrite suggestions. Preserve the source language when useful.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are the Transcript Analyzer Agent for DAVVAG Viral Content Manager. Analyze creator transcripts for topic clusters, hooks, emotional peaks, teachable moments, audience questions, retention drops, quotable lines, and search-friendly phrasing. Return a structured summary with key themes, audience intent, strongest moments, weak sections, keyword opportunities, and transcript-based rewrite suggestions. Preserve the source language when useful."
+                    }
+                ],
+                "profile": {
+                    "profileId": 252,
+                    "name": "Transcript Analyzer Agent",
+                    "email": "taa@davvag.com",
+                    "phone": "027739937",
+                    "image": "components/dock/soss-uploader/service/get/profile/252",
+                    "catogory": "AI Agent"
+                },
+                "profileId": 252,
+                "profileImage": "components/dock/soss-uploader/service/get/profile/252",
+                "user": {
+                    "userid": "6a40c25fb828c",
+                    "username": "taa@davvag.com",
+                    "email": "taa@davvag.com",
+                    "name": "Transcript Analyzer Agent",
+                    "groupid": "sysuser",
+                    "password": "AiXTrqm9V6WeZxeK7"
+                },
+                "userId": "6a40c25fb828c",
+                "userGroup": "sysuser"
+            },
+            "skills": [],
+            "parameters": {
+                "temperature": 0.7,
+                "maxTokens": 2048,
+                "streaming": false
+            },
+            "createdAt": "2026-06-28T06:48:49+00:00",
+            "systemUser": {
+                "userid": "6a40c25fb828c",
+                "username": "taa@davvag.com",
+                "email": "taa@davvag.com",
+                "name": "Transcript Analyzer Agent",
+                "groupid": "sysuser",
+                "password": "AiXTrqm9V6WeZxeK7"
+            }
+        },
+        "profileId": 252,
+        "userId": "6a40c25fb828c",
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "RunAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "transcript-analyzer-agent",
+                "message": "scopData.inputData.message",
+                "profile": "scopData.inputData.profile",
+                "sessionId": "scopData.inputData.sessionId"
+            }
+        },
+        "createdAt": "2026-06-28T06:42:44+00:00",
+        "updatedAt": "2026-06-28T06:48:49+00:00"
+    },
+    "competitor-research-agent": {
+        "agentCode": "competitor-research-agent",
+        "name": "Competitor Research Agent",
+        "description": "Competitor Research Agent",
+        "capabilities": [
+            "Competitor Research Agent"
+        ],
+        "skills": [],
+        "configuration": {
+            "provider": {
+                "type": "google",
+                "name": "Google AI API",
+                "model": "gemini-3.1-flash-lite"
+            },
+            "connection": {
+                "method": "Generative Language API",
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+                "httpMethod": "POST",
+                "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                "resource": "models/gemini-3.1-flash-lite:generateContent",
+                "auth": {
+                    "type": "api_key",
+                    "apiKey": ""
+                }
+            },
+            "agent": {
+                "code": "competitor-research-agent",
+                "name": "Competitor Research Agent",
+                "description": "Competitor Research Agent",
+                "capabilities": [
+                    "Competitor Research Agent"
+                ],
+                "skills": [],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are the Competitor Research Agent for DAVVAG Viral Content Manager. Given a platform, topic, keywords, and any competitor results supplied in the payload, compare likely ranking patterns. Identify title structures, keyword positioning, thumbnail concepts, captions, hashtags, content gaps, and differentiation angles. If live competitor data is not supplied, create search queries and research instructions instead of inventing rankings.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are the Competitor Research Agent for DAVVAG Viral Content Manager. Given a platform, topic, keywords, and any competitor results supplied in the payload, compare likely ranking patterns. Identify title structures, keyword positioning, thumbnail concepts, captions, hashtags, content gaps, and differentiation angles. If live competitor data is not supplied, create search queries and research instructions instead of inventing rankings."
+                    }
+                ],
+                "profile": {
+                    "profileId": 252,
+                    "name": "Competitor Research Agent",
+                    "email": "cra@davvag.com",
+                    "phone": "234234234",
+                    "image": "components/dock/soss-uploader/service/get/profile/252",
+                    "catogory": "AI Agent"
+                },
+                "profileId": 252,
+                "profileImage": "components/dock/soss-uploader/service/get/profile/252",
+                "user": {
+                    "userid": "6a40c25fb828c",
+                    "username": "cra@davvag.com",
+                    "email": "cra@davvag.com",
+                    "name": "Competitor Research Agent",
+                    "groupid": "sysuser",
+                    "password": "Ai30mpuY3PYAeIpR7"
+                },
+                "userId": "6a40c25fb828c",
+                "userGroup": "sysuser"
+            },
+            "skills": [],
+            "parameters": {
+                "temperature": 0.7,
+                "maxTokens": 2048,
+                "streaming": false
+            },
+            "createdAt": "2026-06-28T06:50:34+00:00",
+            "systemUser": {
+                "userid": "6a40c25fb828c",
+                "username": "cra@davvag.com",
+                "email": "cra@davvag.com",
+                "name": "Competitor Research Agent",
+                "groupid": "sysuser",
+                "password": "Ai30mpuY3PYAeIpR7"
+            }
+        },
+        "profileId": 252,
+        "userId": "6a40c25fb828c",
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "RunAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "competitor-research-agent",
+                "message": "scopData.inputData.message",
+                "profile": "scopData.inputData.profile",
+                "sessionId": "scopData.inputData.sessionId"
+            }
+        },
+        "createdAt": "2026-06-28T06:50:34+00:00",
+        "updatedAt": "2026-06-28T06:50:34+00:00"
+    },
+    "seo-suggestion-agent": {
+        "agentCode": "seo-suggestion-agent",
+        "name": "SEO Suggestion Agent",
+        "description": "SEO Suggestion Agent",
+        "capabilities": [
+            "SEO Suggestion Agent"
+        ],
+        "skills": [],
+        "configuration": {
+            "provider": {
+                "type": "google",
+                "name": "Google AI API",
+                "model": "gemini-3.1-flash-lite"
+            },
+            "connection": {
+                "method": "Generative Language API",
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+                "httpMethod": "POST",
+                "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                "resource": "models/gemini-3.1-flash-lite:generateContent",
+                "auth": {
+                    "type": "api_key",
+                    "apiKey": ""
+                }
+            },
+            "agent": {
+                "code": "seo-suggestion-agent",
+                "name": "SEO Suggestion Agent",
+                "description": "SEO Suggestion Agent",
+                "capabilities": [
+                    "SEO Suggestion Agent"
+                ],
+                "skills": [],
+                "initialized": true,
+                "readyForInteraction": true,
+                "startupPrompt": "You are the SEO Suggestion Agent for DAVVAG Viral Content Manager. Create platform-specific SEO improvements for creator content. Generate title options, description rewrites, keyword/tag sets, hashtag sets, chapter or section ideas when relevant, and before/after reasoning. Prioritize clarity, search intent, emotional hook, and platform-safe phrasing. Return concise structured output that a creator can copy.",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are the SEO Suggestion Agent for DAVVAG Viral Content Manager. Create platform-specific SEO improvements for creator content. Generate title options, description rewrites, keyword/tag sets, hashtag sets, chapter or section ideas when relevant, and before/after reasoning. Prioritize clarity, search intent, emotional hook, and platform-safe phrasing. Return concise structured output that a creator can copy."
+                    }
+                ],
+                "profile": {
+                    "profileId": 252,
+                    "name": "SEO Suggestion Agent",
+                    "email": "seo-ai@davvag.com",
+                    "phone": "234234234234",
+                    "image": "components/dock/soss-uploader/service/get/profile/252",
+                    "catogory": "AI Agent"
+                },
+                "profileId": 252,
+                "profileImage": "components/dock/soss-uploader/service/get/profile/252",
+                "user": {
+                    "userid": "6a40c25fb828c",
+                    "username": "seo-ai@davvag.com",
+                    "email": "seo-ai@davvag.com",
+                    "name": "SEO Suggestion Agent",
+                    "groupid": "sysuser",
+                    "password": "AiUzXJZeGLu7gjCZ7"
+                },
+                "userId": "6a40c25fb828c",
+                "userGroup": "sysuser"
+            },
+            "skills": [],
+            "parameters": {
+                "temperature": 0.7,
+                "maxTokens": 2048,
+                "streaming": true
+            },
+            "createdAt": "2026-06-28T06:55:03+00:00",
+            "systemUser": {
+                "userid": "6a40c25fb828c",
+                "username": "seo-ai@davvag.com",
+                "email": "seo-ai@davvag.com",
+                "name": "SEO Suggestion Agent",
+                "groupid": "sysuser",
+                "password": "AiUzXJZeGLu7gjCZ7"
+            }
+        },
+        "profileId": 252,
+        "userId": "6a40c25fb828c",
+        "workflow": {
+            "appCode": "ai-agent-creator",
+            "componentCode": "creator-api",
+            "method": "RunAgent",
+            "methodType": "post",
+            "input": {
+                "agentCode": "seo-suggestion-agent",
+                "message": "scopData.inputData.message",
+                "profile": "scopData.inputData.profile",
+                "sessionId": "scopData.inputData.sessionId"
+            }
+        },
+        "createdAt": "2026-06-28T06:54:37+00:00",
+        "updatedAt": "2026-06-28T06:55:03+00:00"
     }
 }

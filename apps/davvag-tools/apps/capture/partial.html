@@ -1,3 +1,26 @@
-<video id="player" controls autoplay></video>
-<button id="capture" v-on:click="capture">Capture</button>
-<canvas id="snapshot" width=320 height=240></canvas>
+<section class="capture-shell" data-capture-root>
+    <div class="capture-alerts">
+        <div class="alert alert-danger" v-for="error in submitErrors">
+            <strong>Error:</strong> {{ error }}
+        </div>
+    </div>
+
+    <div class="capture-preview">
+        <video data-capture-player playsinline autoplay muted></video>
+        <canvas data-capture-snapshot width="320" height="240"></canvas>
+    </div>
+
+    <div class="capture-actions">
+        <button type="button" class="btn btn-primary" v-on:click="capture" v-bind:disabled="capturing || !cameraReady">
+            <span class="fa fa-camera"></span>
+            Capture
+        </button>
+        <button type="button" class="btn btn-default" v-on:click="retry" v-bind:disabled="capturing">
+            <span class="fa fa-refresh"></span>
+            Retry
+        </button>
+        <button type="button" class="btn btn-default" v-on:click="cancel">
+            Cancel
+        </button>
+    </div>
+</section>

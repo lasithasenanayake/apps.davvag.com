@@ -1,8 +1,8 @@
 {
-    "name" : "Sample Input Form",
-    "description":"Vue.JS Plugin for Soss Router",
-    "author":"Lasitha Dissanayake",
-    "version" : "0.1",
+    "name" : "capture",
+    "description":"Reusable camera capture component",
+    "author":"DAVVAG",
+    "version" : "0.2",
     "gitUrl" : "",
     "resources": {
         "files":[

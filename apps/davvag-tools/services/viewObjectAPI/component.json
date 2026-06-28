@@ -2,7 +2,7 @@
     "name" : "View Object Api",
     "description":"This allows record permissions to be configured.",
     "author":"Lasitha Senanayake",
-    "version" : "0.2",
+    "version" : "0.3",
     "gitUrl" : "",
     "resources": {
         "files":[
@@ -20,10 +20,18 @@
                 "method" : "GET",
                 "parameters": ["item_type"]
             },
+            "PermissionValues" : {
+                "method" : "GET",
+                "parameters": ["item_type"]
+            },
             "Save":{
                 "method":"POST"
             },
             "UserVieObjects":{
+                "method":"GET",
+                "parameters":[]
+            },
+            "UserViewObjects":{
                 "method":"GET",
                 "parameters":[]
             },

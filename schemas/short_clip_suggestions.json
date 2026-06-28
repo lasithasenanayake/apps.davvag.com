@@ -1,0 +1,92 @@
+{
+    "fields": [
+        {
+            "fieldName": "clipSuggestionId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "startTime",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName": "endTime",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 30
+            }
+        },
+        {
+            "fieldName": "clipTitle",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 320,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "hook",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "transcriptSection",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "reason",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 800,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "caption",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "hashtags",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "overlayIdea",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 600,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "score",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

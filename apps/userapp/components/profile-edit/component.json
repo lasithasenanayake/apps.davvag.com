@@ -2,7 +2,7 @@
     "name" : "Seller Register",
     "description":"Vue.JS Plugin for Soss Router",
     "author":"Lasitha Dissanayake",
-    "version" : "0.1",
+    "version" : "0.4",
     "gitUrl" : "",
     "resources": {
         "files":[

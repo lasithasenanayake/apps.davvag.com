@@ -1,0 +1,101 @@
+{
+    "fields": [
+        {
+            "fieldName": "contentItemId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "sourceType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "url",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 1200
+            }
+        },
+        {
+            "fieldName": "externalId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220
+            }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 320,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "description",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "topic",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "audience",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 320,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "language",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "raw",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

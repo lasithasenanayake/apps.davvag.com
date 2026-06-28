@@ -1,0 +1,417 @@
+<section class="vcm-shell">
+    <header class="vcm-header">
+        <div>
+            <h1>DAVVAG Viral Content Manager</h1>
+            <div class="vcm-kpis">
+                <span>{{ history.length }} items</span>
+                <span>{{ accounts.length }} accounts</span>
+                <span>{{ savedAgents.length }} saved agents</span>
+            </div>
+        </div>
+        <button type="button" class="vcm-button vcm-button-light" v-on:click="refresh">Refresh</button>
+    </header>
+
+    <nav class="vcm-tabs">
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'optimize' }" v-on:click="setTab('optimize')">Optimize</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'generate' }" v-on:click="setTab('generate')">Generate</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'shorts' }" v-on:click="setTab('shorts')">Shorts</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'accounts' }" v-on:click="setTab('accounts')">Accounts</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'agents' }" v-on:click="setTab('agents')">Agents</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'history' }" v-on:click="setTab('history')">History</button>
+    </nav>
+
+    <div class="vcm-alerts" v-if="messages.errors.length || messages.info.length">
+        <div class="vcm-alert vcm-alert-error" v-for="error in messages.errors">{{ error }}</div>
+        <div class="vcm-alert vcm-alert-info" v-for="info in messages.info">{{ info }}</div>
+    </div>
+
+    <section class="vcm-workspace" v-if="activeTab === 'optimize'">
+        <form class="vcm-panel vcm-form" v-on:submit.prevent="analyzeUrl">
+            <div class="vcm-panel-title">
+                <h2>Existing Content Optimizer</h2>
+                <label class="vcm-toggle"><input type="checkbox" v-model="optimizeForm.useAgents"> Use mapped agents</label>
+            </div>
+            <div class="vcm-grid two">
+                <label>Content URL
+                    <input type="url" v-model="optimizeForm.url" v-on:input="scheduleUrlFetch" v-on:change="fetchUrlDetails" placeholder="https://www.youtube.com/watch?v=..." required>
+                </label>
+                <label>Platform
+                    <select v-model="optimizeForm.platform">
+                        <option value="">Auto detect</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Instagram Reels">Instagram Reels</option>
+                    </select>
+                </label>
+            </div>
+            <p class="vcm-fetch-status" v-if="fetchStatus">{{ fetchStatus }}</p>
+            <label>Current Title
+                <input type="text" v-model="optimizeForm.title">
+            </label>
+            <label>Description
+                <textarea rows="4" v-model="optimizeForm.description"></textarea>
+            </label>
+            <div class="vcm-grid two">
+                <label>Audience
+                    <input type="text" v-model="optimizeForm.audience" placeholder="Sinhala Christian creators">
+                </label>
+                <label>Language
+                    <input type="text" v-model="optimizeForm.language" placeholder="English, Sinhala">
+                </label>
+            </div>
+            <label>Transcript
+                <textarea rows="8" v-model="optimizeForm.transcript"></textarea>
+            </label>
+            <div class="vcm-actions">
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="fetchUrlDetails" v-bind:disabled="loading.fetch">{{ loading.fetch ? "Fetching..." : "Fetch Details" }}</button>
+                <button type="submit" class="vcm-button" v-bind:disabled="loading.optimize">{{ loading.optimize ? "Analyzing..." : "Analyze URL" }}</button>
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="clearOptimize">Clear</button>
+            </div>
+        </form>
+
+        <section class="vcm-panel" v-if="optimizeResult">
+            <div class="vcm-result-head">
+                <div>
+                    <h2>{{ optimizeResult.title }}</h2>
+                    <p>{{ optimizeResult.platform }} · {{ optimizeResult.topic }}</p>
+                </div>
+                <div class="vcm-score">
+                    <span>{{ optimizeResult.seoBefore }}</span>
+                    <strong>{{ optimizeResult.seoAfter }}</strong>
+                </div>
+            </div>
+
+            <div class="vcm-grid three">
+                <div class="vcm-block">
+                    <h3>Titles</h3>
+                    <ol>
+                        <li v-for="item in optimizeResult.titleOptions">{{ item }}</li>
+                    </ol>
+                </div>
+                <div class="vcm-block">
+                    <h3>Keywords</h3>
+                    <div class="vcm-chips">
+                        <span v-for="item in optimizeResult.keywords">{{ item }}</span>
+                    </div>
+                </div>
+                <div class="vcm-block">
+                    <h3>Hashtags</h3>
+                    <div class="vcm-chips">
+                        <span v-for="item in optimizeResult.hashtags">{{ item }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>Description</h3>
+                    <p class="vcm-copy">{{ optimizeResult.improvedDescription }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>Thumbnail Prompts</h3>
+                    <ul>
+                        <li v-for="item in optimizeResult.thumbnailPrompts">{{ item }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>CTA</h3>
+                    <p>{{ optimizeResult.cta }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>Pinned Comment</h3>
+                    <p>{{ optimizeResult.pinnedComment }}</p>
+                </div>
+            </div>
+
+            <div class="vcm-block" v-if="optimizeResult.shortClips && optimizeResult.shortClips.length">
+                <h3>Short Clips</h3>
+                <div class="vcm-list">
+                    <article class="vcm-row" v-for="clip in optimizeResult.shortClips">
+                        <strong>{{ clip.startTime }}-{{ clip.endTime }} · {{ clip.hook }}</strong>
+                        <span>{{ clip.reason }}</span>
+                        <small>{{ clip.caption }}</small>
+                    </article>
+                </div>
+            </div>
+
+            <div class="vcm-actions">
+                <button type="button" class="vcm-button" v-on:click="queueResult(optimizeResult, 'Manual Copy')">Queue Copy</button>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'generate'">
+        <form class="vcm-panel vcm-form" v-on:submit.prevent="generatePost">
+            <div class="vcm-panel-title">
+                <h2>New Post Generator</h2>
+                <label class="vcm-toggle"><input type="checkbox" v-model="generateForm.useAgents"> Use mapped agents</label>
+            </div>
+            <label>Idea
+                <textarea rows="5" v-model="generateForm.idea" required></textarea>
+            </label>
+            <div class="vcm-grid three">
+                <label>Platform
+                    <select v-model="generateForm.platform">
+                        <option value="YouTube">YouTube</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Facebook">Facebook</option>
+                    </select>
+                </label>
+                <label>Audience
+                    <input type="text" v-model="generateForm.audience">
+                </label>
+                <label>Language
+                    <input type="text" v-model="generateForm.language">
+                </label>
+            </div>
+            <div class="vcm-actions">
+                <button type="submit" class="vcm-button" v-bind:disabled="loading.generate">{{ loading.generate ? "Generating..." : "Generate Post" }}</button>
+            </div>
+        </form>
+
+        <section class="vcm-panel" v-if="generateResult">
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>YouTube Title</h3>
+                    <p>{{ generateResult.youtubeTitle }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>TikTok Caption</h3>
+                    <p>{{ generateResult.tiktokCaption }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>Facebook Post</h3>
+                    <p class="vcm-copy">{{ generateResult.facebookPost }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>Thumbnail Prompt</h3>
+                    <p>{{ generateResult.thumbnailPrompt }}</p>
+                </div>
+            </div>
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>Hooks</h3>
+                    <ul>
+                        <li v-for="hook in generateResult.hooks">{{ hook }}</li>
+                    </ul>
+                </div>
+                <div class="vcm-block">
+                    <h3>Hashtags</h3>
+                    <div class="vcm-chips">
+                        <span v-for="tag in generateResult.hashtags">{{ tag }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>Short Form</h3>
+                    <p>{{ generateResult.shortFormVersion }}</p>
+                </div>
+                <div class="vcm-block">
+                    <h3>Long Form</h3>
+                    <p>{{ generateResult.longFormVersion }}</p>
+                </div>
+            </div>
+            <div class="vcm-actions">
+                <button type="button" class="vcm-button" v-on:click="queueResult(generateResult, generateForm.platform)">Queue Copy</button>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'shorts'">
+        <form class="vcm-panel vcm-form" v-on:submit.prevent="findShorts">
+            <div class="vcm-panel-title">
+                <h2>Long Video to Shorts Finder</h2>
+                <label class="vcm-toggle"><input type="checkbox" v-model="shortsForm.useAgents"> Use mapped agents</label>
+            </div>
+            <div class="vcm-grid two">
+                <label>Video URL
+                    <input type="url" v-model="shortsForm.url" required>
+                </label>
+                <label>Target Platform
+                    <select v-model="shortsForm.platform">
+                        <option value="TikTok">TikTok</option>
+                        <option value="Facebook Reels">Facebook Reels</option>
+                        <option value="YouTube Shorts">YouTube Shorts</option>
+                    </select>
+                </label>
+            </div>
+            <label>Transcript
+                <textarea rows="10" v-model="shortsForm.transcript" required></textarea>
+            </label>
+            <div class="vcm-actions">
+                <button type="submit" class="vcm-button" v-bind:disabled="loading.shorts">{{ loading.shorts ? "Finding..." : "Find Shorts" }}</button>
+            </div>
+        </form>
+
+        <section class="vcm-panel" v-if="shortsResult">
+            <div class="vcm-list">
+                <article class="vcm-row vcm-row-clip" v-for="clip in shortsResult.clips">
+                    <div>
+                        <strong>{{ clip.startTime }}-{{ clip.endTime }} · {{ clip.clipTitle }}</strong>
+                        <span>{{ clip.hook }}</span>
+                    </div>
+                    <p>{{ clip.transcriptSection }}</p>
+                    <small>{{ clip.reason }}</small>
+                    <div class="vcm-chips">
+                        <span v-for="tag in clip.hashtags">{{ tag }}</span>
+                    </div>
+                    <div class="vcm-actions">
+                        <button type="button" class="vcm-button vcm-button-light" v-on:click="queueResult(clip, shortsForm.platform)">Queue Clip</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'accounts'">
+        <form class="vcm-panel vcm-form" v-on:submit.prevent="saveAccount">
+            <h2>Connected Accounts</h2>
+            <div class="vcm-grid four">
+                <label>Platform
+                    <select v-model="accountForm.platform" v-on:change="applyPlatformOAuthDefaults">
+                        <option value="YouTube">YouTube</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Facebook Pages">Facebook Pages</option>
+                        <option value="Facebook Reels">Facebook Reels</option>
+                    </select>
+                </label>
+                <label>Name
+                    <input type="text" v-model="accountForm.accountName" required>
+                </label>
+                <label>Handle
+                    <input type="text" v-model="accountForm.accountHandle">
+                </label>
+                <label>Status
+                    <select v-model="accountForm.connectionStatus">
+                        <option value="Manual">Manual</option>
+                        <option value="OAuth Pending">OAuth Pending</option>
+                        <option value="Connected">Connected</option>
+                    </select>
+                </label>
+            </div>
+            <div class="vcm-grid three">
+                <label>API Key
+                    <input type="password" v-model="accountForm.apiKey" autocomplete="off" placeholder="YouTube API key">
+                </label>
+                <label>Access Token
+                    <input type="password" v-model="accountForm.accessToken" autocomplete="off" placeholder="OAuth, Page, or Graph token">
+                </label>
+                <label>Page or Account ID
+                    <input type="text" v-model="accountForm.pageId" autocomplete="off">
+                </label>
+            </div>
+            <div class="vcm-grid three">
+                <label>Client or App ID
+                    <input type="text" v-model="accountForm.clientId" autocomplete="off">
+                </label>
+                <label>Client Secret
+                    <input type="password" v-model="accountForm.clientSecret" autocomplete="off">
+                </label>
+                <label>Redirect URI
+                    <input type="text" v-model="accountForm.redirectUri" autocomplete="off" placeholder="Auto generated if empty">
+                </label>
+            </div>
+            <label>OAuth Scopes
+                <textarea rows="3" v-model="accountForm.scopesText"></textarea>
+            </label>
+            <label>Notes
+                <textarea rows="3" v-model="accountForm.notes"></textarea>
+            </label>
+            <div class="vcm-actions">
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="startOAuth" v-bind:disabled="loading.oauth">{{ loading.oauth ? "Opening..." : "Connect OAuth" }}</button>
+                <button type="button" class="vcm-button vcm-button-light" v-if="editingAccountId" v-on:click="newAccount">New Account</button>
+                <button type="submit" class="vcm-button" v-bind:disabled="loading.accounts">{{ loading.accounts ? "Saving..." : (editingAccountId ? "Update Account" : "Save Account") }}</button>
+            </div>
+        </form>
+
+        <section class="vcm-panel">
+            <h2>Accounts</h2>
+            <div class="vcm-table">
+                <div class="vcm-table-row vcm-table-head">
+                    <span>Platform</span>
+                    <span>Name</span>
+                    <span>Handle</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+                <div class="vcm-table-row" v-for="account in accounts">
+                    <span>{{ account.platform }}</span>
+                    <span>{{ account.accountName }}</span>
+                    <span>{{ account.accountHandle }}</span>
+                    <span>{{ account.connectionStatus }}</span>
+                    <span><button type="button" class="vcm-link-button" v-on:click="editAccount(account)">Edit</button></span>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'agents'">
+        <section class="vcm-panel">
+            <div class="vcm-panel-title">
+                <div>
+                    <h2>Task Agents</h2>
+                    <div class="vcm-kpis">
+                        <span>{{ agentTasks.length }} task roles</span>
+                        <span>{{ savedAgents.length }} saved agents</span>
+                    </div>
+                </div>
+                <button type="button" class="vcm-button" v-on:click="saveAgentMappings" v-bind:disabled="loading.agents">{{ loading.agents ? "Saving..." : "Save Mappings" }}</button>
+            </div>
+
+            <div class="vcm-agent-map-grid">
+                <article class="vcm-agent-map" v-for="task in agentTasks">
+                    <div class="vcm-agent-map-head">
+                        <div>
+                            <strong>{{ task.name }}</strong>
+                            <span>{{ task.expectedAgentCode }}</span>
+                        </div>
+                        <em v-bind:class="{ 'is-mapped': task.mappedAgentExists }">{{ task.status }}</em>
+                    </div>
+
+                    <label>Saved Agent
+                        <select v-model="task.selectedAgentCode">
+                            <option value="">Select saved agent</option>
+                            <option v-for="agent in savedAgents" v-bind:value="agent.agentCode">{{ agent.name }} ({{ agent.agentCode }})</option>
+                        </select>
+                    </label>
+
+                    <label>Suggested Agent Prompt
+                        <textarea rows="8" readonly v-model="task.suggestedPrompt"></textarea>
+                    </label>
+
+                    <div class="vcm-actions">
+                        <button type="button" class="vcm-button vcm-button-light" v-on:click="copyAgentPrompt(task.suggestedPrompt)">Copy Prompt</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'history'">
+        <section class="vcm-panel">
+            <div class="vcm-panel-title">
+                <h2>Content History</h2>
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="loadHistory">Reload</button>
+            </div>
+            <div class="vcm-table">
+                <div class="vcm-table-row vcm-table-head">
+                    <span>Platform</span>
+                    <span>Type</span>
+                    <span>Title</span>
+                    <span>Status</span>
+                </div>
+                <div class="vcm-table-row" v-for="item in history">
+                    <span>{{ item.platform }}</span>
+                    <span>{{ item.sourceType }}</span>
+                    <span>{{ item.title }}</span>
+                    <span>{{ item.status }}</span>
+                </div>
+            </div>
+        </section>
+    </section>
+</section>

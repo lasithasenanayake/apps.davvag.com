@@ -1,0 +1,60 @@
+{
+    "fields": [
+        {
+            "fieldName": "mappingId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "taskCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 140
+            }
+        },
+        {
+            "fieldName": "taskName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "expectedAgentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 140
+            }
+        },
+        {
+            "fieldName": "selectedAgentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 140
+            }
+        },
+        {
+            "fieldName": "suggestedPrompt",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "updatedAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

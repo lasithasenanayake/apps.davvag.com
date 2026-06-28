@@ -1,8 +1,8 @@
 {
-    "name" : "i18n",
-    "description":"Internationalization component for davvag",
-    "author":"Supun Dissanayake",
-    "version" : "0.1",
+    "name" : "davvag-file-uploader",
+    "description":"Reusable upload progress modal for SOSS uploader",
+    "author":"DAVVAG",
+    "version" : "0.7",
     "gitUrl" : "",
     "resources": {
         "files":[

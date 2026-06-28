@@ -1,0 +1,77 @@
+{
+    "fields": [
+        {
+            "fieldName": "analysisId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 90
+            }
+        },
+        {
+            "fieldName": "analysisType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 100
+            }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "topic",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 220,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "audience",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 320,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "seoScoreBefore",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "seoScoreAfter",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "keywords",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "hashtags",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "findings",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "agentNotes",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

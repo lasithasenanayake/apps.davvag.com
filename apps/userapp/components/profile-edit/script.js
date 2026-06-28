@@ -96,6 +96,7 @@ WEBDOCK.component().register(function(exports){
                 uploader.initialize();
                 var files=[];
                 newFile.name=productId;
+                newFile.uploadName=productId;
                 files.push(newFile);
                 uploader.upload(files, "profile", null,cb)
             });
@@ -118,6 +119,7 @@ WEBDOCK.component().register(function(exports){
                 localStorage.profile=JSON.stringify(bindData.data);
                 if(result.success){
                     uploadFile(bindData.data.id,function(){
+                        bindData.p_image = "components/dock/soss-uploader/service/get/profile/" + bindData.data.id + "?v=" + (new Date()).getTime();
                         scope.submitInfo.push("Saved Successfully.");
                         localStorage.profile=JSON.stringify(bindData.data);
                         if(uploader){
