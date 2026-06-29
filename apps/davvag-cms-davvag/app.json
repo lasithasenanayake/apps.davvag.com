@@ -97,7 +97,7 @@
         "title": "Davvag",
         "author": "Daavg",
         "version": "0.9",
-        "icon": ""
+        "icon": "davvag-cms-davvag-icon.png"
     },
     "configuration": {
         "webdock": {

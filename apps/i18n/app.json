@@ -9,7 +9,7 @@
         "title": "Internationalization",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "i18n-icon.png"
     },
     "tags": [],
     "configuration": {

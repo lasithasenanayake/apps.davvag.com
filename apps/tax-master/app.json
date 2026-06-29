@@ -13,7 +13,7 @@
         "title": "Tax Master",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "tax-master-icon.png"
     },
     "tags": [
         "showindock"

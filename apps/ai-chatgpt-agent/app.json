@@ -13,7 +13,7 @@
         "title": "AI ChatGPT Agent",
         "author": "Davvag",
         "version": "0.2",
-        "icon": ""
+        "icon": "ai-chatgpt-agent-icon.png"
     },
     "tags": [
         "showindock"

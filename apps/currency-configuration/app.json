@@ -13,7 +13,7 @@
         "title": "Currency Configuration",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "currency-configuration-icon.png"
     },
     "tags": [
         "showindock"

@@ -109,7 +109,7 @@
         "title": "Davvag CMS 0.7",
         "author": "Daavg",
         "version": "0.71",
-        "icon": ""
+        "icon": "davvag-cms-icon.png"
     },
     "configuration": {
         "webdock": {

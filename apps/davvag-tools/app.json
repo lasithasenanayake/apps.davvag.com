@@ -29,7 +29,7 @@
         "title": "DAVVAG Tools",
         "author": "Davvag",
         "version": "0.7",
-        "icon": ""
+        "icon": "davvag-tools-icon.png"
     },
     "tags": [
         "showincms",

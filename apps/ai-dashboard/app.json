@@ -13,7 +13,7 @@
         "title": "AI Dashboard",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "ai-dashboard-icon.png"
     },
     "tags": [
         "showindock"

@@ -101,7 +101,7 @@
         "title": "DAAVG Dock",
         "author": "Daavg",
         "version": "0.3",
-        "icon": ""
+        "icon": "dock-icon.png"
     },
     "configuration": {
         "webdock": {

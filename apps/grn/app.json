@@ -17,7 +17,7 @@
         "title": "GRN",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "grn-icon.png"
     },
     "tags": [
         "showindock"

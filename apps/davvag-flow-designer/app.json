@@ -13,7 +13,7 @@
         "title": "Davvag Flow Designer",
         "author": "Davvag",
         "version": "0.1",
-        "icon": ""
+        "icon": "davvag-flow-designer-icon.png"
     },
     "tags": [
         "showindock",

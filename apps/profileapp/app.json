@@ -61,7 +61,7 @@
         "title": "Profile",
         "author": "Davvag",
         "version": "0.24",
-        "icon": ""
+        "icon": "profileapp-icon.png"
     },
     "tags": [
         "showindock"

@@ -174,7 +174,7 @@
         "title": "Raha.lk - Eat healthy",
         "author": "Daavg",
         "version": "0.2",
-        "icon": ""
+        "icon": "raha-icon.png"
     },
     "dependencies": {
         "apps": [
