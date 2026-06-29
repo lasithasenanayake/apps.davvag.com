@@ -1,0 +1,24 @@
+{
+    "name": "AI Dashboard API",
+    "description": "Reports AI agent token consumption and runtime errors.",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "ai_dashboard\\DashboardService",
+        "methods": {
+            "UsageDashboard": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

@@ -1,0 +1,25 @@
+{
+    "name": "dashboard-view",
+    "description": "AI usage and error monitoring dashboard",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "ai-dashboard.css"
+            }
+        ]
+    },
+    "transformers": {}
+}

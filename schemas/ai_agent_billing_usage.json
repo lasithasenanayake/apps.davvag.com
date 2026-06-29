@@ -1,0 +1,173 @@
+{
+    "fields": [
+        {
+            "fieldName": "id",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "usageId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "requestId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "agentCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "agentName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "provider",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "model",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "profileId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 120
+            }
+        },
+        {
+            "fieldName": "profileName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "appCode",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "appName",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 255,
+                "encoding": "utf8"
+            }
+        },
+        {
+            "fieldName": "sessionId",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "conversationKey",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 180
+            }
+        },
+        {
+            "fieldName": "messageHash",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "inputTokens",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "outputTokens",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "totalTokens",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "cachedTokens",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "reasoningTokens",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "isEstimated",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 10,
+                "default": "false"
+            }
+        },
+        {
+            "fieldName": "usageSource",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 80
+            }
+        },
+        {
+            "fieldName": "requestChars",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "responseChars",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "skillCount",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "durationMs",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 40,
+                "default": "success"
+            }
+        },
+        {
+            "fieldName": "rawUsage",
+            "dataType": "object"
+        },
+        {
+            "fieldName": "createdAt",
+            "dataType": "java.util.Date"
+        }
+    ]
+}

@@ -1,0 +1,165 @@
+<section class="ai-dashboard">
+    <header class="ai-dashboard__header">
+        <div>
+            <p class="ai-dashboard__eyebrow">DAVVAG AI operations</p>
+            <h1>AI Dashboard</h1>
+        </div>
+        <div class="ai-dashboard__status" data-dashboard-status>Loading usage data.</div>
+    </header>
+
+    <section class="ai-dashboard__toolbar" aria-label="Dashboard filters">
+        <div class="ai-dashboard__periods">
+            <button type="button" class="ai-dashboard__segmented is-active" data-dashboard-period="daily">Daily</button>
+            <button type="button" class="ai-dashboard__segmented" data-dashboard-period="weekly">Weekly</button>
+            <button type="button" class="ai-dashboard__segmented" data-dashboard-period="monthly">Monthly</button>
+        </div>
+        <label class="ai-dashboard__field">
+            <span>Start</span>
+            <input type="date" data-dashboard-start />
+        </label>
+        <label class="ai-dashboard__field">
+            <span>End</span>
+            <input type="date" data-dashboard-end />
+        </label>
+        <label class="ai-dashboard__field">
+            <span>Profile</span>
+            <input type="text" data-dashboard-profile placeholder="profile id" />
+        </label>
+        <label class="ai-dashboard__field">
+            <span>Application</span>
+            <input type="text" data-dashboard-app placeholder="app code" />
+        </label>
+        <label class="ai-dashboard__field">
+            <span>Agent</span>
+            <input type="text" data-dashboard-agent placeholder="agent code" />
+        </label>
+        <button type="button" class="ai-dashboard__button ai-dashboard__button--primary" data-dashboard-refresh>Refresh</button>
+    </section>
+
+    <section class="ai-dashboard__metrics" aria-label="Usage summary">
+        <div class="ai-dashboard__metric">
+            <span>Interactions</span>
+            <strong data-usage-interactions>0</strong>
+        </div>
+        <div class="ai-dashboard__metric">
+            <span>Total tokens</span>
+            <strong data-usage-total>0</strong>
+        </div>
+        <div class="ai-dashboard__metric">
+            <span>Input tokens</span>
+            <strong data-usage-input>0</strong>
+        </div>
+        <div class="ai-dashboard__metric">
+            <span>Output tokens</span>
+            <strong data-usage-output>0</strong>
+        </div>
+        <div class="ai-dashboard__metric">
+            <span>Estimated</span>
+            <strong data-usage-estimated>0</strong>
+        </div>
+        <div class="ai-dashboard__metric ai-dashboard__metric--error">
+            <span>Errors</span>
+            <strong data-usage-errors>0</strong>
+        </div>
+    </section>
+
+    <div class="ai-dashboard__grid">
+        <section class="ai-dashboard__panel ai-dashboard__panel--wide">
+            <div class="ai-dashboard__panel-head">
+                <h2>Consumption</h2>
+            </div>
+            <div class="ai-dashboard__table-wrap">
+                <table class="ai-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Runs</th>
+                            <th>Input</th>
+                            <th>Output</th>
+                            <th>Total</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody data-usage-series>
+                        <tr><td colspan="6">No usage recorded for this range.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="ai-dashboard__panel">
+            <div class="ai-dashboard__panel-head">
+                <h2>Profiles</h2>
+            </div>
+            <div class="ai-dashboard__table-wrap">
+                <table class="ai-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Runs</th>
+                            <th>Tokens</th>
+                            <th>Est.</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody data-usage-profiles>
+                        <tr><td colspan="5">No matching records.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="ai-dashboard__panel">
+            <div class="ai-dashboard__panel-head">
+                <h2>Applications</h2>
+            </div>
+            <div class="ai-dashboard__table-wrap">
+                <table class="ai-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Application</th>
+                            <th>Runs</th>
+                            <th>Tokens</th>
+                            <th>Est.</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody data-usage-apps>
+                        <tr><td colspan="5">No matching records.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="ai-dashboard__panel">
+            <div class="ai-dashboard__panel-head">
+                <h2>Agents</h2>
+            </div>
+            <div class="ai-dashboard__table-wrap">
+                <table class="ai-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Runs</th>
+                            <th>Tokens</th>
+                            <th>Est.</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody data-usage-agents>
+                        <tr><td colspan="5">No matching records.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="ai-dashboard__panel">
+            <div class="ai-dashboard__panel-head">
+                <h2>Recent Errors</h2>
+            </div>
+            <div class="ai-dashboard__error-list" data-usage-errors-list>
+                <div class="ai-dashboard__empty">No recent errors for this range.</div>
+            </div>
+        </section>
+    </div>
+</section>

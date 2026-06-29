@@ -1,0 +1,25 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["startdate", "enddate", "profileId", "appCode", "agentCode", "page", "size"],
+        "query": "SELECT DATE_FORMAT(DATE_SUB(DATE(createdAt), INTERVAL WEEKDAY(createdAt) DAY), '%Y-%m-%d') AS reportPeriod, COALESCE(NULLIF(profileId, ''), 'unknown') AS profileId, MAX(profileName) AS profileName, COALESCE(NULLIF(appCode, ''), 'unknown') AS appCode, MAX(appName) AS appName, COALESCE(NULLIF(agentCode, ''), 'unknown') AS agentCode, MAX(agentName) AS agentName, MAX(provider) AS provider, MAX(model) AS model, COUNT(*) AS interactions, SUM(inputTokens) AS inputTokens, SUM(outputTokens) AS outputTokens, SUM(totalTokens) AS totalTokens, SUM(cachedTokens) AS cachedTokens, SUM(reasoningTokens) AS reasoningTokens, SUM(CASE WHEN isEstimated='true' THEN 1 ELSE 0 END) AS estimatedInteractions FROM ai_agent_billing_usage WHERE createdAt BETWEEN '$startdate' AND '$enddate' AND ('$profileId'='' OR profileId='$profileId') AND ('$appCode'='' OR appCode='$appCode') AND ('$agentCode'='' OR agentCode='$agentCode') GROUP BY reportPeriod, profileId, appCode, agentCode ORDER BY reportPeriod ASC LIMIT $page,$size"
+    },
+    "fields": [
+        {"fieldName": "reportPeriod", "dataType": "java.lang.String"},
+        {"fieldName": "profileId", "dataType": "java.lang.String"},
+        {"fieldName": "profileName", "dataType": "java.lang.String"},
+        {"fieldName": "appCode", "dataType": "java.lang.String"},
+        {"fieldName": "appName", "dataType": "java.lang.String"},
+        {"fieldName": "agentCode", "dataType": "java.lang.String"},
+        {"fieldName": "agentName", "dataType": "java.lang.String"},
+        {"fieldName": "provider", "dataType": "java.lang.String"},
+        {"fieldName": "model", "dataType": "java.lang.String"},
+        {"fieldName": "interactions", "dataType": "int"},
+        {"fieldName": "inputTokens", "dataType": "int"},
+        {"fieldName": "outputTokens", "dataType": "int"},
+        {"fieldName": "totalTokens", "dataType": "int"},
+        {"fieldName": "cachedTokens", "dataType": "int"},
+        {"fieldName": "reasoningTokens", "dataType": "int"},
+        {"fieldName": "estimatedInteractions", "dataType": "int"}
+    ]
+}

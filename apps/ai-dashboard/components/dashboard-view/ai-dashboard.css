@@ -1,0 +1,343 @@
+.ai-dashboard-body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f4f6f7;
+    color: #17201d;
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+}
+
+.ai-dashboard,
+.ai-dashboard *,
+.ai-dashboard *::before,
+.ai-dashboard *::after {
+    box-sizing: border-box;
+}
+
+.ai-dashboard {
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.ai-dashboard__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #d6dde0;
+    padding: 0.4rem 0 1rem;
+}
+
+.ai-dashboard h1,
+.ai-dashboard h2,
+.ai-dashboard p {
+    margin: 0;
+}
+
+.ai-dashboard h1 {
+    color: #17201d;
+    font-size: 2.05rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.ai-dashboard h2 {
+    color: #26342f;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.ai-dashboard__eyebrow {
+    color: #6c4262;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ai-dashboard__status {
+    max-width: 32rem;
+    border: 1px solid #d6dde0;
+    border-left: 0.35rem solid #607f94;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #4b5652;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    padding: 0.75rem 0.9rem;
+}
+
+.ai-dashboard__status.is-success {
+    border-left-color: #2f7d55;
+    background: #edf8f0;
+    color: #18543a;
+}
+
+.ai-dashboard__status.is-error {
+    border-left-color: #b44b38;
+    background: #fff0ec;
+    color: #8b2d1f;
+}
+
+.ai-dashboard__status.is-muted {
+    border-left-color: #607f94;
+    background: #eef5f8;
+    color: #315164;
+}
+
+.ai-dashboard__toolbar {
+    display: grid;
+    grid-template-columns: auto repeat(5, minmax(7rem, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+    margin-top: 1rem;
+    border: 1px solid #d6dde0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+.ai-dashboard__periods,
+.ai-dashboard__panel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-dashboard__field {
+    display: grid;
+    gap: 0.35rem;
+    color: #2a3833;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.ai-dashboard input {
+    width: 100%;
+    min-height: 2.35rem;
+    border: 1px solid #c8d0d3;
+    border-radius: 8px;
+    background: #fbfcfd;
+    color: #17201d;
+    font: 400 0.9rem "Trebuchet MS", Verdana, sans-serif;
+    outline: none;
+    padding: 0.55rem 0.65rem;
+}
+
+.ai-dashboard input:focus {
+    border-color: #315164;
+    background: #ffffff;
+    box-shadow: 0 0 0 0.18rem rgba(49, 81, 100, 0.14);
+}
+
+.ai-dashboard__segmented,
+.ai-dashboard__button {
+    min-height: 2.35rem;
+    border: 1px solid #c8d0d3;
+    border-radius: 8px;
+    background: #f8fafb;
+    color: #24312c;
+    cursor: pointer;
+    font: 800 0.86rem "Trebuchet MS", Verdana, sans-serif;
+    line-height: 1.15;
+    padding: 0.55rem 0.7rem;
+}
+
+.ai-dashboard__segmented:hover,
+.ai-dashboard__button:hover {
+    border-color: #607f94;
+}
+
+.ai-dashboard__segmented.is-active,
+.ai-dashboard__button--primary {
+    border-color: #315164;
+    background: #315164;
+    color: #ffffff;
+}
+
+.ai-dashboard__metrics {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.ai-dashboard__metric {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+    border: 1px solid #d6dde0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 0.8rem;
+}
+
+.ai-dashboard__metric span {
+    color: #59645f;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ai-dashboard__metric strong {
+    color: #17201d;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.ai-dashboard__metric--error {
+    border-color: #efc7bd;
+    background: #fff7f4;
+}
+
+.ai-dashboard__metric--error strong {
+    color: #8b2d1f;
+}
+
+.ai-dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.ai-dashboard__panel {
+    min-width: 0;
+    border: 1px solid #d6dde0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+.ai-dashboard__panel--wide {
+    grid-column: 1 / -1;
+}
+
+.ai-dashboard__panel-head {
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+}
+
+.ai-dashboard__table-wrap {
+    max-height: 19rem;
+    overflow: auto;
+    border: 1px solid #d6dde0;
+    border-radius: 8px;
+}
+
+.ai-dashboard__table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #25312c;
+    font-size: 0.82rem;
+}
+
+.ai-dashboard__table th,
+.ai-dashboard__table td {
+    border-bottom: 1px solid #e7ecee;
+    padding: 0.55rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ai-dashboard__table th {
+    position: sticky;
+    top: 0;
+    background: #f2f6f7;
+    color: #4b5652;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ai-dashboard__table td:not(:first-child),
+.ai-dashboard__table th:not(:first-child) {
+    text-align: right;
+}
+
+.ai-dashboard__table td strong,
+.ai-dashboard__table td span {
+    display: block;
+}
+
+.ai-dashboard__table td span {
+    margin-top: 0.15rem;
+    color: #59645f;
+    font-size: 0.76rem;
+}
+
+.ai-dashboard__error-list {
+    display: grid;
+    gap: 0.55rem;
+    max-height: 19rem;
+    overflow: auto;
+}
+
+.ai-dashboard__error-item {
+    display: grid;
+    gap: 0.2rem;
+    border-left: 0.25rem solid #b44b38;
+    background: #fff7f4;
+    padding: 0.65rem 0.75rem;
+}
+
+.ai-dashboard__error-item strong {
+    color: #8b2d1f;
+    font-size: 0.85rem;
+}
+
+.ai-dashboard__error-item span {
+    color: #59645f;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.ai-dashboard__error-item p {
+    color: #25312c;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.ai-dashboard__empty {
+    border: 1px dashed #c8d0d3;
+    border-radius: 8px;
+    color: #59645f;
+    padding: 1rem;
+    text-align: center;
+}
+
+.ai-dashboard button:disabled,
+.ai-dashboard input:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+@media (max-width: 1100px) {
+    .ai-dashboard__toolbar,
+    .ai-dashboard__metrics,
+    .ai-dashboard__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .ai-dashboard {
+        padding: 0.75rem;
+    }
+
+    .ai-dashboard__header,
+    .ai-dashboard__toolbar,
+    .ai-dashboard__metrics,
+    .ai-dashboard__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-dashboard__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ai-dashboard h1 {
+        font-size: 1.75rem;
+    }
+}

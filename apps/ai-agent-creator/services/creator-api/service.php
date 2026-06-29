@@ -267,7 +267,10 @@ class CreatorService {
     }
 
     public function runAgent($input) {
+        $startedAt = microtime(true);
+        $requestId = $this->newRuntimeId("agent");
         $body = $this->objectToArray($input);
+        $appContext = $this->applicationContextFromRunBody($body);
         $agentCode = $this->normalizeAgentCode($this->arrayString($body, "agentCode", ""));
         $message = $this->arrayString($body, "message", "");
 
@@ -280,17 +283,22 @@ class CreatorService {
 
         $agents = $this->loadAgents();
         if (!isset($agents[$agentCode])) {
-            return $this->fail("Saved agent was not found.");
+            $messageText = "Saved agent was not found.";
+            $this->recordAgentError($requestId, $agentCode, null, "", "", $appContext, "validation", $messageText, $startedAt, array());
+            return $this->fail($messageText);
         }
 
         if (!function_exists("curl_init")) {
-            return $this->fail("PHP cURL is not enabled. Enable the curl extension before running agents.");
+            $messageText = "PHP cURL is not enabled. Enable the curl extension before running agents.";
+            $this->recordAgentError($requestId, $agentCode, null, "", "", $appContext, "runtime", $messageText, $startedAt, array());
+            return $this->fail($messageText);
         }
 
         $agent = $agents[$agentCode];
         $config = $agent["configuration"];
         $identityStatus = $this->validateSavedAgentIdentity($config);
         if (!$identityStatus->success) {
+            $this->recordAgentError($requestId, $agentCode, $config, "", "", $appContext, "identity", $identityStatus->message, $startedAt, array());
             return $identityStatus;
         }
 
@@ -301,6 +309,8 @@ class CreatorService {
         }
         if ($profileId === "") {
             $profileId = "anonymous-" . substr(hash("sha256", $agentCode . "|" . $message), 0, 12);
+            $profile["profileId"] = $profileId;
+        } else {
             $profile["profileId"] = $profileId;
         }
 
@@ -328,13 +338,28 @@ class CreatorService {
 
         $result = $this->callProvider($config, $message, $runtimeContext, isset($session["history"]) && is_array($session["history"]) ? $session["history"] : array());
         if (!$result->success) {
+            $this->recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, "provider", $result->message, $startedAt, array(
+                "skillResults" => $skillResults
+            ));
             return $result;
         }
 
         $session = $this->appendSessionTurn($session, $message, $result->reply, $skillResults, $runtimeContext);
         $sessions[$sessionKey] = $session;
         if (!$this->saveSessions($sessions)) {
-            return $this->fail("Agent replied, but the session context could not be saved.");
+            $messageText = "Agent replied, but the session context could not be saved.";
+            $this->recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, "session", $messageText, $startedAt, array());
+            return $this->fail($messageText);
+        }
+
+        $usage = isset($result->usage) && is_array($result->usage) ? $result->usage : $this->emptyTokenUsage();
+        $billingUsageId = $this->recordBillingUsage($requestId, $agentCode, $config, $profile, $sessionId, $appContext, $message, $result->reply, $usage, $startedAt, array(
+            "skillCount" => count($skillResults),
+            "requestChars" => isset($result->requestChars) ? (int)$result->requestChars : 0,
+            "responseChars" => isset($result->responseChars) ? (int)$result->responseChars : strlen((string)$result->reply)
+        ));
+        if ($billingUsageId === "") {
+            $this->recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, "billing_log", "Agent replied, but token usage could not be written to the billing log.", $startedAt, array());
         }
 
         $out = $this->ok();
@@ -345,8 +370,142 @@ class CreatorService {
         $out->profile = $profile;
         $out->session = $this->safeSessionForClient($session);
         $out->skillResults = $skillResults;
+        $out->usage = $usage;
+        $out->billingUsageId = $billingUsageId;
+        $out->billingLogged = $billingUsageId !== "";
         $out->raw = isset($result->raw) ? $result->raw : null;
         return $out;
+    }
+
+    private function recordBillingUsage($requestId, $agentCode, $config, $profile, $sessionId, $appContext, $message, $reply, $usage, $startedAt, $meta) {
+        if (!class_exists("\\SOSSData")) {
+            return "";
+        }
+
+        $usageId = $this->newRuntimeId("usage");
+        $record = new \stdClass();
+        $record->usageId = $usageId;
+        $record->requestId = $requestId;
+        $record->agentCode = $agentCode;
+        $record->agentName = isset($config["agent"]["name"]) ? $this->limitText($config["agent"]["name"], 255) : "";
+        $record->provider = isset($config["provider"]["type"]) ? $this->limitText($config["provider"]["type"], 80) : "";
+        $record->model = isset($config["provider"]["model"]) ? $this->limitText($config["provider"]["model"], 120) : "";
+        $record->profileId = $this->normalizeProfileId($this->arrayString($profile, "profileId", ""));
+        $record->profileName = $this->limitText($this->arrayString($profile, "name", ""), 255);
+        $record->appCode = $this->limitText($this->arrayString($appContext, "appCode", "ai-agent-creator"), 80);
+        $record->appName = $this->limitText($this->arrayString($appContext, "appName", $record->appCode), 255);
+        $record->sessionId = $this->limitText($sessionId, 180);
+        $record->conversationKey = $this->limitText($this->arrayString($appContext, "conversationKey", ""), 180);
+        $record->messageHash = hash("sha256", (string)$message);
+        $record->inputTokens = $this->usageInt($usage, "inputTokens");
+        $record->outputTokens = $this->usageInt($usage, "outputTokens");
+        $record->totalTokens = $this->usageInt($usage, "totalTokens");
+        $record->cachedTokens = $this->usageInt($usage, "cachedTokens");
+        $record->reasoningTokens = $this->usageInt($usage, "reasoningTokens");
+        $record->isEstimated = isset($usage["estimated"]) && $usage["estimated"] === "true" ? "true" : "false";
+        $record->usageSource = $this->limitText(isset($usage["source"]) ? $usage["source"] : "", 80);
+        $record->requestChars = isset($meta["requestChars"]) ? (int)$meta["requestChars"] : 0;
+        $record->responseChars = isset($meta["responseChars"]) ? (int)$meta["responseChars"] : strlen((string)$reply);
+        $record->skillCount = isset($meta["skillCount"]) ? (int)$meta["skillCount"] : 0;
+        $record->durationMs = $this->durationMs($startedAt);
+        $record->status = "success";
+        $record->rawUsage = isset($usage["rawUsage"]) ? $usage["rawUsage"] : null;
+        $record->createdAt = gmdate("Y-m-d H:i:s");
+
+        $result = \SOSSData::Insert("ai_agent_billing_usage", $record);
+        if (isset($result->success) && $result->success) {
+            return $usageId;
+        }
+        return "";
+    }
+
+    private function recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, $stage, $message, $startedAt, $context) {
+        if (!class_exists("\\SOSSData")) {
+            return false;
+        }
+
+        $record = new \stdClass();
+        $record->errorId = $this->newRuntimeId("err");
+        $record->requestId = $requestId;
+        $record->agentCode = $this->limitText($agentCode, 80);
+        $record->provider = is_array($config) && isset($config["provider"]["type"]) ? $this->limitText($config["provider"]["type"], 80) : "";
+        $record->model = is_array($config) && isset($config["provider"]["model"]) ? $this->limitText($config["provider"]["model"], 120) : "";
+        $record->profileId = $this->limitText($profileId, 120);
+        $record->appCode = $this->limitText($this->arrayString($appContext, "appCode", "ai-agent-creator"), 80);
+        $record->appName = $this->limitText($this->arrayString($appContext, "appName", $record->appCode), 255);
+        $record->sessionId = $this->limitText($sessionId, 180);
+        $record->conversationKey = $this->limitText($this->arrayString($appContext, "conversationKey", ""), 180);
+        $record->stage = $this->limitText($stage, 80);
+        $record->status = "error";
+        $record->message = $this->limitText($message, 2000);
+        $record->errorHash = hash("sha256", $stage . "|" . $message);
+        $record->durationMs = $this->durationMs($startedAt);
+        $record->context = $this->maskSecrets($context);
+        $record->createdAt = gmdate("Y-m-d H:i:s");
+
+        $result = \SOSSData::Insert("ai_agent_error_log", $record);
+        return isset($result->success) && $result->success;
+    }
+
+    private function applicationContextFromRunBody($body) {
+        $payload = isset($body["payload"]) ? $this->objectToArray($body["payload"]) : array();
+        $flow = isset($body["flow"]) ? $this->objectToArray($body["flow"]) : array();
+        $connector = isset($body["connector"]) ? $this->objectToArray($body["connector"]) : array();
+
+        $appCode = $this->arrayString($body, "appCode", "");
+        if ($appCode === "") {
+            $appCode = $this->arrayString($payload, "appCode", "");
+        }
+        if ($appCode === "") {
+            $appCode = $this->arrayString($connector, "appCode", "");
+        }
+        if ($appCode === "") {
+            $appCode = $this->arrayString($flow, "flowCode", "");
+        }
+        $appCode = $this->normalizeContextCode($appCode, "ai-agent-creator");
+
+        $appName = $this->arrayString($body, "appName", "");
+        if ($appName === "") {
+            $appName = $this->arrayString($payload, "appName", "");
+        }
+        if ($appName === "") {
+            $appName = $this->arrayString($flow, "name", "");
+        }
+        if ($appName === "") {
+            $appName = $appCode;
+        }
+
+        $conversationKey = $this->arrayString($body, "conversationKey", "");
+        if ($conversationKey === "") {
+            $conversationKey = $this->arrayString($payload, "conversationKey", "");
+        }
+
+        return array(
+            "appCode" => $appCode,
+            "appName" => $this->limitText($appName, 255),
+            "conversationKey" => $this->normalizeSessionId($conversationKey)
+        );
+    }
+
+    private function usageInt($usage, $key) {
+        if (is_array($usage) && isset($usage[$key]) && is_numeric($usage[$key])) {
+            return (int)$usage[$key];
+        }
+        return 0;
+    }
+
+    private function durationMs($startedAt) {
+        return max(0, (int)round((microtime(true) - $startedAt) * 1000));
+    }
+
+    private function newRuntimeId($prefix) {
+        if (function_exists("random_bytes")) {
+            return $prefix . "-" . bin2hex(random_bytes(12));
+        }
+        if (function_exists("openssl_random_pseudo_bytes")) {
+            return $prefix . "-" . bin2hex(openssl_random_pseudo_bytes(12));
+        }
+        return $prefix . "-" . substr(hash("sha256", uniqid("", true)), 0, 24);
     }
 
     private function buildConfigFromBody($body, $requireAgentMeta) {
@@ -1075,10 +1234,11 @@ class CreatorService {
 
     private function sendJsonRequest($url, $method, $headers, $payload, $provider) {
         $ch = curl_init($url);
+        $payloadJson = json_encode($payload);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 
         $raw = curl_exec($ch);
@@ -1112,6 +1272,10 @@ class CreatorService {
 
         $out = $this->ok();
         $out->reply = $reply;
+        $out->usage = $this->extractTokenUsage($provider, $response, $payload, $reply);
+        $out->requestChars = strlen((string)$payloadJson);
+        $out->responseChars = strlen((string)$reply);
+        $out->httpCode = $httpCode;
         $out->raw = $response;
         return $out;
     }
@@ -1145,6 +1309,143 @@ class CreatorService {
             return trim((string)$response->text);
         }
         return "";
+    }
+
+    private function extractTokenUsage($provider, $response, $payload, $reply) {
+        $inputTokens = $this->firstIntPath($response, array(
+            "usage.prompt_tokens",
+            "usage.input_tokens",
+            "usageMetadata.promptTokenCount",
+            "token_usage.prompt_tokens",
+            "prompt_eval_count"
+        ));
+        $outputTokens = $this->firstIntPath($response, array(
+            "usage.completion_tokens",
+            "usage.output_tokens",
+            "usageMetadata.candidatesTokenCount",
+            "token_usage.completion_tokens",
+            "eval_count"
+        ));
+        $totalTokens = $this->firstIntPath($response, array(
+            "usage.total_tokens",
+            "usageMetadata.totalTokenCount",
+            "token_usage.total_tokens",
+            "total_tokens"
+        ));
+        $cachedTokens = $this->firstIntPath($response, array(
+            "usage.prompt_tokens_details.cached_tokens",
+            "usage.input_tokens_details.cached_tokens",
+            "usageMetadata.cachedContentTokenCount",
+            "cached_tokens"
+        ));
+        $reasoningTokens = $this->firstIntPath($response, array(
+            "usage.completion_tokens_details.reasoning_tokens",
+            "usage.output_tokens_details.reasoning_tokens",
+            "reasoning_tokens"
+        ));
+
+        if ($totalTokens <= 0 && ($inputTokens > 0 || $outputTokens > 0)) {
+            $totalTokens = $inputTokens + $outputTokens;
+        }
+        if ($inputTokens <= 0 && $totalTokens > 0 && $outputTokens > 0) {
+            $inputTokens = max(0, $totalTokens - $outputTokens);
+        }
+        if ($outputTokens <= 0 && $totalTokens > 0 && $inputTokens > 0) {
+            $outputTokens = max(0, $totalTokens - $inputTokens);
+        }
+
+        $estimated = "false";
+        $source = $provider . "_usage";
+        if ($totalTokens <= 0) {
+            $estimated = "true";
+            $source = "estimated_chars";
+            $inputTokens = $this->estimateTokensFromText(json_encode($payload));
+            $outputTokens = $this->estimateTokensFromText($reply);
+            $totalTokens = $inputTokens + $outputTokens;
+        }
+
+        return array(
+            "inputTokens" => $inputTokens,
+            "outputTokens" => $outputTokens,
+            "totalTokens" => $totalTokens,
+            "cachedTokens" => $cachedTokens,
+            "reasoningTokens" => $reasoningTokens,
+            "estimated" => $estimated,
+            "source" => $source,
+            "rawUsage" => $this->rawUsageFromResponse($response)
+        );
+    }
+
+    private function emptyTokenUsage() {
+        return array(
+            "inputTokens" => 0,
+            "outputTokens" => 0,
+            "totalTokens" => 0,
+            "cachedTokens" => 0,
+            "reasoningTokens" => 0,
+            "estimated" => "true",
+            "source" => "unavailable",
+            "rawUsage" => null
+        );
+    }
+
+    private function firstIntPath($source, $paths) {
+        foreach ($paths as $path) {
+            $value = $this->anyPathValue($source, $path);
+            if (is_numeric($value)) {
+                return max(0, (int)$value);
+            }
+        }
+        return 0;
+    }
+
+    private function anyPathValue($source, $path) {
+        $current = $source;
+        foreach (explode(".", $path) as $part) {
+            if (is_array($current) && array_key_exists($part, $current)) {
+                $current = $current[$part];
+            } elseif (is_object($current) && isset($current->$part)) {
+                $current = $current->$part;
+            } elseif (is_array($current) && ctype_digit($part) && array_key_exists((int)$part, $current)) {
+                $current = $current[(int)$part];
+            } else {
+                return null;
+            }
+        }
+        return $current;
+    }
+
+    private function rawUsageFromResponse($response) {
+        $usage = $this->anyPathValue($response, "usage");
+        if ($usage !== null) {
+            return $usage;
+        }
+        $usage = $this->anyPathValue($response, "usageMetadata");
+        if ($usage !== null) {
+            return $usage;
+        }
+        $usage = $this->anyPathValue($response, "token_usage");
+        if ($usage !== null) {
+            return $usage;
+        }
+
+        $ollamaPrompt = $this->anyPathValue($response, "prompt_eval_count");
+        $ollamaCompletion = $this->anyPathValue($response, "eval_count");
+        if ($ollamaPrompt !== null || $ollamaCompletion !== null) {
+            return array(
+                "prompt_eval_count" => $ollamaPrompt,
+                "eval_count" => $ollamaCompletion
+            );
+        }
+        return null;
+    }
+
+    private function estimateTokensFromText($value) {
+        $text = trim(preg_replace("/\s+/", " ", (string)$value));
+        if ($text === "") {
+            return 0;
+        }
+        return max(1, (int)ceil(strlen($text) / 4));
     }
 
     private function skillsValue($body) {

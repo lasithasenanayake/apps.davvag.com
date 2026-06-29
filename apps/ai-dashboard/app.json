@@ -1,18 +1,18 @@
 {
     "components": {
-        "creator-console": {
+        "dashboard-view": {
             "type": "component",
             "location": "components"
         },
-        "creator-api": {
+        "dashboard-api": {
             "type": "service",
             "location": "services"
         }
     },
     "description": {
-        "title": "AI Agent Creator",
+        "title": "AI Dashboard",
         "author": "Davvag",
-        "version": "0.4",
+        "version": "0.1",
         "icon": ""
     },
     "tags": [
@@ -20,37 +20,32 @@
     ],
     "configuration": {
         "webdock": {
-            "startupComponent": "creator-console",
+            "startupComponent": "dashboard-view",
             "onLoad": [
-                "creator-api"
+                "dashboard-api"
             ],
             "routes": {
                 "partials": {
-                    "/": "creator-console"
+                    "/": "dashboard-view"
                 }
             }
         }
     },
     "dependencies": {
         "apps": [
-            "davvag-tools"
+            "ai-agent-creator"
         ],
         "schemas": [
-            "profile",
-            "users",
-            "usergroups",
-            "domain_permision",
             "ai_agent_billing_usage",
-            "ai_agent_error_log"
+            "ai_agent_error_log",
+            "ai_agent_billing_usage_daily_report",
+            "ai_agent_billing_usage_weekly_report",
+            "ai_agent_billing_usage_monthly_report"
         ],
         "workflows": [],
         "plugins": [
-            "auth",
-            "phpcache",
             "sossdata"
         ],
-        "php-extensions": [
-            "curl"
-        ]
+        "php-extensions": []
     }
 }

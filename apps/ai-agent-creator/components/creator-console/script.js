@@ -418,6 +418,8 @@ WEBDOCK.component().register(function(exports) {
                 find("[data-test-response]").text(JSON.stringify({
                     reply: result.reply || "",
                     session: result.session || null,
+                    usage: result.usage || null,
+                    billingUsageId: result.billingUsageId || "",
                     skillResults: result.skillResults || []
                 }, null, 2));
                 setStatus("Agent response received from " + result.provider + " / " + result.model + ".", "success");
