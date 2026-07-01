@@ -2,11 +2,14 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler;
+    var validator;
     var newfiles;
+    var producthandler;
+    var uploaderInstance;
+    var editor;
 
     var bindData = {
-        product:{uom:"",invType:"",currencycode:"",catogory:"",attributes:{"temp":"aaaa"}},
+        product:{uom:"",invType:"",currencycode:"",catogory:"",showonstore:"Y",attributes:{}},
         image:'',
         files:null,
         p_image:[],
@@ -24,7 +27,6 @@ WEBDOCK.component().register(function(exports){
         methods: {
             submit:submit,
             clear:clearProfile,
-            searchItems:searchItems,
             createImage:createImage ,
             removeImage: removeImage,
             onFileChange: function(e) {
@@ -40,14 +42,14 @@ WEBDOCK.component().register(function(exports){
                 createImageMulti(files);
             },
             navigateBack: function(){
-                handler1 = exports.getShellComponent("soss-routes");
+                var handler1 = exports.getShellComponent("soss-routes");
                 handler1.appNavigate("..");
             }
         }
     }
 
     exports.deferredVue = function(resolver, renderDiv){
-        attributes = exports.getShellComponent("dynamic-attributes");
+        var attributes = exports.getShellComponent("dynamic-attributes");
         attributes.renderForm("productattribute","product.attributes",renderDiv,"AttributeText",function(){
             resolver(vueData);
         });
@@ -64,7 +66,6 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
-        uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         editor=$("#txtcaption").Editor();
         loadValidator();
@@ -74,8 +75,6 @@ WEBDOCK.component().register(function(exports){
         
 
         loadInitialData();
-        console.log(routeData);
-        
     }
 
     
@@ -88,55 +87,45 @@ WEBDOCK.component().register(function(exports){
                 return;
             }
             imagecount=newfiles.length;
+            completed=0;
             for (var i = 0; i < newfiles.length; i++) {
-                console.log(i);
-
-                        uploaderInstance.services.uploadFile(newfiles[i], "products", productId+"-"+newfiles[i].name )
-                        .then(function(result2){
-                            $.notify("product Image Has been uploaded", "info");
-                            completed++;
-                            if(imagecount==completed){
-                                cb();
-                            }
-                            //cb();
-                        })
-                        .error(function(){
-                            completed++;
-                            $.notify("product Image Has not been uploaded", "error");
-                            //cb();
-                            if(imagecount==completed){
-                                cb();
-                            }
-                        });
-                    
-                    
-                    
-                  
+                uploaderInstance.services.uploadFile(newfiles[i], "products", productId+"-"+newfiles[i].name )
+                .then(function(result2){
+                    $.notify("Product image uploaded.", "info");
+                    completed++;
+                    if(imagecount==completed){
+                        cb();
+                    }
+                })
+                .error(function(){
+                    completed++;
+                    $.notify("One or more images could not be uploaded.", "error");
+                    if(imagecount==completed){
+                        cb();
+                    }
+                });
             }
-            //cb();
-        
     }
 
     function removeImage(e) {
-        bindData.image = '';
-    }
-
-    function removeImage(e) {
-        //const index = array.indexOf(e);
         if (e > -1) {
             if(bindData.p_image[e].id!=0){
                 bindData.p_removed.push({id:bindData.p_image[e].id,name:bindData.p_image[e].name,
                     caption:bindData.p_image[e].caption,default_img:bindData.p_image[e].default_img});
             }
             bindData.p_image.splice(e, 1);
-            newfiles.splice(e,1);
+            if (newfiles && newfiles.length > e) {
+                newfiles.splice(e,1);
+            }
+            if (bindData.product.imgurl && bindData.p_image.every(function(image){ return image.name !== bindData.product.imgurl; })) {
+                bindData.product.imgurl = "";
+                bindData.image = "";
+            }
         }
 
     }
 
     function createImage(file) {
-        newFile = file;
-        var image = new Image();
         var reader = new FileReader();
 
         reader.onload = function (e) {
@@ -147,36 +136,28 @@ WEBDOCK.component().register(function(exports){
     }
 
     function createImageMulti(files) {
-        //console.log(JSON.stringify(files));
-        //if(!newfiles){
-        newfiles=[];
-        //}
+        newfiles = newfiles || [];
         for (var i = 0; i < files.length; i++) {
             newfiles.push(files[i]);
-            getImage(i,files[i]);
-            //console.log();
+            getImage(newfiles.length - 1,files[i]);
         }
-        
-
-        console.log(JSON.stringify(bindData.p_image));
     }
 
     function getImage(index,file){
         var reader = new FileReader();
             reader.onload = function (e) {
-                //console.log(e);
-                //console.log(newfiles);
                 newfiles[index].scr=e.target.result;
                 
                 bindData.p_image.push({id:0,name:newfiles[index].name,scr:e.target.result,file:file});
-                console.log(newfiles);
+                if (!bindData.image) {
+                    bindData.image = e.target.result;
+                }
             };
         reader.readAsDataURL(file);
     }
 
     function clearProfile(){
-        bindData.item={};
-        showSearch=false;
+        bindData.product={uom:"",invType:"",currencycode:"",catogory:"",showonstore:"Y",attributes:{}};
     }
 
     function loadInitialData(){
@@ -192,9 +173,10 @@ WEBDOCK.component().register(function(exports){
                 query.push({storename:"products_image",search:"articalid:"+routeData.productid});
             }
             menuhandler.services.q(query)
-                        .then(function(r){
-                            console.log(JSON.stringify(r));
+                       .then(function(r){
                             if(r.success){
+                                bindData.categories = [];
+                                bindData.uoms = [];
                                 for (var i=0;i<r.result.productcat.length;i++)
                                     bindData.categories.push(r.result.productcat[i].name);
                                 
@@ -202,7 +184,7 @@ WEBDOCK.component().register(function(exports){
                                     bindData.uoms.push(r.result.uom[i]["symbol"]);
                                 
                                
-                               if(r.result.products!=null){
+                               if(r.result.products!=null && r.result.products.length){
                                 bindData.product = r.result.products[0];
                                 $("#txtcaption").data("editor").html(bindData.product.caption);
                                 if(r.result.products_attributes.length!=0)
@@ -225,7 +207,7 @@ WEBDOCK.component().register(function(exports){
                             }
                         })
                         .error(function(error){
-                            
+                            $.notify("Unable to load product data.", "error");
             });
         
 
@@ -233,10 +215,9 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadValidator(){
-        bindData.product.caption=$("#txtcaption").data("editor").html(); 
         validator = validatorInstance.newValidator (bindData);
         validator.map ("product.name",true, "You should enter a name.");
-        //validator.map ("product.caption",true, "You should enter a psroduct Caption.");
+        validator.map ("product.caption",true, "You should enter a product caption.");
         validator.map ("product.price",true, "You should endter a price.");
         validator.map ("product.price","number", "Price should be a number.");
         validator.map ("product.catogory",true, "You should select a product category.");
@@ -245,9 +226,9 @@ WEBDOCK.component().register(function(exports){
 
     function submit(){
         $('#send').prop('disabled', true);
+        bindData.product.caption=$("#txtcaption").data("editor").html();
         bindData.submitErrors = validator.validate(); 
         if (!bindData.submitErrors){
-            bindData.product.caption=$("#txtcaption").data("editor").html(); 
             bindData.product.caption=bindData.product.caption.split("'").join("~^");
             bindData.product.caption=bindData.product.caption.split('"').join("~*");
             bindData.product.Images=[];
@@ -262,8 +243,6 @@ WEBDOCK.component().register(function(exports){
 
             promiseObj
             .then(function(result){
-                //uploadFile(promiseObj.)
-                
                 uploadFile(result.result.itemid, function(){
                     gotoProducts();
                 });
@@ -271,6 +250,7 @@ WEBDOCK.component().register(function(exports){
             })
             .error(function(){
                 $('#send').prop('disabled', false);
+                $.notify("Unable to save product.", "error");
             });
         }else{
             $('#send').prop('disabled', false);
@@ -280,58 +260,7 @@ WEBDOCK.component().register(function(exports){
     
 
     function gotoProducts(){
-        //location.href = "#/admin-allproducts";
-        handler1 = exports.getShellComponent("soss-routes");
+        var handler1 = exports.getShellComponent("soss-routes");
         handler1.appNavigate("..");
     }
-
-    function searchItems(columncode,columnvalue){
-        console.log(bindData.items)
-        profileHandler.services.Search({q:columncode+":"+columnvalue})
-        .then(function(response){
-            console.log(JSON.stringify(response));
-            if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                /*
-                    response.result.forEach(element => {
-                        //var o=;
-                        //if(bindData.items.includes(element)){
-                            
-                        var found=false;
-                        bindData.items.forEach(searchEl => {
-                                if(searchEl.id==element.id){
-                                    found=true;
-                                }
-                            
-                          });  
-                          if(!found){
-                            bindData.items.push(element);
-                          }
-                            
-                        //}
-                    });*/
-                    bindData.items=response.result;
-                    bindData.showSearch=true;
-                    console.log(JSON.stringify(bindData.items));
-                }
-            }else{
-                alert (response.error);
-            }
-        })
-        .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
-        });
-    }
-
-
-
-    //createForm(formData);
-
-    
 });

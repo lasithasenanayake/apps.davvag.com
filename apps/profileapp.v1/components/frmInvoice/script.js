@@ -457,8 +457,30 @@ WEBDOCK.component().register(function(exports){
     
 
     function fDate(d){
-        var datestring = (d.getMonth()+1)  + "-" + d.getDate() + "-" + d.getFullYear() + " " + d.getHours() + ":" + d.getMinutes() + ":00";
-        return datestring;
+        var normalizedDate = normalizeDateValue(d);
+        return padNumber(normalizedDate.getMonth()+1) + "-" +
+            padNumber(normalizedDate.getDate()) + "-" +
+            normalizedDate.getFullYear() + " " +
+            padNumber(normalizedDate.getHours()) + ":" +
+            padNumber(normalizedDate.getMinutes()) + ":" +
+            padNumber(normalizedDate.getSeconds());
+    }
+
+    function normalizeDateValue(value){
+        if (value instanceof Date && !isNaN(value.getTime())) {
+            return value;
+        }
+        if (typeof value === "string" && value.trim() !== "") {
+            var parsed = new Date(value);
+            if (!isNaN(parsed.getTime())) {
+                return parsed;
+            }
+        }
+        return new Date();
+    }
+
+    function padNumber(value){
+        return value < 10 ? "0" + value : "" + value;
     }
 
     function validate(){

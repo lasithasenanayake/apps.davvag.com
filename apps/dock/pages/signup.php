@@ -95,7 +95,7 @@
                         <label class="control-label">Domain Name</label>
                         <input type="text"   class="form-control" value="<?php echo AUTH_DOMAIN ?>" disabled/>
                         <input type="hidden"  name="domain" class="form-control" value="<?php echo AUTH_DOMAIN ?>"/>
-                        <input type="hidden"  name="requestid" class="form-control" value="<?php echo $_SESSION["regadmin"] ?>"/>
+                        <input type="hidden"  name="requestid" class="form-control" value="<?php echo isset($_SESSION["regadmin"]) ? $_SESSION["regadmin"] : "" ?>"/>
                         
                         
                     </div>
@@ -114,7 +114,7 @@
 
                     <div class="mb10">
                         <label class="control-label" >Location</label>
-                        <select class="form-control" data-placeholder="Choose a Country..." name="country" value="<?php echo !isset($data->country)?"":$data->country ?>">
+                        <select id="country" class="form-control select2" data-placeholder="Choose a Country..." name="country" data-selected="<?php echo !isset($data->country)?"":htmlspecialchars($data->country, ENT_QUOTES, 'UTF-8') ?>">
                           <option value=""></option>
                           <option value="United States">United States</option>
                           <option value="United Kingdom">United Kingdom</option>
@@ -372,7 +372,7 @@
                     </div>
                     <div class="mb10">
                         <label class="control-label">Contact No</label>
-                        <input type="number" class="form-control" name="contactno" value="<?php echo !isset($data->contactno)?"":$data->contactno ?>"/>
+                        <input type="tel" class="form-control" name="contactno" value="<?php echo !isset($data->contactno)?"":$data->contactno ?>"/>
                     </div>
                     <div class="mb10">
                         <label class="control-label">Company Registration Number</label>
@@ -384,7 +384,7 @@
                     </div>
                     <div class="mb10">
                         <label class="control-label">Passport / National ID / Social Security</label>
-                        <input type="text" class="form-control" name="xxxxxxx" autocomplete="nope" value="<?php echo !isset($data->nationalidcardnumber)?"":$data->nationalidcardnumber ?>"/>
+                        <input type="text" class="form-control" name="nationalidcardnumber" autocomplete="off" value="<?php echo !isset($data->nationalidcardnumber)?"":$data->nationalidcardnumber ?>"/>
                     </div>
                     <hr/>
                     <h4>Admin Login</h4>
@@ -441,6 +441,10 @@
 <script src="assets/dock/js/custom.js"></script>
 <script>
     jQuery(document).ready(function(){
+        var selectedCountry = jQuery("#country").data("selected");
+        if (selectedCountry) {
+            jQuery("#country").val(selectedCountry);
+        }
         
         jQuery(".select2").select2({
             width: '100%',

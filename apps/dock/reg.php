@@ -1,12 +1,14 @@
 <?php 
-$nameError = $emailError = $passWordErrr = $fullnameError=$addressError=$cityError=$countryError=$error="";
+$nameError = $emailError = $passWordErrr = $fullnameError = $addressError = $cityError = $countryError = $error = "";
 $validate=true;
 if(isset($_SESSION["regadmin"] )){
     $data=new stdClass();
     foreach ($_POST as $key => $value) {
-        $data->{$key}=$value;
+        $data->{$key}=is_string($value) ? trim($value) : $value;
     }
-    $data->nationalidcardnumber=$data->xxxxxxx;
+    if (!isset($data->nationalidcardnumber) && isset($data->xxxxxxx)) {
+        $data->nationalidcardnumber = $data->xxxxxxx;
+    }
     //var_dump($data);
     //exit();
     if (empty($_POST["email"])) {
@@ -42,7 +44,13 @@ if(isset($_SESSION["regadmin"] )){
         $validate=false;
       }
       if (empty($_POST["password"])) {
-        $passWordErrr = "Name is required";
+        $passWordErrr = "Password is required";
+        $validate=false;
+      } elseif (empty($_POST["confirmpassword"])) {
+        $passWordErrr = "Please confirm your password";
+        $validate=false;
+      } elseif ($_POST["password"] !== $_POST["confirmpassword"]) {
+        $passWordErrr = "Passwords do not match";
         $validate=false;
       }
       if(!$validate){
@@ -51,33 +59,30 @@ if(isset($_SESSION["regadmin"] )){
         exit();
       }
 
-    if($_POST["requestid"]==$_SESSION["regadmin"]){
-        if($data->password==$data->confirmpassword){
-            
-            $data->otherdata=new stdClass();
-            $data->otherdata->usersname=$data->email;
-            $data->otherdata->password=$data->password;
-            //echo json_encode($data);
-            $r=Auth::NewDomain($data);
-            //var_dump($data);
-            if($data->domain==$r->domain){
-                header("Location: $redirectUrl");
-            }else{
-		var_dump($data);
-                $error="Error Registering.";
-                require_once (dirname(__FILE__) . "/pages/signup.php");
-                exit();
-            }
-            //header("Location: $redirectUrl");
-        }else{
-            $error="Password Dose not Match.";
+    if(isset($_POST["requestid"]) && $_POST["requestid"]===$_SESSION["regadmin"]){
+        $data->otherdata=new stdClass();
+        $data->otherdata->usersname=$data->email;
+        $data->otherdata->password=$data->password;
+
+        $r=Auth::NewDomain($data);
+        if (isset($r->domain) && $data->domain === $r->domain) {
+            unset($_SESSION["regadmin"]);
+            header("Location: $redirectUrl");
+            exit();
+        } else {
+            $error = isset($r->message) ? $r->message : "Error Registering.";
             require_once (dirname(__FILE__) . "/pages/signup.php");
+            exit();
         }
     }else{
-        echo "unautherized";
+        $error="Unauthorized registration request.";
+        require_once (dirname(__FILE__) . "/pages/signup.php");
+        exit();
     }
 }else{
-    echo "unautherized";
+    $error="Unauthorized registration request.";
+    require_once (dirname(__FILE__) . "/pages/signup.php");
+    exit();
 }
 
 

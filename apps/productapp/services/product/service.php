@@ -29,7 +29,7 @@ class ProductService {
 
     public function postProductSearch($req,$res){
         $product=$req->Body(true);
-        $s  =null;
+        $search = "";
         
         if(isset($product->column)){
             $search  =$product->column."_".$product->value;
@@ -47,8 +47,10 @@ class ProductService {
                 if(isset($result->result)){
                     CacheData::setObjects(md5($search),"product_search_1",$result->result);
                 }
+                return $result->result;
             }
-            return $result->result;
+            $res->SetError(isset($result->message) ? $result->message : "Product search failed.");
+            return array();
         }else{
             return $result;
         }
@@ -124,23 +126,23 @@ class ProductService {
         CacheData::clearObjects("products");
         CacheData::clearObjects("d_all_summery");
         CacheData::clearObjects("products_attributes");
-        if(count($product->RemoveImages)>0){
+        if(isset($product->RemoveImages) && is_array($product->RemoveImages) && count($product->RemoveImages)>0){
             $product->removedStatus=SOSSData::Delete("products_image",$product->RemoveImages);
         }
 
-        foreach($product->Images as $key=>$value){
-            $product->Images[$key]->articalid=$product->itemid;
-            if($product->Images[$key]->id==0){
-                $result2=SOSSData::Insert ("products_image", $product->Images[$key],$tenantId = null);
-                if($result2->success){
-                    $product->Images[$key]->id = $result2->result->generatedId;
-                }
+        if(isset($product->Images) && is_array($product->Images)){
+            foreach($product->Images as $key=>$value){
+                $product->Images[$key]->articalid=$product->itemid;
+                if($product->Images[$key]->id==0){
+                    $result2=SOSSData::Insert ("products_image", $product->Images[$key],$tenantId = null);
+                    if($result2->success){
+                        $product->Images[$key]->id = $result2->result->generatedId;
+                    }
 
-            }else{
-                $result2=SOSSData::Update ("products_image", $product->Images[$key],$tenantId = null);
+                }else{
+                    $result2=SOSSData::Update ("products_image", $product->Images[$key],$tenantId = null);
+                }
             }
-            
-            //var_dump($invoice->InvoiceItems[$key]->invoiceNo);
         }
         CacheData::clearObjects("products_image");
         return $product;
@@ -207,14 +209,16 @@ class ProductService {
     
     public function getAllProducts($req){
         if (isset($_GET["page"]) && isset($_GET["size"])){
-            require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
-            $mainObj = new stdClass();
-            $mainObj->parameters = new stdClass();
-            $mainObj->parameters->page = $_GET["page"];
-            $mainObj->parameters->size = $_GET["size"];
-            $mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
-            $resultObj = SOSSData::ExecuteRaw("nearproducts", $mainObj);
-            return $resultObj->result;
+            $page = (int)$_GET["page"];
+            $size = (int)$_GET["size"];
+            $query = "";
+
+            if (isset($_GET["q"]) && trim($_GET["q"]) !== "") {
+                $query = "name:" . trim($_GET["q"]);
+            }
+
+            $resultObj = SOSSData::Query("products", $query, null, "DESC", $size, $page);
+            return $resultObj->success ? $resultObj->result : array();
         } else {
             
             $mainObj = new stdClass();
@@ -230,10 +234,10 @@ class ProductService {
         $product->tenant=HOST_NAME;
         $product->itemid=null;
         $data =Auth::CrossDomainAPICall(MAIN_STORE_DOMAIN,"/components/raha/product-handler/service/ProductToStore","POST",$product);
-        if($data->success){
+        if(isset($data->success) && $data->success){
             $Transaction=$data->result;
             $result = SOSSData::Query ("product_published", urlencode("itemid:".$Transaction->itemid.""));
-            if(count($result->result)!=0){
+            if($result->success && count($result->result)!=0){
                 //$Transaction->itemid=$result->result[0]->itemid;
                 $result=SOSSData::Update ("product_published", $Transaction,$tenantId = null);
                 if($result->success){

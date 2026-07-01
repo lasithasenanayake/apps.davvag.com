@@ -1,42 +1,75 @@
-<div style="color:black;">
-    <div class="row">
-      <input type="text" id="search" v-model="SearchItem" title="Search" style="width: 70%;height:30Px"/>
-      <div class="btn-group" role="group" aria-label="..." style="margin: 10px;">
-        <a class="btn btn-primary dock-link" v-on:click="search()">Search</a>
-          
-          <a class="btn btn-primary dock-link" v-on:click="navigate()">New Product</a>
-      </div>
-    </div>
-    <div>
-        
-    </div>
-    
-    <div class="people-list">
-      <div class="row">
-        
-        <div class="col-md-6" v-for="profile in items">
-          <div class="people-item">
-            <div class="media">
-              
-                <img alt="" :src="profile.image" class="pull-left thumbnail media-object">
-                <div class="media-body">
-                <h4 class="person-name">{{ profile.name }}</h4>
-                <div class="text-muted"><i class="fa fa-briefcase"></i> {{ profile.catogory }}</div>
-                <div class="text-muted"><i class="fa fa-cubes"></i> {{ profile.uom }} </div>
-                <div class="text-muted"><i class="fa fa-usd"></i>  {{ profile.price }}</div>
-                <div class="text-muted"><i class="fa fa-user-circle"></i> {{ profile.caption }}</div>
-                <div class="btn-group pull-right" role="group" aria-label="..." style="margin: 10px;">
-                  <!-- <a class="btn btn-primary" :href="'./viewproduct?productid=' + profile.itemid"><span class="glyphicon glyphicon-pencil"></span> Edit</a> -->
-                  <a class="btn btn-primary" v-on:click="navigatePublish(profile.itemid)"><span class="glyphicon glyphicon-pencil"></span> Publish</a>                  
-                  <a class="btn btn-primary" v-on:click="navigate(profile.itemid)"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-                  <a class="btn btn-primary" v-on:click="deleteProduct(profile)" style="cursor:pointer;"> <span class="glyphicon glyphicon-remove"></span> Delete</a>
-              </div>
-              </div>
+<link href="assets/productapp/productapp.css" rel="stylesheet" type="text/css"/>
+
+<div class="productapp-shell">
+    <div class="productapp-page">
+        <div class="productapp-hero">
+            <div>
+                <span class="productapp-kicker">Product Workspace</span>
+                <h1 class="productapp-title">Manage products with a cleaner, faster flow.</h1>
+                <p class="productapp-copy">
+                    Search, publish, edit, and remove inventory from one place. This view now keeps the important details visible without feeling crowded.
+                </p>
             </div>
-          </div>
-        </div><!-- col-md-6 -->
-      </div>
+            <div class="productapp-statbar">
+                <strong>{{ items.length }}</strong>
+                <span>products currently loaded in this workspace</span>
+            </div>
+        </div>
+
+        <div class="productapp-toolbar">
+            <input
+                type="text"
+                class="productapp-search"
+                id="search"
+                v-model="SearchItem"
+                placeholder="Search by product name"
+                @keyup.enter="search()"
+            />
+            <button class="productapp-btn productapp-btn-primary" v-on:click="search()">Search</button>
+            <button class="productapp-btn productapp-btn-secondary" v-if="isSearching" v-on:click="resetList()">Clear Search</button>
+            <button class="productapp-btn productapp-btn-secondary" v-on:click="navigate()">New Product</button>
+        </div>
+
+        <div v-if="items.length === 0" class="productapp-empty">
+            <h3>No products found</h3>
+            <p>Try a different search term or create a new product to get started.</p>
+        </div>
+
+        <div v-else class="productapp-grid">
+            <div class="productapp-card" v-for="profile in items" :key="profile.itemid">
+                <div class="productapp-card-media">
+                    <img :src="profile.image" :alt="profile.name">
+                </div>
+                <div class="productapp-card-body">
+                    <div class="productapp-card-tags">
+                        <span class="productapp-chip">{{ profile.catogory || 'Uncategorized' }}</span>
+                        <span class="productapp-chip">{{ profile.uom || 'No UOM' }}</span>
+                    </div>
+                    <h3 class="productapp-card-title">{{ profile.name }}</h3>
+                    <div class="productapp-price">{{ profile.currencycode || 'Rs.' }} {{ profile.price || 0 }}</div>
+                    <div class="productapp-meta">
+                        <div><strong>ID:</strong> {{ profile.itemid }}</div>
+                        <div><strong>Caption:</strong> {{ profile.caption || 'No caption added yet.' }}</div>
+                    </div>
+                    <div class="productapp-actions">
+                        <button class="productapp-btn productapp-btn-primary" v-on:click="navigatePublish(profile.itemid)">Publish</button>
+                        <button class="productapp-btn productapp-btn-secondary" v-on:click="navigate(profile.itemid)">Edit</button>
+                        <button class="productapp-btn productapp-btn-danger" v-on:click="deleteProduct(profile)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="items.length && !isSearching" class="productapp-loadmore">
+            <button
+                v-if="hasMore"
+                class="productapp-btn productapp-btn-secondary"
+                :disabled="loadingMore"
+                v-on:click="loadMore()"
+            >
+                {{ loadingMore ? 'Loading...' : 'Load More Products' }}
+            </button>
+            <p v-else class="productapp-loadmore-copy">You’ve reached the end of the current product list.</p>
+        </div>
     </div>
 </div>
- 
-

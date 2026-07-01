@@ -4,7 +4,12 @@ WEBDOCK.component().register(function(exports){
         SearchItem:"",
         SearchColumn:"name",
         items:[],
-        image:''
+        image:'',
+        page: 0,
+        pageSize: 12,
+        hasMore: true,
+        loadingMore: false,
+        isSearching: false
     };
 
     var vueData = {
@@ -15,11 +20,28 @@ WEBDOCK.component().register(function(exports){
         methods: {
             searchItems:searchItems,
             search:function(){
+                bindData.isSearching = bindData.SearchItem !== "";
                 handler.services.ProductSearch({"column":bindData.SearchColumn,"value":bindData.SearchItem}).then(function(results){
-                    bindData.items=results.result;
+                    bindData.items = (results.result || []).map(mapProduct);
+                    bindData.hasMore = false;
                 }).error(function(){
-            
+                    $.notify("Unable to search products right now.", "error");
                 });
+            },
+            resetList: function(){
+                bindData.SearchItem = "";
+                bindData.page = 0;
+                bindData.hasMore = true;
+                bindData.isSearching = false;
+                searchItems(true);
+            },
+            loadMore: function(){
+                if (bindData.loadingMore || !bindData.hasMore || bindData.isSearching) {
+                    return;
+                }
+                bindData.loadingMore = true;
+                bindData.page += bindData.pageSize;
+                searchItems(false);
             },
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");
@@ -38,19 +60,16 @@ WEBDOCK.component().register(function(exports){
         var handler = exports.getComponent("product");
 
         handler.services.Delete(e).then(function(result){
-            //scope.items = result.result;
             if(result.success){
                 let filteredItems = bindData.items.filter(function(item) {
-                    if(item.itemid!==result.result.itemid)
-                        return item;
+                    return item.itemid !== result.result.itemid;
                 });
-                bindData.items=filteredItems==null?[]:filteredItems;
+                bindData.items = filteredItems || [];
             }else{
-
+                $.notify("Unable to delete product right now.", "error");
             }
-            //console.log(JSON.stringify(result));
         }).error(function(){
-            
+            $.notify("Unable to delete product right now.", "error");
         });
     }
     exports.vue = vueData;
@@ -63,49 +82,48 @@ WEBDOCK.component().register(function(exports){
 
     function initializeComponent(){
         handler = exports.getComponent("product");
-        searchItems("","");
+        searchItems(true);
     }
 
-    
-
-    
-
-    function searchItems(columncode,columnvalue){
-        console.log(encodeURI(columncode+":"+columnvalue))
-        handler.transformers.allProducts()
+    function searchItems(reset){
+        handler.services.allProducts({
+            page: bindData.page.toString(),
+            size: bindData.pageSize.toString(),
+            q: bindData.SearchItem || ""
+        })
         .then(function(response){
-            console.log(JSON.stringify(response));
             if(response.success){
-                //console
-                //bindData.item.id=response.result.result.generatedId;
-                bindData.items=[];
-                console.log(response);
-                if(response.result.length!=0){
-                    console.log("items chnaged");
-                    //bindData.items=response.result;
-                    response.result.forEach(element => {
-                        bindData.items.push({
-                            name:element.name,
-                            itemid:element.itemid,
-                            image:"components/dock/soss-uploader/service/get/products/"+element.itemid+"-"+element.imgurl,
-                            description:element.description,
-                            price:element.price,
-                            imgurl:element.imgurl,
-                            uom:element.uom
-                        })
-                    });
-                    
-                   
-                    console.log(JSON.stringify(bindData.items));
-                }
+                var results = response.result || [];
+                var mappedProducts = results.map(mapProduct);
+                bindData.items = reset ? mappedProducts : bindData.items.concat(mappedProducts);
+                bindData.hasMore = results.length === bindData.pageSize;
             }else{
-                alert (response.error);
+                $.notify(response.error || "Unable to load products.", "error");
             }
+            bindData.loadingMore = false;
         })
         .error(function(error){
-            alert (error.responseJSON.result);
-            console.log(error.responseJSON);
+            bindData.loadingMore = false;
+            if (!reset) {
+                bindData.page = Math.max(0, bindData.page - bindData.pageSize);
+            }
+            $.notify(error && error.responseJSON ? error.responseJSON.result : "Unable to load products.", "error");
         });
+    }
+
+    function mapProduct(element){
+        return {
+            name:element.name,
+            itemid:element.itemid,
+            image: element.imgurl ? "components/dock/soss-uploader/service/get/products/" + element.itemid + "-" + element.imgurl : "assets/productapp/appicon.png",
+            description:element.description,
+            price:element.price,
+            imgurl:element.imgurl,
+            uom:element.uom,
+            catogory: element.catogory,
+            caption: element.caption,
+            currencycode: element.currencycode
+        };
     }
 
 

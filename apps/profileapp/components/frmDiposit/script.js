@@ -295,7 +295,7 @@ WEBDOCK.component().register(function(exports){
                 paidamount:0,
                 status:"Approved",
                 detailsString:null,
-                company_profileId:(bindData.company.id?bindData.company.id:0),
+                company_profileId:(bindData.company && bindData.company.id ? bindData.company.id : 0),
                 InvoiceItems:[]
             }
             bindData.InvItems.forEach(element => {
@@ -320,7 +320,7 @@ WEBDOCK.component().register(function(exports){
                 }
             });
 
-            bindData.InvItems.detailsString=JSON.stringify(bindData.InvoiceToSave.InvoiceItem);
+            bindData.InvoiceToSave.detailsString=JSON.stringify(bindData.InvoiceToSave.InvoiceItems);
             console.log(JSON.stringify(bindData.InvoiceToSave));
             bindData.invoiceSave=true;
         }
