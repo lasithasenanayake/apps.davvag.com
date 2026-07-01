@@ -1,0 +1,103 @@
+<div class="input-form">
+
+<hr>
+<div class="input-error">
+  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+    <strong>ERROR! </strong> {{error}}
+  </div>
+</div>
+
+<form id="form-details-1" class="activeForm" onsubmit="return false;">
+  <h1 class="h3 mb-3 font-weight-normal" style="text-align: center" v-html="project.header"></h1>
+  <h2 v-html="project.reg_desc"></h2>
+  <div class="TimeLeft">
+    Days Left : {{ day }}
+  </div>
+
+  <div class="form-group">
+    <label for="Name">Name</label>
+    <input type="text" class="form-control" id="Name" aria-describedby="NameHelp" placeholder="Enter Name" v-model="data.name">
+    <small id="NameHelp" class="form-text text-muted">Your full name.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="church">Church</label>
+    <input type="text" class="form-control" id="church" aria-describedby="churchHelp" placeholder="Enter Church" v-model="data.church">
+    <small id="churchHelp" class="form-text text-muted">Your church or fellowship.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="city">City</label>
+    <input type="text" class="form-control" id="city" aria-describedby="cityHelp" placeholder="Enter City" v-model="data.city">
+    <small id="cityHelp" class="form-text text-muted">The city you are from.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="business_name">Business Name</label>
+    <input type="text" class="form-control" id="business_name" aria-describedby="businessNameHelp" placeholder="Enter Business Name" v-model="data.business_name">
+    <small id="businessNameHelp" class="form-text text-muted">Use a working name if the business is not registered yet.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="business_idea">Business Idea</label>
+    <textarea class="form-control" id="business_idea" aria-describedby="businessIdeaHelp" placeholder="Describe your business idea" v-model="data.business_idea"></textarea>
+    <small id="businessIdeaHelp" class="form-text text-muted">Briefly explain what you want to build.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="current_stage">Current Stage</label>
+    <select class="form-control" id="current_stage" aria-describedby="currentStageHelp" v-model="data.current_stage">
+      <option value="">Select Current Stage</option>
+      <option value="Idea only">Idea only</option>
+      <option value="Researching">Researching</option>
+      <option value="Building or testing">Building or testing</option>
+      <option value="Already started">Already started</option>
+      <option value="Growing">Growing</option>
+    </select>
+    <small id="currentStageHelp" class="form-text text-muted">Choose the closest stage for your business.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="problem_solving">Problem you're solving</label>
+    <textarea class="form-control" id="problem_solving" aria-describedby="problemHelp" placeholder="Describe the problem" v-model="data.problem_solving"></textarea>
+    <small id="problemHelp" class="form-text text-muted">What need, pain, or opportunity does this address?</small>
+  </div>
+
+  <div class="form-group">
+    <label for="who_will_it_help">Who will it help?</label>
+    <textarea class="form-control" id="who_will_it_help" aria-describedby="helpHelp" placeholder="Describe who will benefit" v-model="data.who_will_it_help"></textarea>
+    <small id="helpHelp" class="form-text text-muted">Tell us who your customers or beneficiaries are.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="why_selected">Why should you be selected?</label>
+    <textarea class="form-control" id="why_selected" aria-describedby="selectedHelp" placeholder="Tell us why you should be selected" v-model="data.why_should_you_be_selected"></textarea>
+    <small id="selectedHelp" class="form-text text-muted">Share your motivation, readiness, and commitment.</small>
+  </div>
+
+  <div class="form-group">
+    <label for="glorify_god">How will this glorify God?</label>
+    <textarea class="form-control" id="glorify_god" aria-describedby="glorifyHelp" placeholder="Describe how this will glorify God" v-model="data.glorify_god"></textarea>
+    <small id="glorifyHelp" class="form-text text-muted">Explain the spiritual purpose and impact you see.</small>
+  </div>
+
+  <button class="btn bg-primary-button btn-block" v-on:click="submit">Register</button>
+</form>
+
+<form id="form-details-2" class="inactiveForm" onsubmit="return false;">
+  <h4>You have successfully registered.</h4>
+  <p>
+    Thank you. Your registration has been submitted successfully.
+  </p>
+  <h4>Registration Details</h4>
+  <p v-html="project.reg_complete"></p>
+</form>
+
+<form id="form-details-3" class="inactiveForm" onsubmit="return false;">
+  <h4>Registration Expired</h4>
+</form>
+
+<form id="form-details-4" class="inactiveForm" onsubmit="return false;">
+  <h4>Registration is not available</h4>
+</form>
+</div>

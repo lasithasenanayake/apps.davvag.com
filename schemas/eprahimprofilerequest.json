@@ -62,6 +62,78 @@
             }
         },
         {
+            "fieldName":"registration_type",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"church",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"business_name",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 200,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"business_idea",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 2000,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"current_stage",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"problem_solving",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 2000,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"who_will_it_help",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 2000,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"why_should_you_be_selected",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 2000,
+                "encoding":"utf8"
+            }
+        },
+        {
+            "fieldName":"glorify_god",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 2000,
+                "encoding":"utf8"
+            }
+        },
+        {
             "fieldName":"country",
             "dataType":"java.lang.String",
             "annotations":{

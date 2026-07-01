@@ -43,6 +43,16 @@ class appService {
         $data = $req->Body(true);
         $data->regdate=time();
         $data->projectId=10;
+        foreach(array("name","email","id_number","contactno","contactgno","city","address","gender","medicremarks","organization","country","countrycode","center") as $field){
+            if(!isset($data->$field)){
+                $data->$field="";
+            }
+        }
+        foreach(array("projectid","referelid","productid") as $field){
+            if(!isset($data->$field) || $data->$field===""){
+                $data->$field=0;
+            }
+        }
         //$data->country=$this->getCountries()[$data->countrycode];
         if(!empty($data->email))
             $rec=SOSSData::Query("profile",urlencode("email:".$data->email));
@@ -70,13 +80,24 @@ class appService {
                 $data->profileid=$profile->id;
             }
         
-        $rec=SOSSData::Query("eprahimprofilerequest",urlencode("email:".$data->email.",projectid:".$data->projectid));
+        if(!empty($data->email))
+            $requestQuery=urlencode("email:".$data->email.",projectid:".$data->projectid);
+        elseif(!empty($data->id_number))
+            $requestQuery=urlencode("id_number:".$data->id_number.",projectid:".$data->projectid);
+        else
+            $requestQuery=urlencode("name:".$data->name.",projectid:".$data->projectid);
+
+        $rec=SOSSData::Query("eprahimprofilerequest",$requestQuery);
         if(count($rec->result)>0){
             $profile=$this->CheckPro($rec->result,$data);
             if(isset($profile)){
                 $data->id=$profile->id;
                 $r=SOSSData::Update("eprahimprofilerequest",$data);
-                $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
+                if(!empty($data->email)){
+                    $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
+                }else{
+                    $data->emailstatus="skipped";
+                }
                 return $data;
             }else{
                 $r=SOSSData::Insert("eprahimprofilerequest",$data);
@@ -87,7 +108,11 @@ class appService {
             $r=SOSSData::Insert("eprahimprofilerequest",$data);
             $data->id=$r->result->generatedId;
         }
-        $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
+        if(!empty($data->email)){
+            $data->emailstatus=Notify::sendEmailMessage($data->name,$data->email,"qib-admision",$data);
+        }else{
+            $data->emailstatus="skipped";
+        }
         return $data; 
     }
 
@@ -105,7 +130,7 @@ class appService {
                 }
     
                 if(!empty($data2->id_number)){
-                    if($data1->id_number==$data2->id_number){
+                    if(isset($data1->id_number) && $data1->id_number==$data2->id_number){
                         return $data1;
                     }
                 }   

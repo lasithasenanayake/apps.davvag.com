@@ -4,6 +4,10 @@
             "type": "component",
             "location": "apps"
         },
+        "enrole-ent": {
+            "type": "component",
+            "location": "apps"
+        },
         "app-handler": {
             "type": "service",
             "location": "service"
@@ -40,6 +44,7 @@
             "routes": {
                 "partials": {
                     "/entrole": "enrole-reg",
+                    "/enrole-ent": "enrole-ent",
                     "/app": "sample-popup",
                     "/projects": "projects"
                 }
@@ -50,6 +55,10 @@
                 {
                     "name": "Projects",
                     "path": "projects"
+                },
+                {
+                    "name": "enrole-ent",
+                    "path": "enrole-ent"
                 }
             ]
         }
