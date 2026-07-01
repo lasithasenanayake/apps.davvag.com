@@ -69,6 +69,13 @@
     margin-bottom: 8px;
 }
 
+.productapp-shell .productapp-statbar small {
+    display: block;
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+}
+
 .productapp-shell .productapp-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -221,6 +228,25 @@
     margin: 0;
     color: var(--productapp-muted);
     font-size: 14px;
+}
+
+.productapp-shell .productapp-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.productapp-shell .productapp-pagination-copy {
+    min-width: 88px;
+    text-align: center;
+    color: var(--productapp-muted);
+    font-size: 15px;
+}
+
+.productapp-shell .productapp-pagination-copy strong {
+    color: var(--productapp-ink);
 }
 
 .productapp-shell .productapp-panel {

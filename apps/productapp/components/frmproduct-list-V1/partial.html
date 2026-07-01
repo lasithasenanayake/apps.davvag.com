@@ -12,7 +12,9 @@
             </div>
             <div class="productapp-statbar">
                 <strong>{{ items.length }}</strong>
-                <span>products currently loaded in this workspace</span>
+                <span v-if="totalItems">of {{ totalItems }} products currently loaded in this workspace</span>
+                <span v-else>products currently loaded in this workspace</span>
+                <small v-if="!isSearching">Page {{ currentPage }} of {{ totalPages }}</small>
             </div>
         </div>
 
@@ -60,16 +62,25 @@
             </div>
         </div>
 
-        <div v-if="items.length && !isSearching" class="productapp-loadmore">
+        <div v-if="totalItems > pageSize && !isSearching" class="productapp-pagination">
             <button
-                v-if="hasMore"
                 class="productapp-btn productapp-btn-secondary"
-                :disabled="loadingMore"
-                v-on:click="loadMore()"
+                :disabled="loadingPage || currentPage <= 1"
+                v-on:click="prevPage()"
             >
-                {{ loadingMore ? 'Loading...' : 'Load More Products' }}
+                Previous
             </button>
-            <p v-else class="productapp-loadmore-copy">You’ve reached the end of the current product list.</p>
+            <div class="productapp-pagination-copy">
+                <strong>{{ currentPage }}</strong>
+                <span>/ {{ totalPages }}</span>
+            </div>
+            <button
+                class="productapp-btn productapp-btn-secondary"
+                :disabled="loadingPage || currentPage >= totalPages"
+                v-on:click="nextPage()"
+            >
+                {{ loadingPage ? 'Loading...' : 'Next' }}
+            </button>
         </div>
     </div>
 </div>

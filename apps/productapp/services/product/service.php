@@ -218,7 +218,15 @@ class ProductService {
             }
 
             $resultObj = SOSSData::Query("products", $query, null, "DESC", $size, $page);
-            return $resultObj->success ? $resultObj->result : array();
+            if($resultObj->success){
+                $payload = new stdClass();
+                $payload->items = isset($resultObj->result) ? $resultObj->result : array();
+                $payload->total = isset($resultObj->numberOfRecords) ? intval($resultObj->numberOfRecords) : count($payload->items);
+                $payload->page = $page;
+                $payload->size = $size;
+                return $payload;
+            }
+            return array();
         } else {
             
             $mainObj = new stdClass();

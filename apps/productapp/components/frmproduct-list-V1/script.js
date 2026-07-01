@@ -5,11 +5,12 @@ WEBDOCK.component().register(function(exports){
         SearchColumn:"name",
         items:[],
         image:'',
-        page: 0,
-        pageSize: 12,
-        hasMore: true,
-        loadingMore: false,
-        isSearching: false
+        currentPage: 1,
+        pageSize: 24,
+        totalPages: 1,
+        loadingPage: false,
+        isSearching: false,
+        totalItems: 0
     };
 
     var vueData = {
@@ -21,27 +22,42 @@ WEBDOCK.component().register(function(exports){
             searchItems:searchItems,
             search:function(){
                 bindData.isSearching = bindData.SearchItem !== "";
+                bindData.currentPage = 1;
                 handler.services.ProductSearch({"column":bindData.SearchColumn,"value":bindData.SearchItem}).then(function(results){
                     bindData.items = (results.result || []).map(mapProduct);
-                    bindData.hasMore = false;
+                    bindData.totalItems = bindData.items.length;
+                    bindData.totalPages = 1;
                 }).error(function(){
                     $.notify("Unable to search products right now.", "error");
                 });
             },
             resetList: function(){
                 bindData.SearchItem = "";
-                bindData.page = 0;
-                bindData.hasMore = true;
+                bindData.currentPage = 1;
                 bindData.isSearching = false;
-                searchItems(true);
+                bindData.totalItems = 0;
+                bindData.totalPages = 1;
+                searchItems();
             },
-            loadMore: function(){
-                if (bindData.loadingMore || !bindData.hasMore || bindData.isSearching) {
+            goToPage: function(page){
+                if (bindData.loadingPage || bindData.isSearching) {
                     return;
                 }
-                bindData.loadingMore = true;
-                bindData.page += bindData.pageSize;
-                searchItems(false);
+                if (page < 1 || page > bindData.totalPages || page === bindData.currentPage) {
+                    return;
+                }
+                bindData.currentPage = page;
+                searchItems();
+            },
+            nextPage: function(){
+                if (bindData.currentPage < bindData.totalPages) {
+                    vueData.methods.goToPage(bindData.currentPage + 1);
+                }
+            },
+            prevPage: function(){
+                if (bindData.currentPage > 1) {
+                    vueData.methods.goToPage(bindData.currentPage - 1);
+                }
             },
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");
@@ -82,33 +98,51 @@ WEBDOCK.component().register(function(exports){
 
     function initializeComponent(){
         handler = exports.getComponent("product");
-        searchItems(true);
+        searchItems();
     }
 
-    function searchItems(reset){
+    function searchItems(){
+        bindData.loadingPage = true;
         handler.services.allProducts({
-            page: bindData.page.toString(),
+            page: ((bindData.currentPage - 1) * bindData.pageSize).toString(),
             size: bindData.pageSize.toString(),
             q: bindData.SearchItem || ""
         })
         .then(function(response){
             if(response.success){
-                var results = response.result || [];
-                var mappedProducts = results.map(mapProduct);
-                bindData.items = reset ? mappedProducts : bindData.items.concat(mappedProducts);
-                bindData.hasMore = results.length === bindData.pageSize;
+                var payload = normalizePayload(response.result);
+                var results = payload.items;
+                bindData.items = results.map(mapProduct);
+                bindData.totalItems = payload.total;
+                bindData.totalPages = Math.max(1, Math.ceil(bindData.totalItems / bindData.pageSize));
             }else{
                 $.notify(response.error || "Unable to load products.", "error");
             }
-            bindData.loadingMore = false;
+            bindData.loadingPage = false;
         })
         .error(function(error){
-            bindData.loadingMore = false;
-            if (!reset) {
-                bindData.page = Math.max(0, bindData.page - bindData.pageSize);
-            }
+            bindData.loadingPage = false;
             $.notify(error && error.responseJSON ? error.responseJSON.result : "Unable to load products.", "error");
         });
+    }
+
+    function normalizePayload(result){
+        if (Array.isArray(result)) {
+            return {
+                items: result,
+                total: result.length
+            };
+        }
+        if (result && Array.isArray(result.items)) {
+            return {
+                items: result.items,
+                total: typeof result.total === "number" ? result.total : result.items.length
+            };
+        }
+        return {
+            items: [],
+            total: 0
+        };
     }
 
     function mapProduct(element){
