@@ -43,6 +43,9 @@
         "davvag-attributes":{
             "version":"latest"
         },
+        "davvag-reporting":{
+            "version":"latest"
+        },
         "davvag-stripe":{
             "version":"latest"
         },

@@ -1,0 +1,88 @@
+{
+    "code": "sales-example",
+    "title": "Sales Report",
+    "description": "",
+    "namespace": "rpt_sales_example",
+    "sql": "SELECT \n    oh.name,\n    oh.address,\n    oh.total\nFROM orderheader oh\nINNER JOIN profile p \n    ON p.id = oh.profileId\nWHERE oh.PaymentComplete = 'Y'\n  AND oh.invoiceDate BETWEEN '$startDate' AND '$endDate'",
+    "parameters": [
+        {
+            "name": "startDate",
+            "label": "Start Date",
+            "type": "date",
+            "defaultValue": "",
+            "required": true
+        },
+        {
+            "name": "endDate",
+            "label": "End Date",
+            "type": "date",
+            "defaultValue": "",
+            "required": true
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "name",
+            "label": "Name",
+            "dataType": "java.lang.String",
+            "visible": true,
+            "format": "",
+            "width": ""
+        },
+        {
+            "fieldName": "address",
+            "label": "Address",
+            "dataType": "java.lang.String",
+            "visible": true,
+            "format": "",
+            "width": ""
+        },
+        {
+            "fieldName": "total",
+            "label": "Total",
+            "dataType": "float",
+            "visible": true,
+            "format": "",
+            "width": ""
+        }
+    ],
+    "grid": {
+        "pageSize": 51,
+        "columns": [
+            {
+                "field": "name",
+                "label": "Name",
+                "dataType": "java.lang.String",
+                "format": "",
+                "width": ""
+            },
+            {
+                "field": "address",
+                "label": "Address",
+                "dataType": "java.lang.String",
+                "format": "",
+                "width": ""
+            },
+            {
+                "field": "total",
+                "label": "Total",
+                "dataType": "float",
+                "format": "",
+                "width": ""
+            }
+        ]
+    },
+    "chart": {
+        "enabled": true,
+        "type": "bar",
+        "xField": "name",
+        "yFields": [
+            "total"
+        ]
+    },
+    "schemaFile": "schemas/rpt_sales_example.json",
+    "createdAt": "2026-06-29 06:26:49",
+    "updatedAt": "2026-06-29 06:39:48",
+    "createdBy": "655ecbcbe265b",
+    "updatedBy": "655ecbcbe265b"
+}

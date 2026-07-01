@@ -1,0 +1,24 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": [
+            "startDate",
+            "endDate"
+        ],
+        "query": "SELECT oh.name,oh.address,oh.total FROM s_localhost.orderheader oh\ninner join profile p on p.id=oh.profileId\nwhere oh.PaymentComplete='Y' and oh.invoiceDate between $startDate and $endDate"
+    },
+    "fields": [
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "address",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "total",
+            "dataType": "float"
+        }
+    ]
+}

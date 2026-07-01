@@ -1,0 +1,54 @@
+{
+    "name": "report-api",
+    "description": "File-backed report definitions, SOSSData raw schemas, execution, export, and email delivery.",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "davvag_reporting\\ReportApiService",
+        "methods": {
+            "ListReports": {
+                "method": "GET",
+                "parameters": []
+            },
+            "GetReport": {
+                "method": "GET",
+                "parameters": ["code"]
+            },
+            "SaveReport": {
+                "method": "POST"
+            },
+            "DeleteReport": {
+                "method": "POST"
+            },
+            "InferFields": {
+                "method": "POST"
+            },
+            "RunReport": {
+                "method": "POST"
+            },
+            "ExportReport": {
+                "method": "POST"
+            },
+            "EmailReport": {
+                "method": "POST"
+            },
+            "GetPdfSettings": {
+                "method": "GET",
+                "parameters": []
+            },
+            "SavePdfSettings": {
+                "method": "POST"
+            }
+        }
+    },
+    "transformers": {}
+}

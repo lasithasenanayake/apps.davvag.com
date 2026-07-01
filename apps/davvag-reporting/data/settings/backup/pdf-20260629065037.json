@@ -1,0 +1,6 @@
+{
+    "headerHtml": "<h1>LBC College</h1>\n<h2>@reportTitle</h2>\n<p>@generatedAt</p>",
+    "footerHtml": "<div style=\"text-align:right;font-size:10px;color:#777;\">Page @pageNumber of @pageCount</div>",
+    "updatedAt": "2026-06-29 06:50:20",
+    "updatedBy": "655ecbcbe265b"
+}

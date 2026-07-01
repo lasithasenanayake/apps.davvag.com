@@ -1,0 +1,79 @@
+{
+    "components": {
+        "report-list": {
+            "type": "component",
+            "location": "components"
+        },
+        "report-designer": {
+            "type": "component",
+            "location": "components"
+        },
+        "report-viewer": {
+            "type": "component",
+            "location": "components"
+        },
+        "report-settings": {
+            "type": "component",
+            "location": "components"
+        },
+        "report-style": {
+            "type": "component",
+            "location": "components"
+        },
+        "report-api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "DAVVAG Reporting",
+        "author": "DAVVAG",
+        "version": "0.1",
+        "icon": ""
+    },
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "report-list",
+            "onLoad": [
+                "report-style",
+                "report-api"
+            ],
+            "routes": {
+                "home": "/",
+                "partials": {
+                    "/": "report-list",
+                    "/reports": "report-list",
+                    "/designer": "report-designer",
+                    "/view": "report-viewer",
+                    "/settings": "report-settings"
+                }
+            }
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Reports",
+                    "path": "reports"
+                },
+                {
+                    "name": "Report Designer",
+                    "path": "designer"
+                },
+                {
+                    "name": "Report Settings",
+                    "path": "settings"
+                }
+            ]
+        }
+    },
+    "dependencies": {
+        "apps": ["davvag-tools"],
+        "schemas": [],
+        "workflows": [],
+        "plugins": ["auth", "sossdata", "phpcache", "notify", "mpdf", "phpspreadsheet"],
+        "php-extensions": ["mysqli", "mbstring", "zip", "openssl"]
+    }
+}

@@ -1,0 +1,20 @@
+<section class="davvag-reporting davvag-reporting-list">
+    <header class="davvag-reporting__header">
+        <div>
+            <h1>Reports</h1>
+            <p>Reusable SQL-backed reports with generated SOSSData raw query schemas.</p>
+        </div>
+        <div class="davvag-reporting__actions">
+            <button type="button" class="btn btn-default" data-report-refresh><i class="fa fa-refresh"></i> Refresh</button>
+            <button type="button" class="btn btn-default" data-report-settings><i class="fa fa-cog"></i> Settings</button>
+            <button type="button" class="btn btn-primary" data-report-new><i class="fa fa-plus"></i> New Report</button>
+        </div>
+    </header>
+
+    <section class="davvag-reporting__toolbar">
+        <input type="text" class="form-control" data-report-search placeholder="Search reports">
+        <div class="davvag-reporting__status" data-report-status>Loading reports.</div>
+    </section>
+
+    <section class="davvag-reporting__report-list" data-report-list></section>
+</section>

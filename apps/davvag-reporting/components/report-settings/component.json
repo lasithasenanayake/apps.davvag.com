@@ -1,0 +1,19 @@
+{
+    "name": "report-settings",
+    "description": "Configure shared DAVVAG Reporting PDF export templates.",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    },
+    "transformers": {}
+}

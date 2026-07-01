@@ -1,0 +1,91 @@
+<section class="davvag-reporting davvag-reporting-viewer">
+    <header class="davvag-reporting__header">
+        <div>
+            <h1 data-view-title>Report Viewer</h1>
+            <p data-view-meta></p>
+        </div>
+        <div class="davvag-reporting__actions">
+            <button type="button" class="btn btn-default" data-view-back><i class="fa fa-list"></i> Reports</button>
+            <button type="button" class="btn btn-default" data-view-edit><i class="fa fa-pencil"></i> Edit</button>
+            <button type="button" class="btn btn-primary" data-view-run><i class="fa fa-play"></i> Run</button>
+        </div>
+    </header>
+
+    <div class="davvag-reporting__status" data-view-status>Loading report.</div>
+
+    <section class="davvag-reporting__panel">
+        <h2>Filters</h2>
+        <div class="davvag-reporting__filters" data-view-filters></div>
+    </section>
+
+    <section class="davvag-reporting__toolbar">
+        <button type="button" class="btn btn-default" data-export-format="csv"><i class="fa fa-download"></i> CSV</button>
+        <button type="button" class="btn btn-default" data-export-format="xlsx"><i class="fa fa-table"></i> Excel</button>
+        <button type="button" class="btn btn-default" data-export-format="json"><i class="fa fa-code"></i> JSON</button>
+        <button type="button" class="btn btn-default" data-export-format="pdf"><i class="fa fa-file-pdf-o"></i> PDF</button>
+        <button type="button" class="btn btn-info" data-email-toggle><i class="fa fa-envelope"></i> Email</button>
+    </section>
+
+    <section class="davvag-reporting__panel davvag-reporting__email-panel" data-email-panel>
+        <h2>Email Report</h2>
+        <div class="davvag-reporting__grid davvag-reporting__grid--three">
+            <div class="davvag-reporting__field">
+                <span>Name</span>
+                <input type="text" class="form-control" data-email-name>
+            </div>
+            <div class="davvag-reporting__field">
+                <span>Email</span>
+                <input type="email" class="form-control" data-email-address>
+            </div>
+            <div class="davvag-reporting__field">
+                <span>Format</span>
+                <select class="form-control" data-email-format>
+                    <option value="pdf">PDF</option>
+                    <option value="xlsx">Excel</option>
+                    <option value="csv">CSV</option>
+                    <option value="html">HTML</option>
+                </select>
+            </div>
+        </div>
+        <div class="davvag-reporting__field">
+            <span>Subject</span>
+            <input type="text" class="form-control" data-email-subject>
+        </div>
+        <div class="davvag-reporting__field">
+            <span>Message</span>
+            <textarea class="form-control" rows="3" data-email-message></textarea>
+        </div>
+        <div class="davvag-reporting__inline-actions">
+            <button type="button" class="btn btn-primary" data-email-send><i class="fa fa-send"></i> Send</button>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__metrics">
+        <div class="davvag-reporting__metric">
+            <span>Rows</span>
+            <strong data-row-count>0</strong>
+        </div>
+        <div class="davvag-reporting__metric">
+            <span>Fields</span>
+            <strong data-column-count>0</strong>
+        </div>
+        <div class="davvag-reporting__metric">
+            <span>Namespace</span>
+            <strong data-namespace>-</strong>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__panel" data-chart-panel>
+        <h2>Chart</h2>
+        <div class="davvag-reporting__chart" data-chart-output>
+            <div class="davvag-reporting__empty">No chart data.</div>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__panel">
+        <h2>Grid</h2>
+        <div class="davvag-reporting__table-wrap" data-grid-output>
+            <div class="davvag-reporting__empty">No report data.</div>
+        </div>
+    </section>
+</section>

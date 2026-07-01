@@ -1,0 +1,24 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": [
+            "startDate",
+            "endDate"
+        ],
+        "query": "SELECT \n    oh.name,\n    oh.address,\n    oh.total\nFROM orderheader oh\nINNER JOIN profile p \n    ON p.id = oh.profileId\nWHERE oh.PaymentComplete = 'Y'\n  AND oh.invoiceDate BETWEEN '$startDate' AND '$endDate'"
+    },
+    "fields": [
+        {
+            "fieldName": "name",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "address",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "total",
+            "dataType": "float"
+        }
+    ]
+}

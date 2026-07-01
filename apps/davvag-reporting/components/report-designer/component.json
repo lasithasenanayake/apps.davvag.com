@@ -1,0 +1,19 @@
+{
+    "name": "report-designer",
+    "description": "Create and edit reusable SQL report definitions.",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    },
+    "transformers": {}
+}

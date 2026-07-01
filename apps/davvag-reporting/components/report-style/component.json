@@ -1,0 +1,15 @@
+{
+    "name": "report-style",
+    "description": "Shared DAVVAG Reporting styles",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "css": [
+            {
+                "type": "css",
+                "location": "report-common.css"
+            }
+        ]
+    },
+    "transformers": {}
+}

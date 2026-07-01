@@ -1,0 +1,825 @@
+.davvag-reporting {
+    color: #24313a;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 18px;
+}
+
+.davvag-reporting * {
+    box-sizing: border-box;
+}
+
+.davvag-reporting__header {
+    align-items: center;
+    border-bottom: 1px solid #d9e1e7;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+}
+
+.davvag-reporting__header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.davvag-reporting__header p {
+    color: #60717d;
+    margin: 4px 0 0;
+}
+
+.davvag-reporting__actions,
+.davvag-reporting__toolbar,
+.davvag-reporting__inline-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.davvag-reporting__toolbar {
+    background: #f6f8fa;
+    border: 1px solid #dce4ea;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    padding: 10px;
+}
+
+.davvag-reporting__toolbar .form-control {
+    max-width: 320px;
+}
+
+.davvag-reporting__status {
+    border-radius: 6px;
+    color: #5d6c75;
+    min-height: 28px;
+    padding: 6px 10px;
+}
+
+.davvag-reporting__status.is-error {
+    background: #fae8e8;
+    color: #a42929;
+}
+
+.davvag-reporting__status.is-success {
+    background: #e6f4ee;
+    color: #1f6f4a;
+}
+
+.davvag-reporting__status.is-muted {
+    background: #eef3f6;
+    color: #536670;
+}
+
+.davvag-reporting__layout {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+}
+
+.davvag-reporting__panel,
+.davvag-reporting__metric,
+.davvag-reporting__empty,
+.davvag-reporting__report-card {
+    background: #ffffff;
+    border: 1px solid #dce4ea;
+    border-radius: 6px;
+}
+
+.davvag-reporting__panel {
+    margin-bottom: 14px;
+    padding: 14px;
+}
+
+.davvag-reporting__panel h2,
+.davvag-reporting__panel h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 12px;
+}
+
+.davvag-reporting__grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.davvag-reporting__grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.davvag-reporting__field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.davvag-reporting__field span,
+.davvag-reporting__field label {
+    color: #4d5e68;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.davvag-reporting textarea.form-control {
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    min-height: 160px;
+    resize: vertical;
+}
+
+.davvag-reporting__table-wrap {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.davvag-reporting__table {
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 720px;
+    width: 100%;
+}
+
+.davvag-reporting__table th,
+.davvag-reporting__table td {
+    border-bottom: 1px solid #e6ecef;
+    padding: 9px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.davvag-reporting__table th {
+    background: #f6f8fa;
+    color: #43525b;
+    font-weight: 700;
+}
+
+.davvag-reporting__table td small {
+    color: #75858f;
+    display: block;
+}
+
+.davvag-reporting__table input,
+.davvag-reporting__table select {
+    min-width: 120px;
+}
+
+.davvag-reporting__report-list {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.davvag-reporting__report-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 160px;
+    padding: 14px;
+}
+
+.davvag-reporting__report-card h3 {
+    font-size: 17px;
+    margin: 0;
+}
+
+.davvag-reporting__report-card p {
+    color: #5f707a;
+    flex: 1;
+    margin: 0;
+}
+
+.davvag-reporting__meta {
+    color: #6d7c86;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12px;
+    gap: 8px;
+}
+
+.davvag-reporting__pill {
+    background: #eef5f3;
+    border: 1px solid #d1e3dc;
+    border-radius: 999px;
+    color: #2d6b59;
+    display: inline-flex;
+    font-size: 12px;
+    line-height: 1;
+    padding: 5px 8px;
+}
+
+.davvag-reporting__empty {
+    color: #62727d;
+    padding: 18px;
+    text-align: center;
+}
+
+.davvag-reporting__preview {
+    max-height: 420px;
+    overflow: auto;
+}
+
+.davvag-reporting__filters {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    width: 100%;
+}
+
+.davvag-reporting__metrics {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-bottom: 14px;
+}
+
+.davvag-reporting__metric {
+    padding: 12px;
+}
+
+.davvag-reporting__metric span {
+    color: #657782;
+    display: block;
+    font-size: 12px;
+}
+
+.davvag-reporting__metric strong {
+    display: block;
+    font-size: 24px;
+    margin-top: 4px;
+}
+
+.davvag-reporting__chart {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 140px;
+}
+
+.davvag-reporting__bar-row {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(80px, 180px) minmax(100px, 1fr) 90px;
+}
+
+.davvag-reporting__bar-label {
+    color: #4e606a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.davvag-reporting__bar-track {
+    background: #edf2f4;
+    border-radius: 6px;
+    height: 16px;
+    overflow: hidden;
+}
+
+.davvag-reporting__bar-fill {
+    background: #2f7d68;
+    height: 100%;
+    min-width: 2px;
+}
+
+.davvag-reporting__email-panel {
+    display: none;
+}
+
+.davvag-reporting__email-panel.is-open {
+    display: block;
+}
+
+.davvag-reporting__pdf-preview {
+    background: #f7f9fb;
+    border: 1px solid #dce4ea;
+    border-radius: 6px;
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+}
+
+.davvag-reporting__pdf-preview [data-preview-header],
+.davvag-reporting__pdf-preview [data-preview-footer] {
+    background: #ffffff;
+    border: 1px dashed #b8c7d1;
+    min-height: 48px;
+    padding: 10px;
+}
+
+@media (max-width: 900px) {
+    .davvag-reporting {
+        padding: 12px;
+    }
+
+    .davvag-reporting__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .davvag-reporting__layout,
+    .davvag-reporting__grid,
+    .davvag-reporting__grid--three {
+        grid-template-columns: 1fr;
+    }
+
+    .davvag-reporting__toolbar .form-control {
+        max-width: none;
+        width: 100%;
+    }
+}
+
+/* Professional reporting UI layer */
+.davvag-reporting {
+    --report-bg: #f4f7f8;
+    --report-surface: #ffffff;
+    --report-surface-soft: #f9fbfc;
+    --report-border: #dce5ea;
+    --report-border-strong: #b9c9d2;
+    --report-text: #20313a;
+    --report-muted: #627582;
+    --report-heading: #142832;
+    --report-primary: #1f6f64;
+    --report-primary-dark: #15564d;
+    --report-primary-soft: #e6f3f0;
+    --report-blue: #245f8f;
+    --report-blue-soft: #e8f1f8;
+    --report-danger: #b23b3b;
+    --report-danger-soft: #faeaea;
+    --report-shadow: 0 1px 2px rgba(16, 31, 38, 0.06), 0 10px 26px rgba(16, 31, 38, 0.05);
+    background: var(--report-bg);
+    color: var(--report-text);
+    min-height: calc(100vh - 40px);
+    padding: 22px;
+}
+
+.davvag-reporting a,
+.davvag-reporting button,
+.davvag-reporting input,
+.davvag-reporting select,
+.davvag-reporting textarea {
+    outline-color: var(--report-primary);
+}
+
+.davvag-reporting .form-control {
+    background: #ffffff;
+    border: 1px solid #cbd8df;
+    border-radius: 5px;
+    box-shadow: none;
+    color: var(--report-text);
+    min-height: 36px;
+}
+
+.davvag-reporting .form-control:focus {
+    border-color: var(--report-primary);
+    box-shadow: 0 0 0 3px rgba(31, 111, 100, 0.12);
+}
+
+.davvag-reporting .btn {
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: none;
+    display: inline-flex;
+    font-weight: 700;
+    gap: 6px;
+    justify-content: center;
+    line-height: 1.25;
+    min-height: 34px;
+    padding: 7px 12px;
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.davvag-reporting .btn-sm,
+.davvag-reporting .btn-xs {
+    min-height: 30px;
+    padding: 5px 9px;
+}
+
+.davvag-reporting .btn-default {
+    background: #ffffff;
+    border-color: #cbd8df;
+    color: #344955;
+}
+
+.davvag-reporting .btn-default:hover,
+.davvag-reporting .btn-default:focus {
+    background: #f4f8fa;
+    border-color: #aebfc8;
+    color: #1f3540;
+}
+
+.davvag-reporting .btn-primary {
+    background: var(--report-primary);
+    border-color: var(--report-primary);
+    color: #ffffff;
+}
+
+.davvag-reporting .btn-primary:hover,
+.davvag-reporting .btn-primary:focus {
+    background: var(--report-primary-dark);
+    border-color: var(--report-primary-dark);
+    color: #ffffff;
+}
+
+.davvag-reporting .btn-info {
+    background: var(--report-blue);
+    border-color: var(--report-blue);
+    color: #ffffff;
+}
+
+.davvag-reporting .btn-info:hover,
+.davvag-reporting .btn-info:focus {
+    background: #1a4f79;
+    border-color: #1a4f79;
+    color: #ffffff;
+}
+
+.davvag-reporting .btn-danger {
+    background: #ffffff;
+    border-color: #e2b6b6;
+    color: var(--report-danger);
+}
+
+.davvag-reporting .btn-danger:hover,
+.davvag-reporting .btn-danger:focus {
+    background: var(--report-danger-soft);
+    border-color: #c98080;
+    color: #8e2d2d;
+}
+
+.davvag-reporting .checkbox {
+    color: var(--report-muted);
+    margin: 0 0 12px;
+}
+
+.davvag-reporting__header {
+    align-items: flex-start;
+    background: var(--report-surface);
+    border: 1px solid var(--report-border);
+    border-radius: 6px;
+    box-shadow: var(--report-shadow);
+    gap: 18px;
+    margin-bottom: 16px;
+    padding: 18px;
+}
+
+.davvag-reporting__header h1 {
+    color: var(--report-heading);
+    font-size: 24px;
+}
+
+.davvag-reporting__header p {
+    color: var(--report-muted);
+    font-size: 13px;
+    margin-top: 6px;
+    max-width: 740px;
+}
+
+.davvag-reporting__actions {
+    justify-content: flex-end;
+}
+
+.davvag-reporting__toolbar {
+    background: var(--report-surface);
+    border: 1px solid var(--report-border);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(16, 31, 38, 0.04);
+    margin-bottom: 16px;
+    padding: 12px;
+}
+
+.davvag-reporting__toolbar .form-control {
+    flex: 1 1 280px;
+    max-width: 420px;
+}
+
+.davvag-reporting__inline-actions {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.davvag-reporting__inline-actions h2 {
+    margin-bottom: 0;
+}
+
+.davvag-reporting__status {
+    background: var(--report-surface-soft);
+    border: 1px solid var(--report-border);
+    border-radius: 5px;
+    color: var(--report-muted);
+    font-size: 13px;
+    min-height: 34px;
+    padding: 8px 11px;
+}
+
+.davvag-reporting > .davvag-reporting__status {
+    margin-bottom: 16px;
+}
+
+.davvag-reporting__status.is-error {
+    background: var(--report-danger-soft);
+    border-color: #edc5c5;
+    color: var(--report-danger);
+}
+
+.davvag-reporting__status.is-success {
+    background: var(--report-primary-soft);
+    border-color: #c4e0da;
+    color: var(--report-primary-dark);
+}
+
+.davvag-reporting__status.is-muted {
+    background: #eef4f6;
+    border-color: var(--report-border);
+    color: #4f6571;
+}
+
+.davvag-reporting__layout {
+    align-items: start;
+    gap: 18px;
+    grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+}
+
+.davvag-reporting__layout > aside {
+    position: sticky;
+    top: 14px;
+}
+
+.davvag-reporting__panel,
+.davvag-reporting__metric,
+.davvag-reporting__empty,
+.davvag-reporting__report-card {
+    background: var(--report-surface);
+    border: 1px solid var(--report-border);
+    border-radius: 6px;
+}
+
+.davvag-reporting__panel {
+    box-shadow: 0 1px 2px rgba(16, 31, 38, 0.04);
+    margin-bottom: 16px;
+    padding: 16px;
+}
+
+.davvag-reporting__panel h2,
+.davvag-reporting__panel h3 {
+    color: var(--report-heading);
+    font-size: 16px;
+    line-height: 1.3;
+    margin-bottom: 14px;
+}
+
+.davvag-reporting__field {
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.davvag-reporting__field span,
+.davvag-reporting__field label {
+    color: #435866;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+}
+
+.davvag-reporting textarea.form-control {
+    line-height: 1.45;
+}
+
+.davvag-reporting [data-report-sql] {
+    background: #fbfcfd;
+    color: #19303b;
+    min-height: 220px;
+}
+
+.davvag-reporting [data-report-description],
+.davvag-reporting [data-email-message] {
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 96px;
+}
+
+.davvag-reporting__table-wrap {
+    border: 1px solid var(--report-border);
+    border-radius: 6px;
+}
+
+.davvag-reporting__table {
+    background: #ffffff;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.davvag-reporting__table th,
+.davvag-reporting__table td {
+    border-bottom: 1px solid #e8eef2;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.davvag-reporting__table th {
+    background: #f5f8fa;
+    color: #405461;
+    font-size: 12px;
+}
+
+.davvag-reporting__table tbody tr:hover td {
+    background: #fbfdfe;
+}
+
+.davvag-reporting__table tr:last-child td {
+    border-bottom: 0;
+}
+
+.davvag-reporting__table td small {
+    color: var(--report-muted);
+    margin-top: 2px;
+}
+
+.davvag-reporting__report-list {
+    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.davvag-reporting__report-card {
+    box-shadow: 0 1px 2px rgba(16, 31, 38, 0.04);
+    gap: 11px;
+    min-height: 172px;
+    padding: 16px;
+    transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+}
+
+.davvag-reporting__report-card:hover {
+    border-color: var(--report-border-strong);
+    box-shadow: var(--report-shadow);
+    transform: translateY(-1px);
+}
+
+.davvag-reporting__report-card h3 {
+    color: var(--report-heading);
+    font-size: 17px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.davvag-reporting__report-card p {
+    color: var(--report-muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.davvag-reporting__meta {
+    color: #6a7d88;
+    gap: 7px;
+}
+
+.davvag-reporting__meta span {
+    background: #f4f7f8;
+    border: 1px solid #e1e9ed;
+    border-radius: 999px;
+    padding: 4px 7px;
+}
+
+.davvag-reporting__pill {
+    align-self: flex-start;
+    background: var(--report-blue-soft);
+    border: 1px solid #c6dced;
+    color: #245f8f;
+    font-weight: 700;
+    padding: 5px 9px;
+}
+
+.davvag-reporting__empty {
+    color: var(--report-muted);
+    line-height: 1.45;
+    padding: 22px;
+}
+
+.davvag-reporting__preview {
+    border: 1px solid var(--report-border);
+    border-radius: 6px;
+    max-height: 440px;
+}
+
+.davvag-reporting__preview > .davvag-reporting__empty {
+    border: 0;
+    border-radius: 0;
+}
+
+.davvag-reporting__filters {
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.davvag-reporting__metrics {
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-bottom: 16px;
+}
+
+.davvag-reporting__metric {
+    box-shadow: 0 1px 2px rgba(16, 31, 38, 0.04);
+    padding: 15px;
+}
+
+.davvag-reporting__metric span {
+    color: var(--report-muted);
+    font-weight: 700;
+}
+
+.davvag-reporting__metric strong {
+    color: var(--report-heading);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.davvag-reporting__chart {
+    gap: 9px;
+}
+
+.davvag-reporting__bar-row {
+    gap: 10px;
+    grid-template-columns: minmax(80px, 180px) minmax(120px, 1fr) 90px;
+}
+
+.davvag-reporting__bar-label {
+    color: #405461;
+}
+
+.davvag-reporting__bar-track {
+    background: #eef3f5;
+    border: 1px solid #dde8ed;
+    border-radius: 999px;
+    height: 15px;
+}
+
+.davvag-reporting__bar-fill {
+    background: var(--report-primary);
+}
+
+.davvag-reporting__pdf-preview {
+    background: #f6f8fa;
+    border: 1px solid var(--report-border);
+}
+
+.davvag-reporting__pdf-preview [data-preview-header],
+.davvag-reporting__pdf-preview [data-preview-footer] {
+    border-color: var(--report-border-strong);
+    border-radius: 5px;
+    min-height: 52px;
+    padding: 12px;
+}
+
+.davvag-reporting__pdf-preview .davvag-reporting__empty {
+    background: #ffffff;
+    border-style: dashed;
+}
+
+.davvag-reporting-settings [data-pdf-header],
+.davvag-reporting-settings [data-pdf-footer] {
+    min-height: 190px;
+}
+
+@media (max-width: 1100px) {
+    .davvag-reporting__layout {
+        grid-template-columns: minmax(240px, 310px) minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .davvag-reporting {
+        padding: 12px;
+    }
+
+    .davvag-reporting__header {
+        flex-direction: column;
+    }
+
+    .davvag-reporting__actions,
+    .davvag-reporting__toolbar {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .davvag-reporting__layout,
+    .davvag-reporting__grid,
+    .davvag-reporting__grid--three {
+        grid-template-columns: 1fr;
+    }
+
+    .davvag-reporting__layout > aside {
+        position: static;
+    }
+
+    .davvag-reporting__toolbar .form-control {
+        max-width: none;
+        width: 100%;
+    }
+
+    .davvag-reporting__bar-row {
+        grid-template-columns: 1fr;
+    }
+}

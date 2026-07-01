@@ -1,0 +1,62 @@
+<section class="davvag-reporting davvag-reporting-settings">
+    <header class="davvag-reporting__header">
+        <div>
+            <h1>Report Settings</h1>
+            <p>Shared PDF header and footer HTML for DAVVAG Reporting exports.</p>
+        </div>
+        <div class="davvag-reporting__actions">
+            <button type="button" class="btn btn-default" data-settings-back><i class="fa fa-list"></i> Reports</button>
+            <button type="button" class="btn btn-default" data-settings-reset><i class="fa fa-undo"></i> Defaults</button>
+            <button type="button" class="btn btn-primary" data-settings-save><i class="fa fa-save"></i> Save</button>
+        </div>
+    </header>
+
+    <div class="davvag-reporting__status" data-settings-status>Loading settings.</div>
+
+    <section class="davvag-reporting__panel">
+        <h2>PDF Header</h2>
+        <div class="davvag-reporting__field">
+            <span>Header HTML</span>
+            <textarea class="form-control" rows="8" spellcheck="false" data-pdf-header></textarea>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__panel">
+        <h2>PDF Footer</h2>
+        <div class="davvag-reporting__field">
+            <span>Footer HTML</span>
+            <textarea class="form-control" rows="8" spellcheck="false" data-pdf-footer></textarea>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__panel">
+        <h2>Template Tokens</h2>
+        <div class="davvag-reporting__table-wrap">
+            <table class="davvag-reporting__table">
+                <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>@reportTitle</td><td>Current report title</td></tr>
+                    <tr><td>@reportCode</td><td>Current report code</td></tr>
+                    <tr><td>@namespace</td><td>Generated raw-query schema namespace</td></tr>
+                    <tr><td>@generatedAt</td><td>Export timestamp in UTC</td></tr>
+                    <tr><td>@pageNumber</td><td>mPDF current page number</td></tr>
+                    <tr><td>@pageCount</td><td>mPDF total page count</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="davvag-reporting__panel">
+        <h2>Preview</h2>
+        <div class="davvag-reporting__pdf-preview">
+            <div data-preview-header></div>
+            <div class="davvag-reporting__empty">Report table content renders between header and footer in exported PDFs.</div>
+            <div data-preview-footer></div>
+        </div>
+    </section>
+</section>

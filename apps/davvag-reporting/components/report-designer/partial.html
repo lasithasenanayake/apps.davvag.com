@@ -1,0 +1,135 @@
+<section class="davvag-reporting davvag-reporting-designer">
+    <header class="davvag-reporting__header">
+        <div>
+            <h1>Report Designer</h1>
+            <p data-designer-current>New report</p>
+        </div>
+        <div class="davvag-reporting__actions">
+            <button type="button" class="btn btn-default" data-designer-back><i class="fa fa-list"></i> Reports</button>
+            <button type="button" class="btn btn-default" data-designer-new><i class="fa fa-eraser"></i> New</button>
+            <button type="button" class="btn btn-info" data-designer-preview><i class="fa fa-play"></i> Preview</button>
+            <button type="button" class="btn btn-primary" data-designer-save><i class="fa fa-save"></i> Save</button>
+        </div>
+    </header>
+
+    <div class="davvag-reporting__status" data-designer-status>Ready.</div>
+
+    <div class="davvag-reporting__layout">
+        <aside>
+            <section class="davvag-reporting__panel">
+                <h2>Definition</h2>
+                <div class="davvag-reporting__field">
+                    <span>Report Code</span>
+                    <input type="text" class="form-control" data-report-code placeholder="sales-summary">
+                </div>
+                <div class="davvag-reporting__field">
+                    <span>Title</span>
+                    <input type="text" class="form-control" data-report-title placeholder="Sales Summary">
+                </div>
+                <div class="davvag-reporting__field">
+                    <span>Namespace</span>
+                    <input type="text" class="form-control" data-report-namespace placeholder="rpt_sales_summary">
+                </div>
+                <div class="davvag-reporting__field">
+                    <span>Description</span>
+                    <textarea class="form-control" data-report-description rows="4"></textarea>
+                </div>
+            </section>
+
+            <section class="davvag-reporting__panel">
+                <h2>Chart</h2>
+                <label class="checkbox">
+                    <input type="checkbox" data-chart-enabled> Enabled
+                </label>
+                <div class="davvag-reporting__grid">
+                    <div class="davvag-reporting__field">
+                        <span>Type</span>
+                        <select class="form-control" data-chart-type>
+                            <option value="bar">Bar</option>
+                            <option value="line">Line</option>
+                            <option value="summary">Summary</option>
+                        </select>
+                    </div>
+                    <div class="davvag-reporting__field">
+                        <span>X Field</span>
+                        <select class="form-control" data-chart-x></select>
+                    </div>
+                </div>
+                <div class="davvag-reporting__field">
+                    <span>Y Fields</span>
+                    <input type="text" class="form-control" data-chart-y placeholder="amount,total">
+                </div>
+            </section>
+        </aside>
+
+        <main>
+            <section class="davvag-reporting__panel">
+                <div class="davvag-reporting__inline-actions">
+                    <h2>SQL</h2>
+                    <button type="button" class="btn btn-default btn-sm" data-designer-infer><i class="fa fa-magic"></i> Infer</button>
+                </div>
+                <textarea class="form-control" data-report-sql spellcheck="false" placeholder="SELECT id, name FROM profile LIMIT $page,$size"></textarea>
+            </section>
+
+            <section class="davvag-reporting__panel">
+                <div class="davvag-reporting__inline-actions">
+                    <h2>Parameters</h2>
+                    <button type="button" class="btn btn-default btn-sm" data-add-param><i class="fa fa-plus"></i> Add</button>
+                </div>
+                <div class="davvag-reporting__table-wrap">
+                    <table class="davvag-reporting__table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Label</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Required</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-param-rows></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="davvag-reporting__panel">
+                <div class="davvag-reporting__inline-actions">
+                    <h2>Fields</h2>
+                    <button type="button" class="btn btn-default btn-sm" data-add-field><i class="fa fa-plus"></i> Add</button>
+                </div>
+                <div class="davvag-reporting__table-wrap">
+                    <table class="davvag-reporting__table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Label</th>
+                                <th>Type</th>
+                                <th>Visible</th>
+                                <th>Format</th>
+                                <th>Max Len</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-field-rows></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="davvag-reporting__panel">
+                <h2>Grid</h2>
+                <div class="davvag-reporting__field">
+                    <span>Page Size</span>
+                    <input type="number" class="form-control" data-grid-page-size value="50" min="1" max="5000">
+                </div>
+            </section>
+
+            <section class="davvag-reporting__panel">
+                <h2>Preview</h2>
+                <div class="davvag-reporting__preview" data-preview-output>
+                    <div class="davvag-reporting__empty">No preview data.</div>
+                </div>
+            </section>
+        </main>
+    </div>
+</section>
