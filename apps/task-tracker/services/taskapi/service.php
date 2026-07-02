@@ -355,7 +355,7 @@ class TaskManagerService {
         $log->startDate = isset($log->startDate) && $log->startDate !== "" ? $log->startDate : null;
         $log->endDate = isset($log->endDate) && $log->endDate !== "" ? $log->endDate : null;
         $log->durationInMinutes = isset($log->durationInMinutes) ? intval($log->durationInMinutes) : 0;
-        if ($log->durationInMinutes === 0 && $log->startDate !== null && $log->endDate !== null) {
+        if ($log->startDate !== null && $log->endDate !== null) {
             $duration = strtotime($log->endDate) - strtotime($log->startDate);
             if ($duration > 0) {
                 $log->durationInMinutes = intval(round($duration / 60));

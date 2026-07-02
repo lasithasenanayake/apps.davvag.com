@@ -3,6 +3,7 @@ WEBDOCK.component().register(function (exports) {
     var handler;
     var routeData = {};
     var timer = null;
+    var activityListenersBound = false;
 
     var bindData = {
         errors: [],
@@ -14,6 +15,8 @@ WEBDOCK.component().register(function (exports) {
         elapsedSeconds: 0,
         startAt: null,
         endAt: null,
+        pauseStartedAt: null,
+        pausedDurationMs: 0,
         logForm: emptyLog(),
         statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
     };
@@ -48,6 +51,7 @@ WEBDOCK.component().register(function (exports) {
 
     function initialize() {
         ensureTaskCommonStyles();
+        bindActivityListeners();
         api = exports.getComponent("taskapi");
         handler = exports.getShellComponent("soss-routes");
         routeData = getRouteData();
@@ -93,10 +97,10 @@ WEBDOCK.component().register(function (exports) {
         bindData.elapsedSeconds = 0;
         bindData.startAt = new Date();
         bindData.endAt = null;
+        bindData.pauseStartedAt = null;
+        bindData.pausedDurationMs = 0;
         timer = setInterval(function () {
-            if (!bindData.paused) {
-                bindData.elapsedSeconds++;
-            }
+            syncElapsedSeconds();
         }, 1000);
     }
 
@@ -106,25 +110,40 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function togglePause() {
-        bindData.paused = !bindData.paused;
+        if (bindData.paused) {
+            resumeElapsedClock();
+        } else {
+            syncElapsedSeconds();
+            bindData.pauseStartedAt = new Date();
+            bindData.paused = true;
+        }
     }
 
     function resumeTimer() {
         bindData.mode = "tracking";
-        bindData.paused = false;
+        if (bindData.startAt && bindData.endAt) {
+            bindData.startAt = new Date(bindData.startAt.getTime() + Math.max(0, new Date().getTime() - bindData.endAt.getTime()));
+        }
+        bindData.endAt = null;
+        if (bindData.paused) {
+            resumeElapsedClock();
+        }
         if (!timer) {
             timer = setInterval(function () {
-                if (!bindData.paused) {
-                    bindData.elapsedSeconds++;
-                }
+                syncElapsedSeconds();
             }, 1000);
         }
+        syncElapsedSeconds();
     }
 
     function stopTimer() {
         clearTimer();
-        bindData.paused = false;
         bindData.endAt = new Date();
+        if (bindData.paused) {
+            resumeElapsedClock(bindData.endAt);
+        }
+        syncElapsedSeconds(bindData.endAt);
+        bindData.paused = false;
         bindData.mode = "logging";
         resetLogForm();
     }
@@ -138,7 +157,7 @@ WEBDOCK.component().register(function (exports) {
 
     function resetLogForm() {
         bindData.logForm = emptyLog();
-        bindData.logForm.durationInMinutes = Math.max(1, Math.round(bindData.elapsedSeconds / 60));
+        bindData.logForm.durationInMinutes = calculateDurationInMinutes(bindData.startAt, bindData.endAt, bindData.elapsedSeconds);
         bindData.logForm.progress = bindData.task ? parseInt(bindData.task.progress || 0, 10) : 0;
         bindData.logForm.status = bindData.task ? (bindData.task.status || "In Progress") : "In Progress";
     }
@@ -156,9 +175,10 @@ WEBDOCK.component().register(function (exports) {
 
         var startAt = bindData.startAt || new Date();
         var endAt = bindData.endAt || new Date();
+        syncElapsedSeconds(endAt);
         var log = clone(bindData.logForm);
         log.taskId = bindData.task.taskId;
-        log.durationInMinutes = Math.max(1, parseInt(log.durationInMinutes || 0, 10));
+        log.durationInMinutes = calculateDurationInMinutes(startAt, endAt, bindData.elapsedSeconds);
         log.progress = Math.max(0, Math.min(100, parseInt(log.progress || 0, 10)));
         log.logDate = formatDateTime(startAt);
         log.startDate = formatDateTime(startAt);
@@ -184,6 +204,7 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function formattedTime() {
+        syncElapsedSeconds(bindData.endAt);
         var total = parseInt(bindData.elapsedSeconds || 0, 10);
         var hours = Math.floor(total / 3600);
         var minutes = Math.floor((total % 3600) / 60);
@@ -195,6 +216,7 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function ringStyle() {
+        syncElapsedSeconds(bindData.endAt);
         var degrees = Math.round(((bindData.elapsedSeconds % 3600) / 3600) * 360);
         if (degrees < 8 && bindData.elapsedSeconds > 0) {
             degrees = 8;
@@ -244,7 +266,64 @@ WEBDOCK.component().register(function (exports) {
         var day = pad(value.getDate());
         var hours = pad(value.getHours());
         var minutes = pad(value.getMinutes());
-        return value.getFullYear() + "-" + month + "-" + day + "T" + hours + ":" + minutes;
+        var seconds = pad(value.getSeconds());
+        return value.getFullYear() + "-" + month + "-" + day + "T" + hours + ":" + minutes + ":" + seconds;
+    }
+
+    function bindActivityListeners() {
+        if (activityListenersBound) {
+            return;
+        }
+        activityListenersBound = true;
+        document.addEventListener("visibilitychange", syncFromAppState);
+        window.addEventListener("focus", syncFromAppState);
+    }
+
+    function syncFromAppState() {
+        if (!bindData.startAt) {
+            return;
+        }
+        if (bindData.mode === "tracking") {
+            syncElapsedSeconds();
+            return;
+        }
+        if (bindData.mode === "logging") {
+            syncElapsedSeconds(bindData.endAt || new Date());
+            bindData.logForm.durationInMinutes = calculateDurationInMinutes(bindData.startAt, bindData.endAt, bindData.elapsedSeconds);
+        }
+    }
+
+    function resumeElapsedClock(referenceTime) {
+        var resumeAt = referenceTime || new Date();
+        if (bindData.pauseStartedAt) {
+            bindData.pausedDurationMs += Math.max(0, resumeAt.getTime() - bindData.pauseStartedAt.getTime());
+        }
+        bindData.pauseStartedAt = null;
+        bindData.paused = false;
+        syncElapsedSeconds();
+    }
+
+    function syncElapsedSeconds(referenceTime) {
+        if (!bindData.startAt) {
+            bindData.elapsedSeconds = 0;
+            return;
+        }
+        var endAt = referenceTime || bindData.endAt || new Date();
+        var elapsedMs = endAt.getTime() - bindData.startAt.getTime() - parseInt(bindData.pausedDurationMs || 0, 10);
+        if (bindData.paused && bindData.pauseStartedAt) {
+            elapsedMs -= Math.max(0, endAt.getTime() - bindData.pauseStartedAt.getTime());
+        }
+        bindData.elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+    }
+
+    function calculateDurationInMinutes(startAt, endAt, fallbackElapsedSeconds) {
+        if (startAt && endAt) {
+            var diffMs = endAt.getTime() - startAt.getTime() - parseInt(bindData.pausedDurationMs || 0, 10);
+            if (diffMs > 0) {
+                return Math.max(1, Math.round(diffMs / 60000));
+            }
+        }
+        return Math.max(1, Math.round(parseInt(fallbackElapsedSeconds || 0, 10) / 60));
     }
 
     function pad(value) {
