@@ -1,0 +1,323 @@
+<div class="product-v2-app inventory-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-archive"></i> Inventory</h3>
+      <p>Track stock, purchase orders, goods received notes, barcode lookup, and adjustments.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><i class="fa fa-refresh"></i> Refresh</button>
+      <button class="btn btn-primary" v-on:click="navigateProducts"><i class="fa fa-cubes"></i> Products</button>
+    </div>
+  </div>
+
+  <div class="inventory-tabs">
+    <button class="btn" v-bind:class="activeTab == 'dashboard' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('dashboard')"><i class="fa fa-dashboard"></i> Dashboard</button>
+    <button class="btn" v-bind:class="activeTab == 'po' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('po')"><i class="fa fa-file-text-o"></i> Purchase Order</button>
+    <button class="btn" v-bind:class="activeTab == 'grn' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('grn')"><i class="fa fa-truck"></i> GRN</button>
+    <button class="btn" v-bind:class="activeTab == 'issue' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('issue')"><i class="fa fa-share-square-o"></i> Issue</button>
+    <button class="btn" v-bind:class="activeTab == 'adjust' ? 'btn-primary' : 'btn-default'" v-on:click="setTab('adjust')"><i class="fa fa-sliders"></i> Adjustments</button>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div v-show="activeTab == 'dashboard'">
+    <div class="inventory-metrics">
+      <div class="inventory-metric">
+        <span>Inventory Items</span>
+        <strong>{{ totals.inventoryItems || 0 }}</strong>
+      </div>
+      <div class="inventory-metric">
+        <span>Low Stock</span>
+        <strong>{{ totals.lowStock || 0 }}</strong>
+      </div>
+      <div class="inventory-metric">
+        <span>Open POs</span>
+        <strong>{{ totals.openPOs || 0 }}</strong>
+      </div>
+      <div class="inventory-metric">
+        <span>Stock Value</span>
+        <strong>{{ formatMoney(totals.stockValue) }}</strong>
+      </div>
+    </div>
+
+    <div class="inventory-scan-row">
+      <input class="form-control" placeholder="Scan barcode or enter product code" v-model="lookup.value" v-on:keyup.enter="lookupProduct">
+      <button class="btn btn-default" v-on:click="lookupProduct"><i class="fa fa-barcode"></i> Lookup</button>
+    </div>
+
+    <div class="product-table-wrap inventory-section">
+      <h4>Stock Position</h4>
+      <table class="table table-bordered product-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th style="width: 130px;">Barcode</th>
+            <th style="width: 100px;">UOM</th>
+            <th style="width: 120px;" class="text-right">On Hand</th>
+            <th style="width: 120px;" class="text-right">Reorder</th>
+            <th style="width: 120px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="loading">
+            <td colspan="6" class="product-empty-state">Loading inventory...</td>
+          </tr>
+          <tr v-show="!loading && stockProducts.length === 0">
+            <td colspan="6" class="product-empty-state">No inventory products found.</td>
+          </tr>
+          <tr v-for="product in stockProducts">
+            <td>
+              <div class="product-name">#{{ product.itemid }} {{ product.name }}</div>
+              <div class="product-muted">{{ product.catogory || 'Unassigned' }}</div>
+            </td>
+            <td>{{ product.barcode || '-' }}</td>
+            <td>{{ product.uom || '-' }}</td>
+            <td class="text-right">{{ number(product.stockQty || product.qty) }}</td>
+            <td class="text-right">{{ number(product.reorder_qty) }}</td>
+            <td><span v-bind:class="stockStatusClass(product)">{{ stockStatus(product) }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="inventory-grid">
+      <div class="product-table-wrap inventory-section">
+        <h4>Open Purchase Orders</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>PO</th>
+              <th>Supplier</th>
+              <th class="text-right">Total</th>
+              <th class="text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-show="openPurchaseOrders.length === 0">
+              <td colspan="4" class="product-empty-state">No open purchase orders.</td>
+            </tr>
+            <tr v-for="po in openPurchaseOrders">
+              <td>#{{ po.tranNo }}</td>
+              <td>{{ po.name }}</td>
+              <td class="text-right">{{ formatMoney(po.total) }}</td>
+              <td class="text-right"><button class="btn btn-primary btn-sm" v-on:click="receiveFromPO(po)"><i class="fa fa-truck"></i> Receive</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="product-table-wrap inventory-section">
+        <h4>Recent Movements</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Product</th>
+              <th class="text-right">Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-show="recentMovements.length === 0">
+              <td colspan="4" class="product-empty-state">No movements yet.</td>
+            </tr>
+            <tr v-for="movement in recentMovements">
+              <td>{{ movement.invdate }}</td>
+              <td>{{ movement.transactiontype }}</td>
+              <td>#{{ movement.productid }}</td>
+              <td class="text-right">{{ number(movement.qty) }} {{ movement.uom }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="activeTab == 'po'" class="inventory-workflow">
+    <div class="inventory-form-band">
+      <h4>Supplier</h4>
+      <div class="inventory-scan-row">
+        <button class="btn btn-default" v-on:click="openSupplierPopup('po')"><i class="fa fa-search"></i> Select Supplier</button>
+        <button class="btn btn-default" v-if="po.profileId" v-on:click="clearSupplier('po')"><i class="fa fa-times"></i> Clear Supplier</button>
+      </div>
+      <div class="product-summary" v-if="po.profileId">
+        <i class="fa fa-user"></i>
+        <span>#{{ po.profileId }} {{ po.name }} {{ po.email ? '(' + po.email + ')' : '' }}</span>
+      </div>
+    </div>
+
+    <div class="inventory-form-band">
+      <h4>Products</h4>
+      <div class="inventory-scan-row">
+        <input class="form-control" placeholder="Scan barcode or search product" v-model="poProductSearch.value" v-on:keyup.enter="searchProducts('po')">
+        <button class="btn btn-default" v-on:click="searchProducts('po')"><i class="fa fa-barcode"></i> Add</button>
+      </div>
+      <div class="inventory-lookup-results" v-show="poProductResults.length">
+        <button class="btn btn-default" v-for="product in poProductResults" v-on:click="addLine('po', product)">
+          <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+        </button>
+      </div>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th style="width: 110px;">UOM</th>
+            <th style="width: 120px;">Qty</th>
+            <th style="width: 130px;">Cost</th>
+            <th style="width: 140px;" class="text-right">Total</th>
+            <th style="width: 70px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="po.InvoiceItems.length === 0">
+            <td colspan="6" class="product-empty-state">Add products to the purchase order.</td>
+          </tr>
+          <tr v-for="(line,index) in po.InvoiceItems">
+            <td>#{{ line.itemid }} {{ line.name }}</td>
+            <td>{{ line.uom }}</td>
+            <td><input type="number" class="form-control" v-model="line.qty" v-on:input="recalc('po')"></td>
+            <td><input type="number" class="form-control" v-model="line.price" v-on:input="recalc('po')"></td>
+            <td class="text-right">{{ formatMoney(line.total) }}</td>
+            <td><button class="btn btn-danger btn-sm" v-on:click="removeLine('po', index)"><i class="fa fa-trash"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="inventory-total-row">
+        <span>Subtotal {{ formatMoney(po.subtotal) }}</span>
+        <span>Total {{ formatMoney(po.total) }}</span>
+        <button class="btn btn-primary" v-on:click="savePO" v-bind:disabled="saving"><i class="fa fa-save"></i> Save PO</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="activeTab == 'grn'" class="inventory-workflow">
+    <div class="inventory-form-band">
+      <h4>Goods Receive Note</h4>
+      <div class="inventory-scan-row">
+        <button class="btn btn-default" v-on:click="openSupplierPopup('grn')"><i class="fa fa-search"></i> Select Supplier</button>
+        <button class="btn btn-default" v-if="grn.profileId" v-on:click="clearSupplier('grn')"><i class="fa fa-times"></i> Receive Without Supplier</button>
+      </div>
+      <div class="product-summary" v-if="grn.profileId">
+        <i class="fa fa-user"></i>
+        <span>#{{ grn.profileId }} {{ grn.name }} {{ grn.email ? '(' + grn.email + ')' : '' }}</span>
+      </div>
+      <select class="form-control" v-model="selectedPoNo" v-on:change="loadSelectedPO">
+        <option value="">Receive without PO</option>
+        <option v-for="po in filteredOpenPOs()" v-bind:value="po.tranNo">PO #{{ po.tranNo }} - {{ po.name }}</option>
+      </select>
+      <div class="inventory-scan-row">
+        <input class="form-control" placeholder="Scan barcode or search product" v-model="grnProductSearch.value" v-on:keyup.enter="searchProducts('grn')">
+        <button class="btn btn-default" v-on:click="searchProducts('grn')"><i class="fa fa-barcode"></i> Add</button>
+      </div>
+      <div class="inventory-lookup-results" v-show="grnProductResults.length">
+        <button class="btn btn-default" v-for="product in grnProductResults" v-on:click="addLine('grn', product)">
+          <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+        </button>
+      </div>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th style="width: 110px;">UOM</th>
+            <th style="width: 120px;">Received</th>
+            <th style="width: 130px;">Cost</th>
+            <th style="width: 260px;">Barcode Labels</th>
+            <th style="width: 140px;" class="text-right">Total</th>
+            <th style="width: 70px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="grn.InvoiceItems.length === 0">
+            <td colspan="7" class="product-empty-state">Add received products or choose a PO.</td>
+          </tr>
+          <tr v-for="(line,index) in grn.InvoiceItems">
+            <td>#{{ line.itemid }} {{ line.name }}</td>
+            <td>{{ line.uom }}</td>
+            <td><input type="number" class="form-control" v-model="line.qty" v-on:input="recalc('grn')"></td>
+            <td><input type="number" class="form-control" v-model="line.price" v-on:input="recalc('grn')"></td>
+            <td>
+              <div class="inventory-barcode-entry">
+                <input class="form-control" placeholder="Scan label barcode" v-model="line.barcodeInput" v-on:keyup.enter="addBarcodeToLine(index)">
+                <button class="btn btn-default btn-sm" v-on:click="addBarcodeToLine(index)"><i class="fa fa-plus"></i></button>
+              </div>
+              <div class="inventory-barcode-list" v-if="line.barcodes && line.barcodes.length">
+                <span class="label label-default" v-for="(barcode,bindex) in line.barcodes">
+                  {{ barcode }} <button type="button" v-on:click="removeBarcodeFromLine(line,bindex)">&times;</button>
+                </span>
+              </div>
+            </td>
+            <td class="text-right">{{ formatMoney(line.total) }}</td>
+            <td><button class="btn btn-danger btn-sm" v-on:click="removeLine('grn', index)"><i class="fa fa-trash"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="inventory-total-row">
+        <span>Subtotal {{ formatMoney(grn.subtotal) }}</span>
+        <span>Total {{ formatMoney(grn.total) }}</span>
+        <button class="btn btn-primary" v-on:click="saveGRN" v-bind:disabled="saving"><i class="fa fa-check"></i> Save GRN</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="activeTab == 'issue'" class="inventory-workflow">
+    <div class="inventory-form-band">
+      <h4>Issue By Barcode</h4>
+      <div class="inventory-form-grid">
+        <input class="form-control" placeholder="Scan barcode to issue" v-model="issue.barcode" v-on:keyup.enter="issueGoods">
+        <input class="form-control" placeholder="Issued to" v-model="issue.issuedTo">
+        <input class="form-control" placeholder="Reference" v-model="issue.issuedRef">
+        <button class="btn btn-primary" v-on:click="issueGoods" v-bind:disabled="saving"><i class="fa fa-check"></i> Issue</button>
+      </div>
+      <textarea class="form-control" placeholder="Remarks" v-model="issue.remarks"></textarea>
+    </div>
+
+    <div class="product-table-wrap inventory-section">
+      <h4>Recent Barcode Units</h4>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Product</th>
+            <th>Status</th>
+            <th>GRN</th>
+            <th>Issued To</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="barcodeUnits.length === 0">
+            <td colspan="5" class="product-empty-state">No barcode units received yet.</td>
+          </tr>
+          <tr v-for="unit in barcodeUnits">
+            <td>{{ unit.barcode }}</td>
+            <td>#{{ unit.itemid }} {{ unit.name }}</td>
+            <td><span v-bind:class="unit.status == 'Issued' ? 'label label-warning' : 'label label-success'">{{ unit.status }}</span></td>
+            <td>#{{ unit.grnNo || '-' }}</td>
+            <td>{{ unit.issuedTo || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div v-show="activeTab == 'adjust'" class="inventory-workflow">
+    <div class="inventory-form-band">
+      <h4>Stock Adjustment</h4>
+      <div class="inventory-scan-row">
+        <input class="form-control" placeholder="Scan barcode or search product" v-model="adjustProductSearch.value" v-on:keyup.enter="searchProducts('adjust')">
+        <button class="btn btn-default" v-on:click="searchProducts('adjust')"><i class="fa fa-search"></i> Find</button>
+      </div>
+      <div class="inventory-lookup-results" v-show="adjustProductResults.length">
+        <button class="btn btn-default" v-for="product in adjustProductResults" v-on:click="selectAdjustmentProduct(product)">
+          <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+        </button>
+      </div>
+      <div class="inventory-form-grid">
+        <input class="form-control" disabled="disabled" v-bind:value="adjustment.itemid ? '#' + adjustment.itemid + ' ' + adjustment.name : 'No product selected'">
+        <input type="number" class="form-control" v-model="adjustment.qty" placeholder="Adjustment qty, use negative to reduce">
+        <input class="form-control" v-model="adjustment.reason" placeholder="Reason">
+        <button class="btn btn-primary" v-on:click="saveAdjustment" v-bind:disabled="saving"><i class="fa fa-save"></i> Save Adjustment</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,19 @@
+{
+    "name" : "inventory-dashboard",
+    "description":"Inventory dashboard, purchase order, GRN, barcode lookup, and stock adjustment workflow",
+    "author":"Davvag",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            },
+            {
+                "type" : "mainView",
+                "location" : "partial.html"
+            }
+        ]
+    }
+}

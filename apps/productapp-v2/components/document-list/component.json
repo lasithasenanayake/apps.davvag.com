@@ -1,0 +1,19 @@
+{
+    "name" : "document-list",
+    "description":"Purchase order and GRN list view",
+    "author":"Davvag",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            },
+            {
+                "type" : "mainView",
+                "location" : "partial.html"
+            }
+        ]
+    }
+}

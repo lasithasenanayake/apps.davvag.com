@@ -21,12 +21,10 @@ WEBDOCK.component().register(function(exports){
             clearSearch:clearSearch,
             refreshProducts:refreshProducts,
             navigate: function(id){
-                var routeHandler = exports.getShellComponent("soss-routes");
-                routeHandler.appNavigate(id ? "/product?productid=" + id : "/product");
+                appNavigate(id ? "product?productid=" + id : "product");
             },
             navigatePublish: function(id){
-                var routeHandler = exports.getShellComponent("soss-routes");
-                routeHandler.appNavigate(id ? "/publish?productid=" + id : "/publish");
+                appNavigate(id ? "publish?productid=" + id : "publish");
             },
             deleteProduct:deleteProduct,
             productImage:productImage,
@@ -43,6 +41,22 @@ WEBDOCK.component().register(function(exports){
     function initializeComponent(){
         handler = exports.getComponent("product");
         refreshProducts();
+    }
+
+    function appNavigate(path){
+        var routeHandler = exports.getShellComponent("soss-routes");
+        if(!routeHandler || !routeHandler.appNavigate){
+            return;
+        }
+        routeHandler.appNavigate(normalizeRoute(path));
+    }
+
+    function normalizeRoute(path){
+        path = (path || "").toString();
+        while(path.indexOf("/") === 0){
+            path = path.substring(1);
+        }
+        return path || "..";
     }
 
     function refreshProducts(){
@@ -81,6 +95,7 @@ WEBDOCK.component().register(function(exports){
             description:element.description || "",
             caption:stripHtml(element.caption || ""),
             keywords:element.keywords || "",
+            barcode:element.barcode || "",
             price:element.price,
             cost:element.cost,
             discountper:element.discountper,
@@ -121,6 +136,7 @@ WEBDOCK.component().register(function(exports){
             recordValue(record,"itemid"),
             recordValue(record,"name"),
             recordValue(record,"catogory"),
+            recordValue(record,"barcode"),
             recordValue(record,"uom"),
             recordValue(record,"invType"),
             recordValue(record,"showonstore"),

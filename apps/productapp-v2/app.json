@@ -4,6 +4,10 @@
             "type": "service",
             "location": "services"
         },
+        "uom-handler": {
+            "type": "service",
+            "location": "services"
+        },
         "product-style": {
             "type": "component",
             "location": "components"
@@ -31,6 +35,26 @@
         "newproduct-v2": {
             "type": "component",
             "location": "components"
+        },
+        "inventory-dashboard": {
+            "type": "component",
+            "location": "components"
+        },
+        "document-list": {
+            "type": "component",
+            "location": "components"
+        },
+        "document-form": {
+            "type": "component",
+            "location": "components"
+        },
+        "document-print": {
+            "type": "component",
+            "location": "components"
+        },
+        "uom-manager": {
+            "type": "component",
+            "location": "components"
         }
     },
     "description": {
@@ -47,14 +71,51 @@
             "startupComponent": "frmproduct-list",
             "onLoad": [
                 "product-style",
-                "product"
+                "product",
+                "uom-handler"
             ],
             "routes": {
                 "partials": {
                     "/product": "newproduct-v2",
-                    "/publish": "newproduct_publish"
+                    "/publish": "newproduct_publish",
+                    "/inventory": "inventory-dashboard",
+                    "/po-list": "document-list",
+                    "/grn-list": "document-list",
+                    "/po": "document-form",
+                    "/grn": "document-form",
+                    "/po-view": "document-print",
+                    "/grn-view": "document-print",
+                    "/uom": "uom-manager"
                 }
             }
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Products",
+                    "path": ""
+                },
+                {
+                    "name": "Inventory",
+                    "path": "inventory"
+                },
+                {
+                    "name": "Purchase Orders",
+                    "path": "po-list"
+                },
+                {
+                    "name": "GRN List",
+                    "path": "grn-list"
+                },
+                {
+                    "name": "Unit of Measure",
+                    "path": "uom"
+                },
+                {
+                    "name": "New Product",
+                    "path": "product"
+                }
+            ]
         }
     },
     "dependencies": {
@@ -64,11 +125,21 @@
         "schemas": [
             "d_all_summery",
             "d_cms_artical_v1",
+            "grndetails",
+            "grnheader",
+            "inventoryhistory",
             "nearproducts",
+            "podetails",
+            "poheader",
+            "product_barcode_units",
+            "product_inventryhistory",
+            "product_inventrymaster",
             "product_published",
+            "profile",
             "products",
             "products_attributes",
-            "products_image"
+            "products_image",
+            "uom"
         ],
         "workflows": [],
         "plugins": [

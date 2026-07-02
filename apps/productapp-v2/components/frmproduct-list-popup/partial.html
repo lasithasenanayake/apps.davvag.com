@@ -5,6 +5,7 @@
       <option value="itemid">Product ID</option>
       <option value="name">Name</option>
       <option value="catogory">Category</option>
+      <option value="barcode">Barcode</option>
       <option value="uom">UOM</option>
       <option value="invType">Type</option>
       <option value="showonstore">Store flag</option>
@@ -58,6 +59,7 @@
           <td>
             <div class="product-name">#{{ product.itemid }} {{ product.name }}</div>
             <div class="product-muted">{{ product.caption }}</div>
+            <div class="product-muted" v-show="product.barcode"><i class="fa fa-barcode"></i> {{ product.barcode }}</div>
             <div class="product-muted" v-show="product.keywords"><i class="fa fa-tags"></i> {{ product.keywords }}</div>
             <div>
               <span v-bind:class="product.showonstore === 'Y' ? 'label label-success' : 'label label-default'">{{ productStatus(product) }}</span>

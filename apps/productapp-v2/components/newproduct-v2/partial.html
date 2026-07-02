@@ -39,6 +39,12 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="col-sm-3 control-label">Barcode</label>
+            <div class="col-sm-6">
+              <input type="text" class="form-control" v-model="product.barcode" placeholder="Scan or enter barcode">
+            </div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-3 control-label">Show On Store</label>
             <div class="col-sm-6">
               <select class="form-control" v-model="product.showonstore">
@@ -73,9 +79,15 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">Unit of Measure</label>
             <div class="col-sm-6">
-              <select class="form-control" v-model="product.uom">
-                <option v-for="uom in uoms" v-bind:value="uom">{{ uom }}</option>
-              </select>
+              <div class="product-inline-control">
+                <select class="form-control" v-model="product.uom">
+                  <option value="">Select Unit of Measure</option>
+                  <option v-for="uom in uoms" v-bind:value="uom.symbol">{{ uom.symbol }} - {{ uom.name }}</option>
+                </select>
+                <button type="button" class="btn btn-default" v-on:click="openUomManager">
+                  <i class="fa fa-plus"></i> UOM
+                </button>
+              </div>
             </div>
           </div>
           <div class="form-group">

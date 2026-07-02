@@ -43,6 +43,13 @@
             }
         },
         {
+            "fieldName":"barcode",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 100
+            }
+        },
+        {
             "fieldName":"sellstype",
             "dataType":"java.lang.String",
             "annotations":{

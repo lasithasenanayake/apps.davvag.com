@@ -19,6 +19,47 @@
         {
             "fieldName":"status",
             "dataType":"java.lang.String"
+        },
+        {
+            "fieldName":"recordtype",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 20
+            }
+        },
+        {
+            "fieldName":"fromSymbol",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName":"toSymbol",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 50
+            }
+        },
+        {
+            "fieldName":"fromQty",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"toQty",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"multiplier",
+            "dataType":"float"
+        },
+        {
+            "fieldName":"notes",
+            "dataType":"java.lang.String",
+            "annotations":{
+                "maxLen": 500,
+                "encoding":"utf8"
+            }
         }
     ]
 }

@@ -2,7 +2,7 @@ WEBDOCK.component().register(function(exports){
     var pInstance;
     var routeData;
     var validatorInstance;
-    var handler,attribute,cropper1,producthandler,uploaderInstance,uploader,editor;
+    var handler,attribute,cropper1,producthandler,uomhandler,uploaderInstance,uploader,editor;
     var newfiles;
     var validatorPage1,validatorPrice,validatorcat;
 
@@ -15,6 +15,7 @@ WEBDOCK.component().register(function(exports){
             attributes:{"temp":"aaaa"},
             showonstore:"Y",
             sellstype:"se",
+            barcode:"",
             cost:0,
             price:0,
             discountper:0,
@@ -145,6 +146,7 @@ WEBDOCK.component().register(function(exports){
             submit:submit,
             clear:clearProfile,
             searchItems:searchItems,
+            openUomManager:openUomManager,
             createImage:createImage ,
             removeImage: removeImage,
             changeType:changType,
@@ -230,6 +232,7 @@ WEBDOCK.component().register(function(exports){
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
+        uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         attribute=exports.getShellComponent("attribute_shell");
         editor=$("#txtcaption").Editor();
@@ -342,8 +345,7 @@ WEBDOCK.component().register(function(exports){
     function loadInitialData(){
         
         var menuhandler  = exports.getShellComponent("soss-data");
-            var query=[{storename:"productcat",search:""},
-            {storename:"uom",search:""}];
+            var query=[{storename:"productcat",search:""}];
             //var tmpmenu=[];
             if(routeData.productid!=null){
                 //loadProduct(bindData);
@@ -356,12 +358,10 @@ WEBDOCK.component().register(function(exports){
                             console.log(JSON.stringify(r));
                             if(r.success){
                                 bindData.categories=[];
-                                bindData.uoms=[];
                                 for (var i=0;i<(r.result.productcat || []).length;i++){
                                     bindData.categories.push({id:r.result.productcat[i].id,name:r.result.productcat[i].name});
                                 }
-                                for (var i=0;i<(r.result.uom || []).length;i++)
-                                    bindData.uoms.push(r.result.uom[i]["symbol"]);
+                                loadUoms();
                                 
                                
                                if(r.result.products && r.result.products.length!=0){
@@ -392,10 +392,79 @@ WEBDOCK.component().register(function(exports){
                         })
                         .error(function(error){
                             console.log(error && error.responseJSON ? error.responseJSON : error);
+                            loadUoms();
             });
         
 
         
+    }
+
+    function loadUoms(){
+        bindData.uoms=[];
+        if(!uomhandler || !uomhandler.transformers || !uomhandler.transformers.allUom){
+            loadUomsFallback();
+            return;
+        }
+        uomhandler.transformers.allUom()
+            .then(function(response){
+                if(response.success){
+                    setUoms(response.result || []);
+                }else{
+                    loadUomsFallback();
+                }
+            })
+            .error(function(){
+                loadUomsFallback();
+            });
+    }
+
+    function loadUomsFallback(){
+        var menuhandler  = exports.getShellComponent("soss-data");
+        menuhandler.services.q([{storename:"uom",search:""}])
+            .then(function(r){
+                if(r.success){
+                    setUoms(r.result.uom || []);
+                }
+            })
+            .error(function(error){
+                console.log(error && error.responseJSON ? error.responseJSON : error);
+            });
+    }
+
+    function setUoms(records){
+        bindData.uoms=[];
+        (records || []).forEach(function(item){
+            if(isConversionUom(item)){
+                return;
+            }
+            bindData.uoms.push({
+                id:item.id,
+                name:item.name || item.symbol || "",
+                symbol:item.symbol || item.name || "",
+                status:item.status || "Active"
+            });
+        });
+    }
+
+    function isConversionUom(item){
+        return (item.recordtype || "").toString().toLowerCase() === "conversion" || (!!item.fromSymbol && !!item.toSymbol);
+    }
+
+    function openUomManager(){
+        var popup = exports.getShellComponent("app_popup");
+        if(!popup || !popup.open){
+            var routeHandler = exports.getShellComponent("soss-routes");
+            routeHandler.appNavigate("../uom");
+            return;
+        }
+        popup.open("productapp-v2", "uom-manager", {}, function(result, instance){
+            loadUoms();
+            if(instance && instance.close){
+                instance.close();
+            }else if(popup.close){
+                popup.close();
+            }
+        }, "Unit of Measure");
     }
     
 

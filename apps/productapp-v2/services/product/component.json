@@ -28,6 +28,36 @@
             },
             "ProductToStore" : {
                 "method" : "POST"
+            },
+            "InventoryDashboard" : {
+                "method" : "POST"
+            },
+            "ProfileLookup" : {
+                "method" : "POST"
+            },
+            "ProductLookup" : {
+                "method" : "POST"
+            },
+            "SavePurchaseOrder" : {
+                "method" : "POST"
+            },
+            "ReceiveGoods" : {
+                "method" : "POST"
+            },
+            "StockAdjustment" : {
+                "method" : "POST"
+            },
+            "IssueGoods" : {
+                "method" : "POST"
+            },
+            "DocumentList" : {
+                "method" : "POST"
+            },
+            "DocumentDetails" : {
+                "method" : "POST"
+            },
+            "SaveDocument" : {
+                "method" : "POST"
             }
         }
     },

@@ -1,0 +1,116 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i v-bind:class="'fa ' + icon"></i> {{ title }}</h3>
+      <p>Edit document header, supplier, and line items.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="backToList"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="btn btn-default" v-on:click="viewDocument" v-bind:disabled="!document.tranNo"><i class="fa fa-eye"></i> View</button>
+      <button class="btn btn-primary" v-on:click="saveDocument" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Document</h4>
+    <div class="document-form-grid">
+      <div class="form-group-flat">
+        <label>Document No</label>
+        <input class="form-control" disabled="disabled" v-bind:value="document.tranNo ? '#' + document.tranNo : 'New'">
+      </div>
+      <div class="form-group-flat">
+        <label>Date</label>
+        <input class="form-control" v-model="document.tranDate">
+      </div>
+      <div class="form-group-flat" v-if="type == 'grn'">
+        <label>PO No</label>
+        <input type="number" class="form-control" v-model="document.poid" placeholder="Optional PO number">
+      </div>
+      <div class="form-group-flat">
+        <label>Status</label>
+        <input class="form-control" v-model="document.status" placeholder="Approved">
+      </div>
+      <div class="form-group-flat">
+        <label>Complete</label>
+        <select class="form-control" v-model="document.Complete">
+          <option value="N">No</option>
+          <option value="Y">Yes</option>
+        </select>
+      </div>
+      <div class="form-group-flat">
+        <label>Tax %</label>
+        <input type="number" class="form-control" v-model="document.tax" v-on:input="recalc">
+      </div>
+    </div>
+    <textarea class="form-control" placeholder="Remarks" v-model="document.remarks"></textarea>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Supplier</h4>
+    <div class="inventory-scan-row">
+      <button class="btn btn-default" v-on:click="openSupplierPopup"><i class="fa fa-search"></i> Select Supplier</button>
+      <button class="btn btn-default" v-if="document.profileId" v-on:click="clearSupplier"><i class="fa fa-times"></i> Clear Supplier</button>
+    </div>
+    <div class="product-summary" v-if="document.profileId">
+      <i class="fa fa-user"></i>
+      <span>#{{ document.profileId }} {{ document.name }} {{ document.email ? '(' + document.email + ')' : '' }}</span>
+    </div>
+    <div class="product-muted" v-if="type == 'grn' && !document.profileId">GRN can be saved without supplier when goods are received without a PO.</div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Products</h4>
+    <div class="inventory-scan-row">
+      <input class="form-control" placeholder="Scan barcode or search product" v-model="productSearch.value" v-on:keyup.enter="searchProducts">
+      <button class="btn btn-default" v-on:click="searchProducts"><i class="fa fa-barcode"></i> Add</button>
+    </div>
+    <div class="inventory-lookup-results" v-show="productResults.length">
+      <button class="btn btn-default" v-for="product in productResults" v-on:click="addLine(product)">
+        <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+      </button>
+    </div>
+    <div class="product-muted" v-if="type == 'grn'">Barcode issue tracking remains linked to the labels received on the original GRN. Quantity edits here adjust stock by the difference.</div>
+    <table class="table table-bordered document-edit-lines">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th style="width: 120px;">UOM</th>
+          <th style="width: 130px;" class="text-right">Qty</th>
+          <th style="width: 140px;" class="text-right">Cost</th>
+          <th style="width: 140px;" class="text-right">Total</th>
+          <th style="width: 70px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="document.InvoiceItems.length === 0">
+          <td colspan="6" class="product-empty-state">Add products to this document.</td>
+        </tr>
+        <tr v-for="(line,index) in document.InvoiceItems">
+          <td>
+            <div class="product-name">#{{ line.itemid }} {{ line.name }}</div>
+            <div class="product-muted">{{ line.catogory || '' }}</div>
+          </td>
+          <td><input class="form-control" v-model="line.uom"></td>
+          <td><input type="number" class="form-control text-right" v-model="line.qty" v-on:input="recalc"></td>
+          <td><input type="number" class="form-control text-right" v-model="line.price" v-on:input="recalc"></td>
+          <td class="text-right">{{ formatMoney(line.total) }}</td>
+          <td><button class="btn btn-danger btn-sm" v-on:click="removeLine(index)"><i class="fa fa-trash"></i></button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="inventory-total-row">
+      <span>Subtotal {{ formatMoney(document.subtotal) }}</span>
+      <span>Tax {{ formatMoney(document.taxamount) }}</span>
+      <span>Total {{ formatMoney(document.total) }}</span>
+      <button class="btn btn-primary" v-on:click="saveDocument" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>

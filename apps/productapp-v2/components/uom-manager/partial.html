@@ -1,0 +1,99 @@
+<div class="product-v2-app uom-manager-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-balance-scale"></i> Unit of Measure</h3>
+      <p>Create product units and conversion rules.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="refresh"><i class="fa fa-refresh"></i> Refresh</button>
+      <button class="btn btn-primary" v-on:click="complete"><i class="fa fa-check"></i> Done</button>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="uom-grid">
+    <div class="inventory-form-band">
+      <h4>{{ unitForm.id ? 'Edit Unit' : 'New Unit' }}</h4>
+      <div class="inventory-form-grid">
+        <input class="form-control" placeholder="Name, e.g. Kilogram" v-model="unitForm.name">
+        <input class="form-control" placeholder="Symbol, e.g. kg" v-model="unitForm.symbol">
+        <select class="form-control" v-model="unitForm.status">
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+        <button class="btn btn-primary" v-on:click="saveUnit"><i class="fa fa-save"></i> Save Unit</button>
+      </div>
+    </div>
+
+    <div class="inventory-form-band">
+      <h4>{{ conversionForm.id ? 'Edit Conversion' : 'New Conversion' }}</h4>
+      <div class="uom-conversion-grid">
+        <input type="number" class="form-control" v-model="conversionForm.fromQty">
+        <select class="form-control" v-model="conversionForm.fromSymbol">
+          <option v-for="unit in units" v-bind:value="unit.symbol">{{ unit.symbol }} - {{ unit.name }}</option>
+        </select>
+        <span class="uom-equals">=</span>
+        <input type="number" class="form-control" v-model="conversionForm.toQty">
+        <select class="form-control" v-model="conversionForm.toSymbol">
+          <option v-for="unit in units" v-bind:value="unit.symbol">{{ unit.symbol }} - {{ unit.name }}</option>
+        </select>
+        <button class="btn btn-primary" v-on:click="saveConversion"><i class="fa fa-save"></i> Save</button>
+      </div>
+      <textarea class="form-control" placeholder="Notes" v-model="conversionForm.notes"></textarea>
+    </div>
+  </div>
+
+  <div class="inventory-grid">
+    <div class="product-table-wrap inventory-section">
+      <h4>Units</h4>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th style="width: 120px;">Symbol</th>
+            <th style="width: 120px;">Status</th>
+            <th style="width: 100px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="units.length === 0">
+            <td colspan="4" class="product-empty-state">No units found.</td>
+          </tr>
+          <tr v-for="unit in units">
+            <td>{{ unit.name }}</td>
+            <td>{{ unit.symbol }}</td>
+            <td>{{ unit.status || 'Active' }}</td>
+            <td><button class="btn btn-default btn-sm" v-on:click="editUnit(unit)"><i class="fa fa-pencil"></i> Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="product-table-wrap inventory-section">
+      <h4>Conversions</h4>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Multiplier</th>
+            <th style="width: 100px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="conversions.length === 0">
+            <td colspan="4" class="product-empty-state">No conversions found.</td>
+          </tr>
+          <tr v-for="conversion in conversions">
+            <td>{{ conversion.fromQty }} {{ conversion.fromSymbol }}</td>
+            <td>{{ conversion.toQty }} {{ conversion.toSymbol }}</td>
+            <td>{{ conversion.multiplier }}</td>
+            <td><button class="btn btn-default btn-sm" v-on:click="editConversion(conversion)"><i class="fa fa-pencil"></i> Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
