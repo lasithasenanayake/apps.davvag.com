@@ -93,7 +93,7 @@
     <div id="cms-v7-boot-loader" class="cms-v7-boot-loader" role="status" aria-live="polite">
         <div class="cms-v7-boot-card">
             <div class="cms-v7-boot-spinner" aria-hidden="true"></div>
-            <p class="cms-v7-boot-title">Loading Davvag CMS v7</p>
+            <p class="cms-v7-boot-title">Please Wait</p>
             <p id="cms-v7-boot-text" class="cms-v7-boot-text">Preparing site components...</p>
             <div class="cms-v7-boot-bar" aria-hidden="true"><span></span></div>
         </div>

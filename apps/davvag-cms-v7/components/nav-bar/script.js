@@ -572,6 +572,7 @@ WEBDOCK.component().register(function(exports){
         if(!hash || hash.indexOf("#/") !== 0){
             return hash;
         }
+        hash = collapseRouteSlashes(hash);
         var route = hash.substring(2);
         if(route.indexOf("app/") === 0){
             return hash;
@@ -580,6 +581,22 @@ WEBDOCK.component().register(function(exports){
             return "#/app/" + route;
         }
         return hash;
+    }
+
+    function collapseRouteSlashes(hash){
+        var queryIndex = hash.indexOf("?");
+        var fragmentIndex = hash.indexOf("#", 2);
+        var cutIndex = hash.length;
+
+        if(queryIndex !== -1 && queryIndex < cutIndex){
+            cutIndex = queryIndex;
+        }
+        if(fragmentIndex !== -1 && fragmentIndex < cutIndex){
+            cutIndex = fragmentIndex;
+        }
+
+        var routePart = hash.substring(0, cutIndex).replace(/\/{2,}/g, "/");
+        return routePart + hash.substring(cutIndex);
     }
 
     function sortByOrder(items){
