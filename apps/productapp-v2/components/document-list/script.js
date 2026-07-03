@@ -25,8 +25,11 @@ WEBDOCK.component().register(function(exports){
             clearSearch: clearSearch,
             toggleDetails: toggleDetails,
             goInventory: goInventory,
+            createRecord: createRecord,
             editRecord: editRecord,
             viewRecord: viewRecord,
+            cancelRecord: cancelRecord,
+            isCancelled: isCancelled,
             formatMoney: formatMoney,
             number: number
         },
@@ -118,6 +121,12 @@ WEBDOCK.component().register(function(exports){
         }
     }
 
+    function createRecord(){
+        if(routeHandler && routeHandler.appNavigate){
+            routeHandler.appNavigate(bindData.type === "grn" ? "../grn-app" : "../po-app");
+        }
+    }
+
     function editRecord(record){
         navigateDocument(record, false);
     }
@@ -135,6 +144,29 @@ WEBDOCK.component().register(function(exports){
             path += "-view";
         }
         routeHandler.appNavigate(path + "?tid=" + encodeURIComponent(record.tranNo));
+    }
+
+    function cancelRecord(record){
+        if(!record || !record.tranNo){
+            return;
+        }
+        if(isCancelled(record)){
+            return;
+        }
+        if(!window.confirm("Cancel this " + (bindData.type === "grn" ? "GRN" : "purchase order") + " #" + record.tranNo + "?")){
+            return;
+        }
+        productHandler.services.CancelDocument({type: bindData.type, tranNo: record.tranNo, status: "Cancelled"})
+            .then(function(response){
+                if(response.success){
+                    refresh();
+                }else{
+                    setError(response.error || "Cancel failed.");
+                }
+            })
+            .error(function(error){
+                setError(error && error.responseJSON ? error.responseJSON.result : "Cancel failed.");
+            });
     }
 
     function searchableText(record){
@@ -160,6 +192,11 @@ WEBDOCK.component().register(function(exports){
             return "";
         }
         return record[field] === undefined || record[field] === null ? "" : record[field].toString();
+    }
+
+    function isCancelled(record){
+        var status = record && record.status ? record.status.toString().toLowerCase() : "";
+        return status === "cancelled" || status === "canceled" || status === "deleted" || status === "delete" || status === "void";
     }
 
     function formatMoney(value){

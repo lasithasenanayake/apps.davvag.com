@@ -1,0 +1,101 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-file-text-o"></i> Purchase Order App</h3>
+      <p>Create purchase orders without using the inventory dashboard tabs.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="backToInventory"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" v-on:click="savePO" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Supplier</h4>
+    <div class="inventory-scan-row">
+      <button class="btn btn-default" v-on:click="openSupplierPopup"><i class="fa fa-search"></i> Select Supplier</button>
+      <button class="btn btn-default" v-if="po.profileId" v-on:click="clearSupplier"><i class="fa fa-times"></i> Clear Supplier</button>
+    </div>
+    <div class="product-summary" v-if="po.profileId">
+      <i class="fa fa-user"></i>
+      <span>#{{ po.profileId }} {{ po.name }} {{ po.email ? '(' + po.email + ')' : '' }}</span>
+    </div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Tax</h4>
+    <div class="document-form-grid">
+      <div class="form-group-flat">
+        <label>Tax</label>
+        <select class="form-control" v-model="selectedTax" v-on:change="applySelectedTax">
+          <option v-bind:value="null">Use document tax</option>
+          <option v-for="taxitem in taxes" v-bind:value="taxitem">{{ taxitem.name }} ({{ taxitem.rate }}%)</option>
+        </select>
+      </div>
+      <div class="form-group-flat">
+        <label>Tax Name</label>
+        <input class="form-control" disabled="disabled" v-bind:value="po.taxname || '-'">
+      </div>
+    </div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Products</h4>
+    <div class="inventory-scan-row">
+      <input class="form-control" placeholder="Scan barcode or search product" v-model="productSearch.value" v-on:keyup.enter="searchProducts">
+      <button class="btn btn-default" v-on:click="searchProducts"><i class="fa fa-barcode"></i> Add</button>
+    </div>
+    <div class="inventory-lookup-results" v-show="productResults.length">
+      <button class="btn btn-default" v-for="product in productResults" v-on:click="addLine(product)">
+        <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+      </button>
+    </div>
+    <table class="table table-bordered document-edit-lines">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th style="width: 120px;">UOM</th>
+          <th style="width: 130px;" class="text-right">Qty</th>
+          <th style="width: 140px;" class="text-right">Cost</th>
+          <th style="width: 140px;" class="text-right">Total</th>
+          <th style="width: 70px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="po.InvoiceItems.length === 0">
+          <td colspan="6" class="product-empty-state">Add products to the purchase order.</td>
+        </tr>
+        <tr v-for="(line,index) in po.InvoiceItems">
+          <td>
+            <div class="product-name">#{{ line.itemid }} {{ line.name }}</div>
+            <div class="product-muted">{{ line.catogory || '' }}</div>
+          </td>
+          <td>
+            <select class="form-control" v-if="line.uomOptions && line.uomOptions.length > 1" v-model="line.uom" v-on:change="refreshLineUom(line)">
+              <option v-for="uom in line.uomOptions" v-bind:value="uom.symbol">{{ uom.symbol }} - {{ uom.name }}</option>
+            </select>
+            <input class="form-control" v-else v-bind:value="line.baseUom || line.uom || ''" disabled="disabled">
+          </td>
+          <td><input type="number" class="form-control text-right" v-model="line.qty" v-on:input="recalc"></td>
+          <td><input type="number" class="form-control text-right" v-model="line.price" v-on:input="recalc"></td>
+          <td class="text-right">{{ formatMoney(line.total) }}</td>
+          <td><button class="btn btn-danger btn-sm" v-on:click="removeLine(index)"><i class="fa fa-trash"></i></button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="inventory-total-row">
+      <span>Subtotal {{ formatMoney(po.subtotal) }}</span>
+      <span>Tax {{ formatMoney(po.taxamount) }}</span>
+      <span>Total {{ formatMoney(po.total) }}</span>
+      <button class="btn btn-primary" v-on:click="savePO" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save PO</button>
+    </div>
+  </div>
+</div>

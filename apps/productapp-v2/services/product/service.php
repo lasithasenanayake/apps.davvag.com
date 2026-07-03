@@ -34,6 +34,132 @@ class ProductService {
         
 
     }
+
+    private function ensureTaxMasterSeed(){
+        $result = SOSSData::Query("tax_master", "");
+        if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
+            return;
+        }
+        $item = new stdClass();
+        $item->code = "NO_TAX";
+        $item->name = "No Tax";
+        $item->description = "Default zero tax mapping";
+        $item->rate = 0;
+        $item->taxType = "percentage";
+        $item->applyTo = "all";
+        $item->isDefault = "Y";
+        $item->status = "active";
+        $item->sortOrder = 1;
+        SOSSData::Insert("tax_master", $item);
+        CacheData::clearObjects("tax_master");
+    }
+
+    private function activeTaxes(){
+        $this->ensureTaxMasterSeed();
+        $result = SOSSData::Query("tax_master", "");
+        if(!$result->success){
+            return array();
+        }
+        $items = array();
+        foreach($result->result as $item){
+            if(!isset($item->status) || strtolower($item->status) === "active"){
+                $items[] = $item;
+            }
+        }
+        usort($items, function($a, $b){
+            $ao = isset($a->sortOrder) ? intval($a->sortOrder) : 0;
+            $bo = isset($b->sortOrder) ? intval($b->sortOrder) : 0;
+            if($ao === $bo){
+                return strcmp(isset($a->name) ? $a->name : "", isset($b->name) ? $b->name : "");
+            }
+            return $ao < $bo ? -1 : 1;
+        });
+        return $items;
+    }
+
+    private function resolveTaxSelection($transaction){
+        $tax = null;
+        if(isset($transaction->taxid) && intval($transaction->taxid) > 0){
+            $result = SOSSData::Query("tax_master", urlencode("id:".intval($transaction->taxid)));
+            if($result->success && count($result->result) > 0){
+                $tax = $result->result[0];
+            }
+        }
+        if($tax === null && isset($transaction->taxcode) && trim($transaction->taxcode) !== ""){
+            $result = SOSSData::Query("tax_master", urlencode("code:".trim($transaction->taxcode)));
+            if($result->success && count($result->result) > 0){
+                $tax = $result->result[0];
+            }
+        }
+        if($tax === null && (!isset($transaction->taxid) || intval($transaction->taxid) <= 0) && (!isset($transaction->taxcode) || trim($transaction->taxcode) === "")){
+            return null;
+        }
+        if($tax === null){
+            $items = $this->activeTaxes();
+            foreach($items as $item){
+                if(isset($item->isDefault) && strtoupper($item->isDefault) === "Y"){
+                    $tax = $item;
+                    break;
+                }
+            }
+            if($tax === null && count($items) > 0){
+                $tax = $items[0];
+            }
+        }
+        return $tax;
+    }
+
+    private function updateSupplierLedger($ledgertran){
+        $result = SOSSData::Insert("ledger", $ledgertran, $tenantId = null);
+        if(isset($result->success) && !$result->success){
+            return $result;
+        }
+
+        CacheData::clearObjects("ledger");
+        $statusResult = SOSSData::Query("profilestatus", urlencode("profileid:".intval($ledgertran->profileid)));
+        CacheData::clearObjects("profilestatus");
+        if(isset($statusResult->success) && $statusResult->success && count($statusResult->result) > 0){
+            $status = $statusResult->result[0];
+            if(!isset($status->outstanding)){
+                $status->outstanding = 0;
+            }
+            $status->outstanding += floatval($ledgertran->amount);
+            switch(strtolower(isset($ledgertran->trantype) ? $ledgertran->trantype : "")){
+                case "grn":
+                case "grn-edit":
+                    $status->totalGRNAmount = isset($status->totalGRNAmount) ? $status->totalGRNAmount + floatval($ledgertran->amount) : floatval($ledgertran->amount);
+                    break;
+                case "payment":
+                    $status->totalPaymentAmount = isset($status->totalPaymentAmount) ? $status->totalPaymentAmount + floatval($ledgertran->amount) : floatval($ledgertran->amount);
+                    break;
+            }
+            $statusResult = SOSSData::Update("profilestatus", $status, $tenantId = null);
+        }else{
+            $status = new stdClass();
+            $status->profileid = intval($ledgertran->profileid);
+            $status->outstanding = floatval($ledgertran->amount);
+            $status->currencycode = isset($ledgertran->currencycode) ? $ledgertran->currencycode : null;
+            $status->totalInvoicedAmount = 0;
+            $status->totalPaidAmount = 0;
+            $status->totalGRNAmount = 0;
+            $status->totalPaymentAmount = 0;
+            switch(strtolower(isset($ledgertran->trantype) ? $ledgertran->trantype : "")){
+                case "grn":
+                case "grn-edit":
+                    $status->totalGRNAmount = floatval($ledgertran->amount);
+                    break;
+                case "payment":
+                    $status->totalPaymentAmount = floatval($ledgertran->amount);
+                    break;
+            }
+            $statusResult = SOSSData::Insert("profilestatus", $status, $tenantId = null);
+        }
+        return $statusResult;
+    }
+
+    public function getInvoiceTaxes($req,$res){
+        return $this->activeTaxes();
+    }
     public function postDelete($req,$res){
         $product=$req->Body(true);
         if(isset($product->itemid)){
@@ -269,8 +395,10 @@ class ProductService {
 
         if($poResult->success){
             foreach($poResult->result as $po){
-                if(!isset($po->Complete) || strtoupper($po->Complete) !== "Y"){
+                $status = isset($po->status) ? strtolower(trim($po->status)) : "";
+                if((!isset($po->Complete) || strtoupper($po->Complete) !== "Y") && !$this->isCancelledStatus($status)){
                     $po->InvoiceItems=isset($poDetailsByTran[(string)$po->tranNo]) ? $poDetailsByTran[(string)$po->tranNo] : array();
+                    $po=$this->attachUomContextToDocument($po);
                     array_push($dashboard->openPurchaseOrders, $po);
                 }
             }
@@ -431,6 +559,17 @@ class ProductService {
             return null;
         }
 
+        if(isset($transaction->profileId) && intval($transaction->profileId) > 0){
+            $ledgertran = new stdClass();
+            $ledgertran->profileid = intval($transaction->profileId);
+            $ledgertran->tranid = intval($transaction->tranNo);
+            $ledgertran->trantype = "grn";
+            $ledgertran->tranDate = isset($transaction->tranDate) ? $transaction->tranDate : date("Y-m-d H:i:s");
+            $ledgertran->description = "Goods received note #".$transaction->tranNo;
+            $ledgertran->amount = -1 * floatval($transaction->total);
+            $this->updateSupplierLedger($ledgertran);
+        }
+
         if(isset($po)){
             $po->Complete="Y";
             SOSSData::Update("poheader", $po);
@@ -466,7 +605,7 @@ class ProductService {
         $line->itemid=$unit->itemid;
         $line->name=isset($unit->name) ? $unit->name : "";
         $line->uom=isset($unit->uom) ? $unit->uom : "";
-        $line->qty=1;
+        $line->qty=isset($unit->receivedBaseQty) && floatval($unit->receivedBaseQty) > 0 ? floatval($unit->receivedBaseQty) : 1;
         $unit->status="Issued";
         $unit->issuedDate=date("Y-m-d H:i:s");
         $unit->issuedRef=isset($body->issuedRef) ? $body->issuedRef : "";
@@ -540,6 +679,74 @@ class ProductService {
         return $document;
     }
 
+    public function postCancelDocument($req,$res){
+        $body=$req->Body(true);
+        $type=isset($body->type) ? strtolower(trim($body->type)) : "po";
+        $tranNo=isset($body->tranNo) ? intval($body->tranNo) : (isset($body->tid) ? intval($body->tid) : 0);
+        if($tranNo <= 0){
+            $res->SetError("Document number is required.");
+            return null;
+        }
+
+        $stores=$this->documentStores($type);
+        $document=$this->loadDocument($type, $tranNo);
+        if($document === null){
+            $res->SetError("Document was not found.");
+            return null;
+        }
+        if(isset($document->status) && $this->isCancelledStatus($document->status)){
+            return $document;
+        }
+
+        if($type === "grn"){
+            if(isset($document->InvoiceItems) && is_array($document->InvoiceItems)){
+                foreach($document->InvoiceItems as $line){
+                    $qty=isset($line->qty) ? floatval($line->qty) : 0;
+                    if(abs($qty) > 0.0001){
+                        $this->moveStock($line, -1 * $qty, "GRN_CANCEL", $document->tranNo, isset($document->profileId) ? $document->profileId : 0);
+                    }
+                }
+            }
+
+            if(isset($document->profileId) && intval($document->profileId) > 0){
+                $ledgertran = new stdClass();
+                $ledgertran->profileid = intval($document->profileId);
+                $ledgertran->tranid = intval($document->tranNo);
+                $ledgertran->trantype = "grn-cancel";
+                $ledgertran->tranDate = isset($document->tranDate) ? $document->tranDate : date("Y-m-d H:i:s");
+                $ledgertran->description = "Goods receive note cancelled #".$document->tranNo;
+                $ledgertran->amount = floatval($document->total);
+                $this->updateSupplierLedger($ledgertran);
+            }
+
+            $barcodeUnits = SOSSData::Query("product_barcode_units", urlencode("grnNo:".$document->tranNo));
+            if($barcodeUnits->success && count($barcodeUnits->result) > 0){
+                foreach($barcodeUnits->result as $unit){
+                    if(isset($unit->status) && strtolower($unit->status) === "issued"){
+                        continue;
+                    }
+                    $unit->status = "Cancelled";
+                    SOSSData::Update("product_barcode_units", $unit);
+                }
+                CacheData::clearObjects("product_barcode_units");
+            }
+        }
+
+        $document->status = isset($body->status) && trim($body->status) !== "" ? trim($body->status) : "Cancelled";
+        $document->Complete = "N";
+        $headerForSave = clone $document;
+        unset($headerForSave->InvoiceItems);
+        $updateResult = SOSSData::Update($stores["header"], $headerForSave);
+        if(!$updateResult->success){
+            $res->SetError($updateResult);
+            return null;
+        }
+
+        CacheData::clearObjects($stores["header"]);
+        CacheData::clearObjects($stores["detail"]);
+        return $document;
+    }
+
     public function postSaveDocument($req,$res){
         $body=$req->Body(true);
         $type=isset($body->type) ? strtolower(trim($body->type)) : "po";
@@ -600,6 +807,17 @@ class ProductService {
             return null;
         }
 
+        if($type === "grn" && isset($document->profileId) && intval($document->profileId) > 0){
+            $ledgertran = new stdClass();
+            $ledgertran->profileid = intval($document->profileId);
+            $ledgertran->tranid = intval($document->tranNo);
+            $ledgertran->trantype = "grn-edit";
+            $ledgertran->tranDate = isset($document->tranDate) ? $document->tranDate : date("Y-m-d H:i:s");
+            $ledgertran->description = "Goods received note edit #".$document->tranNo;
+            $ledgertran->amount = floatval($oldDocument->total) - floatval($document->total);
+            $this->updateSupplierLedger($ledgertran);
+        }
+
         CacheData::clearObjects($stores["header"]);
         CacheData::clearObjects($stores["detail"]);
         if($type === "grn"){
@@ -609,6 +827,79 @@ class ProductService {
             CacheData::clearObjects("products");
         }
         return $document;
+    }
+
+    public function postSaveSupplierPayment($req,$res){
+        $payment = $req->Body(true);
+        $user = Auth::Autendicate("product","SaveSupplierPayment",$res);
+        if(!isset($payment->profileId) || intval($payment->profileId) <= 0){
+            $res->SetError("Select a supplier profile.");
+            return null;
+        }
+        $amount = isset($payment->paymentAmount) ? floatval($payment->paymentAmount) : (isset($payment->amount) ? floatval($payment->amount) : 0);
+        if($amount <= 0){
+            $res->SetError("Payment amount must be greater than zero.");
+            return null;
+        }
+
+        $supplierResult = SOSSData::Query("profile", urlencode("id:".intval($payment->profileId)));
+        if(!$supplierResult->success || count($supplierResult->result) === 0){
+            $res->SetError("Supplier profile was not found.");
+            return null;
+        }
+        $supplier = $supplierResult->result[0];
+
+        $payment->receiptDate = isset($payment->receiptDate) && $payment->receiptDate !== "" ? $payment->receiptDate : date("Y-m-d H:i:s");
+        $payment->paymentType = isset($payment->paymentType) && $payment->paymentType !== "" ? $payment->paymentType : "supplier-payment";
+        $payment->status = isset($payment->status) && $payment->status !== "" ? $payment->status : "new";
+        $payment->advanceAmount = isset($payment->advanceAmount) ? floatval($payment->advanceAmount) : 0;
+        $payment->advanceUtilized = isset($payment->advanceUtilized) ? floatval($payment->advanceUtilized) : 0;
+        $payment->paymentAmount = $amount;
+        $payment->outstandingAmount = isset($payment->outstandingAmount) ? floatval($payment->outstandingAmount) : 0;
+        $payment->balanceAmount = isset($payment->balanceAmount) ? floatval($payment->balanceAmount) : 0;
+        $payment->detailsString = isset($payment->detailsString) && $payment->detailsString !== "" ? $payment->detailsString : json_encode(array());
+        $payment->supplier_profileId = isset($supplier->id) ? $supplier->id : $payment->profileId;
+        $payment->supplier_name = isset($supplier->name) ? $supplier->name : "";
+        $payment->supplier_email = isset($supplier->email) ? $supplier->email : "";
+        $payment->supplier_city = isset($supplier->city) ? $supplier->city : "";
+        $payment->supplier_address = isset($supplier->address) ? $supplier->address : "";
+        $payment->supplier_country = isset($supplier->country) ? $supplier->country : "";
+        $payment->collectedByID = isset($user->userid) ? $user->userid : "";
+        $payment->collectedBy = isset($user->email) ? $user->email : "";
+
+        $result = SOSSData::Insert("paymentheader", $payment);
+        if(!$result->success){
+            $res->SetError($result);
+            return null;
+        }
+
+        $payment->receiptNo = $result->result->generatedId;
+        $detail = new stdClass();
+        $detail->receiptNo = $payment->receiptNo;
+        $detail->transactionid = isset($payment->source_id) && intval($payment->source_id) > 0 ? intval($payment->source_id) : intval($payment->profileId);
+        $detail->tranType = "payment";
+        $detail->description = isset($payment->remarks) && trim($payment->remarks) !== "" ? $payment->remarks : "Supplier payment";
+        $detail->DueAmount = $amount;
+        $detail->PaidAmout = $amount;
+        $detail->Balance = 0;
+        $detailsResult = SOSSData::Insert("paymentdetails", $detail);
+        if(!$detailsResult->success){
+            $res->SetError($detailsResult);
+            return null;
+        }
+
+        $ledgertran = new stdClass();
+        $ledgertran->profileid = intval($payment->profileId);
+        $ledgertran->tranid = intval($payment->receiptNo);
+        $ledgertran->trantype = "payment";
+        $ledgertran->tranDate = $payment->receiptDate;
+        $ledgertran->description = "Supplier payment #".$payment->receiptNo;
+        $ledgertran->amount = -1 * $amount;
+        $this->updateSupplierLedger($ledgertran);
+
+        CacheData::clearObjects("paymentheader");
+        CacheData::clearObjects("paymentdetails");
+        return $payment;
     }
 
     public function postStockAdjustment($req,$res){
@@ -703,6 +994,183 @@ class ProductService {
         return false;
     }
 
+    private function loadUomCatalog(){
+        static $catalog=null;
+        if($catalog !== null){
+            return $catalog;
+        }
+        $catalog=array();
+        $result=SOSSData::Query("uom", "");
+        if($result->success && isset($result->result)){
+            $catalog=$result->result;
+        }
+        return $catalog;
+    }
+
+    private function isConversionUom($record){
+        return (isset($record->recordtype) && strtolower(trim($record->recordtype)) === "conversion")
+            || (isset($record->fromSymbol) && isset($record->toSymbol) && trim((string)$record->fromSymbol) !== "" && trim((string)$record->toSymbol) !== "");
+    }
+
+    private function getProductBaseUom($itemid){
+        $productResult=SOSSData::Query("products", urlencode("itemid:".intval($itemid)));
+        if(!$productResult->success || count($productResult->result) === 0){
+            return "";
+        }
+        $product=$productResult->result[0];
+        return isset($product->uom) ? trim((string)$product->uom) : "";
+    }
+
+    private function buildUomOptions($baseUom){
+        $options=array();
+        $baseUom=trim((string)$baseUom);
+        if($baseUom === ""){
+            return $options;
+        }
+
+        $catalog=$this->loadUomCatalog();
+        $unitNames=array();
+        foreach($catalog as $record){
+            if($this->isConversionUom($record)){
+                continue;
+            }
+            $symbol=isset($record->symbol) ? trim((string)$record->symbol) : "";
+            if($symbol === ""){
+                continue;
+            }
+            $unitNames[strtolower($symbol)]=isset($record->name) && trim((string)$record->name) !== "" ? trim((string)$record->name) : $symbol;
+        }
+
+        $seen=array();
+        $options[]=array(
+            "symbol"=>$baseUom,
+            "name"=>isset($unitNames[strtolower($baseUom)]) ? $unitNames[strtolower($baseUom)] : $baseUom,
+            "factorToBase"=>1
+        );
+        $seen[strtolower($baseUom)]=true;
+
+        foreach($catalog as $record){
+            if(!$this->isConversionUom($record)){
+                continue;
+            }
+            if(isset($record->status) && strtolower(trim((string)$record->status)) === "inactive"){
+                continue;
+            }
+
+            $fromSymbol=isset($record->fromSymbol) ? trim((string)$record->fromSymbol) : "";
+            $toSymbol=isset($record->toSymbol) ? trim((string)$record->toSymbol) : "";
+            $fromQty=isset($record->fromQty) ? floatval($record->fromQty) : 0;
+            $toQty=isset($record->toQty) ? floatval($record->toQty) : 0;
+            if($fromQty <= 0 || $toQty <= 0){
+                continue;
+            }
+
+            if(strtolower($fromSymbol) === strtolower($baseUom) && $toSymbol !== ""){
+                $key=strtolower($toSymbol);
+                if(!isset($seen[$key])){
+                    $options[]=array(
+                        "symbol"=>$toSymbol,
+                        "name"=>isset($unitNames[$key]) ? $unitNames[$key] : $toSymbol,
+                        "factorToBase"=>$fromQty / $toQty
+                    );
+                    $seen[$key]=true;
+                }
+            }
+
+            if(strtolower($toSymbol) === strtolower($baseUom) && $fromSymbol !== ""){
+                $key=strtolower($fromSymbol);
+                if(!isset($seen[$key])){
+                    $options[]=array(
+                        "symbol"=>$fromSymbol,
+                        "name"=>isset($unitNames[$key]) ? $unitNames[$key] : $fromSymbol,
+                        "factorToBase"=>$toQty / $fromQty
+                    );
+                    $seen[$key]=true;
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    private function resolveLineBaseQuantity($line){
+        $qty=isset($line->qty) ? floatval($line->qty) : 0;
+        if(!isset($line->itemid) || intval($line->itemid) <= 0){
+            return $qty;
+        }
+        $baseUom=$this->getProductBaseUom($line->itemid);
+        if($baseUom === ""){
+            return $qty;
+        }
+        $selectedUom=isset($line->uom) ? trim((string)$line->uom) : "";
+        if($selectedUom === "" || strcasecmp($selectedUom, $baseUom) === 0){
+            return $qty;
+        }
+
+        $options=$this->buildUomOptions($baseUom);
+        foreach($options as $option){
+            if(isset($option["symbol"]) && strcasecmp($option["symbol"], $selectedUom) === 0){
+                $factor=isset($option["factorToBase"]) ? floatval($option["factorToBase"]) : 1;
+                return round($qty * $factor, 6);
+            }
+        }
+        return $qty;
+    }
+
+    private function attachUomContextToLine($line){
+        if(!isset($line->itemid) || intval($line->itemid) <= 0){
+            return $line;
+        }
+        $baseUom=$this->getProductBaseUom($line->itemid);
+        $line->baseUom=$baseUom;
+        if(!isset($line->uom) || trim((string)$line->uom) === ""){
+            $line->uom=$baseUom;
+        }
+        $line->baseQty=$this->resolveLineBaseQuantity($line);
+        $line->uomOptions=$this->buildUomOptions($baseUom);
+        $line->uomEditable=count($line->uomOptions) > 1 ? "Y" : "N";
+        return $line;
+    }
+
+    private function attachUomContextToDocument($document){
+        if(!isset($document->InvoiceItems) || !is_array($document->InvoiceItems)){
+            $document->InvoiceItems=array();
+            return $document;
+        }
+        foreach($document->InvoiceItems as $key=>$line){
+            $document->InvoiceItems[$key]=$this->attachUomContextToLine($line);
+        }
+        return $document;
+    }
+
+    private function normalizeDocumentLines($document){
+        if(!isset($document->InvoiceItems) || !is_array($document->InvoiceItems)){
+            $document->InvoiceItems=array();
+            return $document;
+        }
+        foreach($document->InvoiceItems as $key=>$line){
+            $document->InvoiceItems[$key]=$this->prepareDocumentLine($line);
+        }
+        return $document;
+    }
+
+    private function prepareDocumentLine($line){
+        if(!isset($line->itemid) || intval($line->itemid) <= 0){
+            return $line;
+        }
+        $line->qty=isset($line->qty) ? floatval($line->qty) : 0;
+        $line->price=isset($line->price) ? floatval($line->price) : 0;
+        $line->uom=isset($line->uom) ? trim((string)$line->uom) : "";
+        $line->baseUom=$this->getProductBaseUom($line->itemid);
+        if($line->baseUom !== "" && $line->uom === ""){
+            $line->uom=$line->baseUom;
+        }
+        $line->baseQty=$this->resolveLineBaseQuantity($line);
+        unset($line->uomOptions);
+        unset($line->uomEditable);
+        return $line;
+    }
+
     private function prepareCommercialHeader($transaction,$profile,$user){
         if($profile !== null){
             $transaction->profileId=isset($transaction->profileId) ? $transaction->profileId : $profile->id;
@@ -715,8 +1183,17 @@ class ProductService {
         }
         $transaction->tranDate=isset($transaction->tranDate) && $transaction->tranDate !== "" ? $transaction->tranDate : date("Y-m-d H:i:s");
         $transaction->invoiceDueDate=isset($transaction->invoiceDueDate) && $transaction->invoiceDueDate !== "" ? $transaction->invoiceDueDate : $transaction->tranDate;
-        $transaction->tax=isset($transaction->tax) ? floatval($transaction->tax) : 0;
+        $tax = $this->resolveTaxSelection($transaction);
+        if($tax !== null){
+            $transaction->taxid = isset($tax->id) ? intval($tax->id) : (isset($tax->taxid) ? intval($tax->taxid) : 0);
+            $transaction->taxcode = isset($tax->code) ? $tax->code : "";
+            $transaction->taxname = isset($tax->name) ? $tax->name : "";
+            $transaction->tax = isset($tax->rate) ? floatval($tax->rate) : 0;
+        }else{
+            $transaction->tax = isset($transaction->tax) ? floatval($transaction->tax) : 0;
+        }
         $transaction->subtotal=0;
+        $this->normalizeDocumentLines($transaction);
         foreach($transaction->InvoiceItems as $key=>$value){
             $transaction->subtotal += $this->lineTotal($value);
         }
@@ -747,7 +1224,7 @@ class ProductService {
         $document=$headerResult->result[0];
         $detailsResult=SOSSData::Query($stores["detail"], urlencode("tranNo:".$tranNo));
         $document->InvoiceItems=$detailsResult->success ? $detailsResult->result : array();
-        return $document;
+        return $this->attachUomContextToDocument($document);
     }
 
     private function replaceDocumentDetails($detailStore,$tranNo,$items){
@@ -760,12 +1237,13 @@ class ProductService {
         }
 
         foreach($items as $key=>$line){
+            $items[$key]=$this->prepareDocumentLine($line);
             $items[$key]->tranNo=$tranNo;
-            $items[$key]->qty=isset($line->qty) ? floatval($line->qty) : 0;
-            $items[$key]->price=isset($line->price) ? floatval($line->price) : 0;
             $items[$key]->total=$this->lineTotal($items[$key]);
             unset($items[$key]->barcodes);
             unset($items[$key]->barcodeInput);
+            unset($items[$key]->uomOptions);
+            unset($items[$key]->uomEditable);
         }
         return SOSSData::Insert($detailStore, $items);
     }
@@ -797,7 +1275,8 @@ class ProductService {
             if(!isset($line->itemid)){
                 continue;
             }
-            $key=(string)$line->itemid;
+            $uomKey=isset($line->uom) ? strtolower(trim((string)$line->uom)) : "";
+            $key=(string)$line->itemid."|".$uomKey;
             if(!isset($summary[$key])){
                 $copy=clone $line;
                 $copy->qty=0;
@@ -820,11 +1299,20 @@ class ProductService {
     private function moveStock($line,$signedQty,$type,$refid,$entityid){
         $itemid=intval($line->itemid);
         $attributeid=isset($line->attributeid) ? intval($line->attributeid) : 0;
-        $uom=isset($line->uom) ? $line->uom : "";
+        $selectedUom=isset($line->uom) ? trim((string)$line->uom) : "";
+        $uom=$this->getProductBaseUom($itemid);
+        if($uom === ""){
+            $uom=$selectedUom;
+        }
+        $stockQty=$this->resolveLineBaseQuantity((object)array(
+            "itemid"=>$itemid,
+            "uom"=>$selectedUom,
+            "qty"=>$signedQty
+        ));
         $existing=SOSSData::Query("product_inventrymaster", urlencode("itemid:".$itemid));
         if($existing->success && count($existing->result) > 0){
             $stock=$existing->result[0];
-            $stock->qty=floatval(isset($stock->qty) ? $stock->qty : 0) + $signedQty;
+            $stock->qty=floatval(isset($stock->qty) ? $stock->qty : 0) + $stockQty;
             $stock->uom=$uom;
             SOSSData::Update("product_inventrymaster", $stock);
         }else{
@@ -832,7 +1320,7 @@ class ProductService {
             $stock->itemid=$itemid;
             $stock->attributeid=$attributeid;
             $stock->uom=$uom;
-            $stock->qty=$signedQty;
+            $stock->qty=$stockQty;
             SOSSData::Insert("product_inventrymaster", $stock);
         }
 
@@ -849,7 +1337,7 @@ class ProductService {
         $history->entityid=intval($entityid);
         $history->transactionid=intval($refid);
         $history->productid=$itemid;
-        $history->qty=$signedQty;
+        $history->qty=$stockQty;
         $history->uom=$uom;
         $history->unitprice=isset($line->price) ? floatval($line->price) : 0;
         SOSSData::Insert("inventoryhistory", $history);
@@ -860,7 +1348,7 @@ class ProductService {
         $legacyHistory->refid=intval($refid);
         $legacyHistory->TranDate=date("Y-m-d H:i:s");
         $legacyHistory->uom=$uom;
-        $legacyHistory->qty=$signedQty;
+        $legacyHistory->qty=$stockQty;
         SOSSData::Insert("product_inventryhistory", $legacyHistory);
 
         CacheData::clearObjects("product_inventrymaster");
@@ -880,6 +1368,9 @@ class ProductService {
                 $cleanBarcodes[$barcode]=true;
             }
         }
+        $barcodeCount=count($cleanBarcodes);
+        $lineBaseQty=isset($line->baseQty) ? floatval($line->baseQty) : $this->resolveLineBaseQuantity($line);
+        $perBarcodeBaseQty=$barcodeCount > 0 ? round($lineBaseQty / $barcodeCount, 6) : 1;
         foreach(array_keys($cleanBarcodes) as $barcode){
             $existing=SOSSData::Query("product_barcode_units", urlencode("barcode:".$barcode));
             if($existing->success && count($existing->result) > 0){
@@ -889,7 +1380,10 @@ class ProductService {
             $unit->barcode=$barcode;
             $unit->itemid=$line->itemid;
             $unit->name=isset($line->name) ? $line->name : "";
-            $unit->uom=isset($line->uom) ? $line->uom : "";
+            $unit->uom=isset($line->baseUom) && trim((string)$line->baseUom) !== "" ? $line->baseUom : (isset($line->uom) ? $line->uom : "");
+            $unit->receivedUom=isset($line->uom) ? $line->uom : "";
+            $unit->receivedQty=isset($line->qty) ? floatval($line->qty) : 0;
+            $unit->receivedBaseQty=$perBarcodeBaseQty;
             $unit->status="Available";
             $unit->grnNo=isset($transaction->tranNo) ? $transaction->tranNo : 0;
             $unit->poNo=isset($transaction->poid) ? $transaction->poid : 0;

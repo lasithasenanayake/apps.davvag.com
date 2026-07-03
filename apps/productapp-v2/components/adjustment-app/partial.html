@@ -1,0 +1,84 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-sliders"></i> Stock Adjustment</h3>
+      <p>Adjust stock without keeping the workflow inside inventory tabs.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><i class="fa fa-refresh"></i> Refresh</button>
+      <button class="btn btn-primary" v-on:click="backToInventory"><i class="fa fa-archive"></i> Inventory</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Find Product</h4>
+    <div class="inventory-scan-row">
+      <input class="form-control" placeholder="Scan barcode or search product" v-model="productSearch.value" v-on:keyup.enter="searchProducts">
+      <button class="btn btn-default" v-on:click="searchProducts"><i class="fa fa-search"></i> Search</button>
+    </div>
+    <div class="inventory-lookup-results" v-show="productResults.length">
+      <button class="btn btn-default" v-for="product in productResults" v-on:click="selectProduct(product)">
+        <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+      </button>
+    </div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Adjustment</h4>
+    <div class="document-form-grid">
+      <div class="form-group-flat">
+        <label>Product</label>
+        <input class="form-control" disabled="disabled" v-bind:value="adjustment.itemid ? '#' + adjustment.itemid + ' ' + adjustment.name : 'No product selected'">
+      </div>
+      <div class="form-group-flat">
+        <label>UOM</label>
+        <input class="form-control" disabled="disabled" v-model="adjustment.uom">
+      </div>
+      <div class="form-group-flat">
+        <label>Qty</label>
+        <input type="number" class="form-control" v-model="adjustment.qty" placeholder="Use negative to reduce">
+      </div>
+      <div class="form-group-flat">
+        <label>Reason</label>
+        <input class="form-control" v-model="adjustment.reason" placeholder="Reason">
+      </div>
+    </div>
+    <div class="inventory-total-row">
+      <span>Adjustment qty {{ number(adjustment.qty) }}</span>
+      <button class="btn btn-primary" v-on:click="saveAdjustment" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save Adjustment</button>
+    </div>
+  </div>
+
+  <div class="product-table-wrap inventory-section">
+    <h4>Recent Movements</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Product</th>
+          <th class="text-right">Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="recentMovements.length === 0">
+          <td colspan="4" class="product-empty-state">No movements yet.</td>
+        </tr>
+        <tr v-for="movement in recentMovements">
+          <td>{{ movement.invdate }}</td>
+          <td>{{ movement.transactiontype }}</td>
+          <td>#{{ movement.productid }}</td>
+          <td class="text-right">{{ number(movement.qty) }} {{ movement.uom }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

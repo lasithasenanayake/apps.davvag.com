@@ -1,0 +1,60 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-share-square-o"></i> Issue Stock</h3>
+      <p>Issue stock by barcode and track recent barcode units.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><i class="fa fa-refresh"></i> Refresh</button>
+      <button class="btn btn-primary" v-on:click="backToInventory"><i class="fa fa-archive"></i> Inventory</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Issue By Barcode</h4>
+    <div class="inventory-form-grid">
+      <input class="form-control" placeholder="Scan barcode to issue" v-model="issue.barcode" v-on:keyup.enter="issueGoods">
+      <input class="form-control" placeholder="Issued to" v-model="issue.issuedTo">
+      <input class="form-control" placeholder="Reference" v-model="issue.issuedRef">
+      <button class="btn btn-primary" v-on:click="issueGoods" v-bind:disabled="saving || loading"><i class="fa fa-check"></i> Issue</button>
+    </div>
+    <textarea class="form-control" placeholder="Remarks" v-model="issue.remarks"></textarea>
+  </div>
+
+  <div class="product-table-wrap inventory-section">
+    <h4>Recent Barcode Units</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Barcode</th>
+          <th>Product</th>
+          <th class="text-right">Qty</th>
+          <th>Status</th>
+          <th>GRN</th>
+          <th>Issued To</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="barcodeUnits.length === 0">
+          <td colspan="6" class="product-empty-state">No barcode units received yet.</td>
+        </tr>
+        <tr v-for="unit in barcodeUnits">
+          <td>{{ unit.barcode }}</td>
+          <td>#{{ unit.itemid }} {{ unit.name }}</td>
+          <td class="text-right">{{ number(unit.receivedBaseQty || 1) }} {{ unit.uom || '' }}</td>
+          <td><span v-bind:class="unit.status == 'Issued' ? 'label label-warning' : 'label label-success'">{{ unit.status }}</span></td>
+          <td>#{{ unit.grnNo || '-' }}</td>
+          <td>{{ unit.issuedTo || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

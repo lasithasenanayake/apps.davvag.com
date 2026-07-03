@@ -309,6 +309,38 @@
   margin-top: 6px;
 }
 
+.product-v2-app .inventory-action-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  margin-bottom: 14px;
+}
+
+.product-v2-app .inventory-action-button {
+  align-items: center;
+  background: var(--pv-panel);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  color: var(--pv-text);
+  display: flex;
+  font-weight: 700;
+  gap: 10px;
+  justify-content: flex-start;
+  min-height: 54px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.product-v2-app .inventory-action-button:hover {
+  border-color: var(--pv-accent);
+  color: var(--pv-accent);
+}
+
+.product-v2-app .inventory-action-button i {
+  font-size: 18px;
+  width: 22px;
+}
+
 .product-v2-app .inventory-scan-row,
 .product-v2-app .inventory-form-band,
 .product-v2-app .inventory-section {
@@ -439,6 +471,7 @@
   }
 
   .product-v2-app .inventory-metrics,
+  .product-v2-app .inventory-action-grid,
   .product-v2-app .inventory-grid,
   .product-v2-app .uom-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -479,6 +512,7 @@
   }
 
   .product-v2-app .inventory-metrics,
+  .product-v2-app .inventory-action-grid,
   .product-v2-app .inventory-grid,
   .product-v2-app .uom-grid,
   .product-v2-app .product-inline-control {

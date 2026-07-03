@@ -38,10 +38,16 @@
             "ProductLookup" : {
                 "method" : "POST"
             },
+            "InvoiceTaxes" : {
+                "method" : "GET"
+            },
             "SavePurchaseOrder" : {
                 "method" : "POST"
             },
             "ReceiveGoods" : {
+                "method" : "POST"
+            },
+            "SaveSupplierPayment" : {
                 "method" : "POST"
             },
             "StockAdjustment" : {
@@ -54,6 +60,9 @@
                 "method" : "POST"
             },
             "DocumentDetails" : {
+                "method" : "POST"
+            },
+            "CancelDocument" : {
                 "method" : "POST"
             },
             "SaveDocument" : {

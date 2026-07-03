@@ -74,6 +74,7 @@
                     <div class="agent-creator__section-head">
                         <h2>Runtime Skills</h2>
                         <div class="agent-creator__output-actions">
+                            <button type="button" class="agent-creator__button agent-creator__button--primary" data-open-skill-builder>Visual Builder</button>
                             <button type="button" class="agent-creator__button" data-skill-template="data_query">Data Query</button>
                             <button type="button" class="agent-creator__button" data-skill-template="service_call">Service Call</button>
                         </div>
@@ -201,5 +202,164 @@
             </form>
             <pre class="agent-creator__response" data-test-response>Select a saved agent and send a message.</pre>
         </section>
+    </div>
+
+    <div class="agent-creator__skill-modal is-hidden" data-skill-modal aria-hidden="true">
+        <div class="agent-creator__skill-modal-backdrop" data-skill-modal-close></div>
+        <div class="agent-creator__skill-modal-panel" role="dialog" aria-modal="true" aria-labelledby="skill-builder-title">
+            <div class="agent-creator__skill-modal-head">
+                <div>
+                    <p class="agent-creator__eyebrow">Skill popup</p>
+                    <h2 id="skill-builder-title">Visual Skill Builder</h2>
+                </div>
+                <div class="agent-creator__output-actions">
+                    <button type="button" class="agent-creator__button" data-skill-builder-import>Reload JSON</button>
+                    <button type="button" class="agent-creator__button" data-skill-modal-close>Close</button>
+                </div>
+            </div>
+
+            <div class="agent-creator__skill-modal-body">
+                <aside class="agent-creator__skill-sidebar">
+                    <div class="agent-creator__skill-sidebar-head">
+                        <strong>Skills</strong>
+                        <span data-skill-count>0 skills</span>
+                    </div>
+                    <div class="agent-creator__skill-list" data-skill-list></div>
+                    <div class="agent-creator__skill-sidebar-actions">
+                        <button type="button" class="agent-creator__button agent-creator__button--primary" data-skill-add="data_query">Add Data Query</button>
+                        <button type="button" class="agent-creator__button agent-creator__button--primary" data-skill-add="service_call">Add Service Call</button>
+                    </div>
+                </aside>
+
+                <section class="agent-creator__skill-editor">
+                    <div class="agent-creator__skill-editor-grid">
+                        <label class="agent-creator__field">
+                            <span>Code</span>
+                            <input type="text" data-skill-code autocomplete="off" placeholder="lookup-products" />
+                        </label>
+
+                        <label class="agent-creator__field">
+                            <span>Name</span>
+                            <input type="text" data-skill-name autocomplete="off" placeholder="Lookup products" />
+                        </label>
+
+                        <label class="agent-creator__field">
+                            <span>Type</span>
+                            <select data-skill-type>
+                                <option value="data_query">Data Query</option>
+                                <option value="service_call">Service Call</option>
+                            </select>
+                        </label>
+
+                        <label class="agent-creator__field">
+                            <span>Run mode</span>
+                            <select data-skill-run-mode>
+                                <option value="triggered">Triggered</option>
+                                <option value="always">Always</option>
+                                <option value="manual">Manual</option>
+                            </select>
+                        </label>
+
+                        <label class="agent-creator__toggle agent-creator__toggle--compact">
+                            <input type="checkbox" data-skill-enabled checked />
+                            <span>Enabled</span>
+                        </label>
+
+                        <label class="agent-creator__field agent-creator__field--full">
+                            <span>Description</span>
+                            <textarea data-skill-description rows="2" placeholder="Explain what this skill does."></textarea>
+                        </label>
+
+                        <label class="agent-creator__field agent-creator__field--full">
+                            <span>Trigger keywords</span>
+                            <textarea data-skill-trigger-keywords rows="2" placeholder="order, buy, purchase"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="agent-creator__skill-type-block" data-skill-type-block="data_query">
+                        <div class="agent-creator__section-head">
+                            <h3>Data Query Settings</h3>
+                            <span>Reads tenant JSON or inline records</span>
+                        </div>
+                        <div class="agent-creator__skill-editor-grid">
+                            <label class="agent-creator__field">
+                                <span>Source</span>
+                                <select data-skill-source>
+                                    <option value="json_file">JSON file</option>
+                                    <option value="inline">Inline records</option>
+                                </select>
+                            </label>
+
+                            <label class="agent-creator__field">
+                                <span>Data file</span>
+                                <input type="text" data-skill-data-file autocomplete="off" placeholder="products.json" />
+                            </label>
+
+                            <label class="agent-creator__field">
+                                <span>Limit</span>
+                                <input type="number" data-skill-limit min="1" max="25" step="1" value="5" />
+                            </label>
+
+                            <label class="agent-creator__field agent-creator__field--full">
+                                <span>Query fields</span>
+                                <textarea data-skill-query-fields rows="2" placeholder="name, sku, description"></textarea>
+                            </label>
+
+                            <label class="agent-creator__field agent-creator__field--full">
+                                <span>Inline data JSON</span>
+                                <textarea data-skill-inline-data rows="6" placeholder='[{"name":"Item A","sku":"A-001"}]'></textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="agent-creator__skill-type-block is-hidden" data-skill-type-block="service_call">
+                        <div class="agent-creator__section-head">
+                            <h3>Service Call Settings</h3>
+                            <span>Calls an HTTP service before the model reply</span>
+                        </div>
+                        <div class="agent-creator__skill-editor-grid">
+                            <label class="agent-creator__field">
+                                <span>Method</span>
+                                <select data-skill-method>
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                </select>
+                            </label>
+
+                            <label class="agent-creator__field">
+                                <span>Timeout seconds</span>
+                                <input type="number" data-skill-timeout min="2" max="60" step="1" value="20" />
+                            </label>
+
+                            <label class="agent-creator__field agent-creator__field--full">
+                                <span>URL</span>
+                                <input type="url" data-skill-url autocomplete="off" placeholder="http://localhost/service/run" />
+                            </label>
+
+                            <label class="agent-creator__field agent-creator__field--full">
+                                <span>Headers JSON</span>
+                                <textarea data-skill-headers rows="5" placeholder='{"Content-Type":"application/json"}'></textarea>
+                            </label>
+
+                            <label class="agent-creator__field agent-creator__field--full">
+                                <span>Body template JSON</span>
+                                <textarea data-skill-body-template rows="7" placeholder='{"message":"{{message}}"}'></textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="agent-creator__skill-editor-actions">
+                        <button type="button" class="agent-creator__button" data-skill-duplicate>Duplicate</button>
+                        <button type="button" class="agent-creator__button" data-skill-delete>Delete</button>
+                        <button type="button" class="agent-creator__button agent-creator__button--primary" data-skill-apply>Apply To JSON</button>
+                    </div>
+
+                    <pre class="agent-creator__skill-preview" data-skill-preview>{}</pre>
+                    <div class="agent-creator__skill-modal-status" data-skill-status>Open the skill builder to decode the current JSON.</div>
+                </section>
+            </div>
+        </div>
     </div>
 </section>

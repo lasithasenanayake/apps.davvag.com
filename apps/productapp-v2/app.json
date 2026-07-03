@@ -52,6 +52,26 @@
             "type": "component",
             "location": "components"
         },
+        "po-app": {
+            "type": "component",
+            "location": "components"
+        },
+        "grn-app": {
+            "type": "component",
+            "location": "components"
+        },
+        "supplier-payment": {
+            "type": "component",
+            "location": "components"
+        },
+        "issue-app": {
+            "type": "component",
+            "location": "components"
+        },
+        "adjustment-app": {
+            "type": "component",
+            "location": "components"
+        },
         "uom-manager": {
             "type": "component",
             "location": "components"
@@ -83,8 +103,13 @@
                     "/grn-list": "document-list",
                     "/po": "document-form",
                     "/grn": "document-form",
+                    "/po-app": "po-app",
+                    "/grn-app": "grn-app",
                     "/po-view": "document-print",
                     "/grn-view": "document-print",
+                    "/payment": "supplier-payment",
+                    "/issue-app": "issue-app",
+                    "/adjustment-app": "adjustment-app",
                     "/uom": "uom-manager"
                 }
             }
@@ -92,28 +117,48 @@
         "dock": {
             "subapps": [
                 {
+                    "name": "Inventory Dashboard",
+                    "path": "inventory"
+                },
+                {
                     "name": "Products",
                     "path": ""
                 },
                 {
-                    "name": "Inventory",
-                    "path": "inventory"
+                    "name": "New Product",
+                    "path": "product"
+                },
+                {
+                    "name": "Create Purchase Order",
+                    "path": "po-app"
+                },
+                {
+                    "name": "Receive Goods",
+                    "path": "grn-app"
+                },
+                {
+                    "name": "Issue Stock",
+                    "path": "issue-app"
+                },
+                {
+                    "name": "Stock Adjustment",
+                    "path": "adjustment-app"
                 },
                 {
                     "name": "Purchase Orders",
                     "path": "po-list"
                 },
                 {
-                    "name": "GRN List",
+                    "name": "Goods Receive Notes",
                     "path": "grn-list"
+                },
+                {
+                    "name": "Supplier Payment",
+                    "path": "payment"
                 },
                 {
                     "name": "Unit of Measure",
                     "path": "uom"
-                },
-                {
-                    "name": "New Product",
-                    "path": "product"
                 }
             ]
         }
@@ -135,10 +180,15 @@
             "product_inventryhistory",
             "product_inventrymaster",
             "product_published",
+            "paymentdetails",
+            "paymentheader",
             "profile",
+            "profilestatus",
             "products",
             "products_attributes",
             "products_image",
+            "ledger",
+            "tax_master",
             "uom"
         ],
         "workflows": [],

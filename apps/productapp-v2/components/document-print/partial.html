@@ -1,0 +1,79 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i v-bind:class="'fa ' + icon"></i> {{ title }}</h3>
+      <p>Printable document view.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="backToList"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" v-on:click="printDocument" v-bind:disabled="loading || !document.tranNo"><i class="fa fa-print"></i> Print</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+
+  <div id="print-area">
+    <div class="inventory-form-band">
+      <h4>{{ title }} #{{ document.tranNo }}</h4>
+      <div class="document-form-grid">
+        <div class="form-group-flat">
+          <label>Date</label>
+          <div class="form-control" style="height:auto;min-height:34px;">{{ document.tranDate || '-' }}</div>
+        </div>
+        <div class="form-group-flat">
+          <label>Supplier</label>
+          <div class="form-control" style="height:auto;min-height:34px;">#{{ document.profileId }} {{ document.name || '-' }}</div>
+        </div>
+        <div class="form-group-flat">
+          <label>Tax</label>
+          <div class="form-control" style="height:auto;min-height:34px;">{{ document.taxname || 'Tax' }} ({{ document.tax || 0 }}%)</div>
+        </div>
+        <div class="form-group-flat">
+          <label>Status</label>
+          <div class="form-control" style="height:auto;min-height:34px;">{{ document.status || '-' }}</div>
+        </div>
+      </div>
+      <div class="product-muted" v-if="document.remarks">{{ document.remarks }}</div>
+    </div>
+
+    <div class="inventory-form-band">
+      <h4>Line Items</h4>
+      <table class="table table-bordered document-edit-lines">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th style="width: 120px;">UOM</th>
+            <th style="width: 120px;" class="text-right">Qty</th>
+            <th style="width: 140px;" class="text-right">Cost</th>
+            <th style="width: 140px;" class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-show="document.InvoiceItems.length === 0">
+            <td colspan="5" class="product-empty-state">No line items found.</td>
+          </tr>
+          <tr v-for="line in document.InvoiceItems">
+            <td>
+              <div class="product-name">#{{ line.itemid }} {{ line.name }}</div>
+              <div class="product-muted">{{ line.catogory || '' }}</div>
+            </td>
+            <td>{{ line.uom }}</td>
+            <td class="text-right">{{ line.qty }}</td>
+            <td class="text-right">{{ formatMoney(line.price) }}</td>
+            <td class="text-right">{{ formatMoney(line.total) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="inventory-total-row">
+        <span>Subtotal {{ formatMoney(document.subtotal) }}</span>
+        <span>Tax {{ formatMoney(document.taxamount) }}</span>
+        <span>Total {{ formatMoney(document.total) }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,19 @@
+{
+    "name" : "grn-app",
+    "description":"Goods receive note app",
+    "author":"Davvag",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            },
+            {
+                "type" : "mainView",
+                "location" : "partial.html"
+            }
+        ]
+    }
+}

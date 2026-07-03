@@ -538,7 +538,9 @@ WEBDOCK.component().register(function(exports){
 
     function launcherUrl(item){
         var url = item.url || item.href || "";
-        if(!url && item.appcode){
+        if(item.appcode.length > 0 && item.subappcode.length > 0){
+            url = "#/app/" + item.appcode+"/"+item.subappcode;
+        }else if(item.appcode.length > 0){
             url = "#/app/" + item.appcode;
         }
         return normalizeUrl(url, item);

@@ -1,0 +1,59 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-credit-card"></i> Supplier Payment</h3>
+      <p>Record a supplier payment and update the supplier ledger.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="backToList"><i class="fa fa-archive"></i> Inventory</button>
+      <button class="btn btn-primary" v-on:click="savePayment" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Supplier</h4>
+    <div class="inventory-scan-row">
+      <button class="btn btn-default" v-on:click="openSupplierPopup"><i class="fa fa-search"></i> Select Supplier</button>
+      <button class="btn btn-default" v-if="payment.profileId" v-on:click="clearSupplier"><i class="fa fa-times"></i> Clear Supplier</button>
+    </div>
+    <div class="product-summary" v-if="payment.profileId">
+      <i class="fa fa-user"></i>
+      <span>#{{ payment.profileId }} {{ payment.name }} {{ payment.email ? '(' + payment.email + ')' : '' }}</span>
+    </div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Payment</h4>
+    <div class="document-form-grid">
+      <div class="form-group-flat">
+        <label>Date</label>
+        <input class="form-control" v-model="payment.receiptDate">
+      </div>
+      <div class="form-group-flat">
+        <label>Amount</label>
+        <input type="number" class="form-control" v-model="payment.paymentAmount">
+      </div>
+      <div class="form-group-flat">
+        <label>Reference</label>
+        <input class="form-control" v-model="payment.source_id" placeholder="GRN, invoice, or bank ref">
+      </div>
+      <div class="form-group-flat">
+        <label>Type</label>
+        <input class="form-control" v-model="payment.paymentType" placeholder="supplier-payment">
+      </div>
+    </div>
+    <textarea class="form-control" placeholder="Remarks" v-model="payment.remarks"></textarea>
+    <div class="inventory-total-row">
+      <span>Payment amount {{ formatMoney(payment.paymentAmount) }}</span>
+      <button class="btn btn-primary" v-on:click="savePayment" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save Payment</button>
+    </div>
+  </div>
+</div>

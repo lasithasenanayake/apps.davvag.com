@@ -9,6 +9,12 @@ WEBDOCK.component().register(function(exports) {
         format: "json",
         agents: [],
         selectedAgentCode: "",
+        skillBuilder: {
+            open: false,
+            skills: [],
+            selectedIndex: -1,
+            lastSource: "textarea"
+        },
         output: {
             json: "{}",
             yaml: ""
@@ -264,6 +270,11 @@ WEBDOCK.component().register(function(exports) {
             return;
         }
 
+        if (state.skillBuilder.open && !applySkillEditor({ showStatus: false })) {
+            setStatus("Fix the skill builder JSON before generating config.", "error");
+            return;
+        }
+
         setBusy(true);
         setStatus("Validating provider settings...", "muted");
 
@@ -291,6 +302,11 @@ WEBDOCK.component().register(function(exports) {
     function saveAgent() {
         if (!api) {
             setStatus("The creator-api service is not loaded.", "error");
+            return;
+        }
+
+        if (state.skillBuilder.open && !applySkillEditor({ showStatus: false })) {
+            setStatus("Fix the skill builder JSON before saving the agent.", "error");
             return;
         }
 
@@ -517,10 +533,14 @@ WEBDOCK.component().register(function(exports) {
         find("[data-creator-form]")[0].reset();
         find("[data-temperature-value]").text("0.7");
         state.selectedAgentCode = "";
+        state.skillBuilder.skills = [];
+        state.skillBuilder.selectedIndex = -1;
         pendingProfileFile = null;
         setProfileImage("");
         state.output = { json: "{}", yaml: "" };
         renderOutput();
+        showSkillBuilder(false);
+        syncSkillBuilderTextarea();
         setProvider("openai");
         renderAgents();
     }
@@ -546,6 +566,37 @@ WEBDOCK.component().register(function(exports) {
         setStatus("Configuration copied.", "success");
     }
 
+    function skillBuilderField() {
+        return find("[data-agent-skills]");
+    }
+
+    function skillBuilderModal() {
+        return find("[data-skill-modal]");
+    }
+
+    function skillBuilderList() {
+        return find("[data-skill-list]");
+    }
+
+    function skillBuilderStatus() {
+        return find("[data-skill-status]");
+    }
+
+    function skillBuilderPreview() {
+        return find("[data-skill-preview]");
+    }
+
+    function skillBuilderSelected() {
+        if (state.skillBuilder.selectedIndex < 0) {
+            return null;
+        }
+        return state.skillBuilder.skills[state.skillBuilder.selectedIndex] || null;
+    }
+
+    function deepClone(value) {
+        return JSON.parse(JSON.stringify(value));
+    }
+
     function skillTemplate(type) {
         if (type === "service_call") {
             return {
@@ -566,7 +617,8 @@ WEBDOCK.component().register(function(exports) {
                     customerRef: "{{profile.externalId}}",
                     sessionId: "{{session.sessionId}}",
                     message: "{{message}}"
-                }
+                },
+                timeoutSeconds: 20
             };
         }
 
@@ -578,31 +630,518 @@ WEBDOCK.component().register(function(exports) {
             runMode: "triggered",
             description: "Search tenant JSON data for products, orders, invoices, or stock records.",
             triggerKeywords: ["product", "price", "stock"],
+            source: "json_file",
             dataFile: "products.json",
             queryFields: ["name", "sku", "description"],
-            limit: 5
+            limit: 5,
+            data: []
         };
     }
 
     function insertSkillTemplate(type) {
-        var field = find("[data-agent-skills]");
-        var current = $.trim(field.val());
-        var skills = [];
-        if (current) {
-            try {
-                skills = JSON.parse(current);
-                if (!$.isArray(skills)) {
-                    skills = [skills];
-                }
-            } catch (error) {
-                setStatus("Skills JSON must be valid before adding a template.", "error");
-                return;
+        if (state.skillBuilder.open && state.skillBuilder.selectedIndex >= 0 && !applySkillEditor({ showStatus: false })) {
+            return;
+        }
+
+        var parsed = parseSkillArray(skillBuilderField().val());
+        if (!parsed.success) {
+            setStatus(parsed.message, "error");
+            return;
+        }
+
+        parsed.skills.push(normalizeSkillForEditor(defaultSkill(type)));
+        skillBuilderField().val(JSON.stringify(parsed.skills, null, 2));
+
+        if (state.skillBuilder.open) {
+            state.skillBuilder.skills = $.map(parsed.skills, function(item) {
+                return normalizeSkillForEditor(item);
+            });
+            state.skillBuilder.selectedIndex = state.skillBuilder.skills.length - 1;
+            renderSkillBuilderList();
+            renderSkillEditor();
+            setSkillBuilderStatus("Skill template added to the visual builder.", "success");
+            return;
+        }
+
+        setStatus("Skill template added to the skills JSON field.", "success");
+    }
+
+    function defaultSkill(type) {
+        return deepClone(skillTemplate(type));
+    }
+
+    function parseSkillArray(raw) {
+        var text = $.trim(raw || "");
+        if (!text) {
+            return {
+                success: true,
+                skills: []
+            };
+        }
+
+        try {
+            var decoded = JSON.parse(text);
+            if (!$.isArray(decoded)) {
+                decoded = [decoded];
+            }
+            return {
+                success: true,
+                skills: decoded
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: "Skills JSON must be a valid JSON array."
+            };
+        }
+    }
+
+    function normalizeListValue(value) {
+        if ($.isArray(value)) {
+            return value;
+        }
+        if (value === null || value === undefined || value === "") {
+            return [];
+        }
+        return String(value).split(/[\r\n,]+/);
+    }
+
+    function listFromField(selector) {
+        var value = $.trim(find(selector).val() || "");
+        var values = normalizeListValue(value);
+        var out = [];
+        for (var i = 0; i < values.length; i++) {
+            var item = $.trim(String(values[i] || ""));
+            if (item) {
+                out.push(item);
+            }
+        }
+        return out;
+    }
+
+    function jsonFromField(selector, fallback) {
+        var value = $.trim(find(selector).val() || "");
+        if (!value) {
+            return fallback;
+        }
+        return JSON.parse(value);
+    }
+
+    function uniqueSkillCode(base, excludeIndex) {
+        var raw = $.trim(String(base || ""));
+        if (!raw) {
+            raw = "skill";
+        }
+        var code = raw.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
+        if (!code) {
+            code = "skill";
+        }
+
+        var existing = {};
+        for (var i = 0; i < state.skillBuilder.skills.length; i++) {
+            if (i === excludeIndex) {
+                continue;
+            }
+            var current = state.skillBuilder.skills[i];
+            if (current && current.code) {
+                existing[current.code] = true;
             }
         }
 
-        skills.push(skillTemplate(type));
-        field.val(JSON.stringify(skills, null, 2));
-        setStatus("Skill template added.", "muted");
+        if (!existing[code]) {
+            return code;
+        }
+
+        var index = 2;
+        while (existing[code + "-" + index]) {
+            index++;
+        }
+        return code + "-" + index;
+    }
+
+    function normalizeSkillForEditor(skill) {
+        var copy = deepClone(skill || {});
+        copy.code = $.trim(String(copy.code || ""));
+        copy.name = $.trim(String(copy.name || copy.code || "Skill"));
+        copy.type = copy.type === "service_call" ? "service_call" : "data_query";
+        copy.enabled = copy.enabled !== false;
+        copy.runMode = copy.runMode === "always" || copy.runMode === "manual" ? copy.runMode : "triggered";
+        copy.description = String(copy.description || "");
+        copy.triggerKeywords = $.isArray(copy.triggerKeywords) ? copy.triggerKeywords : normalizeListValue(copy.triggerKeywords);
+        copy.triggerKeywords = $.map(copy.triggerKeywords, function(item) {
+            return $.trim(String(item || ""));
+        });
+        copy.triggerKeywords = $.grep(copy.triggerKeywords, function(item) {
+            return item !== "";
+        });
+
+        if (copy.type === "service_call") {
+            copy.method = String(copy.method || "POST").toUpperCase();
+            if ($.inArray(copy.method, ["GET", "POST", "PUT", "PATCH"]) === -1) {
+                copy.method = "POST";
+            }
+            copy.url = String(copy.url || "");
+            copy.headers = copy.headers && typeof copy.headers === "object" && !$.isArray(copy.headers) ? copy.headers : {};
+            copy.bodyTemplate = copy.bodyTemplate && typeof copy.bodyTemplate === "object" && !$.isArray(copy.bodyTemplate) ? copy.bodyTemplate : {};
+            copy.timeoutSeconds = parseInt(copy.timeoutSeconds, 10) || 20;
+        } else {
+            copy.source = String(copy.source || "json_file");
+            copy.dataFile = String(copy.dataFile || "");
+            copy.queryFields = $.isArray(copy.queryFields) ? copy.queryFields : normalizeListValue(copy.queryFields);
+            copy.queryFields = $.map(copy.queryFields, function(item) {
+                return $.trim(String(item || ""));
+            });
+            copy.queryFields = $.grep(copy.queryFields, function(item) {
+                return item !== "";
+            });
+            copy.limit = parseInt(copy.limit, 10) || 5;
+            copy.data = $.isArray(copy.data) ? copy.data : [];
+        }
+
+        return copy;
+    }
+
+    function renderSkillBuilderList() {
+        var list = skillBuilderList();
+        var skills = state.skillBuilder.skills;
+        list.empty();
+
+        find("[data-skill-count]").text(skills.length + (skills.length === 1 ? " skill" : " skills"));
+
+        if (!skills.length) {
+            list.append($("<div>").addClass("agent-creator__empty").text("No skills loaded yet. Add one to begin."));
+            skillBuilderPreview().text("{}");
+            return;
+        }
+
+        for (var i = 0; i < skills.length; i++) {
+            var skill = skills[i];
+            var item = $("<button>").attr("type", "button").addClass("agent-creator__skill-item");
+            if (i === state.skillBuilder.selectedIndex) {
+                item.addClass("is-active");
+            }
+            item.attr("data-skill-item", i);
+            item.append($("<strong>").text(skill.name || skill.code || ("Skill " + (i + 1))));
+            item.append($("<span>").text((skill.code || "skill") + " - " + skill.type));
+            item.append($("<small>").text((skill.runMode || "triggered") + (skill.enabled === false ? " - disabled" : " - enabled")));
+            list.append(item);
+        }
+    }
+
+    function toggleSkillTypeBlocks(type) {
+        find("[data-skill-type-block]").addClass("is-hidden");
+        find('[data-skill-type-block="' + type + '"]').removeClass("is-hidden");
+    }
+
+    function renderSkillEditor() {
+        var skill = skillBuilderSelected();
+        if (!skill) {
+            find("[data-skill-code]").val("");
+            find("[data-skill-name]").val("");
+            find("[data-skill-type]").val("data_query");
+            find("[data-skill-run-mode]").val("triggered");
+            find("[data-skill-enabled]").prop("checked", true);
+            find("[data-skill-description]").val("");
+            find("[data-skill-trigger-keywords]").val("");
+            find("[data-skill-source]").val("json_file");
+            find("[data-skill-data-file]").val("");
+            find("[data-skill-limit]").val(5);
+            find("[data-skill-query-fields]").val("");
+            find("[data-skill-inline-data]").val("");
+            find("[data-skill-method]").val("POST");
+            find("[data-skill-timeout]").val(20);
+            find("[data-skill-url]").val("");
+            find("[data-skill-headers]").val("");
+            find("[data-skill-body-template]").val("");
+            toggleSkillTypeBlocks("data_query");
+            skillBuilderPreview().text("{}");
+            return;
+        }
+
+        find("[data-skill-code]").val(skill.code || "");
+        find("[data-skill-name]").val(skill.name || "");
+        find("[data-skill-type]").val(skill.type || "data_query");
+        find("[data-skill-run-mode]").val(skill.runMode || "triggered");
+        find("[data-skill-enabled]").prop("checked", skill.enabled !== false);
+        find("[data-skill-description]").val(skill.description || "");
+        find("[data-skill-trigger-keywords]").val((skill.triggerKeywords || []).join("\n"));
+        find("[data-skill-source]").val(skill.source || "json_file");
+        find("[data-skill-data-file]").val(skill.dataFile || "");
+        find("[data-skill-limit]").val(skill.limit || 5);
+        find("[data-skill-query-fields]").val((skill.queryFields || []).join("\n"));
+        find("[data-skill-inline-data]").val(skill.data && skill.data.length ? JSON.stringify(skill.data, null, 2) : "");
+        find("[data-skill-method]").val(skill.method || "POST");
+        find("[data-skill-timeout]").val(skill.timeoutSeconds || 20);
+        find("[data-skill-url]").val(skill.url || "");
+        find("[data-skill-headers]").val(skill.headers && Object.keys(skill.headers).length ? JSON.stringify(skill.headers, null, 2) : "");
+        find("[data-skill-body-template]").val(skill.bodyTemplate && Object.keys(skill.bodyTemplate).length ? JSON.stringify(skill.bodyTemplate, null, 2) : "");
+        toggleSkillTypeBlocks(skill.type || "data_query");
+        skillBuilderPreview().text(JSON.stringify(skill, null, 2));
+    }
+
+    function syncSkillBuilderTextarea() {
+        skillBuilderField().val(JSON.stringify(state.skillBuilder.skills, null, 2));
+    }
+
+    function setSkillBuilderStatus(message, tone) {
+        var status = skillBuilderStatus();
+        status.removeClass("is-error is-success is-muted");
+        if (tone) {
+            status.addClass("is-" + tone);
+        }
+        status.text(message);
+    }
+
+    function collectSkillEditorValues() {
+        var current = skillBuilderSelected() || {};
+        var type = find("[data-skill-type]").val() || "data_query";
+        var skill = {
+            code: $.trim(find("[data-skill-code]").val() || ""),
+            name: $.trim(find("[data-skill-name]").val() || ""),
+            type: type,
+            enabled: find("[data-skill-enabled]").is(":checked"),
+            runMode: find("[data-skill-run-mode]").val() || "triggered",
+            description: $.trim(find("[data-skill-description]").val() || ""),
+            triggerKeywords: listFromField("[data-skill-trigger-keywords]")
+        };
+
+        var isBlankDraft = !skill.code && !skill.name && !skill.description && !skill.triggerKeywords.length;
+        if (state.skillBuilder.selectedIndex < 0 && isBlankDraft) {
+            return {
+                success: false,
+                message: "Add a skill template or fill in the fields before applying."
+            };
+        }
+
+        skill.code = uniqueSkillCode(skill.code || skill.name, state.skillBuilder.selectedIndex);
+        if (!skill.name) {
+            skill.name = skill.code;
+        }
+
+        if (type === "service_call") {
+            try {
+                skill.method = String(find("[data-skill-method]").val() || "POST").toUpperCase();
+                skill.url = $.trim(find("[data-skill-url]").val() || "");
+                skill.timeoutSeconds = parseInt(find("[data-skill-timeout]").val(), 10);
+                if (isNaN(skill.timeoutSeconds)) {
+                    skill.timeoutSeconds = 20;
+                }
+                skill.headers = jsonFromField("[data-skill-headers]", {});
+                skill.bodyTemplate = jsonFromField("[data-skill-body-template]", {});
+            } catch (error) {
+                return {
+                    success: false,
+                    message: "Service call JSON must be valid before applying the skill."
+                };
+            }
+            if ($.inArray(skill.method, ["GET", "POST", "PUT", "PATCH"]) === -1) {
+                skill.method = "POST";
+            }
+            if (skill.timeoutSeconds < 2) {
+                skill.timeoutSeconds = 2;
+            }
+            if (skill.timeoutSeconds > 60) {
+                skill.timeoutSeconds = 60;
+            }
+        } else {
+            try {
+                skill.source = find("[data-skill-source]").val() || "json_file";
+                skill.dataFile = $.trim(find("[data-skill-data-file]").val() || "");
+                skill.limit = parseInt(find("[data-skill-limit]").val(), 10);
+                if (isNaN(skill.limit)) {
+                    skill.limit = 5;
+                }
+                skill.queryFields = listFromField("[data-skill-query-fields]");
+                skill.data = jsonFromField("[data-skill-inline-data]", []);
+                if (!$.isArray(skill.data)) {
+                    skill.data = [skill.data];
+                }
+            } catch (error2) {
+                return {
+                    success: false,
+                    message: "Data query JSON must be valid before applying the skill."
+                };
+            }
+            if (skill.limit < 1) {
+                skill.limit = 1;
+            }
+            if (skill.limit > 25) {
+                skill.limit = 25;
+            }
+        }
+
+        skill = normalizeSkillForEditor(skill);
+        if (!skill.code) {
+            return {
+                success: false,
+                message: "Skill code is required."
+            };
+        }
+
+        return {
+            success: true,
+            skill: skill,
+            current: current
+        };
+    }
+
+    function applySkillEditor(options) {
+        var result = collectSkillEditorValues();
+        if (!result.success) {
+            setSkillBuilderStatus(result.message || "Unable to apply skill.", "error");
+            return false;
+        }
+
+        if (state.skillBuilder.selectedIndex < 0) {
+            state.skillBuilder.skills.push(result.skill);
+            state.skillBuilder.selectedIndex = state.skillBuilder.skills.length - 1;
+        } else {
+            state.skillBuilder.skills[state.skillBuilder.selectedIndex] = result.skill;
+        }
+
+        syncSkillBuilderTextarea();
+        renderSkillBuilderList();
+        renderSkillEditor();
+        if (!options || options.showStatus !== false) {
+            setSkillBuilderStatus("Skill applied to the JSON field.", "success");
+        }
+        return true;
+    }
+
+    function selectSkillBuilderIndex(index) {
+        if (index < 0 || index >= state.skillBuilder.skills.length) {
+            return;
+        }
+
+        if (!applySkillEditor({ showStatus: false })) {
+            return;
+        }
+
+        state.skillBuilder.selectedIndex = index;
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus("Editing " + (skillBuilderSelected().name || skillBuilderSelected().code) + ".", "muted");
+    }
+
+    function openSkillBuilder() {
+        var parsed = parseSkillArray(skillBuilderField().val());
+        if (!parsed.success) {
+            state.skillBuilder.skills = [];
+            state.skillBuilder.selectedIndex = -1;
+            showSkillBuilder(true);
+            renderSkillBuilderList();
+            renderSkillEditor();
+            setSkillBuilderStatus(parsed.message, "error");
+            return;
+        }
+
+        state.skillBuilder.skills = $.map(parsed.skills, function(item) {
+            return normalizeSkillForEditor(item);
+        });
+        state.skillBuilder.selectedIndex = state.skillBuilder.skills.length ? 0 : -1;
+        showSkillBuilder(true);
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus(state.skillBuilder.skills.length ? "Current skills JSON decoded into the visual editor." : "Start by adding a skill.", "success");
+    }
+
+    function showSkillBuilder(open) {
+        state.skillBuilder.open = open;
+        skillBuilderModal().toggleClass("is-hidden", !open);
+        skillBuilderModal().attr("aria-hidden", open ? "false" : "true");
+        if (open) {
+            setTimeout(function() {
+                find("[data-skill-code]").focus();
+            }, 0);
+        }
+    }
+
+    function closeSkillBuilder() {
+        if (state.skillBuilder.open && state.skillBuilder.selectedIndex >= 0) {
+            applySkillEditor({ showStatus: false });
+        }
+        showSkillBuilder(false);
+    }
+
+    function addSkillBuilderSkill(type) {
+        if (state.skillBuilder.selectedIndex >= 0 && !applySkillEditor({ showStatus: false })) {
+            return;
+        }
+
+        state.skillBuilder.skills.push(normalizeSkillForEditor(defaultSkill(type)));
+        state.skillBuilder.selectedIndex = state.skillBuilder.skills.length - 1;
+        syncSkillBuilderTextarea();
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus("Added a new " + type.replace("_", " ") + " skill.", "success");
+    }
+
+    function duplicateSkillBuilderSkill() {
+        var skill = skillBuilderSelected();
+        if (!skill) {
+            setSkillBuilderStatus("Select a skill to duplicate.", "error");
+            return;
+        }
+
+        if (!applySkillEditor({ showStatus: false })) {
+            return;
+        }
+
+        var copy = deepClone(skill);
+        copy.code = uniqueSkillCode((copy.code || copy.name || "skill") + "-copy");
+        copy.name = (copy.name || copy.code) + " Copy";
+        state.skillBuilder.skills.splice(state.skillBuilder.selectedIndex + 1, 0, normalizeSkillForEditor(copy));
+        state.skillBuilder.selectedIndex++;
+        syncSkillBuilderTextarea();
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus("Skill duplicated.", "success");
+    }
+
+    function deleteSkillBuilderSkill() {
+        if (state.skillBuilder.selectedIndex < 0) {
+            setSkillBuilderStatus("Select a skill to delete.", "error");
+            return;
+        }
+
+        if (!confirm("Delete the selected skill?")) {
+            return;
+        }
+
+        state.skillBuilder.skills.splice(state.skillBuilder.selectedIndex, 1);
+        if (state.skillBuilder.selectedIndex >= state.skillBuilder.skills.length) {
+            state.skillBuilder.selectedIndex = state.skillBuilder.skills.length - 1;
+        }
+        syncSkillBuilderTextarea();
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus("Skill deleted.", "success");
+    }
+
+    function reloadSkillBuilderFromTextarea() {
+        var parsed = parseSkillArray(skillBuilderField().val());
+        if (!parsed.success) {
+            setSkillBuilderStatus(parsed.message, "error");
+            return;
+        }
+
+        state.skillBuilder.skills = $.map(parsed.skills, function(item) {
+            return normalizeSkillForEditor(item);
+        });
+        if (state.skillBuilder.selectedIndex >= state.skillBuilder.skills.length) {
+            state.skillBuilder.selectedIndex = state.skillBuilder.skills.length - 1;
+        }
+        if (state.skillBuilder.selectedIndex < 0 && state.skillBuilder.skills.length) {
+            state.skillBuilder.selectedIndex = 0;
+        }
+        renderSkillBuilderList();
+        renderSkillEditor();
+        setSkillBuilderStatus("Reloaded skills from the JSON field.", "success");
+    }
+
+    function handleSkillTypeChange() {
+        var type = find("[data-skill-type]").val() || "data_query";
+        toggleSkillTypeBlocks(type);
     }
 
     function bindEvents() {
@@ -624,8 +1163,28 @@ WEBDOCK.component().register(function(exports) {
         find("[data-profile-image]").on("error", function() {
             setProfileImage("");
         });
+        find("[data-open-skill-builder]").on("click", openSkillBuilder);
         find("[data-skill-template]").on("click", function() {
             insertSkillTemplate($(this).data("skill-template"));
+        });
+        find("[data-skill-modal-close]").on("click", closeSkillBuilder);
+        find("[data-skill-builder-import]").on("click", reloadSkillBuilderFromTextarea);
+        find("[data-skill-add]").on("click", function() {
+            addSkillBuilderSkill($(this).data("skill-add"));
+        });
+        find("[data-skill-apply]").on("click", function() {
+            applySkillEditor();
+        });
+        find("[data-skill-duplicate]").on("click", duplicateSkillBuilderSkill);
+        find("[data-skill-delete]").on("click", deleteSkillBuilderSkill);
+        find("[data-skill-type]").on("change", handleSkillTypeChange);
+        find("[data-skill-list]").on("click", "[data-skill-item]", function() {
+            selectSkillBuilderIndex(parseInt($(this).data("skill-item"), 10));
+        });
+        find("[data-skill-modal]").on("keydown", function(event) {
+            if (event.key === "Escape") {
+                closeSkillBuilder();
+            }
         });
         find("[data-test-form]").on("submit", testAgent);
         find("[data-delete-agent]").on("click", deleteSelectedAgent);

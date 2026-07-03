@@ -6,6 +6,7 @@
     </div>
     <div class="product-actions">
       <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><i class="fa fa-refresh"></i> Refresh</button>
+      <button class="btn btn-primary" v-on:click="createRecord"><i class="fa fa-plus"></i> New {{ type == 'grn' ? 'GRN' : 'PO' }}</button>
       <button class="btn btn-primary" v-on:click="goInventory"><i class="fa fa-archive"></i> Inventory</button>
     </div>
   </div>
@@ -71,6 +72,7 @@
               <div class="product-row-actions">
                 <button class="btn btn-default btn-sm" v-on:click="viewRecord(record)"><i class="fa fa-eye"></i> View</button>
                 <button class="btn btn-primary btn-sm" v-on:click="editRecord(record)"><i class="fa fa-pencil"></i> Edit</button>
+                <button class="btn btn-warning btn-sm" v-on:click="cancelRecord(record)" v-bind:disabled="isCancelled(record)"><i class="fa fa-ban"></i> Cancel</button>
               </div>
             </td>
           </tr>

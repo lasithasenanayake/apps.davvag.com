@@ -1,42 +1,36 @@
 WEBDOCK.component().register(function(exports){
     var productHandler;
     var routeHandler;
-    var routeData = {};
     var uomHandler;
     var uomCatalog = [];
 
     var bindData = {
-        type: "po",
-        title: "Edit Purchase Order",
-        icon: "fa-file-text-o",
         loading: false,
         saving: false,
         errors: [],
         info: [],
-        Message: "Loading document...",
+        Message: "Loading purchase order app...",
         productSearch: { value: "" },
         productResults: [],
         taxes: [],
         selectedTax: null,
-        document: emptyDocument()
+        po: emptyTransaction()
     };
 
     exports.vue = {
         data: bindData,
         methods: {
-            backToList: backToList,
-            viewDocument: viewDocument,
+            backToInventory: backToInventory,
             openSupplierPopup: openSupplierPopup,
             clearSupplier: clearSupplier,
             searchProducts: searchProducts,
             addLine: addLine,
             removeLine: removeLine,
+            refreshLineUom: refreshLineUom,
             recalc: recalc,
-            saveDocument: saveDocument,
-            cancelDocument: cancelDocument,
-            formatMoney: formatMoney,
+            savePO: savePO,
             applySelectedTax: applySelectedTax,
-            refreshLineUom: refreshLineUom
+            formatMoney: formatMoney
         },
         onReady: function(){
             initialize();
@@ -50,20 +44,36 @@ WEBDOCK.component().register(function(exports){
         productHandler = exports.getComponent("product");
         uomHandler = exports.getComponent("uom-handler");
         routeHandler = exports.getShellComponent("soss-routes");
-        routeData = routeHandler && routeHandler.getInputData ? routeHandler.getInputData() || {} : {};
-        configureFromRoute();
+        bindData.po.tranDate = formatDateTime(new Date());
         loadUoms();
         loadTaxes();
-        loadDocument();
+        bindData.Message = "Ready to create a purchase order.";
     }
 
-    function configureFromRoute(){
-        var href = window.location.href.toLowerCase();
-        bindData.type = href.indexOf("/grn") >= 0 || routeData.type === "grn" ? "grn" : "po";
-        if(bindData.type === "grn"){
-            bindData.title = "Edit Goods Receive Note";
-            bindData.icon = "fa-truck";
-        }
+    function emptyTransaction(){
+        return {
+            tranNo: 0,
+            poid: 0,
+            tranDate: formatDateTime(new Date()),
+            invoiceDueDate: formatDateTime(new Date()),
+            profileId: 0,
+            name: "",
+            email: "",
+            contactno: "",
+            address: "",
+            city: "",
+            country: "",
+            subtotal: 0,
+            tax: 0,
+            taxamount: 0,
+            total: 0,
+            taxid: 0,
+            taxcode: "",
+            taxname: "",
+            status: "Approved",
+            remarks: "",
+            InvoiceItems: []
+        };
     }
 
     function loadTaxes(){
@@ -71,12 +81,8 @@ WEBDOCK.component().register(function(exports){
             .then(function(response){
                 if(response.success){
                     bindData.taxes = response.result || [];
-                    syncSelectedTax();
-                    if(bindData.document && bindData.document.tranNo){
-                        matchDocumentTax();
-                    }
-                }else{
-                    bindData.taxes = [];
+                    bindData.selectedTax = defaultTax();
+                    applySelectedTax();
                 }
             })
             .error(function(){
@@ -101,139 +107,24 @@ WEBDOCK.component().register(function(exports){
             });
     }
 
-    function loadDocument(){
-        var tranNo = documentNumberFromRoute();
-        if(!tranNo){
-            bindData.Message = "Open a document from the PO or GRN list.";
-            setError("Document number was not found in the route.");
-            return;
-        }
-        clearMessages();
-        bindData.loading = true;
-        bindData.Message = "Loading " + bindData.title.toLowerCase() + " #" + tranNo + "...";
-        productHandler.services.DocumentDetails({ type: bindData.type, tranNo: tranNo })
-            .then(function(response){
-                bindData.loading = false;
-                if(response.success){
-                    bindData.document = normalizeDocument(response.result || {});
-                    refreshAllLineUoms();
-                    matchDocumentTax();
-                    recalc();
-                    bindData.Message = bindData.title + " #" + bindData.document.tranNo + " is ready.";
-                }else{
-                    setError(response.error || "Document failed to load.");
-                }
-            })
-            .error(function(error){
-                bindData.loading = false;
-                setError(error && error.responseJSON ? error.responseJSON.result : "Document failed to load.");
-            });
-    }
-
-    function documentNumberFromRoute(){
-        var value = routeData.tid || routeData.tranNo || routeData.id || "";
-        if(!value){
-            var match = window.location.href.match(/[?&](tid|tranNo|id)=([^&]+)/i);
-            value = match ? decodeURIComponent(match[2]) : "";
-        }
-        return parseInt(value || 0, 10);
-    }
-
-    function emptyDocument(){
-        return {
-            tranNo: 0,
-            poid: 0,
-            tranDate: "",
-            invoiceDueDate: "",
-            profileId: 0,
-            name: "",
-            email: "",
-            contactno: "",
-            address: "",
-            city: "",
-            country: "",
-            taxid: 0,
-            taxcode: "",
-            taxname: "",
-            subtotal: 0,
-            tax: 0,
-            taxamount: 0,
-            total: 0,
-            paidamount: 0,
-            balance: 0,
-            status: "Approved",
-            Complete: "N",
-            remarks: "",
-            InvoiceItems: []
-        };
-    }
-
-    function normalizeDocument(document){
-        var base = emptyDocument();
-        Object.keys(document || {}).forEach(function(key){
-            base[key] = document[key];
-        });
-        base.InvoiceItems = base.InvoiceItems || [];
-        base.InvoiceItems.forEach(function(line){
-            line.qty = parseFloat(line.qty || 0);
-            line.price = parseFloat(line.price || 0);
-            line.total = round(line.qty * line.price);
-        });
-        base.tax = parseFloat(base.tax || 0);
-        base.taxid = parseInt(base.taxid || 0, 10) || 0;
-        base.Complete = (base.Complete || (bindData.type === "grn" ? "Y" : "N")).toString().toUpperCase();
-        return base;
-    }
-
-    function matchDocumentTax(){
+    function defaultTax(){
         if(!bindData.taxes || bindData.taxes.length === 0){
-            return false;
+            return null;
         }
-        var taxId = parseInt(bindData.document.taxid || 0, 10) || 0;
-        var code = (bindData.document.taxcode || "").toString().toLowerCase();
-        var match = null;
-        for(var i = 0; i < bindData.taxes.length; i++){
-            var tax = bindData.taxes[i];
-            if(taxId && parseInt(tax.id || 0, 10) === taxId){
-                match = tax;
-                break;
-            }
-            if(!match && code && (tax.code || "").toString().toLowerCase() === code){
-                match = tax;
-            }
-        }
-        if(match){
-            bindData.selectedTax = match;
-            applySelectedTax();
-            return true;
-        }
-        bindData.selectedTax = null;
-        return false;
-    }
-
-    function syncSelectedTax(){
-        if(bindData.selectedTax){
-            return;
-        }
-        bindData.selectedTax = findDefaultTax();
-    }
-
-    function findDefaultTax(){
-        var fallback = bindData.taxes && bindData.taxes.length > 0 ? bindData.taxes[0] : null;
         for(var i = 0; i < bindData.taxes.length; i++){
             if((bindData.taxes[i].isDefault || "").toString().toUpperCase() === "Y"){
                 return bindData.taxes[i];
             }
         }
-        return fallback;
+        return bindData.taxes[0];
     }
 
     function applySelectedTax(){
         if(bindData.selectedTax){
-            bindData.document.taxid = parseInt(bindData.selectedTax.id || 0, 10) || 0;
-            bindData.document.taxcode = bindData.selectedTax.code || "";
-            bindData.document.taxname = bindData.selectedTax.name || "";
-            bindData.document.tax = parseFloat(bindData.selectedTax.rate || 0);
+            bindData.po.taxid = parseInt(bindData.selectedTax.id || 0, 10) || 0;
+            bindData.po.taxcode = bindData.selectedTax.code || "";
+            bindData.po.taxname = bindData.selectedTax.name || "";
+            bindData.po.tax = parseFloat(bindData.selectedTax.rate || 0);
         }
         recalc();
     }
@@ -258,23 +149,23 @@ WEBDOCK.component().register(function(exports){
     }
 
     function applySupplier(profile){
-        bindData.document.profileId = profile.id || profile.profileId || 0;
-        bindData.document.name = profile.name || "";
-        bindData.document.email = profile.email || "";
-        bindData.document.contactno = profile.contactno || "";
-        bindData.document.address = profile.address || "";
-        bindData.document.city = profile.city || "";
-        bindData.document.country = profile.country || "";
+        bindData.po.profileId = profile.id || profile.profileId || 0;
+        bindData.po.name = profile.name || "";
+        bindData.po.email = profile.email || "";
+        bindData.po.contactno = profile.contactno || "";
+        bindData.po.address = profile.address || "";
+        bindData.po.city = profile.city || "";
+        bindData.po.country = profile.country || "";
     }
 
     function clearSupplier(){
-        bindData.document.profileId = 0;
-        bindData.document.name = "";
-        bindData.document.email = "";
-        bindData.document.contactno = "";
-        bindData.document.address = "";
-        bindData.document.city = "";
-        bindData.document.country = "";
+        bindData.po.profileId = 0;
+        bindData.po.name = "";
+        bindData.po.email = "";
+        bindData.po.contactno = "";
+        bindData.po.address = "";
+        bindData.po.city = "";
+        bindData.po.country = "";
     }
 
     function searchProducts(){
@@ -306,11 +197,11 @@ WEBDOCK.component().register(function(exports){
         if(!product || !product.itemid){
             return;
         }
-        var line = findLine(product.itemid);
-        if(line){
-            line.qty = parseFloat(line.qty || 0) + 1;
+        var existing = findLine(product.itemid);
+        if(existing){
+            existing.qty = parseFloat(existing.qty || 0) + 1;
         }else{
-            bindData.document.InvoiceItems.push({
+            bindData.po.InvoiceItems.push({
                 itemid: product.itemid,
                 name: product.name || "",
                 uom: product.uom || "",
@@ -319,7 +210,7 @@ WEBDOCK.component().register(function(exports){
                 total: 0,
                 catogory: product.catogory || ""
             });
-            applyLineUomContext(bindData.document.InvoiceItems[bindData.document.InvoiceItems.length - 1], product.uom || "");
+            applyLineUomContext(bindData.po.InvoiceItems[bindData.po.InvoiceItems.length - 1], product.uom || "");
         }
         bindData.productSearch.value = "";
         bindData.productResults = [];
@@ -327,16 +218,16 @@ WEBDOCK.component().register(function(exports){
     }
 
     function findLine(itemid){
-        for(var i = 0; i < bindData.document.InvoiceItems.length; i++){
-            if(String(bindData.document.InvoiceItems[i].itemid) === String(itemid)){
-                return bindData.document.InvoiceItems[i];
+        for(var i = 0; i < bindData.po.InvoiceItems.length; i++){
+            if(String(bindData.po.InvoiceItems[i].itemid) === String(itemid)){
+                return bindData.po.InvoiceItems[i];
             }
         }
         return null;
     }
 
     function removeLine(index){
-        bindData.document.InvoiceItems.splice(index, 1);
+        bindData.po.InvoiceItems.splice(index, 1);
         recalc();
     }
 
@@ -346,95 +237,61 @@ WEBDOCK.component().register(function(exports){
     }
 
     function recalc(){
-        bindData.document.subtotal = 0;
-        bindData.document.InvoiceItems.forEach(function(line){
+        bindData.po.subtotal = 0;
+        bindData.po.InvoiceItems.forEach(function(line){
             line.qty = parseFloat(line.qty || 0);
             line.price = parseFloat(line.price || 0);
             refreshLineBaseQty(line);
             line.total = round(line.qty * line.price);
-            bindData.document.subtotal += line.total;
+            bindData.po.subtotal += line.total;
         });
-        bindData.document.subtotal = round(bindData.document.subtotal);
-        bindData.document.tax = bindData.selectedTax ? parseFloat(bindData.selectedTax.rate || 0) : parseFloat(bindData.document.tax || 0);
-        bindData.document.taxamount = round(bindData.document.subtotal * (bindData.document.tax / 100));
-        bindData.document.total = round(bindData.document.subtotal + bindData.document.taxamount);
-        bindData.document.balance = bindData.document.total;
+        bindData.po.subtotal = round(bindData.po.subtotal);
+        bindData.po.tax = bindData.selectedTax ? parseFloat(bindData.selectedTax.rate || 0) : parseFloat(bindData.po.tax || 0);
+        bindData.po.taxamount = round(bindData.po.subtotal * (bindData.po.tax / 100));
+        bindData.po.total = round(bindData.po.subtotal + bindData.po.taxamount);
     }
 
-    function saveDocument(){
+    function savePO(){
         clearMessages();
         recalc();
-        if(bindData.type === "po" && !bindData.document.profileId){
+        if(!bindData.po.profileId){
             setError("Select a supplier before saving the purchase order.");
             return;
         }
-        if(bindData.document.InvoiceItems.length === 0){
-            setError("Add products before saving.");
+        if(bindData.po.InvoiceItems.length === 0){
+            setError("Add products before saving the purchase order.");
             return;
         }
         if(bindData.selectedTax){
-            bindData.document.taxid = parseInt(bindData.selectedTax.id || 0, 10) || 0;
-            bindData.document.taxcode = bindData.selectedTax.code || "";
-            bindData.document.taxname = bindData.selectedTax.name || "";
-            bindData.document.tax = parseFloat(bindData.selectedTax.rate || 0);
+            bindData.po.taxid = parseInt(bindData.selectedTax.id || 0, 10) || 0;
+            bindData.po.taxcode = bindData.selectedTax.code || "";
+            bindData.po.taxname = bindData.selectedTax.name || "";
+            bindData.po.tax = parseFloat(bindData.selectedTax.rate || 0);
         }
         refreshAllLineUoms();
         bindData.saving = true;
-        productHandler.services.SaveDocument({ type: bindData.type, document: clone(bindData.document) })
+        productHandler.services.SavePurchaseOrder(clone(bindData.po))
             .then(function(response){
                 bindData.saving = false;
                 if(response.success){
-                    bindData.document = normalizeDocument(response.result || bindData.document);
-                    matchDocumentTax();
-                    bindData.Message = bindData.title + " #" + bindData.document.tranNo + " saved.";
-                    setInfo(bindData.Message);
+                    setInfo("Purchase order #" + response.result.tranNo + " saved.");
+                    bindData.po = emptyTransaction();
+                    bindData.po.tranDate = formatDateTime(new Date());
+                    bindData.selectedTax = defaultTax();
+                    applySelectedTax();
                 }else{
-                    setError(response.error || "Document save failed.");
+                    setError(response.error || "Purchase order save failed.");
                 }
             })
             .error(function(error){
                 bindData.saving = false;
-                setError(error && error.responseJSON ? error.responseJSON.result : "Document save failed.");
+                setError(error && error.responseJSON ? error.responseJSON.result : "Purchase order save failed.");
             });
     }
 
-    function cancelDocument(){
-        clearMessages();
-        if(!bindData.document.tranNo){
-            setError("Document number is required.");
-            return;
-        }
-        if(!window.confirm("Cancel this " + (bindData.type === "grn" ? "GRN" : "purchase order") + "?")){
-            return;
-        }
-        bindData.saving = true;
-        productHandler.services.CancelDocument({ type: bindData.type, tranNo: bindData.document.tranNo, status: "Cancelled" })
-            .then(function(response){
-                bindData.saving = false;
-                if(response.success){
-                    bindData.document = normalizeDocument(response.result || bindData.document);
-                    bindData.document.status = "Cancelled";
-                    bindData.Message = bindData.title + " #" + bindData.document.tranNo + " cancelled.";
-                    setInfo(bindData.Message);
-                }else{
-                    setError(response.error || "Document cancel failed.");
-                }
-            })
-            .error(function(error){
-                bindData.saving = false;
-                setError(error && error.responseJSON ? error.responseJSON.result : "Document cancel failed.");
-            });
-    }
-
-    function backToList(){
+    function backToInventory(){
         if(routeHandler && routeHandler.appNavigate){
-            routeHandler.appNavigate(bindData.type === "grn" ? "../grn-list" : "../po-list");
-        }
-    }
-
-    function viewDocument(){
-        if(routeHandler && routeHandler.appNavigate && bindData.document.tranNo){
-            routeHandler.appNavigate((bindData.type === "grn" ? "../grn-view" : "../po-view") + "?tid=" + encodeURIComponent(bindData.document.tranNo));
+            routeHandler.appNavigate("../inventory");
         }
     }
 
@@ -444,6 +301,15 @@ WEBDOCK.component().register(function(exports){
             amount = 0;
         }
         return amount.toFixed(2);
+    }
+
+    function formatDateTime(value){
+        return value.getFullYear() + "-" + pad(value.getMonth() + 1) + "-" + pad(value.getDate()) + " " + pad(value.getHours()) + ":" + pad(value.getMinutes()) + ":00";
+    }
+
+    function pad(value){
+        value = String(value);
+        return value.length === 1 ? "0" + value : value;
     }
 
     function round(value){
@@ -481,7 +347,7 @@ WEBDOCK.component().register(function(exports){
     }
 
     function refreshAllLineUoms(){
-        bindData.document.InvoiceItems.forEach(function(line){
+        bindData.po.InvoiceItems.forEach(function(line){
             applyLineUomContext(line, line.baseUom || line.uom || "");
         });
     }

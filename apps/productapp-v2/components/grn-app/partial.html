@@ -1,0 +1,109 @@
+<div class="product-v2-app document-form-page">
+  <div class="product-list-header">
+    <div class="product-list-title">
+      <h3><i class="fa fa-truck"></i> GRN App</h3>
+      <p>Create goods receive notes without the dashboard tabs.</p>
+    </div>
+    <div class="product-actions">
+      <button class="btn btn-default" v-on:click="backToInventory"><i class="fa fa-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" v-on:click="saveGRN" v-bind:disabled="saving || loading"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>
+
+  <div class="product-summary">
+    <i v-bind:class="loading ? 'fa fa-spinner fa-spin' : 'fa fa-info-circle'"></i>
+    <span>{{ Message }}</span>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+  <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+
+  <div class="inventory-form-band">
+    <h4>Supplier and PO</h4>
+    <div class="inventory-scan-row">
+      <button class="btn btn-default" v-on:click="openSupplierPopup"><i class="fa fa-search"></i> Select Supplier</button>
+      <button class="btn btn-default" v-if="grn.profileId" v-on:click="clearSupplier"><i class="fa fa-times"></i> Clear Supplier</button>
+    </div>
+    <div class="product-summary" v-if="grn.profileId">
+      <i class="fa fa-user"></i>
+      <span>#{{ grn.profileId }} {{ grn.name }} {{ grn.email ? '(' + grn.email + ')' : '' }}</span>
+    </div>
+    <div class="inventory-form-grid">
+      <select class="form-control" v-model="selectedPoNo" v-on:change="loadSelectedPO">
+        <option value="">Receive without PO</option>
+        <option v-for="po in filteredOpenPOs()" v-bind:value="po.tranNo">PO #{{ po.tranNo }} - {{ po.name }}</option>
+      </select>
+      <div class="form-group-flat">
+        <label>Tax</label>
+        <select class="form-control" v-model="selectedTax" v-on:change="applySelectedTax">
+          <option v-bind:value="null">Use document tax</option>
+          <option v-for="taxitem in taxes" v-bind:value="taxitem">{{ taxitem.name }} ({{ taxitem.rate }}%)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="inventory-form-band">
+    <h4>Products</h4>
+    <div class="inventory-scan-row">
+      <input class="form-control" placeholder="Scan barcode or search product" v-model="productSearch.value" v-on:keyup.enter="searchProducts">
+      <button class="btn btn-default" v-on:click="searchProducts"><i class="fa fa-barcode"></i> Add</button>
+    </div>
+    <div class="inventory-lookup-results" v-show="productResults.length">
+      <button class="btn btn-default" v-for="product in productResults" v-on:click="addLine(product)">
+        <i class="fa fa-cube"></i> #{{ product.itemid }} {{ product.name }}
+      </button>
+    </div>
+    <table class="table table-bordered document-edit-lines">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th style="width: 110px;">UOM</th>
+          <th style="width: 120px;">Received</th>
+          <th style="width: 130px;">Cost</th>
+          <th style="width: 260px;">Barcode Labels</th>
+          <th style="width: 140px;" class="text-right">Total</th>
+          <th style="width: 70px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-show="grn.InvoiceItems.length === 0">
+          <td colspan="7" class="product-empty-state">Add received products or choose a PO.</td>
+        </tr>
+        <tr v-for="(line,index) in grn.InvoiceItems">
+          <td>
+            <div class="product-name">#{{ line.itemid }} {{ line.name }}</div>
+            <div class="product-muted">{{ line.catogory || '' }}</div>
+          </td>
+          <td>
+            <select class="form-control" v-if="line.uomOptions && line.uomOptions.length > 1" v-model="line.uom" v-on:change="refreshLineUom(line)">
+              <option v-for="uom in line.uomOptions" v-bind:value="uom.symbol">{{ uom.symbol }} - {{ uom.name }}</option>
+            </select>
+            <input class="form-control" v-else v-bind:value="line.baseUom || line.uom || ''" disabled="disabled">
+          </td>
+          <td><input type="number" class="form-control" v-model="line.qty" v-on:input="recalc"></td>
+          <td><input type="number" class="form-control" v-model="line.price" v-on:input="recalc"></td>
+          <td>
+            <div class="inventory-barcode-entry">
+              <input class="form-control" placeholder="Scan label barcode" v-model="line.barcodeInput" v-on:keyup.enter="addBarcodeToLine(index)">
+              <button class="btn btn-default btn-sm" v-on:click="addBarcodeToLine(index)"><i class="fa fa-plus"></i></button>
+            </div>
+            <div class="inventory-barcode-list" v-if="line.barcodes && line.barcodes.length">
+              <span class="label label-default" v-for="(barcode,bindex) in line.barcodes">
+                {{ barcode }} <button type="button" v-on:click="removeBarcodeFromLine(line,bindex)">&times;</button>
+              </span>
+            </div>
+          </td>
+          <td class="text-right">{{ formatMoney(line.total) }}</td>
+          <td><button class="btn btn-danger btn-sm" v-on:click="removeLine(index)"><i class="fa fa-trash"></i></button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="inventory-total-row">
+      <span>Subtotal {{ formatMoney(grn.subtotal) }}</span>
+      <span>Tax {{ formatMoney(grn.taxamount) }}</span>
+      <span>Total {{ formatMoney(grn.total) }}</span>
+      <button class="btn btn-primary" v-on:click="saveGRN" v-bind:disabled="saving || loading"><i class="fa fa-check"></i> Save GRN</button>
+    </div>
+  </div>
+</div>
