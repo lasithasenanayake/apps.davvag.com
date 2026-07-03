@@ -10,6 +10,8 @@ WEBDOCK.component().register(function(exports) {
     var messageHistoryReady = false;
     var audioContext = null;
     var notificationSoundReady = false;
+    var requestedAgentCode = "";
+    var activeAgentCode = "";
 
     var bindData = {
         session: null,
@@ -130,6 +132,9 @@ WEBDOCK.component().register(function(exports) {
             return;
         }
 
+        requestedAgentCode = queryAgentCode();
+        activeAgentCode = requestedAgentCode || "";
+
         api = exports.getComponent("api");
         if (!api) {
             setStatus("Loading chat service...", "muted");
@@ -182,6 +187,35 @@ WEBDOCK.component().register(function(exports) {
         messageHistoryReady = false;
         knownMessageKeys = {};
         loadSession(true);
+    }
+
+    function queryAgentCode() {
+        var hash = window.location && window.location.hash ? window.location.hash : "";
+        var search = "";
+        var questionIndex = hash.indexOf("?");
+        if (questionIndex >= 0) {
+            search = hash.substring(questionIndex + 1);
+        } else if (window.location && window.location.search) {
+            search = window.location.search.replace(/^\?/, "");
+        }
+
+        if (!search) {
+            return "";
+        }
+
+        var params = search.split("&");
+        for (var i = 0; i < params.length; i++) {
+            var pair = params[i].split("=");
+            var key = decodeURIComponent((pair[0] || "").replace(/\+/g, " "));
+            if (key !== "agent" && key !== "agent_code") {
+                continue;
+            }
+            var value = pair.length > 1 ? pair.slice(1).join("=") : "";
+            value = decodeURIComponent((value || "").replace(/\+/g, " "));
+            return $.trim(value.toLowerCase());
+        }
+
+        return "";
     }
 
     function saveProfile(event) {
@@ -291,6 +325,9 @@ WEBDOCK.component().register(function(exports) {
         var shouldFocusLatest = false;
         if (result.defaultAgentCode) {
             bindData.defaultAgentCode = result.defaultAgentCode;
+            if (!requestedAgentCode) {
+                activeAgentCode = result.defaultAgentCode;
+            }
         }
         if (result.identity) {
             bindData.authenticated = result.identity.type === "authenticated";
@@ -345,13 +382,16 @@ WEBDOCK.component().register(function(exports) {
 
     function payload(extra) {
         readFallbackInputs();
+        if (!activeAgentCode) {
+            activeAgentCode = requestedAgentCode || "";
+        }
         var data = {
             profileId: bindData.authenticated ? (bindData.profile && bindData.profile.id ? bindData.profile.id : "") : (bindData.profile && bindData.profile.id ? bindData.profile.id : storageGet("chatAgentProfileId", "")),
             visitorName: $.trim(bindData.profileForm.name || ""),
             visitorEmail: $.trim(bindData.profileForm.email || ""),
             visitorPhone: $.trim(bindData.profileForm.phone || ""),
             visitorDetails: $.trim(bindData.profileForm.details || ""),
-            agentCode: bindData.defaultAgentCode || "chat-agent"
+            agentCode: activeAgentCode || ""
         };
         return $.extend(data, extra || {});
     }

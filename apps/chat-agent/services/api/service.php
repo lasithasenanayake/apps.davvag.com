@@ -26,7 +26,8 @@ class ApiService {
         }
 
         $body = $this->body($req);
-        $identity = $this->currentIdentity($this->boolValue($body, "newSession", false));
+        $agentCode = $this->agentCodeFromBody($body);
+        $identity = $this->currentIdentity($this->boolValue($body, "newSession", false), $agentCode);
         $out = $this->ok();
         $out->identity = $identity;
         if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
@@ -39,7 +40,7 @@ class ApiService {
             return $out;
         }
 
-        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
+        $session = $this->findOrCreateSession($identity, $agentCode, $body, $res);
         if ($session === null) {
             return null;
         }
@@ -56,7 +57,8 @@ class ApiService {
         }
 
         $body = $this->body($req);
-        $identity = $this->currentIdentity(false);
+        $agentCode = $this->agentCodeFromBody($body);
+        $identity = $this->currentIdentity(false, $agentCode);
         if (!$this->shouldBootstrapSession($identity, $body)) {
             $out = $this->ok();
             $out->identity = $identity;
@@ -68,7 +70,7 @@ class ApiService {
             return $out;
         }
 
-        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
+        $session = $this->findOrCreateSession($identity, $agentCode, $body, $res);
         if ($session === null) {
             return null;
         }
@@ -96,8 +98,9 @@ class ApiService {
         }
 
         $body->profileId = (string)$profileResult->profile->id;
-        $identity = $this->currentIdentity(false);
-        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
+        $agentCode = $this->agentCodeFromBody($body);
+        $identity = $this->currentIdentity(false, $agentCode);
+        $session = $this->findOrCreateSession($identity, $agentCode, $body, $res);
         if ($session === null) {
             return null;
         }
@@ -123,14 +126,15 @@ class ApiService {
             return null;
         }
 
-        $identity = $this->currentIdentity(false);
+        $agentCode = $this->agentCodeFromBody($body);
+        $identity = $this->currentIdentity(false, $agentCode);
         $profileResult = $this->resolveProfileForBody($body, $res);
         if ($profileResult === null) {
             return null;
         }
 
         $body->profileId = (string)$profileResult->profile->id;
-        $session = $this->findOrCreateSession($identity, $this->agentCodeFromBody($body), $body, $res);
+        $session = $this->findOrCreateSession($identity, $agentCode, $body, $res);
         if ($session === null) {
             return null;
         }
@@ -685,7 +689,7 @@ class ApiService {
     }
 
     private function resolveProfileForBody($body, $res) {
-        $identity = $this->currentIdentity(false);
+        $identity = $this->currentIdentity(false, $this->agentCodeFromBody($body));
         if (isset($identity->type) && $identity->type === "authenticated") {
             if (isset($identity->profile) && isset($identity->profile->id) && intval($identity->profile->id) > 0) {
                 $out = $this->ok();
@@ -920,16 +924,21 @@ class ApiService {
         return $out;
     }
 
-    private function currentIdentity($newSession) {
+    private function currentIdentity($newSession, $agentCode) {
         if (session_status() === PHP_SESSION_NONE) {
             @session_start();
+        }
+
+        $agentCode = $this->normalizeCode($agentCode);
+        if ($agentCode === "") {
+            $agentCode = $this->configuredAgentCode();
         }
 
         $user = $this->currentUser();
         $profile = $this->currentProfile();
         if (isset($user->userid)) {
             $token = isset($_COOKIE["securityToken"]) ? $_COOKIE["securityToken"] : (isset($user->token) ? $user->token : $user->userid);
-            $key = "auth-" . substr(hash("sha256", (string)$token), 0, 32);
+            $key = "auth-" . substr(hash("sha256", (string)$token . "|" . $agentCode), 0, 32);
             $identity = new \stdClass();
             $identity->type = "authenticated";
             $identity->visitorKey = $key;
@@ -950,10 +959,11 @@ class ApiService {
             $this->setCookieValue($this->visitorCookie, $visitorKey, 365);
         }
 
-        $sessionKey = isset($_COOKIE[$this->sessionCookie]) ? $this->normalizeSessionKey($_COOKIE[$this->sessionCookie]) : "";
+        $sessionCookie = $this->sessionCookieForAgent($agentCode);
+        $sessionKey = isset($_COOKIE[$sessionCookie]) ? $this->normalizeSessionKey($_COOKIE[$sessionCookie]) : "";
         if ($newSession || $sessionKey === "") {
-            $sessionKey = $this->newKey("chat");
-            $this->setCookieValue($this->sessionCookie, $sessionKey, 30);
+            $sessionKey = $this->newKey("chat-" . substr(hash("sha256", $visitorKey . "|" . $agentCode), 0, 12));
+            $this->setCookieValue($sessionCookie, $sessionKey, 30);
         }
 
         $identity = new \stdClass();
@@ -1104,6 +1114,10 @@ class ApiService {
     }
 
     private function agentCodeFromBody($body) {
+        $agentCode = $this->normalizeCode($this->stringValue($body, "agentCode", ""));
+        if ($agentCode !== "") {
+            return $agentCode;
+        }
         return $this->configuredAgentCode();
     }
 
@@ -1123,6 +1137,14 @@ class ApiService {
 
         $agentCode = $this->normalizeCode($agentCode);
         return $agentCode !== "" ? $agentCode : $this->defaultAgentCode;
+    }
+
+    private function sessionCookieForAgent($agentCode) {
+        $agentCode = $this->normalizeCode($agentCode);
+        if ($agentCode === "") {
+            $agentCode = $this->defaultAgentCode;
+        }
+        return $this->sessionCookie . "-" . substr(hash("sha256", $agentCode), 0, 16);
     }
 
     private function chatSettings() {

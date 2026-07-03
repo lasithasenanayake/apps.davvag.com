@@ -26,6 +26,7 @@ WEBDOCK.component().register(function(exports){
             backToInventory: backToInventory,
             openSupplierPopup: openSupplierPopup,
             clearSupplier: clearSupplier,
+            filteredOpenPOs: filteredOpenPOs,
             searchProducts: searchProducts,
             addLine: addLine,
             removeLine: removeLine,
