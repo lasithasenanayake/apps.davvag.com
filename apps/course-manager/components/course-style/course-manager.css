@@ -368,14 +368,15 @@
 .cm-week-header-row,
 .cm-week-row {
     display: grid;
-    grid-template-columns: 96px repeat(5, minmax(170px, 1fr));
-    min-width: 946px;
+    grid-template-columns: 96px repeat(7, minmax(160px, 1fr));
+    min-width: 1216px;
 }
 
 .cm-week-corner,
 .cm-week-head,
 .cm-time-cell,
-.cm-day-cell {
+.cm-day-cell,
+.cm-week-day {
     border-bottom: 1px solid #e3e8ef;
     border-right: 1px solid #e3e8ef;
     min-width: 0;
@@ -394,6 +395,19 @@
     gap: 2px;
 }
 
+.cm-day-cell {
+    display: grid;
+    gap: 8px;
+    min-height: 112px;
+    padding: 8px;
+    background: #ffffff;
+}
+
+.cm-week-head.is-weekend,
+.cm-day-cell.is-weekend {
+    background: #f7f3ff;
+}
+
 .cm-week-head span {
     color: #697586;
     font-size: 12px;
@@ -406,13 +420,6 @@
     font-weight: 700;
     min-height: 112px;
     padding: 12px 10px;
-}
-
-.cm-day-cell {
-    display: grid;
-    gap: 8px;
-    min-height: 112px;
-    padding: 8px;
 }
 
 .cm-slot-card {
@@ -455,6 +462,15 @@
 .cm-week-empty {
     display: block;
     min-height: 78px;
+}
+
+.cm-day-cell.is-weekend .cm-slot-card {
+    border-left-color: #8b5cf6;
+}
+
+.cm-day-cell.is-weekend .cm-slot-card:hover,
+.cm-day-cell.is-weekend .cm-slot-card:focus {
+    border-color: #8b5cf6;
 }
 
 .cm-attendance-check {

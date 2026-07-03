@@ -33,7 +33,12 @@
                   <button class="btn btn-default" v-on:click="selectTeacherProfile"><span class="glyphicon glyphicon-user"></span> Select</button>
                 </div>
               </label>
-              <label>Room<select v-model="form.room_id"><option value="">Select</option><option v-for="room in rooms" v-bind:value="room.id">{{ room.code }} - {{ room.name }}</option></select></label>
+              <label>Room
+                <div class="cm-profile-picker">
+                  <input readonly v-bind:value="roomName(form.room_id)" placeholder="No classroom selected">
+                  <button class="btn btn-default" v-on:click="selectRoom">Select</button>
+                </div>
+              </label>
             </div>
             <div class="cm-two">
               <label>Start<input type="datetime-local" v-model="form.start_at"></label>
@@ -90,7 +95,7 @@
                 <td>{{ slot.end_at }}</td>
                 <td>{{ classGradeName(slot.class_grade_id) }}</td>
                 <td>{{ subjectTitle(slot.subject_id) }}</td>
-                <td>{{ roomName(slot.room_id) }}</td>
+                <td><button class="btn btn-link" v-on:click="selectSlot(slot); selectRoom()">{{ roomName(slot.room_id) }}</button></td>
                 <td>
                   <div class="cm-inline-actions">
                     <button class="btn btn-xs btn-default" v-on:click="selectSlot(slot)"><span class="glyphicon glyphicon-calendar"></span></button>

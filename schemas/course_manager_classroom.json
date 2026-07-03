@@ -49,6 +49,13 @@
                 "maxLen": 50,
                 "default": "active"
             }
+        },
+        {
+            "fieldName": "layout_url",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 500
+            }
         }
     ]
 }

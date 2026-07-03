@@ -1,0 +1,24 @@
+{
+    "name": "classroom-list-popup",
+    "description": "Popup classroom selector for course manager",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "classroom-list-popup.css"
+            }
+        ]
+    }
+}

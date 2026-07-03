@@ -328,7 +328,7 @@ class ApiService {
     }
 
     public function postListClassrooms($req, $res) {
-        return $this->listFromBody($req, $this->classroomNamespace, array("id", "code", "name", "type", "status"), array("code", "name", "location", "type", "status"));
+        return $this->listFromBody($req, $this->classroomNamespace, array("id", "code", "name", "capacity", "location", "type", "status", "layout_url"), array("code", "name", "location", "type", "status"));
     }
 
     public function postSaveClassroom($req, $res) {
@@ -342,6 +342,10 @@ class ApiService {
         }
         $room->code = strtoupper(trim($room->code));
         $room->status = empty($room->status) ? "active" : $room->status;
+        $room->capacity = isset($room->capacity) && $room->capacity !== "" ? intval($room->capacity) : 0;
+        $room->location = isset($room->location) ? trim($room->location) : "";
+        $room->type = isset($room->type) && $room->type !== "" ? trim($room->type) : "room";
+        $room->layout_url = isset($room->layout_url) ? trim($room->layout_url) : "";
         return $this->persistObject($this->classroomNamespace, "id", $room, $res);
     }
 
@@ -356,7 +360,7 @@ class ApiService {
     public function postWeeklyTimetable($req, $res) {
         $body = $this->body($req);
         $weekStart = $this->weekStartDate(isset($body->week_start) ? $body->week_start : "");
-        $weekEnd = date("Y-m-d", strtotime($weekStart . " +4 days"));
+        $weekEnd = date("Y-m-d", strtotime($weekStart . " +6 days"));
         $query = $this->buildQuery($body, array("class_grade_id", "subject_id", "teacher_id", "room_id", "status"));
         $rows = $this->rows($this->timetableNamespace, $query, "asc", 2000, 0);
         $slots = array();
@@ -1034,10 +1038,10 @@ class ApiService {
     }
 
     private function weekdaysFor($weekStart) {
-        $labels = array("Mon", "Tue", "Wed", "Thu", "Fri");
+        $labels = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
         $days = array();
         $start = strtotime($weekStart);
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $day = new \stdClass();
             $day->label = $labels[$i];
             $day->date = date("Y-m-d", strtotime("+" . $i . " days", $start));

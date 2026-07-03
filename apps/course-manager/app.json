@@ -12,6 +12,10 @@
             "type": "component",
             "location": "components"
         },
+        "classroom-list-popup": {
+            "type": "component",
+            "location": "components"
+        },
         "timetable": {
             "type": "component",
             "location": "components"
@@ -33,6 +37,10 @@
             "location": "components"
         },
         "profiles": {
+            "type": "component",
+            "location": "components"
+        },
+        "classrooms": {
             "type": "component",
             "location": "components"
         },
@@ -72,7 +80,8 @@
                     "/attendance": "attendance",
                     "/gradebook": "gradebook",
                     "/assignments": "assignments",
-                    "/profiles": "profiles"
+                    "/profiles": "profiles",
+                    "/classrooms": "classrooms"
                 }
             }
         },
@@ -105,6 +114,10 @@
                 {
                     "name": "Assignments",
                     "path": "assignments"
+                },
+                {
+                    "name": "Classrooms",
+                    "path": "classrooms"
                 }
             ]
         }

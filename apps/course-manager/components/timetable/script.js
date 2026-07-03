@@ -24,6 +24,7 @@ WEBDOCK.component().register(function (exports) {
             saveSlot: saveSlot,
             deleteSlot: deleteSlot,
             selectTeacherProfile: selectTeacherProfile,
+            selectRoom: selectRoom,
             saveAttendance: saveAttendance,
             selectAttendanceSlot: selectAttendanceSlot,
             selectAttendanceStudent: selectAttendanceStudent,
@@ -160,6 +161,12 @@ WEBDOCK.component().register(function (exports) {
         });
     }
 
+    function selectRoom() {
+        openRoomPopup(function (room) {
+            bindData.form.room_id = room.id;
+        });
+    }
+
     function confirmDelete(slot) {
         var label = subjectTitle(slot.subject_id) || "this timetable slot";
         return window.confirm("Are you sure you want to delete " + label + "? This cannot be undone.");
@@ -255,6 +262,24 @@ WEBDOCK.component().register(function (exports) {
         }, "Select Profile", true, true);
     }
 
+    function openRoomPopup(onSelect) {
+        var popup = exports.getShellComponent("app_popup");
+        if (!popup || !popup.open) {
+            setError("Classroom popup is not loaded.");
+            return;
+        }
+        popup.open("course-manager", "classroom-list-popup", {}, function (room, instance) {
+            var selected = normalizeRoom(room);
+            if (selected && selected.id) {
+                rememberRoom(selected);
+                onSelect(selected);
+            }
+            if (instance && instance.close) {
+                instance.close();
+            }
+        }, "Select Classroom", true, true);
+    }
+
     function normalizeProfile(profile) {
         if (profile && profile.id) {
             return profile;
@@ -264,6 +289,19 @@ WEBDOCK.component().register(function (exports) {
         }
         if (profile && profile.result && profile.result.id) {
             return profile.result;
+        }
+        return null;
+    }
+
+    function normalizeRoom(room) {
+        if (room && room.id) {
+            return room;
+        }
+        if (room && room.room && room.room.id) {
+            return room.room;
+        }
+        if (room && room.result && room.result.id) {
+            return room.result;
         }
         return null;
     }
@@ -278,6 +316,19 @@ WEBDOCK.component().register(function (exports) {
         });
         if (!found) {
             bindData.profiles.push(profile);
+        }
+    }
+
+    function rememberRoom(room) {
+        var found = false;
+        bindData.rooms.forEach(function (item, index) {
+            if (String(item.id) === String(room.id)) {
+                bindData.rooms[index] = room;
+                found = true;
+            }
+        });
+        if (!found) {
+            bindData.rooms.push(room);
         }
     }
 

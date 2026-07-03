@@ -1,0 +1,46 @@
+.cm-classroom-page .cm-click-row {
+    cursor: pointer;
+}
+
+.cm-classroom-page .cm-click-row:hover {
+    background: #f8fbff;
+}
+
+.cm-layout-preview {
+    background: #f8fafc;
+    border: 1px solid #d7dee8;
+    border-radius: 8px;
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+}
+
+.cm-layout-preview-label {
+    color: #364152;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.cm-layout-preview img,
+.cm-layout-preview iframe {
+    background: #fff;
+    border: 1px solid #e3e8ef;
+    border-radius: 6px;
+    min-height: 240px;
+    width: 100%;
+}
+
+.cm-layout-preview img {
+    object-fit: contain;
+}
+
+.cm-layout-preview iframe {
+    border: 0;
+}
+
+.cm-pill.maintenance {
+    background: #ffedd5;
+    color: #c2410c;
+}

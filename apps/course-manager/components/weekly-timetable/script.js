@@ -35,6 +35,7 @@ WEBDOCK.component().register(function (exports) {
             subjectTitle: subjectTitle,
             rangeLabel: rangeLabel,
             timeLabel: timeLabel,
+            dayClass: dayClass,
             statusClass: statusClass
         },
         onReady: function () {
@@ -185,6 +186,15 @@ WEBDOCK.component().register(function (exports) {
         return time || "";
     }
 
+    function dayClass(day) {
+        var parsed = parseDateInput(day && day.date ? day.date : "");
+        if (!parsed) {
+            return "";
+        }
+        var dow = parsed.getDay();
+        return dow === 0 || dow === 6 ? "is-weekend" : "";
+    }
+
     function statusClass(status) {
         return "cm-pill " + String(status || "scheduled").toLowerCase();
     }
@@ -245,9 +255,9 @@ WEBDOCK.component().register(function (exports) {
 
     function defaultWeekdays(weekStart) {
         var start = parseDateInput(weekStart) || new Date();
-        var labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+        var labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
         var days = [];
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 7; i++) {
             var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
             days.push({
                 label: labels[i],

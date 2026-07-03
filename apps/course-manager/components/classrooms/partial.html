@@ -1,0 +1,143 @@
+<section class="cm-page cm-classroom-page">
+  <div class="cm-toolbar">
+    <div>
+      <h3>Classrooms</h3>
+      <div class="cm-muted">Register rooms, seating capacity, and floor-plan uploads.</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" v-on:click="navigate('../dashboard')"><span class="glyphicon glyphicon-stats"></span> Dashboard</button>
+      <button class="btn btn-default" v-on:click="navigate('../courses')"><span class="glyphicon glyphicon-education"></span> Courses</button>
+      <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Timetable</button>
+    </div>
+  </div>
+
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-5 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Search</strong>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-profile-picker">
+            <input class="form-control" v-model="search" placeholder="Search by code, name, or location" v-on:keyup.enter="searchRooms">
+            <button class="btn btn-default" v-on:click="searchRooms"><span class="glyphicon glyphicon-search"></span> Search</button>
+          </div>
+        </div>
+        <div class="cm-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Capacity</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="room in rooms" v-on:click="selectRoom(room)" class="cm-click-row">
+                <td>{{ room.code }}</td>
+                <td>
+                  <strong>{{ room.name }}</strong>
+                  <div class="cm-muted">{{ room.location }}</div>
+                </td>
+                <td>{{ room.capacity || 0 }}</td>
+                <td><span v-bind:class="roomBadgeClass(room.status)">{{ room.status }}</span></td>
+              </tr>
+              <tr v-if="rooms.length == 0">
+                <td colspan="4">No classrooms found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7 col-xs-12">
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>{{ selectedRoomId ? 'Edit Classroom' : 'Add Classroom' }}</strong>
+          <div class="cm-inline-actions">
+            <button class="btn btn-default btn-xs" v-on:click="clearForm">New</button>
+            <button class="btn btn-primary btn-xs" v-on:click="saveRoom" :disabled="uploading">
+              <span class="glyphicon glyphicon-floppy-disk"></span>
+              <span v-if="uploading">Saving...</span>
+              <span v-else>Save</span>
+            </button>
+          </div>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-form-grid">
+            <div class="cm-two">
+              <label>Code<input v-model="roomForm.code" placeholder="A-101"></label>
+              <label>Capacity<input type="number" min="0" v-model="roomForm.capacity"></label>
+            </div>
+            <label>Name<input v-model="roomForm.name" placeholder="Main lecture hall"></label>
+            <label>Location<input v-model="roomForm.location" placeholder="First floor, east wing"></label>
+            <div class="cm-two">
+              <label>Type
+                <select v-model="roomForm.type">
+                  <option value="room">Room</option>
+                  <option value="lab">Lab</option>
+                  <option value="hall">Hall</option>
+                  <option value="online">Online</option>
+                </select>
+              </label>
+              <label>Status
+                <select v-model="roomForm.status">
+                  <option value="active">Active</option>
+                  <option value="closed">Closed</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </label>
+            </div>
+            <label>Layout upload
+              <input type="file" accept="image/*" v-on:change="onLayoutPicked">
+            </label>
+            <div class="cm-inline-actions">
+              <button class="btn btn-default btn-xs" v-on:click="clearLayout" :disabled="!layoutPreview">Clear layout</button>
+              <span class="cm-muted" v-if="roomForm.layout_url">Saved layout: {{ roomForm.layout_url }}</span>
+            </div>
+            <div class="cm-layout-preview" v-if="hasLayoutPreview()">
+              <div class="cm-layout-preview-label">Layout preview</div>
+              <img v-if="isImageLayout()" :src="layoutPreview" alt="Classroom layout preview">
+              <iframe v-else :src="layoutPreview" title="Classroom layout preview"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <div class="cm-panel-header">
+          <strong>Current Record</strong>
+          <button class="btn btn-warning btn-xs" v-if="selectedRoomId" v-on:click="deleteRoom(roomForm)"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+        </div>
+        <div class="cm-panel-body">
+          <div class="cm-grid">
+            <div><strong>{{ roomForm.code || 'No room selected' }}</strong></div>
+            <div class="cm-muted">{{ roomForm.name || 'Select a room to edit it.' }}</div>
+            <div class="cm-three">
+              <div class="cm-kpi">
+                <span class="cm-muted">Capacity</span>
+                <strong>{{ roomForm.capacity || 0 }}</strong>
+              </div>
+              <div class="cm-kpi">
+                <span class="cm-muted">Type</span>
+                <strong>{{ roomTypeLabel(roomForm.type) }}</strong>
+              </div>
+              <div class="cm-kpi">
+                <span class="cm-muted">Status</span>
+                <strong>{{ roomForm.status || 'active' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

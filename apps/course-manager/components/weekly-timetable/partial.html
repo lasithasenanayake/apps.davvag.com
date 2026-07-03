@@ -41,14 +41,14 @@
     <div class="cm-week-board">
       <div class="cm-week-header-row">
         <div class="cm-week-corner">Time</div>
-        <div class="cm-week-head" v-for="day in weekdays">
+        <div class="cm-week-head" v-bind:class="dayClass(day)" v-for="day in weekdays">
           <strong>{{ day.label }}</strong>
           <span>{{ day.date }}</span>
         </div>
       </div>
       <div class="cm-week-row" v-for="time in timeRows">
         <div class="cm-time-cell">{{ timeLabel(time) }}</div>
-        <div class="cm-day-cell" v-for="day in weekdays">
+        <div class="cm-day-cell" v-bind:class="dayClass(day)" v-for="day in weekdays">
           <button class="cm-slot-card" v-for="slot in slotsFor(day, time)" v-on:click="goAttendance(slot)" title="Open attendance">
             <strong class="cm-slot-card-title">{{ subjectTitle(slot.subject_id) }}</strong>
             <span>{{ classGradeName(slot.class_grade_id) }}</span>
