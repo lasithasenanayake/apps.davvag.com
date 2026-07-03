@@ -8,7 +8,7 @@ WEBDOCK.component().register(function(exports){
             wa.remove();
         }
         bodyEt=$("body");
-        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog modal-lg' role='document'><div class='modal-content'><div class='modal-header' style='display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;'><h5 id='"+id+"_title' class='modal-title' style='margin:0;line-height:1.3;flex:1;'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close' style='margin:0;line-height:1;opacity:.65;float:none;flex:0 0 auto;'><span aria-hidden='true' style='font-size:28px;line-height:1;'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
         
        
     }
@@ -19,7 +19,7 @@ WEBDOCK.component().register(function(exports){
             wa.remove();
         }
         bodyEt=$("body");
-        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header'> <h5 id='"+id+"_title' class='modal-title' id='modalLabel'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
+        bodyEt.append("<div id='"+id+"_popup' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='"+id+"_popup' aria-hidden='true'><div class='modal-dialog' role='document'><div class='modal-content'><div class='modal-header' style='display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;'><h5 id='"+id+"_title' class='modal-title' style='margin:0;line-height:1.3;flex:1;'>"+title+"</h5><button type='button' class='close' data-dismiss='modal' aria-label='Close' style='margin:0;line-height:1;opacity:.65;float:none;flex:0 0 auto;'><span aria-hidden='true' style='font-size:28px;line-height:1;'>&times;</span></button></div><div id='"+id+"_window' class='modal-body'></div></div></div>");
         
         
     }

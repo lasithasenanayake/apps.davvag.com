@@ -64,5 +64,18 @@
                 "maxLen": 100
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName":"usergroup_permission_usergroup",
+            "relationType":"many-to-one",
+            "targetEntity":"usergroup",
+            "joinColumns":[
+                {
+                    "sourceColumn":"groupid",
+                    "targetColumn":"groupid"
+                }
+            ]
+        }
     ]
 }
