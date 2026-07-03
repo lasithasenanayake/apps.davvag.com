@@ -44,5 +44,29 @@
                 "default": "active"
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_classgrade_course",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_course",
+            "joinColumns": [
+                {
+                    "sourceColumn": "course_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_classgrade_classroom",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_classroom",
+            "joinColumns": [
+                {
+                    "sourceColumn": "room_id",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }

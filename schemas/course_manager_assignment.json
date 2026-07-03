@@ -66,5 +66,40 @@
             "fieldName": "created_at",
             "dataType": "java.util.Date"
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_assignment_classgrade",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_classgrade",
+            "joinColumns": [
+                {
+                    "sourceColumn": "class_grade_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_assignment_subject",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_subject",
+            "joinColumns": [
+                {
+                    "sourceColumn": "subject_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_assignment_created_by_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "created_by",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }

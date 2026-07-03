@@ -53,5 +53,29 @@
                 "default": "active"
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_product_course",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_course",
+            "joinColumns": [
+                {
+                    "sourceColumn": "course_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_product_products",
+            "relationType": "many-to-one",
+            "targetEntity": "products",
+            "joinColumns": [
+                {
+                    "sourceColumn": "product_id",
+                    "targetColumn": "itemid"
+                }
+            ]
+        }
     ]
 }

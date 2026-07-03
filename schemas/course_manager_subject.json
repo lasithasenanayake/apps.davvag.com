@@ -84,5 +84,40 @@
                 "default": "active"
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_subject_course",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_course",
+            "joinColumns": [
+                {
+                    "sourceColumn": "course_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_subject_teacher_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "teacher_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_subject_products",
+            "relationType": "many-to-one",
+            "targetEntity": "products",
+            "joinColumns": [
+                {
+                    "sourceColumn": "product_id",
+                    "targetColumn": "itemid"
+                }
+            ]
+        }
     ]
 }

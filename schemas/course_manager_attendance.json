@@ -69,5 +69,62 @@
                 "encoding": "utf8"
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_attendance_timetable",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_timetable",
+            "joinColumns": [
+                {
+                    "sourceColumn": "timetable_slot_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_attendance_classgrade",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_classgrade",
+            "joinColumns": [
+                {
+                    "sourceColumn": "class_grade_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_attendance_subject",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_subject",
+            "joinColumns": [
+                {
+                    "sourceColumn": "subject_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_attendance_student_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "student_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_attendance_recorded_by_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "recorded_by",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }

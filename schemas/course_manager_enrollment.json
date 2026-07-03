@@ -47,5 +47,40 @@
                 "default": "active"
             }
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_enrollment_classgrade",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_classgrade",
+            "joinColumns": [
+                {
+                    "sourceColumn": "class_grade_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_enrollment_course",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_course",
+            "joinColumns": [
+                {
+                    "sourceColumn": "course_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_enrollment_student_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "student_id",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }

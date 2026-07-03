@@ -69,5 +69,18 @@
             "fieldName": "sent_at",
             "dataType": "java.util.Date"
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_notification_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "profile_id",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }

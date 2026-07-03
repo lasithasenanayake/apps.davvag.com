@@ -94,5 +94,40 @@
             "fieldName": "graded_at",
             "dataType": "java.util.Date"
         }
+    ],
+    "relations": [
+        {
+            "relationName": "course_manager_submission_assignment",
+            "relationType": "many-to-one",
+            "targetEntity": "course_manager_assignment",
+            "joinColumns": [
+                {
+                    "sourceColumn": "assignment_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_submission_student_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "student_id",
+                    "targetColumn": "id"
+                }
+            ]
+        },
+        {
+            "relationName": "course_manager_submission_graded_by_profile",
+            "relationType": "many-to-one",
+            "targetEntity": "profile",
+            "joinColumns": [
+                {
+                    "sourceColumn": "graded_by",
+                    "targetColumn": "id"
+                }
+            ]
+        }
     ]
 }
