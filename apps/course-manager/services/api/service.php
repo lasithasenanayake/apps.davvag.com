@@ -983,6 +983,8 @@ class ApiService {
             $res->SetError("Class grade, subject, start, and end are required.");
             return null;
         }
+        $slot->start_at = $this->normalizeDateTimeValue($slot->start_at);
+        $slot->end_at = $this->normalizeDateTimeValue($slot->end_at);
         if (strtotime($slot->end_at) <= strtotime($slot->start_at)) {
             $res->SetError("End time must be after start time.");
             return null;
@@ -1028,7 +1030,8 @@ class ApiService {
     }
 
     private function weekStartDate($value) {
-        $timestamp = empty($value) ? time() : strtotime($value);
+        $normalized = $this->normalizeDateTimeValue($value);
+        $timestamp = empty($normalized) ? time() : strtotime($normalized);
         if ($timestamp === false) {
             $timestamp = time();
         }
@@ -1054,7 +1057,7 @@ class ApiService {
         if (empty($slot->start_at)) {
             return false;
         }
-        $slotStart = strtotime($slot->start_at);
+        $slotStart = strtotime($this->normalizeDateTimeValue($slot->start_at));
         if ($slotStart === false) {
             return false;
         }
@@ -1064,12 +1067,27 @@ class ApiService {
     }
 
     private function compareSlotsByStart($left, $right) {
-        $leftTime = empty($left->start_at) ? 0 : strtotime($left->start_at);
-        $rightTime = empty($right->start_at) ? 0 : strtotime($right->start_at);
+        $leftTime = empty($left->start_at) ? 0 : strtotime($this->normalizeDateTimeValue($left->start_at));
+        $rightTime = empty($right->start_at) ? 0 : strtotime($this->normalizeDateTimeValue($right->start_at));
         if ($leftTime === $rightTime) {
             return 0;
         }
         return $leftTime < $rightTime ? -1 : 1;
+    }
+
+    private function normalizeDateTimeValue($value) {
+        if (empty($value)) {
+            return "";
+        }
+        $text = trim(strval($value));
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?$/', $text, $matches)) {
+            return $matches[1] . "-" . $matches[2] . "-" . $matches[3] . " " . $matches[4] . ":" . $matches[5] . ":" . (isset($matches[6]) && $matches[6] !== "" ? $matches[6] : "00");
+        }
+        if (preg_match('/^(\d{2})-(\d{2})-(\d{4})[T\s](\d{2}):(\d{2})(?::(\d{2}))?$/', $text, $matches)) {
+            return $matches[3] . "-" . $matches[1] . "-" . $matches[2] . " " . $matches[4] . ":" . $matches[5] . ":" . (isset($matches[6]) && $matches[6] !== "" ? $matches[6] : "00");
+        }
+        $timestamp = strtotime($text);
+        return $timestamp === false ? $text : date("Y-m-d H:i:s", $timestamp);
     }
 
     private function attendanceByStudent($body) {

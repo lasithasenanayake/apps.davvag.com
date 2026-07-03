@@ -1,0 +1,77 @@
+<section class="cm-page cm-popup-page">
+  <div class="cm-alerts">
+    <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+    <div class="alert alert-info" v-for="message in info">{{ message }}</div>
+  </div>
+
+  <div class="cm-form-grid">
+    <div class="cm-two">
+      <label>Cohort
+        <select v-model="form.class_grade_id">
+          <option value="">Select</option>
+          <option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option>
+        </select>
+      </label>
+      <label>Subject
+        <select v-model="form.subject_id">
+          <option value="">Select</option>
+          <option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="cm-two">
+      <label>Teacher
+        <div class="cm-profile-picker">
+          <input readonly v-bind:value="profileName(form.teacher_id)" placeholder="No teacher selected">
+          <button class="btn btn-default" v-on:click="selectTeacherProfile"><span class="glyphicon glyphicon-user"></span> Select</button>
+        </div>
+      </label>
+      <label>Room
+        <div class="cm-profile-picker">
+          <input readonly v-bind:value="roomName(form.room_id)" placeholder="No classroom selected">
+          <button class="btn btn-default" v-on:click="selectRoom">Select</button>
+        </div>
+      </label>
+    </div>
+
+    <div class="cm-two">
+      <label>Start<input type="datetime-local" v-model="form.start_at"></label>
+      <label>End<input type="datetime-local" v-model="form.end_at"></label>
+    </div>
+
+    <div class="cm-two">
+      <label>Online
+        <select v-model="form.is_online">
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+      </label>
+      <label>Status
+        <select v-model="form.status">
+          <option value="scheduled">scheduled</option>
+          <option value="completed">completed</option>
+          <option value="cancelled">cancelled</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Online Link<input v-model="form.online_link"></label>
+    <label>Recurrence<input v-model="form.recurrence_rule" placeholder="Optional recurrence rule"></label>
+
+    <div class="cm-two">
+      <label>Override Conflict
+        <select v-model="form.override_conflict">
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+      </label>
+      <label>Override Reason<input v-model="form.override_reason"></label>
+    </div>
+
+    <div class="cm-inline-actions">
+      <button class="btn btn-primary" v-on:click="saveSlot" :disabled="saving"><span class="glyphicon glyphicon-floppy-disk"></span> Save Slot</button>
+      <button class="btn btn-warning" v-if="canDelete()" v-on:click="deleteSlot" :disabled="saving"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+    </div>
+  </div>
+</section>

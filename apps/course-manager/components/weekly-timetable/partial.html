@@ -4,6 +4,7 @@
       <h3>Weekly Timetable</h3>
     </div>
     <div class="btn-group">
+      <button class="btn btn-success" v-on:click="openQuickAdd"><span class="glyphicon glyphicon-plus"></span> Add Slot</button>
       <button class="btn btn-default" v-on:click="refresh" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>
       <button class="btn btn-default" v-on:click="navigate('../timetable')"><span class="glyphicon glyphicon-calendar"></span> Slots</button>
       <button class="btn btn-primary" v-on:click="openAttendanceForSelection"><span class="glyphicon glyphicon-ok"></span> Attendance</button>
@@ -27,6 +28,7 @@
       <div class="cm-filter-strip">
         <label>Cohort<select v-model="filters.class_grade_id"><option value="">All cohorts</option><option v-for="classGrade in classGrades" v-bind:value="classGrade.id">{{ classGrade.name }}</option></select></label>
         <label>Subject<select v-model="filters.subject_id"><option value="">All subjects</option><option v-for="subject in subjects" v-bind:value="subject.id">{{ subject.code }} - {{ subject.title }}</option></select></label>
+        <label>Room<select v-model="filters.room_id"><option value="">All rooms</option><option v-for="room in rooms" v-bind:value="room.id">{{ room.code ? room.code + ' - ' : '' }}{{ room.name }}</option></select></label>
         <label>Week Starts<input type="date" v-model="filters.week_start"></label>
         <button class="btn btn-primary" v-on:click="loadWeek"><span class="glyphicon glyphicon-search"></span> Load</button>
       </div>
@@ -47,16 +49,21 @@
         </div>
       </div>
       <div class="cm-week-row" v-for="time in timeRows">
-        <div class="cm-time-cell">{{ timeLabel(time) }}</div>
-        <div class="cm-day-cell" v-bind:class="dayClass(day)" v-for="day in weekdays">
-          <button class="cm-slot-card" v-for="slot in slotsFor(day, time)" v-on:click="goAttendance(slot)" title="Open attendance">
+        <div class="cm-time-cell">
+          <strong>{{ timeLabel(time) }}</strong>
+          <span class="cm-time-cell-end">{{ nextTimeLabel(time) }}</span>
+        </div>
+        <div class="cm-day-cell cm-day-cell-action" v-bind:class="cellClass(day, time)" v-for="day in weekdays" v-on:click="openSlotPopupForCell(day, time)" v-bind:title="'Add slot at ' + timeLabel(time)">
+          <div class="cm-slot-card" v-for="slot in slotStartsFor(day, time)" v-on:click.stop="editSlot(slot)" title="Edit slot" tabindex="0">
             <strong class="cm-slot-card-title">{{ subjectTitle(slot.subject_id) }}</strong>
             <span>{{ classGradeName(slot.class_grade_id) }}</span>
+            <span class="cm-slot-card-meta" v-if="slot.room_id">{{ roomName(slot.room_id) }}</span>
             <span class="cm-slot-card-meta">{{ rangeLabel(slot) }}</span>
             <span v-bind:class="statusClass(slot.status)">{{ slot.status }}</span>
-            <span class="cm-slot-link">Add Attendance</span>
-          </button>
-          <span class="cm-week-empty" v-if="slotsFor(day, time).length == 0"></span>
+            <div class="cm-slot-card-actions">
+              <button class="btn btn-xs btn-default" v-on:click.stop="goAttendance(slot)"><span class="glyphicon glyphicon-ok"></span> Attendance</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

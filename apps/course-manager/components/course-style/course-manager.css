@@ -292,7 +292,7 @@
     align-items: end;
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(4, minmax(160px, 1fr));
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
 }
 
 .cm-filter-strip label {
@@ -398,9 +398,19 @@
 .cm-day-cell {
     display: grid;
     gap: 8px;
-    min-height: 112px;
+    min-height: 92px;
     padding: 8px;
     background: #ffffff;
+    position: relative;
+    transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.cm-day-cell-action {
+    cursor: pointer;
+}
+
+.cm-day-cell-action:hover {
+    box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.2);
 }
 
 .cm-week-head.is-weekend,
@@ -417,9 +427,38 @@
 .cm-time-cell {
     background: #fbfcfe;
     color: #364152;
+    display: grid;
     font-weight: 700;
-    min-height: 112px;
+    gap: 4px;
+    min-height: 92px;
     padding: 12px 10px;
+}
+
+.cm-time-cell strong {
+    font-size: 15px;
+    line-height: 1.2;
+}
+
+.cm-time-cell-end {
+    color: #8a94a6;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cm-day-cell.is-slot-active {
+    background: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.04));
+}
+
+.cm-day-cell.is-slot-start {
+    box-shadow: inset 3px 0 0 #0f766e;
+}
+
+.cm-day-cell.is-weekend.is-slot-active {
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.09), rgba(139, 92, 246, 0.04));
+}
+
+.cm-day-cell.is-weekend.is-slot-start {
+    box-shadow: inset 3px 0 0 #8b5cf6;
 }
 
 .cm-slot-card {
@@ -433,8 +472,10 @@
     gap: 5px;
     min-height: 96px;
     padding: 9px;
+    position: relative;
     text-align: left;
     width: 100%;
+    z-index: 1;
 }
 
 .cm-slot-card:hover,
@@ -459,9 +500,37 @@
     font-weight: 700;
 }
 
+.cm-slot-card-actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .cm-week-empty {
     display: block;
     min-height: 78px;
+}
+
+.cm-slot-empty-action {
+    align-items: center;
+    align-self: stretch;
+    background: rgba(15, 118, 110, 0.05);
+    border: 1px dashed #9fb4cb;
+    border-radius: 6px;
+    color: #0f766e;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    gap: 6px;
+    justify-content: center;
+    min-height: 78px;
+    width: 100%;
+}
+
+.cm-slot-empty-action:hover,
+.cm-slot-empty-action:focus {
+    background: rgba(15, 118, 110, 0.12);
+    border-color: #0f766e;
+    outline: none;
 }
 
 .cm-day-cell.is-weekend .cm-slot-card {

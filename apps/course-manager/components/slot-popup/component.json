@@ -1,8 +1,8 @@
 {
-    "name": "weekly-timetable",
-    "description": "Weekly timetable grid with cohort, subject, and attendance actions",
+    "name": "slot-popup",
+    "description": "Course Manager timetable slot editor popup",
     "author": "DAVVAG",
-    "version": "0.3",
+    "version": "0.2",
     "resources": {
         "files": [
             {
