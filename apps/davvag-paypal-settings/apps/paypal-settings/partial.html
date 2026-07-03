@@ -1,0 +1,39 @@
+<div class="input-form">
+  <h1 class="h3 mb-3 font-weight-normal" style="text-align: center">PayPal Settings</h1>
+  <hr>
+  <div class="input-error">
+    <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+      <strong>ERROR! </strong> {{error}}
+    </div>
+    <div class="alert alert-info" v-if="submitInfo" v-for="info in submitInfo">
+      <strong>INFO! </strong> {{info}}
+    </div>
+  </div>
+  <form id="form-details">
+    <div class="form-group">
+      <label>Client ID</label>
+      <input type="text" class="form-control" placeholder="PayPal REST client ID" v-model="data.clientId">
+    </div>
+    <div class="form-group">
+      <label>Secret</label>
+      <input type="password" class="form-control" placeholder="PayPal REST secret" v-model="data.secret">
+    </div>
+    <div class="form-group">
+      <label>Mode</label>
+      <select class="form-control mb15" v-model="data.mode">
+        <option value="sandbox">Sandbox</option>
+        <option value="live">Live</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Currency Code</label>
+      <input type="text" class="form-control" placeholder="USD" v-model="data.currencycode">
+    </div>
+    <div class="form-group">
+      <label>Brand Name</label>
+      <input type="text" class="form-control" placeholder="Davvag Store" v-model="data.brandName">
+      <small class="form-text text-muted">Shown inside the PayPal checkout window.</small>
+    </div>
+    <button class="btn bg-primary-button btn-block" v-on:click="submit">Save Settings</button>
+  </form>
+</div>

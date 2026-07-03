@@ -1,0 +1,38 @@
+{
+    "name" : "app-handler",
+    "description":"PayPal payment service",
+    "author":"Davvag",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "PayPal_IPG",
+        "methods" : {
+            "Order" : {
+                "method" : "GET",
+                "parameters":["id"]
+            },
+            "CreateOrder" : {
+                "method" : "POST"
+            },
+            "CaptureOrder" : {
+                "method" : "POST"
+            },
+            "PublicToken" : {
+                "method" : "GET",
+                "parameters":["id"]
+            }
+        }
+    },
+    "transformers": {
+        
+    }
+}

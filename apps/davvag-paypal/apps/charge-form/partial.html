@@ -1,0 +1,33 @@
+<div class="input-form paypal-charge-form">
+  <h1 class="h3 mb-3 font-weight-normal" style="text-align: center">Pay with PayPal</h1>
+  <hr>
+  <div class="input-error">
+    <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
+      <strong>ERROR! </strong> {{error}}
+    </div>
+    <div class="alert alert-info" v-if="submitInfo" v-for="info in submitInfo">
+      <strong>INFO! </strong> {{info}}
+    </div>
+  </div>
+
+  <div v-if="order" class="paypal-summary">
+    <div class="summary-row">
+      <span>Order</span>
+      <strong>{{ order.invoiceNo }}</strong>
+    </div>
+    <div class="summary-row">
+      <span>Customer</span>
+      <strong>{{ order.email }}</strong>
+    </div>
+    <div class="summary-row">
+      <span>Total</span>
+      <strong>{{ order.currencycode }} {{ order.balance }}</strong>
+    </div>
+  </div>
+
+  <div class="alert alert-info" v-if="isBusy">
+    Preparing secure PayPal checkout...
+  </div>
+
+  <div id="paypal-button-container"></div>
+</div>

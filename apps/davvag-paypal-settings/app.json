@@ -1,0 +1,49 @@
+{
+    "components": {
+        "app-handler": {
+            "type": "service",
+            "location": "service"
+        },
+        "paypal-settings": {
+            "type": "component",
+            "location": "apps"
+        }
+    },
+    "description": {
+        "title": "PayPal Settings",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
+    },
+    "tags": [
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "paypal-settings",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {
+                    "/settings": "paypal-settings"
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_paypal",
+            "davvag_ipgs"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-ipg",
+            "davvag-order",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
+    }
+}

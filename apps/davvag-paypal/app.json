@@ -1,0 +1,46 @@
+{
+    "components": {
+        "charge-form": {
+            "type": "component",
+            "location": "apps"
+        },
+        "app-handler": {
+            "type": "service",
+            "location": "service"
+        }
+    },
+    "description": {
+        "title": "PayPal Card Payment",
+        "author": "Davvag",
+        "version": "0.1",
+        "icon": "appicon.png"
+    },
+    "tags": [
+        "showincms"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "charge-form",
+            "onLoad": [
+                "app-handler"
+            ],
+            "routes": {
+                "partials": {}
+            }
+        }
+    },
+    "dependencies": {
+        "apps": [],
+        "schemas": [
+            "davvag_paypal"
+        ],
+        "workflows": [],
+        "plugins": [
+            "davvag-ipg",
+            "davvag-order",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": []
+    }
+}

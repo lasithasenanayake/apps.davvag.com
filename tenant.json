@@ -193,6 +193,12 @@
         },
         "course-manager":{
             "version":"latest"
+        },
+        "davvag-paypal":{
+            "version":"latest"
+        },
+        "davvag-paypal-settings":{
+            "version":"latest"
         }
     },
     "webdock":{

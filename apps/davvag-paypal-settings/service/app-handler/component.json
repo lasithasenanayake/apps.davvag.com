@@ -1,0 +1,31 @@
+{
+    "name" : "app-handler",
+    "description":"PayPal settings service",
+    "author":"Davvag",
+    "version" : "0.1",
+    "gitUrl" : "",
+    "resources": {
+        "files":[
+            {
+                "type" : "mainScript",
+                "location" : "script.js"
+            }
+        ]
+    },
+    "serviceHandler" : {
+        "file": "service.php",
+        "class": "PayPal_Settings_IPG",
+        "methods" : {
+            "Save" : {
+                "method" : "POST"
+            },
+            "PublicToken" : {
+                "method" : "GET",
+                "parameters":["id"]
+            }
+        }
+    },
+    "transformers": {
+        
+    }
+}
