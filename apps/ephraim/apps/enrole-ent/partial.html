@@ -21,6 +21,16 @@
   </div>
 
   <div class="form-group">
+    <label for="contactno">Contact Number</label>
+    <input type="text" class="form-control" id="contactno" aria-describedby="contactnoHelp" placeholder="Enter Contact Number" v-model="data.contactno">
+    <small id="contactnoHelp" class="form-text text-muted">Your contact number.</small>
+  </div>
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Email Address" v-model="data.email">
+    <small id="emailHelp" class="form-text text-muted">Your email address.</small>
+  </div>
+  <div class="form-group">
     <label for="church">Church</label>
     <input type="text" class="form-control" id="church" aria-describedby="churchHelp" placeholder="Enter Church" v-model="data.church">
     <small id="churchHelp" class="form-text text-muted">Your church or fellowship.</small>
