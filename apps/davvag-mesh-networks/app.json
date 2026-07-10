@@ -1,0 +1,57 @@
+{
+   "components":{
+      "network-list":{
+         "type":"component",
+         "location":"components"
+      },
+      "network-api":{
+         "type":"service",
+         "location":"services"
+      }
+   },
+   "description":{
+      "title":"Mesh Networks",
+      "author":"DAVVAG",
+      "version":"0.2.3",
+      "icon":"appicon.svg"
+   },
+   "tags":[
+      "showindock"
+   ],
+   "configuration":{
+      "webdock":{
+         "startupComponent":"network-list",
+         "onLoad":[
+            "network-api"
+         ],
+         "routes":{
+            "partials":{
+               "/":"network-list",
+               "/networks":"network-list"
+            }
+         }
+      }
+   },
+   "dependencies":{
+      "apps":[
+         
+      ],
+      "schemas":[
+         "davvag_mesh_networks",
+         "davvag_mesh_network_members",
+         "profile"
+      ],
+      "workflows":[
+         
+      ],
+      "plugins":[
+         "auth",
+         "sossdata",
+         "phpcache",
+         "profile"
+      ],
+      "php-extensions":[
+         
+      ]
+   }
+}

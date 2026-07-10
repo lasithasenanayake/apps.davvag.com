@@ -1,0 +1,38 @@
+{
+   "name":"network-api",
+   "description":"Mesh network business service",
+   "author":"DAVVAG",
+   "version":"0.2.2",
+   "resources":{
+      "files":[
+         {
+            "type":"mainScript",
+            "location":"script.js"
+         }
+      ]
+   },
+   "serviceHandler":{
+      "file":"service.php",
+      "class":"davvag_mesh_networks\\NetworkApiService",
+      "methods":{
+         "CreateNetwork":{
+            "method":"POST"
+         },
+         "GetNetwork":{
+            "method":"GET"
+         },
+         "ListNetworks":{
+            "method":"GET"
+         },
+         "UpdateNetwork":{
+            "method":"POST"
+         },
+         "NetworkSummary":{
+            "method":"GET"
+         }
+      }
+   },
+   "transformers":{
+      
+   }
+}

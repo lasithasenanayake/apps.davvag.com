@@ -1,1 +1,1 @@
-{"apps":{"davvag-cms-v7":{"version":"latest"},"davvag-viral-content-manager":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}
+{"apps":{"davvag-mesh":{"version":"latest"},"davvag-mesh-networks":{"version":"latest"},"davvag-cms-v7":{"version":"latest"},"davvag-viral-content-manager":{"version":"latest"},"davvag-mesh-devices":{"version":"latest"},"davvag-mesh-events":{"version":"latest"},"davvag-mesh-sync":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}

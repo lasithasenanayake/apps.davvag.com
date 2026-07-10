@@ -1,0 +1,1 @@
+{"name":"dashboard","description":"DAVVAG Mesh operational overview","author":"DAVVAG","version":"0.2.2","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}],"css":[{"type":"css","location":"dashboard.css"}]}}

@@ -1,0 +1,1 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DAVVAG Mesh</title></head><body><main webdock-component="dashboard"></main><script src="/lib/jquery.js"></script><script src="/lib/bootstrap.min.js"></script><script src="/lib/webdock.js" webdockapp="davvag-mesh"></script></body></html>

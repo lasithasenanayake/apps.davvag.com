@@ -1,5 +1,10 @@
 {
     "apps":{
+        "davvag-mesh":{"version":"latest"},
+        "davvag-mesh-networks":{"version":"latest"},
+        "davvag-mesh-devices":{"version":"latest"},
+        "davvag-mesh-events":{"version":"latest"},
+        "davvag-mesh-sync":{"version":"latest"},
         "ai-chatgpt-agent":{
             "version":"latest"
         },
