@@ -16,6 +16,7 @@ WEBDOCK.component().register(function (exports) {
         selectedTask: null,
         form: emptyTask(),
         formOpen: false,
+        isBusy: false,
         activeStatus: "New",
         statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
     };
@@ -148,6 +149,10 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function editTask(task) {
+        if (bindData.isBusy || !task || !task.taskId) {
+            return;
+        }
+        bindData.isBusy = true;
         bindData.selectedTask = task;
         bindData.formOpen = true;
         if (!bindData.allowedProfiles.length) {
@@ -162,6 +167,7 @@ WEBDOCK.component().register(function (exports) {
         activateRichText(bindData.form.body);
 
         api.services.TaskDetails({taskId: task.taskId}).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.form.Assignees = normalizeAssignees(response.result.assignees || []);
                 bindData.attachments = response.result.attachments || [];
@@ -169,8 +175,11 @@ WEBDOCK.component().register(function (exports) {
                     file.scr = attachmentUrl(file);
                 });
                 activateRichText(bindData.form.body);
+            } else {
+                setError("Could not load task details.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Could not load task details.");
         });
     }
@@ -185,6 +194,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveTask() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         syncRichTextBody();
         if (!bindData.form.subject) {
@@ -194,7 +206,9 @@ WEBDOCK.component().register(function (exports) {
         bindData.form.projectId = routeData.projectId;
         bindData.form.Assignees = normalizeAssignees(bindData.form.Assignees || []);
         bindData.form.Attachments = bindData.attachments;
+        bindData.isBusy = true;
         api.services.SaveTask(bindData.form).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.form = response.result;
                 uploadFiles(response.result.taskId, function () {
@@ -214,15 +228,18 @@ WEBDOCK.component().register(function (exports) {
                 setError("Task save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Task save failed.");
         });
     }
 
     function deleteTask(task) {
-        if (!task || !task.taskId) {
+        if (bindData.isBusy || !task || !task.taskId) {
             return;
         }
+        bindData.isBusy = true;
         api.services.DeleteTask(task).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 closeTaskForm();
                 loadTasks();
@@ -231,6 +248,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Task delete failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Task delete failed.");
         });
     }
@@ -508,7 +526,7 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.3";
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 

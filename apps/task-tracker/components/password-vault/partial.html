@@ -57,7 +57,7 @@
               <button class="btn btn-xs btn-success" v-on:click="copyPassword(vault)" title="Copy password"><span class="glyphicon glyphicon-copy"></span></button>
               <button class="btn btn-xs btn-default" v-on:click="editVault(vault)" title="Edit"><span class="glyphicon glyphicon-pencil"></span></button>
               <button class="btn btn-xs btn-default" v-on:click="ChangePermision(vault)" title="Permissions"><span class="glyphicon glyphicon-lock"></span></button>
-              <button class="btn btn-xs btn-danger" v-on:click="deleteVault(vault)" title="Delete"><span class="glyphicon glyphicon-trash"></span></button>
+              <button class="btn btn-xs btn-danger" v-on:click="deleteVault(vault)" title="Delete login" aria-label="Delete login"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
             </td>
           </tr>
         </tbody>
@@ -109,7 +109,7 @@
         <div class="tm-actions">
           <button class="btn btn-primary" v-on:click="saveVault"><span class="glyphicon glyphicon-floppy-disk"></span> Save Login</button>
           <button class="btn btn-success" v-if="form.vaultId" v-on:click="copyPassword(form)"><span class="glyphicon glyphicon-copy"></span> Copy Password</button>
-          <button class="btn btn-danger" v-if="form.vaultId" v-on:click="deleteVault(form)"><span class="glyphicon glyphicon-trash"></span></button>
+          <button class="btn btn-danger" v-if="form.vaultId" v-on:click="deleteVault(form)" title="Delete login" aria-label="Delete login"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@
         <div class="tm-task-actions">
           <button class="btn btn-xs btn-success" v-on:click="openTimeTracker(task)"><span class="glyphicon glyphicon-play"></span> Track</button>
           <button class="btn btn-xs btn-info" v-on:click="openTaskView(task)"><span class="glyphicon glyphicon-time"></span> View</button>
-          <button class="btn btn-xs btn-default" v-on:click="editTask(task)"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
+          <button class="btn btn-xs btn-default" v-on:click="editTask(task)" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-pencil"></span> {{ isBusy ? 'Loading...' : 'Edit' }}</button>
         </div>
       </div>
     </div>
@@ -94,9 +94,9 @@
         </div>
 
         <div class="tm-actions">
-          <button class="btn btn-primary" v-on:click="saveTask"><span class="glyphicon glyphicon-floppy-disk"></span> Save Task</button>
+          <button class="btn btn-primary" v-on:click="saveTask" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-floppy-disk"></span> {{ isBusy ? 'Saving...' : 'Save Task' }}</button>
           <button class="btn btn-info" v-if="form.taskId" v-on:click="openTaskView(form)"><span class="glyphicon glyphicon-time"></span> View</button>
-          <button class="btn btn-danger" v-if="form.taskId" v-on:click="deleteTask(form)"><span class="glyphicon glyphicon-trash"></span></button>
+          <button class="btn btn-danger" v-if="form.taskId" v-on:click="deleteTask(form)" v-bind:disabled="isBusy" title="Delete task" aria-label="Delete task"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> {{ isBusy ? 'Working...' : 'Delete' }}</button>
         </div>
       </div>
     </div>

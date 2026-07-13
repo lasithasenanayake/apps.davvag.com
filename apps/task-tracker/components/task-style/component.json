@@ -2,7 +2,7 @@
     "name": "task-style",
     "description": "Task Manager shared cross-dock styles",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "css": [
             {"type": "css", "location": "task-common.css"}

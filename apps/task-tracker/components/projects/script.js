@@ -13,6 +13,7 @@ WEBDOCK.component().register(function (exports) {
         accessSearching: false,
         accessProfilesLoading: false,
         accessSearchMessage: "",
+        isBusy: false,
         form: emptyProject(),
         formOpen: false,
         selected: null
@@ -105,6 +106,10 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function selectProject(project) {
+        if (bindData.isBusy || !project || !project.projectId) {
+            return;
+        }
+        bindData.isBusy = true;
         bindData.selected = project;
         bindData.form = clone(project);
         bindData.formOpen = true;
@@ -112,6 +117,7 @@ WEBDOCK.component().register(function (exports) {
         bindData.accessProfileRows = [];
         loadAssignedProfiles();
         api.services.ProjectDetails({projectId: project.projectId}).then(function (response) {
+            bindData.isBusy = false;
             if (response.success && response.result.project) {
                 bindData.form = clone(response.result.project);
                 bindData.form.AccessProfiles = response.result.accessProfileIds || parseIds(bindData.form.profileids);
@@ -119,11 +125,19 @@ WEBDOCK.component().register(function (exports) {
                 bindData.accessSearch = "";
                 bindData.accessMatches = [];
                 bindData.accessSearchMessage = "";
+            } else {
+                setError("Could not load project details.");
             }
+        }).error(function () {
+            bindData.isBusy = false;
+            setError("Could not load project details.");
         });
     }
 
     function saveProject() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.form.name) {
             setError("Project name is required.");
@@ -131,7 +145,9 @@ WEBDOCK.component().register(function (exports) {
         }
         syncAccessProfileIds();
         var accessProfileIds = (bindData.form.AccessProfiles || []).slice(0);
+        bindData.isBusy = true;
         api.services.SaveProject(bindData.form).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.form = response.result;
                 bindData.form.AccessProfiles = response.result.AccessProfiles || accessProfileIds;
@@ -144,15 +160,18 @@ WEBDOCK.component().register(function (exports) {
                 setError("Project save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Project save failed.");
         });
     }
 
     function deleteProject(project) {
-        if (!project || !project.projectId) {
+        if (bindData.isBusy || !project || !project.projectId) {
             return;
         }
+        bindData.isBusy = true;
         api.services.DeleteProject(project).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 remove(bindData.projects, project, "projectId");
                 createProject();
@@ -162,6 +181,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Project delete failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Project delete failed.");
         });
     }
@@ -181,13 +201,19 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function ChangePermision(project) {
+        if (bindData.isBusy) {
+            return;
+        }
         var target = project || bindData.form;
         openViewObject(target.sysviewobject, function (data, shellpopup) {
             target.sysviewobject = data;
             bindData.form.sysviewobject = data;
+            bindData.isBusy = true;
             api.services.SaveProject(target).then(function () {
+                bindData.isBusy = false;
                 setInfo("Project permission updated.");
             }).error(function () {
+                bindData.isBusy = false;
                 setError("Error changing project permission.");
             });
             shellpopup.close();
@@ -374,7 +400,7 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.3";
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 

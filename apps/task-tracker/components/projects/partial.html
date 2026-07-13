@@ -19,7 +19,7 @@
         <div class="tm-panel-header"><strong>Project List</strong></div>
         <div class="tm-list">
           <div class="tm-project-row" v-for="project in projects" v-bind:class="{active:selected && selected.projectId == project.projectId}">
-            <button class="tm-list-main" v-on:click="selectProject(project)">
+            <button class="tm-list-main" v-on:click="selectProject(project)" v-bind:disabled="isBusy">
               <strong>{{ project.name }}</strong>
               <span>{{ project.status }}</span>
             </button>
@@ -39,7 +39,7 @@
         <div class="tm-panel-header">
           <strong>{{ form.projectId ? 'Edit Project' : 'New Project' }}</strong>
           <div>
-            <button class="btn btn-xs btn-default" v-on:click="ChangePermision(form)"><span class="glyphicon glyphicon-lock"></span></button>
+            <button class="btn btn-xs btn-default" v-on:click="ChangePermision(form)" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-lock"></span></button>
             <button class="btn btn-xs btn-default" v-on:click="closeProjectForm"><span class="glyphicon glyphicon-remove"></span></button>
           </div>
         </div>
@@ -118,10 +118,10 @@
         </div>
 
         <div class="tm-actions">
-          <button class="btn btn-primary" v-on:click="saveProject"><span class="glyphicon glyphicon-floppy-disk"></span> Save Project</button>
+          <button class="btn btn-primary" v-on:click="saveProject" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-floppy-disk"></span> {{ isBusy ? 'Saving...' : 'Save Project' }}</button>
           <button class="btn btn-success" v-if="form.projectId" v-on:click="openTasks(form)"><span class="glyphicon glyphicon-tasks"></span> Tasks</button>
           <button class="btn btn-default" v-if="form.projectId" v-on:click="openPasswordVault(form)"><span class="glyphicon glyphicon-lock"></span> Password Vault</button>
-          <button class="btn btn-danger" v-if="form.projectId" v-on:click="deleteProject(form)"><span class="glyphicon glyphicon-trash"></span></button>
+          <button class="btn btn-danger" v-if="form.projectId" v-on:click="deleteProject(form)" v-bind:disabled="isBusy" title="Delete project" aria-label="Delete project"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> {{ isBusy ? 'Working...' : 'Delete' }}</button>
         </div>
       </div>
     </div>

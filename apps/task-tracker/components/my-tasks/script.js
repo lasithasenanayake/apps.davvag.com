@@ -161,7 +161,7 @@ WEBDOCK.component().register(function (exports) {
         link.id = "task-tracker-common-css";
         link.rel = "stylesheet";
         link.type = "text/css";
-        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.2";
+        link.href = "components/task-tracker/task-style/file/task-common.css?v=2.3";
         document.getElementsByTagName("head")[0].appendChild(link);
     }
 

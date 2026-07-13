@@ -2,7 +2,7 @@
     "name": "tasks",
     "description": "Project-scoped task list and editor",
     "author": "DAVVAG",
-    "version": "0.2",
+    "version": "0.3",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

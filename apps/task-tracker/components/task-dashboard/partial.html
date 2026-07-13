@@ -73,7 +73,7 @@
 
         <div class="tm-actions">
           <button class="btn btn-primary" v-on:click="saveProject"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-          <button class="btn btn-danger" v-on:click="deleteProject(projectForm)" v-if="projectForm.projectId"><span class="glyphicon glyphicon-trash"></span></button>
+          <button class="btn btn-danger" v-on:click="deleteProject(projectForm)" v-if="projectForm.projectId" title="Delete project" aria-label="Delete project"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>
         </div>
       </div>
     </div>
@@ -142,7 +142,7 @@
 
         <div class="tm-actions">
           <button class="btn btn-primary" v-on:click="saveTask"><span class="glyphicon glyphicon-floppy-disk"></span> Save Task</button>
-          <button class="btn btn-danger" v-if="taskForm.taskId" v-on:click="deleteTask(taskForm)"><span class="glyphicon glyphicon-trash"></span></button>
+          <button class="btn btn-danger" v-if="taskForm.taskId" v-on:click="deleteTask(taskForm)" title="Delete task" aria-label="Delete task"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>
         </div>
       </div>
 
