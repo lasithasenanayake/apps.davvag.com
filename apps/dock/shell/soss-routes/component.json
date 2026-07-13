@@ -2,7 +2,7 @@
     "name" : "soss-routes",
     "description":"WEBDOCK Router",
     "author":"Supun Dissanayake",
-    "version" : "0.1",
+    "version" : "0.2",
     "gitUrl" : "",
     "resources": {
         "files":[

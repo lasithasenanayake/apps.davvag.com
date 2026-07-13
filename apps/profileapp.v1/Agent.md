@@ -110,6 +110,8 @@ handler.appNavigate("../invoice?tid=" + invoiceNo);
 
 Some components use absolute paths like `"/" + pagev`. Be careful: in DAVVAG route handling, absolute-looking paths can behave differently depending on the current shell route. Prefer sibling navigation such as `../edit?id=...` when moving within this app.
 
+The admin dock route controller preserves `#/app/profileapp.v1` as the app root. Therefore `../edit?id=1` resolves correctly from both `#/app/profileapp.v1` and `#/app/profileapp.v1/list`, and `/edit?id=1` resolves from the Profile App root rather than from the dock root.
+
 ## Service Request Button Lock
 
 `request-lock` is an always-loaded component declared in `app.json` after the `profile` service component.

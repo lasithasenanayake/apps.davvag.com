@@ -31,45 +31,65 @@ WEBDOCK.component()
     };
 
 
-    function browserNavigate (route, relativePath){
-        var hashUrl;
+    function resolveRelativeHash(relativePath){
+        relativePath = relativePath || "";
 
-        if (route){
-            var mainUrl = location.protocol+'//'+location.host+location.pathname+(location.search?location.search:"");
-            hashUrl = mainUrl + "#"  + route;
-        }else {
-            if (WEBDOCK.helpers.contains(relativePath, "..")){
-                var newLoc = "";
-                if (location.hash){
-
-                    var doubleDotCount =0;
-                    var pathWithoutDots = "";
-                    var relativeSplit = relativePath.split("/");
-                    for(var i=0;i<relativeSplit.length;i++){
-                        if (relativeSplit[i] == "..")
-                            doubleDotCount++;
-                        else {
-                            pathWithoutDots+=("/" + relativeSplit[i]);
-                        }
-                    }
-
-                    var splitData = location.hash.split("/");
-                    newLoc = "#";
-                    for (var i=1;i<splitData.length -1; i++)
-                        newLoc += ("/" + splitData[i]);
-                    newLoc += pathWithoutDots;
-                }
-
-
-                relativePath = undefined;
-                hashUrl = location.protocol+'//'+location.host+location.pathname+ newLoc;
-            }else {
-                hashUrl = location.protocol+'//'+location.host+location.pathname+ (location.hash ? location.hash : "") + (location.search?location.search:"");
-            }
+        if(relativePath.indexOf("#") === 0){
+            return relativePath;
         }
 
-        if (relativePath)
-            hashUrl += relativePath;
+        var currentHash = location.hash || "#/";
+        var currentQueryIndex = currentHash.indexOf("?");
+        if(currentQueryIndex !== -1){
+            currentHash = currentHash.substring(0,currentQueryIndex);
+        }
+
+        var relativeQuery = "";
+        var relativeQueryIndex = relativePath.indexOf("?");
+        if(relativeQueryIndex !== -1){
+            relativeQuery = relativePath.substring(relativeQueryIndex);
+            relativePath = relativePath.substring(0,relativeQueryIndex);
+        }
+
+        var currentSegments = currentHash.replace(/^#\/?/, "").split("/").filter(function(segment){
+            return segment !== "";
+        });
+        var appRootDepth = currentSegments.length >= 2 && currentSegments[0] === "app" ? 2 : 0;
+        var resolvedSegments;
+
+        if(relativePath.charAt(0) === "/"){
+            resolvedSegments = appRootDepth ? currentSegments.slice(0,appRootDepth) : [];
+        }else{
+            resolvedSegments = currentSegments.slice(0);
+        }
+
+        relativePath.split("/").forEach(function(segment){
+            if(!segment || segment === "."){
+                return;
+            }
+            if(segment === ".."){
+                if(resolvedSegments.length > appRootDepth){
+                    resolvedSegments.pop();
+                }
+                return;
+            }
+            resolvedSegments.push(segment);
+        });
+
+        return "#/" + resolvedSegments.join("/") + relativeQuery;
+    }
+
+    function browserNavigate (route, relativePath){
+        var hashUrl;
+        var mainUrl = location.protocol+'//'+location.host+location.pathname+(location.search?location.search:"");
+
+        if (route){
+            hashUrl = mainUrl + "#"  + route;
+        }else if(relativePath !== undefined && relativePath !== null){
+            hashUrl = mainUrl + resolveRelativeHash(relativePath);
+        }else {
+            hashUrl = mainUrl + (location.hash ? location.hash : "");
+        }
 
         window.location.href = hashUrl;  
     }

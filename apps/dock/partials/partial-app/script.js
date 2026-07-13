@@ -32,6 +32,13 @@ WEBDOCK.component().register(function (exports) {
                 var appObj = apps[appId];
                 var startupComponent;
 
+                if (!appObj || !appObj.config || !appObj.config.webdock) {
+                    WEBDOCK.freezeUiComponent("left-menu", false);
+                    console.error("Unable to load app route. App descriptor was not found or has no WebDock configuration:", appId);
+                    pInstance.appNavigate("#/notFound");
+                    return;
+                }
+
                 if (appObj.config.webdock)
                     if (appObj.config.webdock.routes)
                         if (appObj.config.webdock.routes.partials)
