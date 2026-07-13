@@ -2,7 +2,7 @@
     "name": "time-tracker",
     "description": "Focused task time tracker and work logger",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

@@ -12,6 +12,7 @@ WEBDOCK.component().register(function (exports) {
         project: null,
         vaults: [],
         loading: false,
+        isBusy: false,
         search: "",
         selected: null,
         form: emptyVault(),
@@ -122,16 +123,24 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function editVault(vault) {
+        if (bindData.isBusy || !vault || !vault.vaultId) {
+            return;
+        }
+        bindData.isBusy = true;
         clearMessages();
         bindData.selected = vault;
         bindData.formOpen = true;
         bindData.form = scrubSecret(clone(vault));
         api.services.VaultDetails({vaultId: vault.vaultId, projectId: bindData.projectId}).then(function (response) {
+            bindData.isBusy = false;
             if (response.success && response.result) {
                 bindData.form = scrubSecret(response.result);
                 bindData.form.projectId = bindData.projectId;
+            } else {
+                setError("Could not load vault details.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Could not load vault details.");
         });
     }
@@ -144,6 +153,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveVault() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.form.title && !bindData.form.websiteUrl) {
             setError("Title or website URL is required.");
@@ -167,7 +179,9 @@ WEBDOCK.component().register(function (exports) {
         }
 
         bindData.form.projectId = bindData.projectId;
+        bindData.isBusy = true;
         api.services.SaveVault(clone(bindData.form)).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 upsert(bindData.vaults, response.result, "vaultId");
                 bindData.selected = response.result;
@@ -178,19 +192,22 @@ WEBDOCK.component().register(function (exports) {
                 setError("Login save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Login save failed.");
         });
     }
 
     function deleteVault(vault) {
-        if (!vault || !vault.vaultId) {
+        if (bindData.isBusy || !vault || !vault.vaultId) {
             return;
         }
         if (!window.confirm("Delete this vault record?")) {
             return;
         }
         clearMessages();
+        bindData.isBusy = true;
         api.services.DeleteVault({vaultId: vault.vaultId, projectId: bindData.projectId}).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 remove(bindData.vaults, vault, "vaultId");
                 closeVaultForm();
@@ -199,6 +216,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Login delete failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Login delete failed.");
         });
     }
@@ -224,6 +242,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function ChangePermision(vault) {
+        if (bindData.isBusy) {
+            return;
+        }
         var target = vault || bindData.form;
         openViewObject(target.sysviewobject, function (data, shellpopup) {
             target.sysviewobject = data;
@@ -233,7 +254,9 @@ WEBDOCK.component().register(function (exports) {
             if (target.vaultId) {
                 var saveData = scrubSecret(clone(target));
                 saveData.projectId = bindData.projectId;
+                bindData.isBusy = true;
                 api.services.SaveVault(saveData).then(function (response) {
+                    bindData.isBusy = false;
                     if (response.success) {
                         upsert(bindData.vaults, response.result, "vaultId");
                         setInfo("Vault permission updated.");
@@ -241,6 +264,7 @@ WEBDOCK.component().register(function (exports) {
                         setError("Error changing vault permission.");
                     }
                 }).error(function () {
+                    bindData.isBusy = false;
                     setError("Error changing vault permission.");
                 });
             }

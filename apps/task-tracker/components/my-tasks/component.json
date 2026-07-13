@@ -2,7 +2,7 @@
     "name": "my-tasks",
     "description": "Logged-in user's assigned task list",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

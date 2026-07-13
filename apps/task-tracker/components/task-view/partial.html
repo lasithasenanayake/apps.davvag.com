@@ -80,7 +80,7 @@
                     <button class="btn btn-xs btn-default" v-on:click="removeReplyAttachment(comment, index)"><span class="glyphicon glyphicon-remove"></span></button>
                   </div>
                   <button class="btn btn-xs btn-default tm-reply-button" v-on:click="cancelReply(comment)">Cancel</button>
-                  <button class="btn btn-xs btn-primary tm-reply-button" v-on:click="saveReply(comment)">Reply</button>
+                  <button class="btn btn-xs btn-primary tm-reply-button" v-on:click="saveReply(comment)" v-bind:disabled="isBusy">{{ isBusy ? 'Saving...' : 'Reply' }}</button>
                 </div>
               </div>
             </div>
@@ -95,7 +95,7 @@
                 <button class="btn btn-xs btn-default" v-on:click="removeCommentAttachment(index)"><span class="glyphicon glyphicon-remove"></span></button>
               </div>
             </div>
-            <button class="btn btn-primary tm-actions" v-on:click="saveComment"><span class="glyphicon glyphicon-comment"></span> Comment</button>
+            <button class="btn btn-primary tm-actions" v-on:click="saveComment" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-comment"></span> {{ isBusy ? 'Saving...' : 'Comment' }}</button>
           </div>
         </div>
       </div>
@@ -120,7 +120,7 @@
             </div>
             <label>Work notes</label>
             <textarea class="form-control" rows="4" v-model="logForm.comments"></textarea>
-            <button class="btn btn-success tm-actions" v-on:click="addWorkLog"><span class="glyphicon glyphicon-time"></span> Save Work Log</button>
+            <button class="btn btn-success tm-actions" v-on:click="addWorkLog" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-time"></span> {{ isBusy ? 'Saving...' : 'Save Work Log' }}</button>
           </div>
 
           <div class="tm-timeline">

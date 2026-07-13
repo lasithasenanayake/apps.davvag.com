@@ -7,8 +7,8 @@ WEBDOCK.component().register(function (exports) {
         info: [],
         loading: false,
         tasks: [],
-        activeStatus: "New",
-        statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
+        activeStatus: "Open",
+        statusOptions: ["Open", "New", "In Progress", "Waiting", "Done", "Closed"]
     };
 
     exports.vue = {
@@ -46,6 +46,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function loadTasks() {
+        if (bindData.loading) {
+            return;
+        }
         clearMessages();
         bindData.loading = true;
         api.services.ListMyTasks({status: bindData.activeStatus}).then(function (response) {
@@ -58,6 +61,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function setStatusTab(status) {
+        if (bindData.loading || bindData.activeStatus === status) {
+            return;
+        }
         bindData.activeStatus = status;
         loadTasks();
     }

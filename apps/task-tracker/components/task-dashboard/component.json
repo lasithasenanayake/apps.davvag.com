@@ -2,7 +2,7 @@
     "name": "task-dashboard",
     "description": "Project and task management workspace",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "files": [
             {

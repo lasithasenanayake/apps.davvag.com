@@ -17,6 +17,7 @@ WEBDOCK.component().register(function (exports) {
         endAt: null,
         pauseStartedAt: null,
         pausedDurationMs: 0,
+        isBusy: false,
         logForm: emptyLog(),
         statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
     };
@@ -163,6 +164,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveWorkLog() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.task || !bindData.task.taskId) {
             setError("Task is not loaded.");
@@ -184,7 +188,9 @@ WEBDOCK.component().register(function (exports) {
         log.startDate = formatDateTime(startAt);
         log.endDate = formatDateTime(endAt);
 
+        bindData.isBusy = true;
         api.services.SaveWorkLog(log).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 api.services.NotifyTaskAssignees({
                     taskId: bindData.task.taskId,
@@ -199,6 +205,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Work log save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Work log save failed.");
         });
     }

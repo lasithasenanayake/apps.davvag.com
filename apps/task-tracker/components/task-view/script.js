@@ -17,6 +17,7 @@ WEBDOCK.component().register(function (exports) {
         logForm: emptyLog(),
         commentForm: emptyComment(),
         commentAttachments: [],
+        isBusy: false,
         discussionOpen: false,
         progressOpen: false,
         statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
@@ -195,6 +196,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveCommentPayload(payload, attachments, files, cleanup) {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.task || !bindData.task.taskId) {
             setError("Task is not loaded.");
@@ -207,7 +211,9 @@ WEBDOCK.component().register(function (exports) {
         var data = clone(payload);
         data.taskId = bindData.task.taskId;
         data.Attachments = attachments || [];
+        bindData.isBusy = true;
         api.services.SaveComment(data).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 api.services.NotifyTaskAssignees({
                     taskId: bindData.task.taskId,
@@ -225,6 +231,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Comment save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Comment save failed.");
         });
     }
@@ -296,6 +303,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function addWorkLog() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.task || !bindData.task.taskId) {
             setError("Task is not loaded.");
@@ -308,7 +318,9 @@ WEBDOCK.component().register(function (exports) {
         log.endDate = buildDateTime(log.logDate, log.endTime);
         delete log.startTime;
         delete log.endTime;
+        bindData.isBusy = true;
         api.services.SaveWorkLog(log).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 api.services.NotifyTaskAssignees({
                     taskId: bindData.task.taskId,
@@ -322,6 +334,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Work log save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Work log save failed.");
         });
     }

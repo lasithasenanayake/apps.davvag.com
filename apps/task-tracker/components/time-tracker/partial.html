@@ -71,7 +71,7 @@
 
       <div class="tt-actions">
         <button class="btn btn-default" v-on:click="resumeTimer"><span class="glyphicon glyphicon-play"></span> Resume</button>
-        <button class="btn btn-primary" v-on:click="saveWorkLog"><span class="glyphicon glyphicon-floppy-disk"></span> Log Work</button>
+        <button class="btn btn-primary" v-on:click="saveWorkLog" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-floppy-disk"></span> {{ isBusy ? 'Saving...' : 'Log Work' }}</button>
       </div>
     </div>
 

@@ -2,7 +2,7 @@
     "name": "taskapi",
     "description": "Task Manager service handlers",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.2",
     "resources": {
         "files": [
             {

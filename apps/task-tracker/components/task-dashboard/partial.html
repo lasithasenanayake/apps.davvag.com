@@ -21,7 +21,7 @@
           <strong>Projects</strong>
         </div>
         <div class="tm-list">
-          <button class="tm-list-item" v-for="project in projects" v-on:click="selectProject(project)" v-bind:class="{active:selectedProject && selectedProject.projectId == project.projectId}">
+          <button class="tm-list-item" v-for="project in projects" v-on:click="selectProject(project)" v-bind:disabled="isBusy" v-bind:class="{active:selectedProject && selectedProject.projectId == project.projectId}">
             <span>{{ project.name }}</span>
             <small>{{ project.status }}</small>
           </button>
@@ -31,7 +31,7 @@
       <div class="tm-panel tm-form">
         <div class="tm-panel-header">
           <strong>Project</strong>
-          <button class="btn btn-xs btn-default" v-on:click="ChangePermision(projectForm)"><span class="glyphicon glyphicon-lock"></span></button>
+          <button class="btn btn-xs btn-default" v-on:click="ChangePermision(projectForm)" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-lock"></span></button>
         </div>
         <label>Name</label>
         <input class="form-control" v-model="projectForm.name">
@@ -72,8 +72,8 @@
         </div>
 
         <div class="tm-actions">
-          <button class="btn btn-primary" v-on:click="saveProject"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-          <button class="btn btn-danger" v-on:click="deleteProject(projectForm)" v-if="projectForm.projectId" title="Delete project" aria-label="Delete project"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>
+          <button class="btn btn-primary" v-on:click="saveProject" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-floppy-disk"></span> {{ isBusy ? 'Saving...' : 'Save' }}</button>
+          <button class="btn btn-danger" v-on:click="deleteProject(projectForm)" v-if="projectForm.projectId" v-bind:disabled="isBusy" title="Delete project" aria-label="Delete project"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> {{ isBusy ? 'Working...' : 'Delete' }}</button>
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@
           </select>
         </div>
         <div class="tm-list tm-task-list">
-          <button class="tm-list-item tm-task-item" v-for="task in tasks" v-on:click="selectTask(task)" v-bind:class="[priorityClass(task), {active:selectedTask && selectedTask.taskId == task.taskId}]">
+          <button class="tm-list-item tm-task-item" v-for="task in tasks" v-on:click="selectTask(task)" v-bind:disabled="isBusy" v-bind:class="[priorityClass(task), {active:selectedTask && selectedTask.taskId == task.taskId}]">
             <strong>{{ task.subject }}</strong>
             <span class="tm-task-badges">
               <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
@@ -107,7 +107,7 @@
         <div class="tm-panel-header">
           <strong>Task</strong>
           <div class="btn-group">
-            <button class="btn btn-xs btn-default" v-for="status in statusOptions" v-on:click="setTaskStatus(status)" v-bind:disabled="!taskForm.taskId">{{ status }}</button>
+            <button class="btn btn-xs btn-default" v-for="status in statusOptions" v-on:click="setTaskStatus(status)" v-bind:disabled="!taskForm.taskId || isBusy">{{ status }}</button>
           </div>
         </div>
 
@@ -141,8 +141,8 @@
         </div>
 
         <div class="tm-actions">
-          <button class="btn btn-primary" v-on:click="saveTask"><span class="glyphicon glyphicon-floppy-disk"></span> Save Task</button>
-          <button class="btn btn-danger" v-if="taskForm.taskId" v-on:click="deleteTask(taskForm)" title="Delete task" aria-label="Delete task"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>
+          <button class="btn btn-primary" v-on:click="saveTask" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-floppy-disk"></span> {{ isBusy ? 'Saving...' : 'Save Task' }}</button>
+          <button class="btn btn-danger" v-if="taskForm.taskId" v-on:click="deleteTask(taskForm)" v-bind:disabled="isBusy" title="Delete task" aria-label="Delete task"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> {{ isBusy ? 'Working...' : 'Delete' }}</button>
         </div>
       </div>
 
@@ -154,7 +154,7 @@
           <div class="col-xs-4"><label>Progress</label><input type="number" class="form-control" v-model="workLogForm.progress"></div>
           <div class="col-xs-4"><label>Status</label><select class="form-control" v-model="workLogForm.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
         </div>
-        <button class="btn btn-success tm-log-button" v-on:click="addWorkLog"><span class="glyphicon glyphicon-time"></span> Add Log</button>
+        <button class="btn btn-success tm-log-button" v-on:click="addWorkLog" v-bind:disabled="isBusy"><span class="glyphicon glyphicon-time"></span> {{ isBusy ? 'Saving...' : 'Add Log' }}</button>
         <div class="tm-timeline">
           <div class="tm-log" v-for="log in workLogs">
             <strong>{{ log.status }} - {{ log.progress }}%</strong>

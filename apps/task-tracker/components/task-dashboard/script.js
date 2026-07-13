@@ -5,6 +5,7 @@ WEBDOCK.component().register(function (exports) {
 
     var bindData = {
         loading: false,
+        isBusy: false,
         errors: [],
         info: [],
         projects: [],
@@ -171,6 +172,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function selectProject(project) {
+        if (bindData.isBusy || !project || !project.projectId) {
+            return;
+        }
         bindData.selectedProject = project;
         bindData.projectForm = clone(project);
         bindData.projectForm.AccessProfiles = parseProfileIds(bindData.projectForm.profileids);
@@ -180,13 +184,17 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveProject() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.projectForm.name) {
             setError("Project name is required.");
             return;
         }
-
+        bindData.isBusy = true;
         api.services.SaveProject(bindData.projectForm).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.projectForm = response.result;
                 upsertLocal(bindData.projects, response.result, "projectId");
@@ -196,15 +204,18 @@ WEBDOCK.component().register(function (exports) {
                 setError("Project save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Project save failed.");
         });
     }
 
     function deleteProject(project) {
-        if (!project || !project.projectId) {
+        if (bindData.isBusy || !project || !project.projectId) {
             return;
         }
+        bindData.isBusy = true;
         api.services.DeleteProject(project).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 removeLocal(bindData.projects, project, "projectId");
                 newProject();
@@ -213,11 +224,15 @@ WEBDOCK.component().register(function (exports) {
                 setError("Project delete failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Project delete failed.");
         });
     }
 
     function ChangePermision(project) {
+        if (bindData.isBusy) {
+            return;
+        }
         var target = project || bindData.projectForm;
         if (!target) {
             return;
@@ -225,9 +240,12 @@ WEBDOCK.component().register(function (exports) {
         openViewObject(target.sysviewobject, function (data, shellpopup) {
             target.sysviewobject = data;
             bindData.projectForm.sysviewobject = data;
+            bindData.isBusy = true;
             api.services.SaveProject(target).then(function () {
+                bindData.isBusy = false;
                 setInfo("Project permission updated.");
             }).error(function () {
+                bindData.isBusy = false;
                 setError("Error changing project permission.");
             });
             shellpopup.close();
@@ -263,20 +281,26 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function loadTasks() {
+        if (bindData.isBusy) {
+            return;
+        }
         if (!bindData.selectedProject || !bindData.selectedProject.projectId) {
             bindData.tasks = [];
             return;
         }
+        bindData.isBusy = true;
         api.services.ListTasks({
             projectId: bindData.selectedProject.projectId,
             status: bindData.filters.taskStatus
         }).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.tasks = response.result || [];
             } else {
                 setError("Could not load tasks.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Could not load tasks.");
         });
     }
@@ -295,6 +319,10 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function selectTask(task) {
+        if (bindData.isBusy || !task || !task.taskId) {
+            return;
+        }
+        bindData.isBusy = true;
         bindData.selectedTask = task;
         bindData.taskForm = clone(task);
         bindData.taskForm.Assignees = [];
@@ -303,6 +331,7 @@ WEBDOCK.component().register(function (exports) {
         newfiles = [];
 
         api.services.TaskDetails({taskId: task.taskId}).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.attachments = response.result.attachments || [];
                 bindData.workLogs = response.result.workLogs || [];
@@ -313,11 +342,15 @@ WEBDOCK.component().register(function (exports) {
                 });
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Could not load task details.");
         });
     }
 
     function saveTask() {
+        if (bindData.isBusy) {
+            return;
+        }
         clearMessages();
         if (!bindData.selectedProject || !bindData.selectedProject.projectId) {
             setError("Select a project first.");
@@ -331,7 +364,9 @@ WEBDOCK.component().register(function (exports) {
         bindData.taskForm.projectId = bindData.selectedProject.projectId;
         bindData.taskForm.Attachments = bindData.attachments;
 
+        bindData.isBusy = true;
         api.services.SaveTask(bindData.taskForm).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.taskForm = response.result;
                 upsertLocal(bindData.tasks, response.result, "taskId");
@@ -348,15 +383,18 @@ WEBDOCK.component().register(function (exports) {
                 setError("Task save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Task save failed.");
         });
     }
 
     function deleteTask(task) {
-        if (!task || !task.taskId) {
+        if (bindData.isBusy || !task || !task.taskId) {
             return;
         }
+        bindData.isBusy = true;
         api.services.DeleteTask(task).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 removeLocal(bindData.tasks, task, "taskId");
                 newTask();
@@ -365,6 +403,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Task delete failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Task delete failed.");
         });
     }
@@ -410,6 +449,9 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function addWorkLog() {
+        if (bindData.isBusy) {
+            return;
+        }
         if (!bindData.taskForm.taskId) {
             setError("Save the task before adding work logs.");
             return;
@@ -419,7 +461,9 @@ WEBDOCK.component().register(function (exports) {
         log.progress = log.progress || bindData.taskForm.progress || 0;
         log.status = log.status || bindData.taskForm.status || "In Progress";
 
+        bindData.isBusy = true;
         api.services.SaveWorkLog(log).then(function (response) {
+            bindData.isBusy = false;
             if (response.success) {
                 bindData.workLogs.unshift(response.result);
                 bindData.taskForm.progress = response.result.progress;
@@ -434,6 +478,7 @@ WEBDOCK.component().register(function (exports) {
                 setError("Work log save failed.");
             }
         }).error(function () {
+            bindData.isBusy = false;
             setError("Work log save failed.");
         });
     }

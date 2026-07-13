@@ -223,7 +223,12 @@ class TaskManagerService {
             }
 
             $task = $this->normalizeTask($taskResult->result[0]);
-            if ($status !== "" && (!isset($task->status) || $task->status !== $status)) {
+            $taskStatus = isset($task->status) ? strtolower(trim($task->status)) : "";
+            if (strtolower($status) === "open") {
+                if (in_array($taskStatus, array("done", "closed", "completed"))) {
+                    continue;
+                }
+            } elseif ($status !== "" && $taskStatus !== strtolower($status)) {
                 continue;
             }
             if (!isset($task->projectId) || !$this->canAccessProject($task->projectId)) {

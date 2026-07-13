@@ -139,6 +139,12 @@ Each split component has a hash fallback for direct testing, but shell navigatio
 - Handles attachments with FileReader previews and `davvag-tools/davvag-file-uploader`.
 - Navigates to `/task` for work-progress logging.
 
+`components/my-tasks`:
+
+- Opens on the `Open` tab by default.
+- The `Open` tab includes assigned tasks whose status is not `Done`, `Closed`, or `Completed`.
+- Keeps the individual status tabs available for exact-status filtering.
+
 `components/task-view`:
 
 - Shows one task.
@@ -216,6 +222,16 @@ Handler naming must keep DAVVAG convention:
 POST SaveTask -> postSaveTask($req, $res)
 POST ProjectDetails -> postProjectDetails($req, $res)
 ```
+
+## Request Locking
+
+Save, delete, and service-backed edit actions must guard against duplicate requests.
+
+- Check the component's reactive `isBusy` flag before starting the action.
+- Set `isBusy = true` immediately before invoking the service.
+- Disable the corresponding edit, save, delete, and permission buttons with `v-bind:disabled="isBusy"`.
+- Reset `isBusy = false` in both the service success and error callbacks.
+- Perform client-side validation before enabling the lock so validation errors do not leave the form disabled.
 
 ## Data Model
 
