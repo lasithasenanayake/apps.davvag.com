@@ -2,7 +2,7 @@
     "name" : "partial-home",
     "description":"Vue.JS Plugin for Soss Router",
     "author":"Supun Dissanayake",
-    "version" : "0.1",
+    "version" : "0.5",
     "gitUrl" : "",
     "resources": {
         "files":[
@@ -13,6 +13,12 @@
             {
                 "type" : "mainView",
                 "location" : "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "search.css"
             }
         ]
     }

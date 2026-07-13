@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="description" content="">
-  <meta name="author" content="">
+  <meta name="description" content="DAVVAG application workspace">
   <link rel="icon" href="assets/dock/images/favicon.ico" type="image/png">
       
-  <title>DAVAAG Application Dock</title>
+  <title>DAVVAG Application Dock</title>
   <link href="assets/dock/css/style.default.css" rel="stylesheet">
   <link href="assets/dock/css/dockanimation.css" rel="stylesheet">
+  <link href="assets/dock/css/dock-modern.css" rel="stylesheet">
 </head>
 
 <body>
@@ -54,20 +54,25 @@
                 jQuery('.nav-bracket ul').attr('style','');
                 
                 jQuery(this).addClass('menu-collapsed');
+                jQuery(this).attr('aria-expanded', 'false');
                 
             } else {
                 body.removeClass('leftpanel-collapsed chat-view');
                 jQuery('.nav-bracket li.active ul').css({display: 'block'});
                 
                 jQuery(this).removeClass('menu-collapsed');
+                jQuery(this).attr('aria-expanded', 'true');
                 
             }
         } else {
             
-            if(body.hasClass('leftpanel-show'))
+            if(body.hasClass('leftpanel-show')) {
                 body.removeClass('leftpanel-show');
-            else
+                jQuery(this).attr('aria-expanded', 'false');
+            } else {
                 body.addClass('leftpanel-show');
+                jQuery(this).attr('aria-expanded', 'true');
+            }
             
             adjustmainpanelheight();         
         }

@@ -35,8 +35,7 @@ WEBDOCK.component().register(function(exports){
                     if(result.result){
                         localStorage.clear();
                         sessionStorage.clear();
-                        pInstance = exports.getShellComponent("soss-routes");
-                        pInstance.appNavigate("../login");
+                        window.location = window.location.href.split('#')[0];
                     }else{
 
                     }
@@ -50,18 +49,15 @@ WEBDOCK.component().register(function(exports){
             getProfilebyID:getProfilebyID,
             navigate: function(id){
                 handler = exports.getShellComponent("soss-routes");
-                handler.appNavigate("../edit?id=" + id);
+                handler.appNavigate("#/app/profileapp.v1/edit?id=" + encodeURIComponent(id));
             },
             navigatepage: function(pagev,p){
-                //console.log(p);
-                //addProfileToTmp(p);
                 handler = exports.getShellComponent("soss-routes");
+                var route = "#/app/profileapp.v1/" + String(pagev || "").replace(/^\/+/,"");
                 if(p!=null){
-                    window.location="#/app/profileapp/"+pagev+"?tid=" + p;
-                    //handler.appNavigate("../"+pagev+"?tid=" + p);
-                }else{
-                    handler.appNavigate("/"+pagev);
+                    route += "?tid=" + encodeURIComponent(p);
                 }
+                handler.appNavigate(route);
             },
             status:function(status){
                 switch(status){

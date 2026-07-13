@@ -1,0 +1,141 @@
+.dock-app-search {
+    position: relative;
+    float: left;
+    width: 360px;
+    height: 50px;
+    z-index: 1100;
+}
+
+.dock-app-search > input.form-control {
+    width: 100%;
+}
+
+.dock-app-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 360px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #d6dce3;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 8px 20px rgba(22, 34, 51, 0.18);
+}
+
+.dock-app-search-result {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid #edf0f3;
+    background: #fff;
+    color: #354052;
+    text-align: left;
+}
+
+.dock-app-search-result:hover,
+.dock-app-search-result:focus,
+.dock-app-search-result.is-active {
+    background: #f0f5fb;
+    color: #1f6fb2;
+    outline: 0;
+}
+
+.dock-app-search-icon,
+.dock-app-search-fallback {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    object-fit: contain;
+}
+
+.dock-app-search-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #8794a5;
+}
+
+.dock-app-search-labels {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.dock-app-search-labels strong,
+.dock-app-search-labels small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dock-app-search-labels small {
+    margin-top: 2px;
+    color: #8794a5;
+}
+
+.dock-app-search-empty {
+    padding: 12px;
+    color: #8794a5;
+    text-align: center;
+}
+
+.leftpanel .dock-app-search {
+    float: none;
+    width: 100%;
+    height: auto;
+}
+
+.leftpanel .dock-app-search-results {
+    top: calc(100% - 15px);
+}
+.dock-headerbar-content::after {
+    display: block;
+    clear: both;
+    content: "";
+}
+
+.dock-headerbar-content .menutoggle {
+    padding: 0;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: 0;
+    background: #fff;
+}
+
+.dock-headerbar-content .menutoggle:focus {
+    position: relative;
+    z-index: 2;
+    outline: 3px solid rgba(28, 175, 154, .25);
+    outline-offset: -3px;
+}
+
+.dock-user-avatar {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    border-radius: 50%;
+    color: #fff;
+    background: #2ca89d;
+    font-weight: 700;
+    line-height: 28px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.dock-user-menu-action {
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    color: #636e7b;
+    background: transparent;
+    text-align: left;
+}
+
+.dock-user-menu-action:hover,
+.dock-user-menu-action:focus { color: #fff; background: #1caf9a; outline: 0; }
+.dock-user-menu-action i { margin-right: 7px; }

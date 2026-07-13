@@ -100,7 +100,7 @@
     "description": {
         "title": "DAAVG Dock",
         "author": "Daavg",
-        "version": "0.4",
+        "version": "0.8",
         "icon": "dock-icon.png"
     },
     "configuration": {
