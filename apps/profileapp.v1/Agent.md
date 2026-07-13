@@ -54,6 +54,7 @@ profileapp.v1/
       script.js
       service.php
   components/
+    request-lock/
     frmprofile-list/
     frmprofile-list-popup/
     frmProfile/
@@ -108,6 +109,14 @@ handler.appNavigate("../invoice?tid=" + invoiceNo);
 ```
 
 Some components use absolute paths like `"/" + pagev`. Be careful: in DAVVAG route handling, absolute-looking paths can behave differently depending on the current shell route. Prefer sibling navigation such as `../edit?id=...` when moving within this app.
+
+## Service Request Button Lock
+
+`request-lock` is an always-loaded component declared in `app.json` after the `profile` service component.
+
+It applies to every Profile App component and popup. When a button, submit input, or button-styled link fires a DAVVAG service request, the initiating control is locked until all associated requests complete. Repeated activation is rejected, and the lock is released after both success and error completion.
+
+Do not remove `request-lock` from `configuration.webdock.onLoad`. New service-backed actions receive this protection automatically, but their backend services must still enforce idempotency when duplicate financial or destructive operations would be unsafe.
 
 ## Service API
 

@@ -1,0 +1,14 @@
+{
+    "name": "request-lock",
+    "description": "Applies service-request button locking across every Profile App component.",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    }
+}
