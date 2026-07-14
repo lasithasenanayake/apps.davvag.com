@@ -1,0 +1,13 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"lesson_id","dataType":"int"},{"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+ {"fieldName":"provider","dataType":"java.lang.String","annotations":{"maxLen":80}},
+ {"fieldName":"video_url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+ {"fieldName":"media_reference","dataType":"java.lang.String","annotations":{"maxLen":1024}},
+ {"fieldName":"thumbnail_url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+ {"fieldName":"duration_seconds","dataType":"int"},{"fieldName":"transcript","dataType":"object"},
+ {"fieldName":"transcript_url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+ {"fieldName":"caption_url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+ {"fieldName":"sort_order","dataType":"int"},{"fieldName":"is_required","dataType":"boolean"},
+ {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"published"}}
+],"relations":[{"relationName":"video_lesson","relationType":"many-to-one","targetEntity":"lesson_manager_lesson","joinColumns":[{"sourceColumn":"lesson_id","targetColumn":"id"}]}]}

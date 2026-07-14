@@ -1,0 +1,16 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"course_id","dataType":"int"},{"fieldName":"lesson_id","dataType":"int"},{"fieldName":"student_id","dataType":"int"},
+ {"fieldName":"student_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+ {"fieldName":"started_at","dataType":"java.util.Date"},{"fieldName":"last_viewed_at","dataType":"java.util.Date"},
+ {"fieldName":"reading_completed","dataType":"boolean"},{"fieldName":"video_completed","dataType":"boolean"},
+ {"fieldName":"quiz_completed","dataType":"boolean"},{"fieldName":"quiz_passed","dataType":"boolean"},
+ {"fieldName":"assignment_submitted","dataType":"boolean"},{"fieldName":"assignment_passed","dataType":"boolean"},
+ {"fieldName":"teacher_approved","dataType":"boolean"},{"fieldName":"override_unlocked","dataType":"boolean"},
+ {"fieldName":"lesson_completed","dataType":"boolean"},{"fieldName":"completed_at","dataType":"java.util.Date"},
+ {"fieldName":"quiz_attempts","dataType":"int"},{"fieldName":"quiz_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"assignment_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}}
+],"relations":[
+ {"relationName":"progress_lesson","relationType":"many-to-one","targetEntity":"lesson_manager_lesson","joinColumns":[{"sourceColumn":"lesson_id","targetColumn":"id"}]},
+ {"relationName":"progress_student","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"student_id","targetColumn":"id"}]}
+]}

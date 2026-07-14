@@ -1,0 +1,14 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"quiz_id","dataType":"int"},{"fieldName":"lesson_id","dataType":"int"},{"fieldName":"course_id","dataType":"int"},
+ {"fieldName":"student_id","dataType":"int"},{"fieldName":"student_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+ {"fieldName":"attempt_number","dataType":"int"},{"fieldName":"answers","dataType":"object"},
+ {"fieldName":"marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"max_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"percentage","dataType":"decimal","annotations":{"decimalPoints":"5,2"}},
+ {"fieldName":"passed","dataType":"boolean"},{"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50}},
+ {"fieldName":"started_at","dataType":"java.util.Date"},{"fieldName":"completed_at","dataType":"java.util.Date"}
+],"relations":[
+ {"relationName":"attempt_quiz","relationType":"many-to-one","targetEntity":"lesson_manager_quiz","joinColumns":[{"sourceColumn":"quiz_id","targetColumn":"id"}]},
+ {"relationName":"attempt_student","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"student_id","targetColumn":"id"}]}
+]}

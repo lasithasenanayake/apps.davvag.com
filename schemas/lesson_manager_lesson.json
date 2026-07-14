@@ -1,0 +1,16 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"course_id","dataType":"int"},{"fieldName":"subject_id","dataType":"int"},
+ {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+ {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+ {"fieldName":"lesson_order","dataType":"int"},{"fieldName":"passing_mark","dataType":"decimal","annotations":{"decimalPoints":"5,2"}},
+ {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"draft"}},
+ {"fieldName":"available_at","dataType":"java.util.Date"},{"fieldName":"progression_enabled","dataType":"boolean"},
+ {"fieldName":"require_reading","dataType":"boolean"},{"fieldName":"require_video","dataType":"boolean"},
+ {"fieldName":"require_quiz","dataType":"boolean"},{"fieldName":"require_assignment","dataType":"boolean"},
+ {"fieldName":"require_teacher_approval","dataType":"boolean"},{"fieldName":"created_by","dataType":"int"},
+ {"fieldName":"created_at","dataType":"java.util.Date"},{"fieldName":"updated_at","dataType":"java.util.Date"}
+],"relations":[
+ {"relationName":"lesson_course","relationType":"many-to-one","targetEntity":"course_manager_course","joinColumns":[{"sourceColumn":"course_id","targetColumn":"id"}]},
+ {"relationName":"lesson_subject","relationType":"many-to-one","targetEntity":"course_manager_subject","joinColumns":[{"sourceColumn":"subject_id","targetColumn":"id"}]}
+]}

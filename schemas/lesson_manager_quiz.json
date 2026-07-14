@@ -1,0 +1,11 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"lesson_id","dataType":"int"},{"fieldName":"assessment_id","dataType":"int"},
+ {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+ {"fieldName":"instructions","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+ {"fieldName":"passing_percentage","dataType":"decimal","annotations":{"decimalPoints":"5,2"}},
+ {"fieldName":"attempt_limit","dataType":"int"},{"fieldName":"time_limit_minutes","dataType":"int"},
+ {"fieldName":"random_questions","dataType":"boolean"},{"fieldName":"random_answers","dataType":"boolean"},
+ {"fieldName":"negative_marking","dataType":"boolean"},{"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"draft"}},
+ {"fieldName":"created_by","dataType":"int"},{"fieldName":"created_at","dataType":"java.util.Date"}
+],"relations":[{"relationName":"quiz_lesson","relationType":"many-to-one","targetEntity":"lesson_manager_lesson","joinColumns":[{"sourceColumn":"lesson_id","targetColumn":"id"}]}]}

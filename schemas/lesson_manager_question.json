@@ -1,0 +1,11 @@
+{"fields":[
+ {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+ {"fieldName":"quiz_id","dataType":"int"},{"fieldName":"question_type","dataType":"java.lang.String","annotations":{"maxLen":50}},
+ {"fieldName":"question_text","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+ {"fieldName":"options","dataType":"object"},{"fieldName":"correct_answer","dataType":"object"},
+ {"fieldName":"explanation","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+ {"fieldName":"difficulty","dataType":"java.lang.String","annotations":{"maxLen":30}},
+ {"fieldName":"marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"negative_marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"sort_order","dataType":"int"},{"fieldName":"requires_manual_marking","dataType":"boolean"}
+],"relations":[{"relationName":"question_quiz","relationType":"many-to-one","targetEntity":"lesson_manager_quiz","joinColumns":[{"sourceColumn":"quiz_id","targetColumn":"id"}]}]}

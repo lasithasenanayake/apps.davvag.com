@@ -1,0 +1,57 @@
+{
+  "components": {
+    "dashboard": {"type": "component", "location": "components"},
+    "studio": {"type": "component", "location": "components"},
+    "quiz-studio": {"type": "component", "location": "components"},
+    "learn": {"type": "component", "location": "components"},
+    "submissions": {"type": "component", "location": "components"},
+    "reports": {"type": "component", "location": "components"},
+    "lesson-style": {"type": "component", "location": "components"},
+    "api": {"type": "service", "location": "services"}
+  },
+  "description": {
+    "title": "Lesson Manager",
+    "author": "DAVVAG",
+    "version": "1.1",
+    "icon": "appicon.svg"
+  },
+  "tags": ["showincms", "showindock"],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "dashboard",
+      "onLoad": ["lesson-style", "api"],
+      "routes": {"partials": {
+        "/": "dashboard",
+        "/dashboard": "dashboard",
+        "/studio": "studio",
+        "/quiz-studio": "quiz-studio",
+        "/learn": "learn",
+        "/submissions": "submissions",
+        "/reports": "reports"
+      }}
+    },
+    "dock": {"subapps": [
+      {"name": "Overview", "path": "dashboard"},
+      {"name": "Lesson Studio", "path": "studio"},
+      {"name": "Quiz Studio", "path": "quiz-studio"},
+      {"name": "My Learning", "path": "learn"},
+      {"name": "Submission Review", "path": "submissions"},
+      {"name": "Reports", "path": "reports"}
+    ]}
+  },
+  "dependencies": {
+    "apps": ["course-manager"],
+    "schemas": [
+      "lesson_manager_lesson", "lesson_manager_content", "lesson_manager_video",
+      "lesson_manager_quiz", "lesson_manager_question", "lesson_manager_attempt",
+      "lesson_manager_progress", "lesson_manager_assignment_rule",
+      "course_manager_course", "course_manager_subject", "course_manager_classgrade",
+      "course_manager_enrollment", "course_manager_assignment", "course_manager_submission",
+      "course_manager_assessment", "course_manager_mark", "course_manager_grading_scale",
+      "course_manager_notification", "profile"
+    ],
+    "workflows": [],
+    "plugins": ["auth", "sossdata", "profile"],
+    "php-extensions": []
+  }
+}

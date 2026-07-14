@@ -199,6 +199,9 @@
         "course-manager":{
             "version":"latest"
         },
+        "lesson-manager":{
+            "version":"latest"
+        },
         "davvag-paypal":{
             "version":"latest"
         },
