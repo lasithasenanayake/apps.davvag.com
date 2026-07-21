@@ -70,6 +70,7 @@ class ApiService {
     private $assessmentNs = "course_manager_assessment";
     private $markNs = "course_manager_mark";
     private $notificationNs = "course_manager_notification";
+    private $providerNs = "lesson_manager_provider_connection";
 
     public function postBootstrap($req, $res) {
         return array(
@@ -128,7 +129,13 @@ class ApiService {
     }
 
     public function postListContent($req, $res) { return $this->listBody($req, $this->contentNs, array("id","lesson_id","content_type","status"), array("title","body"), "asc"); }
-    public function postSaveContent($req, $res) { return $this->teacherSave($req, $res, $this->contentNs, array("lesson_id","title"), "Lesson and content title are required."); }
+    public function postSaveContent($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $item = $this->body($req);
+        if (empty($item->lesson_id) || empty($item->title)) return $this->error($res, "Lesson and content title are required.");
+        $item->body = $this->sanitizeRichText(isset($item->body) ? $item->body : "");
+        return $this->persist($this->contentNs, $item, $res);
+    }
     public function postDeleteContent($req, $res) { return $this->delete($this->contentNs, $this->body($req), $res); }
     public function postListVideos($req, $res) { return $this->listBody($req, $this->videoNs, array("id","lesson_id","provider","status"), array("title","video_url","transcript"), "asc"); }
     public function postSaveVideo($req, $res) {
@@ -139,6 +146,115 @@ class ApiService {
         return $this->persist($this->videoNs, $item, $res);
     }
     public function postDeleteVideo($req, $res) { return $this->delete($this->videoNs, $this->body($req), $res); }
+
+    public function postFetchVideoMetadata($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $body = $this->body($req);
+        $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
+        $url = trim(isset($body->video_url) ? $body->video_url : "");
+        if (!in_array($provider, array("youtube", "facebook"), true)) return $this->error($res, "Automatic metadata is available for YouTube and Facebook only.");
+        if (!$this->safeHttpUrl($url)) return $this->error($res, "Enter a valid HTTPS video URL for the selected provider.");
+        if ($provider === "youtube") return $this->youtubeMetadata($url, $res);
+        return $this->facebookMetadata($url, $res);
+    }
+
+    public function postGetProviderSettings($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        return array(
+            "encryption_ready" => $this->providerSecret() !== "",
+            "required_environment_variable" => "DAVVAG_PROVIDER_SECRET",
+            "providers" => array(
+                "youtube" => $this->safeProviderConnection("youtube"),
+                "facebook" => $this->safeProviderConnection("facebook")
+            )
+        );
+    }
+
+    public function postSaveProviderSettings($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        if ($this->providerSecret() === "") return $this->error($res, "Set DAVVAG_PROVIDER_SECRET on the server before saving provider credentials.");
+        $body = $this->body($req);
+        $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
+        if (!in_array($provider, array("youtube", "facebook"), true)) return $this->error($res, "Unsupported provider.");
+        $item = $this->providerConnection($provider);
+        if (!$item) { $item = new \stdClass(); $item->provider = $provider; $item->created_by = $this->currentProfile()->id; $item->created_at = date("Y-m-d H:i:s"); }
+        foreach (array("account_name", "account_id", "page_id", "client_id") as $field) if (isset($body->{$field})) $item->{$field} = trim(strval($body->{$field}));
+        $secretFields = array("client_secret"=>"client_secret_enc", "api_key"=>"api_key_enc", "access_token"=>"access_token_enc", "refresh_token"=>"refresh_token_enc");
+        foreach ($secretFields as $source => $target) if (isset($body->{$source}) && trim(strval($body->{$source})) !== "" && strval($body->{$source}) !== "********") $item->{$target} = $this->encryptProviderSecret(strval($body->{$source}));
+        $item->status = $this->hasProviderCredential($item) ? "connected" : "configured";
+        $item->last_error = ""; $item->updated_at = date("Y-m-d H:i:s");
+        $saved = $this->persist($this->providerNs, $item, $res);
+        return $saved ? $this->safeProviderRow($saved) : null;
+    }
+
+    public function postDisconnectProvider($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $body = $this->body($req); $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
+        $item = $this->providerConnection($provider); if (!$item) return array("provider"=>$provider, "status"=>"disconnected");
+        foreach (array("client_secret_enc","api_key_enc","access_token_enc","refresh_token_enc") as $field) $item->{$field} = null;
+        $item->status = "disconnected"; $item->account_name = ""; $item->account_id = ""; $item->last_error = ""; $item->updated_at = date("Y-m-d H:i:s");
+        return $this->safeProviderRow($this->persist($this->providerNs, $item, $res));
+    }
+
+    public function postTestProvider($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $body = $this->body($req); $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
+        $item = $this->providerConnection($provider); if (!$item) return $this->error($res, "Configure this provider first.");
+        $result = $provider === "youtube" ? $this->testYouTubeConnection($item) : ($provider === "facebook" ? $this->testFacebookConnection($item) : null);
+        if (!$result) return $this->error($res, "Unsupported provider.");
+        $item->last_tested_at = date("Y-m-d H:i:s"); $item->last_error = $result->success ? "" : $result->message; $item->status = $result->success ? "connected" : "error"; $this->persist($this->providerNs, $item, $res);
+        if (!$result->success) return $this->error($res, $result->message);
+        return array("provider"=>$provider, "status"=>"connected", "message"=>$result->message);
+    }
+
+    public function postStartProviderOAuth($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $body = $this->body($req); $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
+        $item = $this->providerConnection($provider); if (!$item) return $this->error($res, "Save the provider client configuration before connecting an account.");
+        $clientId = isset($item->client_id) ? trim($item->client_id) : ""; $clientSecret = $this->providerValue($item, "client_secret_enc");
+        if ($clientId === "" || $clientSecret === "") return $this->error($res, "Client ID and client secret are required before OAuth connection.");
+        $state = bin2hex(random_bytes(24)); $redirect = $this->providerCallbackUrl();
+        if (!isset($_SESSION)) session_start();
+        $_SESSION["lesson_manager_oauth_" . $state] = array("provider"=>$provider, "created"=>time(), "redirect_uri"=>$redirect);
+        if ($provider === "youtube") {
+            $params = array("client_id"=>$clientId,"redirect_uri"=>$redirect,"response_type"=>"code","access_type"=>"offline","prompt"=>"consent","include_granted_scopes"=>"true","scope"=>"https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl","state"=>$state);
+            return array("authorize_url"=>"https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query($params));
+        }
+        if ($provider === "facebook") {
+            $params = array("client_id"=>$clientId,"redirect_uri"=>$redirect,"response_type"=>"code","scope"=>"pages_show_list,pages_read_engagement,pages_read_user_content","state"=>$state);
+            return array("authorize_url"=>"https://www.facebook.com/v19.0/dialog/oauth?" . http_build_query($params));
+        }
+        return $this->error($res, "Unsupported provider.");
+    }
+
+    public function getProviderOAuthCallback($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $state = isset($_GET["state"]) ? strval($_GET["state"]) : ""; $code = isset($_GET["code"]) ? strval($_GET["code"]) : "";
+        if (!isset($_SESSION)) session_start(); $key = "lesson_manager_oauth_" . $state;
+        if ($state === "" || !isset($_SESSION[$key])) return $this->error($res, "OAuth state is missing or expired.");
+        $stateData = $_SESSION[$key]; unset($_SESSION[$key]);
+        if (empty($stateData["created"]) || time() - intval($stateData["created"]) > 900) return $this->error($res, "OAuth state has expired.");
+        if ($code === "") return $this->error($res, isset($_GET["error_description"]) ? $_GET["error_description"] : "Provider authorization was cancelled.");
+        $provider = $stateData["provider"]; $item = $this->providerConnection($provider); if (!$item) return $this->error($res, "Provider configuration no longer exists.");
+        $fields = array("client_id"=>$item->client_id,"client_secret"=>$this->providerValue($item,"client_secret_enc"),"code"=>$code,"redirect_uri"=>$stateData["redirect_uri"]);
+        if ($provider === "youtube") { $fields["grant_type"] = "authorization_code"; $token = $this->curlRequest("https://oauth2.googleapis.com/token", "POST", $fields, array()); }
+        else { $token = $this->curlRequest("https://graph.facebook.com/v19.0/oauth/access_token", "GET", $fields, array()); }
+        if (!$token->success || !isset($token->data["access_token"])) return $this->error($res, "OAuth token exchange failed: " . $token->message);
+        $item->access_token_enc = $this->encryptProviderSecret($token->data["access_token"]);
+        if (isset($token->data["refresh_token"])) $item->refresh_token_enc = $this->encryptProviderSecret($token->data["refresh_token"]);
+        if (isset($token->data["expires_in"])) $item->expires_at = date("Y-m-d H:i:s", time() + intval($token->data["expires_in"]));
+        if (isset($token->data["scope"])) $item->scopes = preg_split('/[\s,]+/', trim(strval($token->data["scope"])), -1, PREG_SPLIT_NO_EMPTY);
+        if ($provider === "youtube") {
+            $identity = $this->curlRequest("https://www.googleapis.com/youtube/v3/channels", "GET", array("part"=>"snippet", "mine"=>"true"), array("Authorization: Bearer " . $token->data["access_token"]));
+            if ($identity->success && !empty($identity->data["items"][0])) { $channel=$identity->data["items"][0]; if(isset($channel["id"]))$item->account_id=$channel["id"]; if(isset($channel["snippet"]["title"]))$item->account_name=$channel["snippet"]["title"]; }
+        } else {
+            $pages = $this->curlRequest("https://graph.facebook.com/v19.0/me/accounts", "GET", array("fields"=>"id,name,access_token", "access_token"=>$token->data["access_token"]), array());
+            if ($pages->success && !empty($pages->data["data"])) { $page=$pages->data["data"][0]; if(!empty($item->page_id))foreach($pages->data["data"] as $candidate)if(isset($candidate["id"])&&strval($candidate["id"])===strval($item->page_id)){$page=$candidate;break;} if(isset($page["id"])){$item->page_id=$page["id"];$item->account_id=$page["id"];}if(isset($page["name"]))$item->account_name=$page["name"];if(isset($page["access_token"]))$item->access_token_enc=$this->encryptProviderSecret($page["access_token"]); }
+        }
+        $item->status = "connected"; $item->last_error = ""; $item->updated_at = date("Y-m-d H:i:s"); $this->persist($this->providerNs, $item, $res);
+        header("Location: " . $this->appBaseUrl() . "/#/app/lesson-manager/settings?oauth=" . rawurlencode($provider));
+        return array("provider"=>$provider,"status"=>"connected");
+    }
 
     public function postListQuizzes($req, $res) { return $this->listBody($req, $this->quizNs, array("id","lesson_id","status"), array("title"), "desc"); }
     public function postSaveQuiz($req, $res) {
@@ -215,7 +331,7 @@ class ApiService {
             $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time(); $unlocked = $this->isTeacher() || ($previousMet && $available);
             $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$previousMet) $reason = "Complete the previous lesson requirements.";
             $entry = clone $lesson; $entry->subject = isset($subjects[strval($lesson->subject_id)]) ? $subjects[strval($lesson->subject_id)] : null; $entry->progress = $p; $entry->unlocked = $unlocked; $entry->lock_reason = $reason;
-            $entry->content = $unlocked ? $this->rows($this->contentNs, "lesson_id:" . intval($lesson->id), "asc") : array();
+            $entry->content = $unlocked ? $this->safeContentRows($this->rows($this->contentNs, "lesson_id:" . intval($lesson->id), "asc")) : array();
             $entry->videos = $unlocked ? $this->rows($this->videoNs, "lesson_id:" . intval($lesson->id), "asc") : array();
             $entry->quizzes = $unlocked ? $this->publishedRows($this->quizNs, "lesson_id:" . intval($lesson->id)) : array();
             $entry->assignmentRules = $unlocked ? $this->rows($this->ruleNs, "lesson_id:" . intval($lesson->id), "asc") : array(); $out[] = $entry;
@@ -356,6 +472,88 @@ class ApiService {
     private function progressPercentage($lesson,$p){if(!$lesson)return 0;$total=0;$done=0;$map=array("require_reading"=>"reading_completed","require_video"=>"video_completed","require_quiz"=>"quiz_passed","require_assignment"=>"assignment_passed","require_teacher_approval"=>"teacher_approved");foreach($map as $r=>$s)if(LessonRules::truthy(isset($lesson->{$r})?$lesson->{$r}:false)){$total++;if(LessonRules::truthy(isset($p->{$s})?$p->{$s}:false))$done++;}return $total?LessonRules::completionPercent($done,$total):(LessonRules::truthy(isset($p->lesson_completed)?$p->lesson_completed:false)?100:0);}
     private function assignmentInCourse($assignment,$courseId){$subjects=$this->rows($this->subjectNs,"course_id:".intval($courseId),"asc");foreach($subjects as $s)if(strval($s->id)===strval($assignment->subject_id))return true;return false;}
     private function markBelongsToCourse($mark,$courseId){if(!empty($mark->assignment_id)){ $assignment=$this->byId($this->assignmentNs,$mark->assignment_id); if($assignment&&$this->assignmentInCourse($assignment,$courseId))return true;}if(!empty($mark->assessment_id)){foreach($this->rows($this->quizNs,"assessment_id:".intval($mark->assessment_id),"desc") as $quiz){$lesson=$this->byId($this->lessonNs,$quiz->lesson_id);if($lesson&&strval($lesson->course_id)===strval($courseId))return true;}}if(!empty($mark->subject_id)){foreach($this->rows($this->subjectNs,"course_id:".intval($courseId),"asc") as $subject)if(strval($subject->id)===strval($mark->subject_id))return true;}return false;}
+
+    private function sanitizeRichText($html) {
+        $html = strval($html);
+        $html = preg_replace('#<(script|style|iframe|object|embed|form|input|button|svg|math)[^>]*>.*?</\1>#is', '', $html);
+        $html = strip_tags($html, '<p><br><h1><h2><h3><h4><strong><b><em><i><u><s><strike><ol><ul><li><a><img><blockquote><pre><code><hr><span><div>');
+        $html = preg_replace('/\s(on[a-z]+|style|srcdoc)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+        $html = preg_replace_callback('/\s(href|src)\s*=\s*(["\'])(.*?)\2/i', function($match) {
+            $url = trim(html_entity_decode($match[3], ENT_QUOTES, 'UTF-8'));
+            if ($url === '' || strpos($url, '#') === 0 || preg_match('#^(https?:|mailto:|tel:)#i', $url)) return ' ' . strtolower($match[1]) . '=' . $match[2] . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . $match[2];
+            return '';
+        }, $html);
+        return trim($html);
+    }
+    private function safeContentRows($rows) { foreach($rows as $row)if(isset($row->body))$row->body=$this->sanitizeRichText($row->body);return $rows; }
+
+    private function providerConnection($provider) { return in_array($provider,array("youtube","facebook"),true) ? $this->findOne($this->providerNs,"provider:".$this->clean($provider)) : null; }
+    private function safeProviderConnection($provider) { $item=$this->providerConnection($provider); return $item ? $this->safeProviderRow($item) : array("provider"=>$provider,"status"=>"disconnected","has_client_secret"=>false,"has_api_key"=>false,"has_access_token"=>false,"has_refresh_token"=>false); }
+    private function safeProviderRow($item) {
+        if (!$item) return null; $safe=new \stdClass();
+        foreach(array("id","provider","account_name","account_id","page_id","client_id","status","expires_at","last_tested_at","last_error","updated_at") as $field) if(isset($item->{$field})) $safe->{$field}=$item->{$field};
+        $safe->has_client_secret=$this->providerValue($item,"client_secret_enc")!==""; $safe->has_api_key=$this->providerValue($item,"api_key_enc")!==""; $safe->has_access_token=$this->providerValue($item,"access_token_enc")!==""; $safe->has_refresh_token=$this->providerValue($item,"refresh_token_enc")!=="";
+        return $safe;
+    }
+    private function hasProviderCredential($item) { return $this->providerValue($item,"api_key_enc")!=="" || $this->providerValue($item,"access_token_enc")!==""; }
+    private function providerSecret() { $value=getenv("DAVVAG_PROVIDER_SECRET"); if($value!==false&&trim($value)!=="")return trim($value); return defined("DAVVAG_PROVIDER_SECRET")?trim(strval(DAVVAG_PROVIDER_SECRET)):""; }
+    private function encryptProviderSecret($plain) {
+        $key=hash('sha256',$this->providerSecret(),true); $iv=random_bytes(12); $tag=""; $cipher=openssl_encrypt($plain,'aes-256-gcm',$key,OPENSSL_RAW_DATA,$iv,$tag);
+        return array("v"=>1,"iv"=>base64_encode($iv),"tag"=>base64_encode($tag),"data"=>base64_encode($cipher));
+    }
+    private function providerValue($item,$field) {
+        if(!$item||!isset($item->{$field})||$this->providerSecret()==="")return ""; $payload=$item->{$field};
+        if(is_string($payload)){$decoded=json_decode($payload,true);if(is_array($decoded))$payload=$decoded;}
+        if(is_object($payload))$payload=get_object_vars($payload); if(!is_array($payload)||empty($payload["iv"])||empty($payload["tag"])||!isset($payload["data"]))return "";
+        $plain=openssl_decrypt(base64_decode($payload["data"]),'aes-256-gcm',hash('sha256',$this->providerSecret(),true),OPENSSL_RAW_DATA,base64_decode($payload["iv"]),base64_decode($payload["tag"])); return $plain===false?"":$plain;
+    }
+
+    private function safeHttpUrl($url) { $parts=parse_url($url); return is_array($parts)&&isset($parts["scheme"],$parts["host"])&&strtolower($parts["scheme"])==="https"; }
+    private function youtubeVideoId($url) {
+        $p=parse_url($url); if(!is_array($p)||empty($p["host"]))return ""; $host=strtolower($p["host"]); $id="";
+        if($host==="youtu.be"||$host==="www.youtu.be")$id=trim(isset($p["path"])?$p["path"]:"","/");
+        elseif(preg_match('/(^|\.)youtube\.com$/',$host)){if(isset($p["query"])){parse_str($p["query"],$q);if(isset($q["v"]))$id=$q["v"];}if($id===""&&isset($p["path"])&&preg_match('#/(shorts|embed|live)/([^/?]+)#',$p["path"],$m))$id=$m[2];}
+        return preg_match('/^[A-Za-z0-9_-]{6,20}$/',$id)?$id:"";
+    }
+    private function facebookVideoId($url) {
+        $p=parse_url($url); if(!is_array($p)||empty($p["host"])||!preg_match('/(^|\.)facebook\.com$/',strtolower($p["host"])))return ""; $path=isset($p["path"])?$p["path"]:"";
+        foreach(array('#/videos/(\d+)#','#/reel/(\d+)#','#/watch/?$#') as $pattern)if(preg_match($pattern,$path,$m)&&isset($m[1]))return $m[1]; if(isset($p["query"])){parse_str($p["query"],$q);if(isset($q["v"])&&ctype_digit(strval($q["v"])))return strval($q["v"]);} return "";
+    }
+
+    private function youtubeMetadata($url,$res) {
+        $id=$this->youtubeVideoId($url); if($id==="")return $this->error($res,"The YouTube URL does not contain a valid video ID.");
+        $out=array("provider"=>"youtube","video_id"=>$id,"title"=>"","thumbnail_url"=>"https://i.ytimg.com/vi/".$id."/hqdefault.jpg","transcript"=>"","duration_seconds"=>0,"messages"=>array());
+        $oembed=$this->curlRequest("https://www.youtube.com/oembed","GET",array("format"=>"json","url"=>$url),array()); if($oembed->success){if(isset($oembed->data["title"]))$out["title"]=$oembed->data["title"];if(isset($oembed->data["thumbnail_url"]))$out["thumbnail_url"]=$oembed->data["thumbnail_url"];}else $out["messages"][]="YouTube public metadata was unavailable.";
+        $connection=$this->providerConnection("youtube"); if(!$connection){$out["messages"][]="Connect YouTube in Settings for official metadata and available captions.";return $out;}
+        $this->refreshYouTubeAccessToken($connection); $apiKey=$this->providerValue($connection,"api_key_enc"); $token=$this->providerValue($connection,"access_token_enc"); $params=array("part"=>"snippet,contentDetails","id"=>$id);if($apiKey!=="")$params["key"]=$apiKey;
+        if($apiKey!==""||$token!==""){$headers=$token!==""?array("Authorization: Bearer ".$token):array();$video=$this->curlRequest("https://www.googleapis.com/youtube/v3/videos","GET",$params,$headers);if($video->success&&!empty($video->data["items"][0])){$item=$video->data["items"][0];$snippet=isset($item["snippet"])?$item["snippet"]:array();if(!empty($snippet["title"]))$out["title"]=$snippet["title"];if(!empty($snippet["thumbnails"])){$thumbs=$snippet["thumbnails"];foreach(array("maxres","standard","high","medium","default") as $key)if(isset($thumbs[$key]["url"])){$out["thumbnail_url"]=$thumbs[$key]["url"];break;}}if(isset($item["contentDetails"]["duration"]))$out["duration_seconds"]=$this->isoDurationSeconds($item["contentDetails"]["duration"]);}else $out["messages"][]="The connected YouTube API did not return video details.";}
+        if($token!==""){$caption=$this->youtubeTranscript($id,$token);if($caption->success)$out["transcript"]=$caption->text;else $out["messages"][]=$caption->message;}else $out["messages"][]="An OAuth connection is required to request owner-accessible YouTube captions.";
+        return $out;
+    }
+    private function facebookMetadata($url,$res) {
+        $id=$this->facebookVideoId($url); $connection=$this->providerConnection("facebook"); if(!$connection)return $this->error($res,"Connect Facebook in Settings before fetching video metadata."); $token=$this->providerValue($connection,"access_token_enc"); if($token==="")return $this->error($res,"The Facebook connection has no access token.");
+        if($id==="")return $this->error($res,"The Facebook URL does not expose a supported numeric video or reel ID.");
+        $response=$this->curlRequest("https://graph.facebook.com/v19.0/".rawurlencode($id),"GET",array("fields"=>"id,title,description,length,thumbnails","access_token"=>$token),array()); if(!$response->success)return $this->error($res,"Facebook metadata request failed: ".$response->message);
+        $d=$response->data;$thumb="";if(isset($d["thumbnails"]["data"])&&is_array($d["thumbnails"]["data"]))foreach($d["thumbnails"]["data"] as $t)if(!empty($t["uri"])){$thumb=$t["uri"];if(!empty($t["is_preferred"]))break;}
+        return array("provider"=>"facebook","video_id"=>$id,"title"=>isset($d["title"])?$d["title"]:(isset($d["description"])?$d["description"]:""),"thumbnail_url"=>$thumb,"transcript"=>"","duration_seconds"=>isset($d["length"])?intval($d["length"]):0,"messages"=>array("Facebook did not expose transcript text for this video. You can enter it manually."));
+    }
+    private function youtubeTranscript($id,$token) {
+        $list=$this->curlRequest("https://www.googleapis.com/youtube/v3/captions","GET",array("part"=>"snippet","videoId"=>$id),array("Authorization: Bearer ".$token)); if(!$list->success||empty($list->data["items"]))return (object)array("success"=>false,"text"=>"","message"=>"No downloadable YouTube caption track was available for this account.");
+        $captionId=$list->data["items"][0]["id"];$download=$this->curlRequest("https://www.googleapis.com/youtube/v3/captions/".rawurlencode($captionId),"GET",array("tfmt"=>"srt"),array("Authorization: Bearer ".$token)); if(!$download->success)return (object)array("success"=>false,"text"=>"","message"=>"The selected YouTube caption track could not be downloaded.");
+        $text=preg_replace('/^\d+\s*$/m','',$download->raw);$text=preg_replace('/\d{2}:\d{2}:\d{2}[,.]\d{3}\s+-->\s+\d{2}:\d{2}:\d{2}[,.]\d{3}/','',$text);$text=preg_replace('/\s+/',' ',strip_tags($text));return (object)array("success"=>trim($text)!=="","text"=>trim($text),"message"=>trim($text)===""?"The YouTube caption track was empty.":"");
+    }
+    private function isoDurationSeconds($duration){try{$i=new \DateInterval($duration);return intval($i->d)*86400+intval($i->h)*3600+intval($i->i)*60+intval($i->s);}catch(\Exception $e){return 0;}}
+
+    private function testYouTubeConnection($item) { $this->refreshYouTubeAccessToken($item);$key=$this->providerValue($item,"api_key_enc");$token=$this->providerValue($item,"access_token_enc");if($key===""&&$token==="")return (object)array("success"=>false,"message"=>"Add an API key or complete OAuth connection.");$p=array("part"=>"id","id"=>"dQw4w9WgXcQ");if($key!=="")$p["key"]=$key;$r=$this->curlRequest("https://www.googleapis.com/youtube/v3/videos","GET",$p,$token!==""?array("Authorization: Bearer ".$token):array());return (object)array("success"=>$r->success,"message"=>$r->success?"YouTube API connection succeeded.":"YouTube API connection failed: ".$r->message); }
+    private function testFacebookConnection($item) { $token=$this->providerValue($item,"access_token_enc");if($token==="")return (object)array("success"=>false,"message"=>"Complete OAuth or add a valid Facebook access token.");$r=$this->curlRequest("https://graph.facebook.com/v19.0/me","GET",array("fields"=>"id,name","access_token"=>$token),array());if($r->success){if(isset($r->data["name"]))$item->account_name=$r->data["name"];if(isset($r->data["id"]))$item->account_id=$r->data["id"];}return (object)array("success"=>$r->success,"message"=>$r->success?"Facebook API connection succeeded.":"Facebook API connection failed: ".$r->message); }
+    private function refreshYouTubeAccessToken($item) { if(!$item||empty($item->expires_at)||strtotime($item->expires_at)>time()+120)return;$refresh=$this->providerValue($item,"refresh_token_enc");$secret=$this->providerValue($item,"client_secret_enc");if($refresh===""||empty($item->client_id)||$secret==="")return;$r=$this->curlRequest("https://oauth2.googleapis.com/token","POST",array("client_id"=>$item->client_id,"client_secret"=>$secret,"refresh_token"=>$refresh,"grant_type"=>"refresh_token"),array());if($r->success&&!empty($r->data["access_token"])){$item->access_token_enc=$this->encryptProviderSecret($r->data["access_token"]);$item->expires_at=date("Y-m-d H:i:s",time()+intval(isset($r->data["expires_in"])?$r->data["expires_in"]:3600));$item->status="connected";$item->last_error="";$dummy=new LessonManagerMemoryResponse();$this->persist($this->providerNs,$item,$dummy);}}
+
+    private function curlRequest($url,$method,$fields,$headers) {
+        $out=(object)array("success"=>false,"status"=>0,"data"=>array(),"raw"=>"","message"=>"");if(!function_exists('curl_init')){$out->message="The PHP cURL extension is unavailable.";return $out;}$method=strtoupper($method);if($method==="GET"&&count($fields))$url.=(strpos($url,'?')===false?'?':'&').http_build_query($fields);
+        $ch=curl_init($url);$all=array("Accept: application/json");foreach($headers as $h)$all[]=$h;curl_setopt_array($ch,array(CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>8,CURLOPT_TIMEOUT=>20,CURLOPT_HTTPHEADER=>$all));if($method==="POST"){curl_setopt($ch,CURLOPT_POST,true);curl_setopt($ch,CURLOPT_POSTFIELDS,http_build_query($fields));$all[]="Content-Type: application/x-www-form-urlencoded";curl_setopt($ch,CURLOPT_HTTPHEADER,$all);} $raw=curl_exec($ch);$status=intval(curl_getinfo($ch,CURLINFO_HTTP_CODE));$error=curl_error($ch);curl_close($ch);$out->raw=$raw===false?"":$raw;$out->status=$status;$decoded=json_decode($out->raw,true);if(is_array($decoded))$out->data=$decoded;$out->success=$error===""&&$status>=200&&$status<300;if(!$out->success){$out->message=$error!==""?$error:(isset($out->data["error"]["message"])?$out->data["error"]["message"]:(isset($out->data["error_description"])?$out->data["error_description"]:"HTTP ".$status));}return $out;
+    }
+    private function providerCallbackUrl(){return $this->appBaseUrl()."/components/lesson-manager/api/service/ProviderOAuthCallback";}
+    private function appBaseUrl(){if(isset($_SERVER["HTTP_X_FORWARDED_PROTO"]))$scheme=trim(explode(',',$_SERVER["HTTP_X_FORWARDED_PROTO"])[0]);else $scheme=isset($_SERVER["HTTPS"])&&$_SERVER["HTTPS"]!=="off"?"https":"http";$host=isset($_SERVER["HTTP_HOST"])?$_SERVER["HTTP_HOST"]:"localhost";$uri=isset($_SERVER["REQUEST_URI"])?$_SERVER["REQUEST_URI"]:"";$position=strpos($uri,"/components/");$base=$position===false?"":substr($uri,0,$position);return $scheme."://".$host.rtrim($base,"/");}
 
     private function isActiveEnrollment($enrollment){return !isset($enrollment->status)||strtolower($enrollment->status)==="active";}
     private function courseIdForEnrollment($enrollment){if(isset($enrollment->course_id)&&intval($enrollment->course_id)>0)return intval($enrollment->course_id);if(!empty($enrollment->class_grade_id)){ $classGrade=$this->byId($this->classNs,$enrollment->class_grade_id); if($classGrade&&isset($classGrade->course_id))return intval($classGrade->course_id);}return 0;}

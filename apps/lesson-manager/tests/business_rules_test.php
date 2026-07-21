@@ -1,6 +1,7 @@
 <?php
 require_once(__DIR__ . "/../services/api/service.php");
 use lesson_manager\LessonRules;
+use lesson_manager\ApiService;
 $failures=0;
 function check($value,$message){global $failures;if(!$value){$failures++;echo "FAIL: ".$message.PHP_EOL;}}
 function obj($data){$o=new stdClass();foreach($data as $k=>$v)$o->{$k}=$v;return $o;}
@@ -13,6 +14,21 @@ $question=obj(array("marks"=>2,"negative_marks"=>0.5,"correct_answer"=>array("A"
 check(LessonRules::scoreQuestion($question,array("C","A"),true)===2.0,"multiple answers are order independent");
 check(LessonRules::scoreQuestion($question,array("A"),true)===-0.5,"negative mark is applied");
 check(LessonRules::completionPercent(3,4)===75.0,"completion percentage is calculated");
+$service=new ApiService();$reflection=new ReflectionClass($service);
+$sanitize=$reflection->getMethod("sanitizeRichText");$sanitize->setAccessible(true);
+$safe=$sanitize->invoke($service,'<p onclick="bad()"><strong>Safe</strong><script>alert(1)</script><a href="javascript:bad">bad</a></p>');
+check(strpos($safe,"<strong>Safe</strong>")!==false,"rich text keeps allowed formatting");
+check(stripos($safe,"script")===false&&stripos($safe,"onclick")===false&&stripos($safe,"javascript:")===false,"rich text removes executable markup");
+$videoId=$reflection->getMethod("youtubeVideoId");$videoId->setAccessible(true);
+check($videoId->invoke($service,"https://www.youtube.com/watch?v=dQw4w9WgXcQ")==="dQw4w9WgXcQ","YouTube URLs are normalized to video IDs");
+putenv("DAVVAG_PROVIDER_SECRET=lesson-manager-test-secret");
+$encrypt=$reflection->getMethod("encryptProviderSecret");$encrypt->setAccessible(true);$decrypt=$reflection->getMethod("providerValue");$decrypt->setAccessible(true);
+$encrypted=$encrypt->invoke($service,"round-trip");$secretRow=obj(array("value"=>$encrypted));
+check($decrypt->invoke($service,$secretRow,"value")==="round-trip","provider credentials encrypt and decrypt with the server secret");
+putenv("DAVVAG_PROVIDER_SECRET");
+$_SERVER["HTTP_HOST"]="localhost";$_SERVER["REQUEST_URI"]="/davvag-core/components/lesson-manager/api/service/StartProviderOAuth";
+$baseUrl=$reflection->getMethod("appBaseUrl");$baseUrl->setAccessible(true);
+check($baseUrl->invoke($service)==="http://localhost/davvag-core","OAuth callback URLs preserve a subdirectory installation path");
 if($failures===0)echo "LessonRules tests passed.".PHP_EOL;
 exit($failures?1:0);
 ?>

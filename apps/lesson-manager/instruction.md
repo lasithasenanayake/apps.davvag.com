@@ -117,6 +117,91 @@ The application should use the transcript together with the written lesson conte
 
 When an automatic transcript cannot be retrieved, the teacher must be able to enter or upload the transcript manually.
 
+### 3.1 Rich-text material authoring
+
+On `#/app/lesson-manager/studio`, the **Materials** tab field labelled **Written content / notes** must use a rich-text editor instead of a plain `<textarea>`.
+
+The editor must support at least:
+
+* Paragraphs and headings
+* Bold, italic, underline, and strikethrough
+* Ordered and unordered lists
+* Links
+* Images where permitted by the existing upload system
+* Block quotes and code/preformatted text
+* Undo and redo
+* Clear formatting
+* HTML/source output compatible with the existing `lesson_manager_content.body` field
+
+The rich-text editor must:
+
+* Load existing material when a teacher edits a content record.
+* Keep its HTML value synchronized with `contentForm.body`.
+* Preserve supported formatting after save and reload.
+* Sanitize submitted HTML on the backend before persistence and again render it safely in the student learning view.
+* Avoid storing scripts, inline event handlers, unsafe URLs, or other executable markup.
+* Reuse an existing DAVVAG editor component or declared plugin when one is already available instead of adding an undeclared global dependency.
+
+### 3.2 Automatic YouTube and Facebook video metadata
+
+On the **Video** tab of `#/app/lesson-manager/studio`, when the teacher selects `youtube` or `facebook` as the **Provider** and enters a valid **Video URL / media reference**, the application must retrieve and automatically populate, when available:
+
+* **Video title**
+* **Thumbnail URL**
+* **Transcript**
+
+Metadata retrieval must run through a lesson-manager backend service. The browser must not call provider APIs with application secrets or long-lived access tokens.
+
+Required behavior:
+
+1. Normalize and validate the submitted URL for the selected provider.
+2. Extract the provider video identifier on the backend.
+3. Use the connected provider account configured on the Settings page.
+4. Fetch available metadata and transcript/captions.
+5. Populate only fields returned by the provider.
+6. Keep all populated values editable before the video is saved.
+7. Do not silently overwrite a teacher-edited field unless the teacher requests a refresh or confirms replacement.
+8. Show a loading state while metadata is being retrieved and prevent duplicate requests.
+9. Show a clear field-level error for an invalid URL, missing provider connection, private/inaccessible video, API failure, quota failure, or unavailable transcript.
+10. Preserve manual title, thumbnail, and transcript entry as the fallback.
+
+Automatic transcript retrieval is best-effort. Some videos or provider accounts may not expose captions or transcripts through their APIs. Failure to retrieve a transcript must not prevent the teacher from saving the video with a manually entered transcript.
+
+### 3.3 YouTube and Facebook connection settings
+
+Create a Lesson Manager Settings page at:
+
+```text
+#/app/lesson-manager/settings
+```
+
+Register the Settings component and route in `lesson-manager/app.json`, expose it in the intended Lesson Manager navigation, and restrict it to authorized teachers or administrators according to the existing DAVVAG permission model.
+
+The Settings page must allow an authorized user to:
+
+* Connect a YouTube/Google account for supported YouTube API operations.
+* Connect a Facebook account or Page for supported Facebook video API operations.
+* See whether each provider is connected.
+* See the connected account/Page identity and connection health without exposing secrets.
+* Reconnect an expired or invalid connection.
+* Disconnect a provider connection with explicit confirmation.
+* Test each connection and display an actionable result.
+
+Provider configuration and security requirements:
+
+* Use the providers' supported OAuth authorization flow where account access is required.
+* Keep client secrets, access tokens, refresh tokens, and Page tokens server-side only.
+* Never place provider secrets in `app.json`, component JavaScript, HTML, workflow JSON, browser storage, URLs, logs, or public service responses.
+* Store connections per tenant and, where required by the permission design, per owning user or organization.
+* Encrypt sensitive token material at rest using an approved framework/server secret facility.
+* Validate OAuth state and callback ownership to prevent cross-tenant or cross-user connection capture.
+* Request only the minimum scopes required for video metadata, thumbnails, and available captions/transcripts.
+* Handle token refresh, expiry, revocation, missing permissions, API quotas, and provider errors without breaking Lesson Manager routing.
+* Declare every new schema, plugin, app, workflow, and PHP-extension dependency in `app.json`.
+* Do not assume that connecting an account guarantees transcript availability.
+
+The metadata service must choose the connection that belongs to the active tenant and authorized context. It must never use another tenant's provider credentials.
+
 ## 4. AI Quiz Generation
 use `C:\xampp\htdocs\davvag-core\davvag-core\localhost\apps\ai-agent-creator` to get this done. 
 Create a quiz-generation workflow that allows the teacher to select a lesson and automatically generate quiz questions by analysing:
@@ -341,6 +426,7 @@ Teachers and administrators should be able to manage:
 * Progress
 * Completion rules
 * Publishing status
+* YouTube and Facebook provider connections
 
 Respect the existing Course Manager roles, permissions, services, and access-control system.
 
@@ -424,17 +510,20 @@ The completed application should allow a teacher to:
 2. Select a subject under the course.
 3. Add ordered lessons under the selected subject.
 4. Add written content, books, resources, and videos.
-5. Add or retrieve video transcripts.
-6. Generate quizzes from lesson text and transcripts.
-7. Review and edit generated quiz questions.
-8. Set quiz passing requirements.
-9. Add assignments to lessons.
-10. Assign courses to users.
-11. Review student submissions.
-12. Provide feedback and award marks.
-13. Track student progress.
-14. Control access to the next lesson within each subject.
-15. View course and student reports.
+5. Format written content using the rich-text editor.
+6. Connect authorized YouTube and Facebook accounts from Lesson Manager Settings.
+7. Automatically retrieve available video titles, thumbnails, and transcripts from supported YouTube and Facebook URLs.
+8. Add or edit video metadata and transcripts manually when automatic retrieval is unavailable.
+9. Generate quizzes from lesson text and transcripts.
+10. Review and edit generated quiz questions.
+11. Set quiz passing requirements.
+12. Add assignments to lessons.
+13. Assign courses to users.
+14. Review student submissions.
+15. Provide feedback and award marks.
+16. Track student progress.
+17. Control access to the next lesson within each subject.
+18. View course and student reports.
 
 A student should be able to:
 
@@ -446,3 +535,23 @@ A student should be able to:
 6. Receive marks and feedback.
 7. Unlock the next lesson after meeting the required conditions.
 8. Track overall course progress and results.
+
+## Implementation Status — Rich Text and Provider Connections
+
+Implemented in Lesson Manager version `1.2`:
+
+* The Studio **Materials** tab now uses a lesson-local rich-text editor synchronized with `contentForm.body`.
+* Rich-text content is allowlist-sanitized by the backend when saved and sanitized again before it is returned to the student learning view.
+* The Studio **Video** tab automatically requests metadata after a supported YouTube or Facebook URL is entered.
+* Automatically returned title, thumbnail, duration, and transcript values remain editable and do not silently replace manually edited fields.
+* `#/app/lesson-manager/settings` provides tenant-local YouTube and Facebook configuration, OAuth connection, connection testing, reconnection, manual-token fallback, and confirmed disconnect.
+* Provider secrets and tokens are encrypted with AES-256-GCM and never returned through provider settings responses.
+* The `lesson_manager_provider_connection` schema stores tenant-local provider connection state.
+
+Required server configuration:
+
+```text
+DAVVAG_PROVIDER_SECRET=<long-random-server-secret>
+```
+
+Provider credentials cannot be persisted until this server environment variable (or an equivalent server-defined `DAVVAG_PROVIDER_SECRET` constant) is configured. YouTube caption retrieval remains subject to YouTube account ownership and API permissions. Facebook transcript text is retained as a manual fallback when Meta does not expose it for the connected video.

@@ -1,0 +1,23 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"provider","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"account_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"account_id","dataType":"java.lang.String","annotations":{"maxLen":255}},
+    {"fieldName":"page_id","dataType":"java.lang.String","annotations":{"maxLen":255}},
+    {"fieldName":"client_id","dataType":"java.lang.String","annotations":{"maxLen":512}},
+    {"fieldName":"client_secret_enc","dataType":"object"},
+    {"fieldName":"api_key_enc","dataType":"object"},
+    {"fieldName":"access_token_enc","dataType":"object"},
+    {"fieldName":"refresh_token_enc","dataType":"object"},
+    {"fieldName":"scopes","dataType":"object"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"disconnected"}},
+    {"fieldName":"expires_at","dataType":"java.util.Date"},
+    {"fieldName":"last_tested_at","dataType":"java.util.Date"},
+    {"fieldName":"last_error","dataType":"java.lang.String","annotations":{"maxLen":1000,"encoding":"utf8"}},
+    {"fieldName":"created_by","dataType":"int"},
+    {"fieldName":"created_at","dataType":"java.util.Date"},
+    {"fieldName":"updated_at","dataType":"java.util.Date"}
+  ],
+  "relations": []
+}

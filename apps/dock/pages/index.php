@@ -74,7 +74,8 @@
                 jQuery(this).attr('aria-expanded', 'true');
             }
             
-            adjustmainpanelheight();         
+            if (typeof window.adjustmainpanelheight === "function")
+                window.adjustmainpanelheight();
         }
     
         });
