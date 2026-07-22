@@ -374,7 +374,10 @@ class ViralContentManagerService {
                 "title" => $title,
                 "description" => $description,
                 "transcript" => $this->limitText($transcript, 12000),
-                "keywords" => $keywords
+                "audience" => $audience,
+                "language" => $language,
+                "keywords" => $keywords,
+                "metadata" => $metadata
             )
         );
 
@@ -2103,9 +2106,10 @@ class ViralContentManagerService {
 
         try {
             $creator = new \ai_agent_creator\CreatorService();
+            $agentMessage = $this->agentMessageWithPayload($prompt, $payload);
             $result = $creator->interactWithAgent(array(
                 "agentCode" => $agentCode,
-                "message" => $prompt,
+                "message" => $agentMessage,
                 "appCode" => "davvag-viral-content-manager",
                 "appName" => "DAVVAG Viral Content Manager",
                 "profile" => array(
@@ -2122,7 +2126,7 @@ class ViralContentManagerService {
             $notes->status = isset($result->success) && $result->success ? "completed" : "failed";
             $notes->response = isset($result->response) ? $result->response : (isset($result->reply) ? $result->reply : "");
             $notes->error = $notes->status === "failed" && isset($result->error) ? $result->error : "";
-            $this->logAgent($contentUid, $agentCode, "InteractWithAgent", $notes->status, $prompt, $notes->response, $notes->error);
+            $this->logAgent($contentUid, $agentCode, "InteractWithAgent", $notes->status, $agentMessage, $notes->response, $notes->error);
         } catch (Exception $ex) {
             $notes->status = "failed";
             $notes->error = $ex->getMessage();
@@ -2130,6 +2134,21 @@ class ViralContentManagerService {
         }
 
         return $notes;
+    }
+
+    private function agentMessageWithPayload($prompt, $payload) {
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (!is_string($json) || $json === "") {
+            $json = "{}";
+        }
+
+        $message = trim((string)$prompt)
+            . "\n\nAll available content data is included below. Analyze it immediately."
+            . " Do not ask the user to provide or repeat the URL, title, description, transcript, audience, language, keywords, or metadata."
+            . " Treat empty fields as unavailable and do not invent missing facts."
+            . "\n\nCONTENT_DATA_JSON\n" . $json . "\nEND_CONTENT_DATA_JSON";
+
+        return $this->limitText($message, 24000);
     }
 
     private function logAgent($contentUid, $agentCode, $action, $status, $prompt, $response, $error) {
