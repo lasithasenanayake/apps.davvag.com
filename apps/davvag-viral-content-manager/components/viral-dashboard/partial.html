@@ -28,12 +28,21 @@
     <section class="vcm-workspace" v-if="activeTab === 'optimize'">
         <form class="vcm-panel vcm-form" v-on:submit.prevent="analyzeUrl">
             <div class="vcm-panel-title">
-                <h2>Existing Content Optimizer</h2>
-                <label class="vcm-toggle"><input type="checkbox" v-model="optimizeForm.useAgents"> Use mapped agents</label>
+                <div>
+                    <h2>Existing Content Optimizer</h2>
+                    <small class="vcm-helper">Paste a URL, review the fetched source, then copy individual suggestions or the complete package.</small>
+                </div>
+                <div class="vcm-agent-choice">
+                    <label class="vcm-toggle"><input type="checkbox" v-model="optimizeForm.useAgents"> Use mapped agent</label>
+                    <small>{{ mappedAgentName('content-url-analyzer-agent') }}</small>
+                </div>
             </div>
             <div class="vcm-grid two">
                 <label>Content URL
-                    <input type="url" v-model="optimizeForm.url" v-on:input="scheduleUrlFetch" v-on:change="fetchUrlDetails" placeholder="https://www.youtube.com/watch?v=..." required>
+                    <span class="vcm-input-action">
+                        <input type="url" v-model="optimizeForm.url" v-on:input="scheduleUrlFetch" v-on:change="fetchUrlDetails" placeholder="https://www.youtube.com/watch?v=..." required>
+                        <button type="button" class="vcm-button vcm-button-light" v-on:click="pasteOptimizeUrl" v-bind:disabled="loading.fetch">Paste</button>
+                    </span>
                 </label>
                 <label>Platform
                     <select v-model="optimizeForm.platform">
@@ -84,19 +93,19 @@
 
             <div class="vcm-grid three">
                 <div class="vcm-block">
-                    <h3>Titles</h3>
+                    <div class="vcm-block-head"><h3>Titles</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.titleOptions, 'Titles')">Copy</button></div>
                     <ol>
                         <li v-for="item in optimizeResult.titleOptions">{{ item }}</li>
                     </ol>
                 </div>
                 <div class="vcm-block">
-                    <h3>Keywords</h3>
+                    <div class="vcm-block-head"><h3>Keywords</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.keywords.join(', '), 'Keywords')">Copy</button></div>
                     <div class="vcm-chips">
                         <span v-for="item in optimizeResult.keywords">{{ item }}</span>
                     </div>
                 </div>
                 <div class="vcm-block">
-                    <h3>Hashtags</h3>
+                    <div class="vcm-block-head"><h3>Hashtags</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.hashtags.join(' '), 'Hashtags')">Copy</button></div>
                     <div class="vcm-chips">
                         <span v-for="item in optimizeResult.hashtags">{{ item }}</span>
                     </div>
@@ -105,7 +114,7 @@
 
             <div class="vcm-grid two">
                 <div class="vcm-block">
-                    <h3>Description</h3>
+                    <div class="vcm-block-head"><h3>Description</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.improvedDescription, 'Description')">Copy</button></div>
                     <p class="vcm-copy">{{ optimizeResult.improvedDescription }}</p>
                 </div>
                 <div class="vcm-block">
@@ -118,13 +127,23 @@
 
             <div class="vcm-grid two">
                 <div class="vcm-block">
-                    <h3>CTA</h3>
+                    <div class="vcm-block-head"><h3>CTA</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.cta, 'CTA')">Copy</button></div>
                     <p>{{ optimizeResult.cta }}</p>
                 </div>
                 <div class="vcm-block">
-                    <h3>Pinned Comment</h3>
+                    <div class="vcm-block-head"><h3>Pinned Comment</h3><button type="button" class="vcm-copy-button" v-on:click="copyText(optimizeResult.pinnedComment, 'Pinned comment')">Copy</button></div>
                     <p>{{ optimizeResult.pinnedComment }}</p>
                 </div>
+            </div>
+
+            <div class="vcm-block vcm-agent-result" v-if="optimizeForm.useAgents && optimizeResult.agentNotes">
+                <div class="vcm-block-head">
+                    <h3>Mapped Agent Response</h3>
+                    <span class="vcm-agent-status" v-bind:class="'is-' + optimizeResult.agentNotes.status">{{ optimizeResult.agentNotes.status }} · {{ optimizeResult.agentNotes.agentCode }}</span>
+                </div>
+                <p class="vcm-copy" v-if="optimizeResult.agentNotes.response">{{ optimizeResult.agentNotes.response }}</p>
+                <p class="vcm-agent-error" v-if="optimizeResult.agentNotes.error">{{ optimizeResult.agentNotes.error }}</p>
+                <button type="button" class="vcm-copy-button" v-if="optimizeResult.agentNotes.response" v-on:click="copyText(optimizeResult.agentNotes.response, 'Agent response')">Copy response</button>
             </div>
 
             <div class="vcm-block" v-if="optimizeResult.shortClips && optimizeResult.shortClips.length">
@@ -139,6 +158,7 @@
             </div>
 
             <div class="vcm-actions">
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="copyOptimizePackage">Copy All</button>
                 <button type="button" class="vcm-button" v-on:click="queueResult(optimizeResult, 'Manual Copy')">Queue Copy</button>
             </div>
         </section>
@@ -297,6 +317,7 @@
             <div class="vcm-grid three">
                 <label>API Key
                     <input type="password" v-model="accountForm.apiKey" autocomplete="off" placeholder="YouTube API key">
+                    <small class="vcm-credential-saved" v-if="accountForm.hasSavedApiKey">Saved API key is present. Leave blank to keep it.</small>
                 </label>
                 <label>Access Token
                     <input type="password" v-model="accountForm.accessToken" autocomplete="off" placeholder="OAuth, Page, or Graph token">
@@ -343,7 +364,10 @@
                     <span>{{ account.platform }}</span>
                     <span>{{ account.accountName }}</span>
                     <span>{{ account.accountHandle }}</span>
-                    <span>{{ account.connectionStatus }}</span>
+                    <span class="vcm-account-status">
+                        <b>{{ account.connectionStatus }}</b>
+                        <small v-if="account.credentialStatus && account.credentialStatus.apiKey">API key saved</small>
+                    </span>
                     <span class="vcm-row-actions">
                         <button type="button" class="vcm-link-button" v-on:click="editAccount(account)" v-bind:disabled="isDeletingAccount(account)">Edit</button>
                         <button type="button" class="vcm-link-button vcm-link-button-danger" v-on:click="deleteAccount(account)" v-bind:disabled="deletingAccountId !== null">{{ isDeletingAccount(account) ? "Deleting..." : "Delete" }}</button>

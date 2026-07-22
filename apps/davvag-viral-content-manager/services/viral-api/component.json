@@ -2,7 +2,7 @@
     "name": "viral-api",
     "description": "Viral Content Manager service handlers",
     "author": "DAVVAG",
-    "version": "0.3",
+    "version": "0.4",
     "resources": {
         "files": [
             {

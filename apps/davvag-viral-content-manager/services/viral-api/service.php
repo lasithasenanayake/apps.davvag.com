@@ -112,8 +112,8 @@ class ViralContentManagerService {
         if (isset($body->socialAccountId) && intval($body->socialAccountId) > 0) {
             $account->socialAccountId = intval($body->socialAccountId);
             $existing = SOSSData::Query($this->socialAccountNamespace, "socialAccountId:" . $account->socialAccountId, null, "desc", 1, 0);
-            if ($existing->success && count($existing->result) > 0 && isset($existing->result[0]->raw) && is_object($existing->result[0]->raw)) {
-                $existingRaw = $existing->result[0]->raw;
+            if ($existing->success && count($existing->result) > 0 && isset($existing->result[0]->raw)) {
+                $existingRaw = $this->normalizeStoredObject($existing->result[0]->raw);
             }
         }
         $account->platform = $this->text($body, "platform", 60, "YouTube");
@@ -129,8 +129,9 @@ class ViralContentManagerService {
         }
         $account->notes = $this->text($body, "notes", 2000);
         $account->raw = $existingRaw;
-        if (isset($body->raw) && is_object($body->raw)) {
-            foreach ($body->raw as $key => $value) {
+        if (isset($body->raw)) {
+            $incomingRaw = $this->normalizeStoredObject($body->raw);
+            foreach ($incomingRaw as $key => $value) {
                 $account->raw->{$key} = $value;
             }
         }
@@ -365,7 +366,7 @@ class ViralContentManagerService {
         $agentNotes = $this->maybeRunAgent(
             $body,
             $this->agentCodeForTask($body, "content-url-analyzer-agent"),
-            "Analyze this creator content URL and return SEO, audience, competitor, and publishing recommendations.",
+            "Analyze this creator content using the supplied URL, platform, title, description, transcript, keywords, and audience context. Return specific, ready-to-use optimization recommendations: improved title angles, description improvements, keyword and hashtag strategy, thumbnail direction, CTA, pinned comment, audience fit, and the three highest-priority changes. Do not invent facts or claim live access beyond the supplied payload.",
             $contentUid,
             array(
                 "url" => $url,
@@ -663,7 +664,7 @@ class ViralContentManagerService {
                 $details->raw->youtubeVideosList = $this->maskFetchedRaw($response->data);
                 $details->source = "YouTube Data API";
             } else {
-                $details->messages[] = "YouTube Data API did not return snippet details.";
+                $details->messages[] = "The saved YouTube API key was found, but YouTube did not return video details. Check that YouTube Data API v3 is enabled and the key restrictions allow this server.";
             }
         } else {
             $oembed = $this->curlJson("https://www.youtube.com/oembed?format=json&url=" . rawurlencode($url), array());
@@ -935,8 +936,9 @@ class ViralContentManagerService {
                 if (!$this->accountMatchesPlatform($account, $platform)) {
                     continue;
                 }
-                if (isset($account->raw) && is_object($account->raw)) {
-                    foreach ($account->raw as $key => $value) {
+                if (isset($account->raw)) {
+                    $storedRaw = $this->normalizeStoredObject($account->raw);
+                    foreach ($storedRaw as $key => $value) {
                         if (!isset($credentials->{$key}) && trim((string)$value) !== "" && trim((string)$value) !== "********") {
                             $credentials->{$key} = trim((string)$value);
                         }
@@ -1126,6 +1128,25 @@ class ViralContentManagerService {
         }
     }
 
+    private function normalizeStoredObject($value) {
+        if (is_object($value)) {
+            return clone $value;
+        }
+        if (is_array($value)) {
+            return (object)$value;
+        }
+        if (is_string($value) && trim($value) !== "") {
+            $decoded = json_decode($value);
+            if (is_object($decoded)) {
+                return $decoded;
+            }
+            if (is_array($decoded)) {
+                return (object)$decoded;
+            }
+        }
+        return new stdClass();
+    }
+
     private function existingAccountRaw($source) {
         $raw = new stdClass();
         if (!is_object($source) || !isset($source->socialAccountId) || intval($source->socialAccountId) <= 0) {
@@ -1133,8 +1154,8 @@ class ViralContentManagerService {
         }
 
         $existing = SOSSData::Query($this->socialAccountNamespace, "socialAccountId:" . intval($source->socialAccountId), null, "desc", 1, 0);
-        if ($existing->success && count($existing->result) > 0 && isset($existing->result[0]->raw) && is_object($existing->result[0]->raw)) {
-            return $existing->result[0]->raw;
+        if ($existing->success && count($existing->result) > 0 && isset($existing->result[0]->raw)) {
+            return $this->normalizeStoredObject($existing->result[0]->raw);
         }
         return $raw;
     }
@@ -1164,7 +1185,14 @@ class ViralContentManagerService {
             return $account;
         }
         $copy = clone $account;
-        if (isset($copy->raw) && is_object($copy->raw)) {
+        $storedRaw = isset($account->raw) ? $this->normalizeStoredObject($account->raw) : new stdClass();
+        $copy->credentialStatus = (object)array(
+            "apiKey" => $this->storedCredentialExists($storedRaw, array("apiKey", "youtubeApiKey")),
+            "accessToken" => $this->storedCredentialExists($storedRaw, array("accessToken", "youtubeAccessToken", "pageAccessToken", "facebookAccessToken")),
+            "clientSecret" => $this->storedCredentialExists($storedRaw, array("clientSecret", "appSecret"))
+        );
+        $copy->raw = $storedRaw;
+        if (isset($copy->raw)) {
             foreach ($copy->raw as $key => $value) {
                 $keyName = strtolower((string)$key);
                 if (strpos($keyName, "token") !== false || strpos($keyName, "key") !== false || strpos($keyName, "secret") !== false || strpos($keyName, "password") !== false) {
@@ -1173,6 +1201,18 @@ class ViralContentManagerService {
             }
         }
         return $copy;
+    }
+
+    private function storedCredentialExists($raw, $fields) {
+        foreach ($fields as $field) {
+            if (is_object($raw) && isset($raw->{$field})) {
+                $value = trim((string)$raw->{$field});
+                if ($value !== "" && $value !== "********") {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private function oauthProvider($platform) {
@@ -2025,6 +2065,16 @@ class ViralContentManagerService {
         $notes->error = "";
 
         if (!$this->boolValue($body, "useAgents")) {
+            return $notes;
+        }
+
+        $savedAgents = $this->savedAgentsByCode();
+        if ($agentCode === "" || !isset($savedAgents[$agentCode])) {
+            $notes->status = "unavailable";
+            $notes->error = $agentCode === ""
+                ? "No agent is mapped for this optimizer task."
+                : "The mapped agent '" . $agentCode . "' is not available in AI Agent Creator.";
+            $this->logAgent($contentUid, $agentCode, "InteractWithAgent", $notes->status, $prompt, "", $notes->error);
             return $notes;
         }
 

@@ -149,6 +149,37 @@
     width: auto;
 }
 
+.vcm-helper {
+    color: #64748b;
+    display: block;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-top: 6px;
+}
+
+.vcm-agent-choice {
+    align-items: flex-end;
+    display: grid;
+    gap: 4px;
+    justify-items: end;
+}
+
+.vcm-agent-choice small {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.vcm-input-action {
+    align-items: stretch;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.vcm-input-action .vcm-button {
+    min-width: 76px;
+}
+
 .vcm-grid {
     display: grid;
     gap: 14px;
@@ -233,6 +264,17 @@
     gap: 12px;
 }
 
+.vcm-account-status {
+    display: grid;
+    gap: 3px;
+}
+
+.vcm-account-status small {
+    color: #166534;
+    font-size: 11px;
+    font-weight: 700;
+}
+
 .vcm-alerts {
     display: grid;
     gap: 8px;
@@ -312,6 +354,65 @@
     color: #182434;
     font-size: 14px;
     margin-bottom: 8px;
+}
+
+.vcm-block-head {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.vcm-block-head h3 {
+    margin-bottom: 0;
+}
+
+.vcm-copy-button {
+    background: #ffffff;
+    border: 1px solid #c9d2dd;
+    border-radius: 5px;
+    color: #334155;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 8px;
+}
+
+.vcm-copy-button:hover {
+    background: #f1f5f9;
+}
+
+.vcm-agent-result {
+    background: #f8fafc;
+    border: 1px solid #d8e1eb;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.vcm-agent-status {
+    background: #eef2f7;
+    border-radius: 999px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 8px;
+    text-transform: capitalize;
+}
+
+.vcm-agent-status.is-completed,
+.vcm-credential-saved {
+    color: #166534;
+}
+
+.vcm-agent-error {
+    color: #b42318;
+    font-weight: 700;
+}
+
+.vcm-credential-saved {
+    font-size: 11px;
+    font-weight: 700;
 }
 
 .vcm-block p,
@@ -518,6 +619,11 @@
     .vcm-header {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .vcm-agent-choice {
+        align-items: flex-start;
+        justify-items: start;
     }
 
     .vcm-header h1 {

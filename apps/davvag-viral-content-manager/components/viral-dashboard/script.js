@@ -44,6 +44,7 @@ WEBDOCK.component().register(function (exports) {
             refresh: refresh,
             setTab: setTab,
             scheduleUrlFetch: scheduleUrlFetch,
+            pasteOptimizeUrl: pasteOptimizeUrl,
             fetchUrlDetails: fetchUrlDetails,
             analyzeUrl: analyzeUrl,
             clearOptimize: clearOptimize,
@@ -59,7 +60,10 @@ WEBDOCK.component().register(function (exports) {
             loadHistory: loadHistory,
             queueResult: queueResult,
             saveAgentMappings: saveAgentMappings,
-            copyAgentPrompt: copyAgentPrompt
+            copyAgentPrompt: copyAgentPrompt,
+            copyText: copyText,
+            copyOptimizePackage: copyOptimizePackage,
+            mappedAgentName: mappedAgentName
         },
         onReady: function (s) {
             scope = s;
@@ -132,7 +136,8 @@ WEBDOCK.component().register(function (exports) {
             clientId: "",
             clientSecret: "",
             redirectUri: "",
-            scopesText: defaultScopes("YouTube")
+            scopesText: defaultScopes("YouTube"),
+            hasSavedApiKey: false
         };
     }
 
@@ -170,6 +175,9 @@ WEBDOCK.component().register(function (exports) {
             return;
         }
 
+        if (bindData.loading.optimize) {
+            return;
+        }
         clearMessages();
         bindData.loading.optimize = true;
         api.services.AnalyzeUrl(withAgentMappings(bindData.optimizeForm)).then(function (response) {
@@ -177,9 +185,10 @@ WEBDOCK.component().register(function (exports) {
             if (response.success) {
                 bindData.optimizeResult = response.result;
                 setInfo("Analysis saved.");
+                reportAgentResult(response.result && response.result.agentNotes);
                 loadHistory();
             } else {
-                setError("URL analysis failed.");
+                setError(responseMessage(response, "URL analysis failed."));
             }
         }).error(function () {
             bindData.loading.optimize = false;
@@ -198,12 +207,28 @@ WEBDOCK.component().register(function (exports) {
         urlFetchTimer = window.setTimeout(fetchUrlDetails, 900);
     }
 
+    function pasteOptimizeUrl() {
+        function useValue(value) {
+            if (value !== null && value !== undefined) {
+                bindData.optimizeForm.url = String(value).trim();
+                fetchUrlDetails();
+            }
+        }
+        if (navigator.clipboard && navigator.clipboard.readText) {
+            navigator.clipboard.readText().then(useValue).catch(function () {
+                useValue(window.prompt("Paste the content URL", bindData.optimizeForm.url || ""));
+            });
+        } else {
+            useValue(window.prompt("Paste the content URL", bindData.optimizeForm.url || ""));
+        }
+    }
+
     function fetchUrlDetails() {
         if (!api) {
             setError("Viral API service is not loaded.");
             return;
         }
-        if (!looksLikeSupportedUrl(bindData.optimizeForm.url)) {
+        if (!looksLikeSupportedUrl(bindData.optimizeForm.url) || bindData.loading.fetch) {
             return;
         }
 
@@ -243,9 +268,9 @@ WEBDOCK.component().register(function (exports) {
             bindData.optimizeForm.language = details.language;
         }
 
-        var message = "Platform details loaded.";
+        var message = "Platform details loaded" + (details.source ? " from " + details.source : "") + ".";
         if (details.messages && details.messages.length) {
-            message += " " + details.messages[0];
+            message += " " + details.messages.join(" ");
         }
         bindData.fetchStatus = message;
     }
@@ -361,6 +386,7 @@ WEBDOCK.component().register(function (exports) {
         form.clientId = raw.clientId || raw.appId || "";
         form.clientSecret = secretForEdit(raw.clientSecret || raw.appSecret);
         form.redirectUri = raw.redirectUri || "";
+        form.hasSavedApiKey = !!(account.credentialStatus && account.credentialStatus.apiKey);
         bindData.accountForm = form;
         bindData.editingAccountId = form.socialAccountId || null;
         setInfo("Editing " + form.accountName + ".");
@@ -548,17 +574,65 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function copyAgentPrompt(prompt) {
-        if (!prompt) {
+        copyText(prompt, "Agent prompt");
+    }
+
+    function copyText(value, label) {
+        if (Object.prototype.toString.call(value) === "[object Array]") {
+            value = value.join("\n");
+        }
+        value = value === undefined || value === null ? "" : String(value);
+        if (!value) {
             return;
         }
+        label = label || "Content";
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(prompt).then(function () {
-                setInfo("Agent prompt copied.");
+            navigator.clipboard.writeText(value).then(function () {
+                setInfo(label + " copied.");
             }).catch(function () {
-                window.prompt("Copy agent prompt", prompt);
+                window.prompt("Copy " + label.toLowerCase(), value);
             });
         } else {
-            window.prompt("Copy agent prompt", prompt);
+            window.prompt("Copy " + label.toLowerCase(), value);
+        }
+    }
+
+    function copyOptimizePackage() {
+        var result = bindData.optimizeResult;
+        if (!result) {
+            return;
+        }
+        var sections = [
+            "TITLES\n" + (result.titleOptions || []).join("\n"),
+            "DESCRIPTION\n" + (result.improvedDescription || ""),
+            "KEYWORDS\n" + (result.keywords || []).join(", "),
+            "HASHTAGS\n" + (result.hashtags || []).join(" "),
+            "CTA\n" + (result.cta || ""),
+            "PINNED COMMENT\n" + (result.pinnedComment || "")
+        ];
+        copyText(sections.join("\n\n"), "Optimization package");
+    }
+
+    function mappedAgentName(taskCode) {
+        for (var i = 0; i < bindData.agentTasks.length; i++) {
+            var task = bindData.agentTasks[i];
+            if (task.code === taskCode) {
+                return task.mappedAgentExists
+                    ? (task.mappedAgentName + " (" + task.selectedAgentCode + ")")
+                    : "No available agent mapped";
+            }
+        }
+        return "Agent mappings are loading";
+    }
+
+    function reportAgentResult(notes) {
+        if (!bindData.optimizeForm.useAgents || !notes) {
+            return;
+        }
+        if (notes.status === "completed") {
+            setInfo("Mapped agent " + notes.agentCode + " completed the analysis.");
+        } else if (notes.error) {
+            setError("Mapped agent: " + notes.error);
         }
     }
 
