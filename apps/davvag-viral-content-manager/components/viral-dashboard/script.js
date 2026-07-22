@@ -63,7 +63,8 @@ WEBDOCK.component().register(function (exports) {
             copyAgentPrompt: copyAgentPrompt,
             copyText: copyText,
             copyOptimizePackage: copyOptimizePackage,
-            mappedAgentName: mappedAgentName
+            mappedAgentName: mappedAgentName,
+            formatAgentMarkdown: formatAgentMarkdown
         },
         onReady: function (s) {
             scope = s;
@@ -634,6 +635,86 @@ WEBDOCK.component().register(function (exports) {
         } else if (notes.error) {
             setError("Mapped agent: " + notes.error);
         }
+    }
+
+    function formatAgentMarkdown(markdown) {
+        var source = markdown === undefined || markdown === null ? "" : String(markdown);
+        var lines = source.replace(/\r\n?/g, "\n").split("\n");
+        var html = [];
+        var listType = "";
+
+        function closeList() {
+            if (listType) {
+                html.push("</" + listType + ">");
+                listType = "";
+            }
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            var trimmed = line.trim();
+            var match;
+
+            if (!trimmed) {
+                closeList();
+                continue;
+            }
+            if (/^\s*([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
+                closeList();
+                html.push("<hr>");
+                continue;
+            }
+            match = trimmed.match(/^(#{1,6})\s+(.+)$/);
+            if (match) {
+                closeList();
+                var level = Math.max(3, Math.min(6, match[1].length));
+                html.push("<h" + level + ">" + markdownInline(match[2]) + "</h" + level + ">");
+                continue;
+            }
+            match = trimmed.match(/^\d+[.)]\s+(.+)$/);
+            if (match) {
+                if (listType !== "ol") {
+                    closeList();
+                    listType = "ol";
+                    html.push("<ol>");
+                }
+                html.push("<li>" + markdownInline(match[1]) + "</li>");
+                continue;
+            }
+            match = trimmed.match(/^[-*+]\s+(.+)$/);
+            if (match) {
+                if (listType !== "ul") {
+                    closeList();
+                    listType = "ul";
+                    html.push("<ul>");
+                }
+                html.push("<li>" + markdownInline(match[1]) + "</li>");
+                continue;
+            }
+
+            closeList();
+            html.push("<p>" + markdownInline(trimmed) + "</p>");
+        }
+        closeList();
+        return html.join("");
+    }
+
+    function markdownInline(value) {
+        var escaped = escapeHtml(value);
+        escaped = escaped.replace(/`([^`]+)`/g, "<code>$1</code>");
+        escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        escaped = escaped.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+        escaped = escaped.replace(/(^|[\s(])\*([^*]+)\*(?=$|[\s).,;:!?])/g, "$1<em>$2</em>");
+        return escaped;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     function queueResult(result, platform) {

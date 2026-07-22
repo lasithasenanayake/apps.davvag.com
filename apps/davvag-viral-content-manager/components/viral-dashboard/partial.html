@@ -141,7 +141,7 @@
                     <h3>Mapped Agent Response</h3>
                     <span class="vcm-agent-status" v-bind:class="'is-' + optimizeResult.agentNotes.status">{{ optimizeResult.agentNotes.status }} · {{ optimizeResult.agentNotes.agentCode }}</span>
                 </div>
-                <p class="vcm-copy" v-if="optimizeResult.agentNotes.response">{{ optimizeResult.agentNotes.response }}</p>
+                <div class="vcm-markdown" v-if="optimizeResult.agentNotes.response" v-html="formatAgentMarkdown(optimizeResult.agentNotes.response)"></div>
                 <p class="vcm-agent-error" v-if="optimizeResult.agentNotes.error">{{ optimizeResult.agentNotes.error }}</p>
                 <button type="button" class="vcm-copy-button" v-if="optimizeResult.agentNotes.response" v-on:click="copyText(optimizeResult.agentNotes.response, 'Agent response')">Copy response</button>
             </div>
