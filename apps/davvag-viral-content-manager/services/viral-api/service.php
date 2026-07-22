@@ -697,7 +697,9 @@ class ViralContentManagerService {
                 $details->language = $details->language !== "" ? $details->language : $caption->language;
                 $details->source .= " + YouTube captions";
             } else {
-                $details->messages[] = "Transcript was not available from YouTube captions for this video.";
+                $details->messages[] = $caption->message !== ""
+                    ? $caption->message
+                    : "No transcript is available for this video. Add captions in YouTube Studio or paste the transcript manually.";
             }
         }
 
@@ -764,8 +766,18 @@ class ViralContentManagerService {
         $out = (object)array("transcript" => "", "language" => "", "message" => "");
         $listUrl = "https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=" . rawurlencode($videoId);
         $list = $this->curlJson($listUrl, array("Authorization: Bearer " . $accessToken));
-        if (!$list->success || !isset($list->data["items"]) || !is_array($list->data["items"]) || !count($list->data["items"])) {
-            $out->message = "YouTube Captions API did not return captions for this OAuth token.";
+        if (!$list->success) {
+            if (intval($list->httpStatus) === 401) {
+                $out->message = "The YouTube OAuth token is expired or invalid. Reconnect the YouTube account.";
+            } elseif (intval($list->httpStatus) === 403) {
+                $out->message = "The connected YouTube account cannot access this video's caption tracks. Reconnect with the youtube.force-ssl scope and use an account that can edit the video.";
+            } else {
+                $out->message = "YouTube could not check owner-accessible caption tracks for this OAuth connection.";
+            }
+            return $out;
+        }
+        if (!isset($list->data["items"]) || !is_array($list->data["items"]) || !count($list->data["items"])) {
+            $out->message = "No caption tracks are available to the connected YouTube account for this video.";
             return $out;
         }
 
@@ -799,13 +811,13 @@ class ViralContentManagerService {
         $out = (object)array("transcript" => "", "language" => "", "message" => "");
         $list = $this->curlText("https://video.google.com/timedtext?type=list&v=" . rawurlencode($videoId), array());
         if (!$list->success || trim($list->text) === "") {
-            $out->message = "No public YouTube caption tracks were listed.";
+            $out->message = "YouTube does not expose a public transcript for this video. Add captions in YouTube Studio if you own it, or paste the transcript manually.";
             return $out;
         }
 
         $tracks = $this->parseYouTubeCaptionTracks($list->text);
         if (!count($tracks)) {
-            $out->message = "No public YouTube caption tracks were parsed.";
+            $out->message = "YouTube does not expose a usable public caption track for this video. Add captions in YouTube Studio if you own it, or paste the transcript manually.";
             return $out;
         }
 
@@ -828,6 +840,9 @@ class ViralContentManagerService {
         if ($caption->success && trim($caption->text) !== "") {
             $out->transcript = $this->youtubeTimedTextToPlainText($caption->text);
             $out->language = $this->languageName($track["lang"]);
+        }
+        if ($out->transcript === "") {
+            $out->message = "The selected YouTube caption track was empty or unavailable. Add captions in YouTube Studio if you own the video, or paste the transcript manually.";
         }
         return $out;
     }
