@@ -344,7 +344,10 @@
                     <span>{{ account.accountName }}</span>
                     <span>{{ account.accountHandle }}</span>
                     <span>{{ account.connectionStatus }}</span>
-                    <span><button type="button" class="vcm-link-button" v-on:click="editAccount(account)">Edit</button></span>
+                    <span class="vcm-row-actions">
+                        <button type="button" class="vcm-link-button" v-on:click="editAccount(account)" v-bind:disabled="isDeletingAccount(account)">Edit</button>
+                        <button type="button" class="vcm-link-button vcm-link-button-danger" v-on:click="deleteAccount(account)" v-bind:disabled="deletingAccountId !== null">{{ isDeletingAccount(account) ? "Deleting..." : "Delete" }}</button>
+                    </span>
                 </div>
             </div>
         </section>

@@ -163,6 +163,42 @@ class ViralContentManagerService {
         return $this->safeAccountForClient($account);
     }
 
+    public function postDeleteAccount($req, $res) {
+        $body = $this->body($req);
+        $socialAccountId = isset($body->socialAccountId) ? intval($body->socialAccountId) : 0;
+        if ($socialAccountId < 1) {
+            $res->SetError("A valid connected account ID is required.");
+            return null;
+        }
+
+        $existing = SOSSData::Query(
+            $this->socialAccountNamespace,
+            "socialAccountId:" . $socialAccountId,
+            null,
+            "desc",
+            1,
+            0
+        );
+        if (!$existing->success) {
+            $res->SetError(isset($existing->message) && $existing->message !== "" ? $existing->message : "Account lookup failed.");
+            return null;
+        }
+        if (count($existing->result) < 1) {
+            $res->SetError("Connected account was not found.");
+            return null;
+        }
+
+        $result = SOSSData::Delete($this->socialAccountNamespace, $existing->result[0]);
+        if (!$result->success) {
+            $res->SetError(isset($result->message) && $result->message !== "" ? $result->message : "Account delete failed.");
+            return null;
+        }
+
+        $out = new stdClass();
+        $out->socialAccountId = $socialAccountId;
+        return $out;
+    }
+
     public function postStartOAuth($req, $res) {
         $body = $this->body($req);
         $platform = $this->text($body, "platform", 80, "YouTube");

@@ -2,7 +2,7 @@
     "name": "viral-api",
     "description": "Viral Content Manager service handlers",
     "author": "DAVVAG",
-    "version": "0.2",
+    "version": "0.3",
     "resources": {
         "files": [
             {
@@ -34,6 +34,9 @@
                 "method": "POST"
             },
             "SaveAccount": {
+                "method": "POST"
+            },
+            "DeleteAccount": {
                 "method": "POST"
             },
             "StartOAuth": {

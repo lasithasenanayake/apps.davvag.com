@@ -29,6 +29,7 @@ WEBDOCK.component().register(function (exports) {
         urlDetails: null,
         fetchStatus: "",
         editingAccountId: null,
+        deletingAccountId: null,
         accounts: [],
         history: [],
         agentCatalog: [],
@@ -50,6 +51,8 @@ WEBDOCK.component().register(function (exports) {
             findShorts: findShorts,
             saveAccount: saveAccount,
             editAccount: editAccount,
+            deleteAccount: deleteAccount,
+            isDeletingAccount: isDeletingAccount,
             newAccount: newAccount,
             startOAuth: startOAuth,
             applyPlatformOAuthDefaults: applyPlatformOAuthDefaults,
@@ -361,6 +364,48 @@ WEBDOCK.component().register(function (exports) {
         bindData.accountForm = form;
         bindData.editingAccountId = form.socialAccountId || null;
         setInfo("Editing " + form.accountName + ".");
+    }
+
+    function deleteAccount(account) {
+        var accountId = account && parseInt(account.socialAccountId, 10);
+        if (!api) {
+            setError("Viral API service is not loaded.");
+            return;
+        }
+        if (!accountId || bindData.deletingAccountId !== null) {
+            return;
+        }
+
+        var accountName = account.accountName || account.accountHandle || "this connected account";
+        if (!window.confirm("Delete " + accountName + "? This removes its saved connection and credentials.")) {
+            return;
+        }
+
+        clearMessages();
+        bindData.deletingAccountId = accountId;
+        api.services.DeleteAccount({ socialAccountId: accountId }).then(function (response) {
+            bindData.deletingAccountId = null;
+            if (response.success) {
+                bindData.accounts = bindData.accounts.filter(function (item) {
+                    return parseInt(item.socialAccountId, 10) !== accountId;
+                });
+                if (parseInt(bindData.editingAccountId, 10) === accountId) {
+                    newAccount(false);
+                }
+                setInfo("Connected account deleted.");
+            } else {
+                setError(responseMessage(response, "Account delete failed."));
+            }
+        }).error(function () {
+            bindData.deletingAccountId = null;
+            setError("Account delete failed.");
+        });
+    }
+
+    function isDeletingAccount(account) {
+        return account
+            && bindData.deletingAccountId !== null
+            && parseInt(account.socialAccountId, 10) === bindData.deletingAccountId;
     }
 
     function newAccount(clearNotice) {
