@@ -1,0 +1,50 @@
+{
+    "fields": [
+        {
+            "fieldName": "optimizerResponseId",
+            "dataType": "int",
+            "annotations": {
+                "isPrimary": true,
+                "autoIncrement": true
+            }
+        },
+        {
+            "fieldName": "contentUid",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 90 }
+        },
+        {
+            "fieldName": "responseType",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 80 }
+        },
+        {
+            "fieldName": "platform",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 80 }
+        },
+        {
+            "fieldName": "url",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 1200 }
+        },
+        {
+            "fieldName": "title",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 320, "encoding": "utf8" }
+        },
+        {
+            "fieldName": "source",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 180 }
+        },
+        {
+            "fieldName": "status",
+            "dataType": "java.lang.String",
+            "annotations": { "maxLen": 60 }
+        },
+        { "fieldName": "requestPayload", "dataType": "object" },
+        { "fieldName": "responsePayload", "dataType": "object" },
+        { "fieldName": "createdAt", "dataType": "java.util.Date" }
+    ]
+}

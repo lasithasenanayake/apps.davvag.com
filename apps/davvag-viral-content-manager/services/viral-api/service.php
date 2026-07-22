@@ -16,6 +16,7 @@ class ViralContentManagerService {
     private $metricsNamespace = "platform_metrics";
     private $agentLogNamespace = "ai_agent_logs";
     private $agentMappingNamespace = "viral_agent_mappings";
+    private $optimizerResponseNamespace = "optimizer_responses";
 
     public function postAgentCatalog($req, $res) {
         return $this->agentCatalogResponse();
@@ -74,6 +75,17 @@ class ViralContentManagerService {
         return $result->success ? $result->result : array();
     }
 
+    public function postListOptimizerResponses($req, $res) {
+        $body = $this->body($req);
+        $size = isset($body->size) ? min(200, max(1, intval($body->size))) : 100;
+        $result = SOSSData::Query($this->optimizerResponseNamespace, "", null, "desc", $size, 0);
+        if (!$result->success) {
+            $res->SetError(isset($result->message) && $result->message !== "" ? $result->message : "Optimizer responses could not be loaded.");
+            return array();
+        }
+        return $result->result;
+    }
+
     public function postListAccounts($req, $res) {
         $result = SOSSData::Query($this->socialAccountNamespace, "", null, "asc", 200, 0);
         if (!$result->success) {
@@ -96,6 +108,11 @@ class ViralContentManagerService {
         $details->url = $url;
         $details->platform = $platform;
         $details->language = $details->language !== "" ? $details->language : $this->detectLanguage(trim($details->title . " " . $details->description . " " . $details->transcript));
+        $saved = $this->saveOptimizerResponse("details_fetch", "", $platform, $url, $details->title, $details->source, $body, $details);
+        if (!$saved->success) {
+            $res->SetError(isset($saved->message) && $saved->message !== "" ? $saved->message : "Fetched details could not be saved.");
+            return null;
+        }
         return $details;
     }
 
@@ -411,6 +428,11 @@ class ViralContentManagerService {
         $out->competitors = $competitors;
         $out->shortClips = $clips;
         $out->agentNotes = $agentNotes;
+        $saved = $this->saveOptimizerResponse("optimization_analysis", $contentUid, $platform, $url, $title, "AnalyzeUrl", $body, $out);
+        if (!$saved->success) {
+            $res->SetError(isset($saved->message) && $saved->message !== "" ? $saved->message : "Optimizer response could not be saved.");
+            return null;
+        }
         return $out;
     }
 
@@ -1974,6 +1996,34 @@ class ViralContentManagerService {
             $rows[] = $row;
         }
         return $rows;
+    }
+
+    private function saveOptimizerResponse($responseType, $contentUid, $platform, $url, $title, $source, $request, $response) {
+        $row = new stdClass();
+        $row->contentUid = $this->limitText($contentUid, 90);
+        $row->responseType = $this->limitText($responseType, 80);
+        $row->platform = $this->limitText($platform, 80);
+        $row->url = $this->limitText($url, 1200);
+        $row->title = $this->limitText($title, 320);
+        $row->source = $this->limitText($source, 180);
+        $row->status = "Saved";
+        $row->requestPayload = $this->optimizerRequestPayload($request);
+        $row->responsePayload = $response;
+        $row->createdAt = $this->now();
+        return SOSSData::Insert($this->optimizerResponseNamespace, $row);
+    }
+
+    private function optimizerRequestPayload($request) {
+        $safe = new stdClass();
+        $fields = array("url", "platform", "title", "description", "transcript", "audience", "language", "useAgents", "forceRefresh", "requestedAt", "agentMappings");
+        foreach ($fields as $field) {
+            if (is_object($request) && isset($request->{$field})) {
+                $safe->{$field} = $request->{$field};
+            } elseif (is_array($request) && isset($request[$field])) {
+                $safe->{$field} = $request[$field];
+            }
+        }
+        return $safe;
     }
 
     private function createContentItem($sourceType, $platform, $url, $title, $description, $topic, $audience, $language, $raw) {

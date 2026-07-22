@@ -13,6 +13,7 @@ WEBDOCK.component().register(function (exports) {
             accounts: false,
             oauth: false,
             history: false,
+            responses: false,
             agents: false
         },
         messages: {
@@ -32,6 +33,8 @@ WEBDOCK.component().register(function (exports) {
         deletingAccountId: null,
         accounts: [],
         history: [],
+        optimizerResponses: [],
+        selectedOptimizerResponse: null,
         agentCatalog: [],
         agentTasks: [],
         savedAgents: [],
@@ -58,6 +61,11 @@ WEBDOCK.component().register(function (exports) {
             startOAuth: startOAuth,
             applyPlatformOAuthDefaults: applyPlatformOAuthDefaults,
             loadHistory: loadHistory,
+            loadOptimizerResponses: loadOptimizerResponses,
+            viewOptimizerResponse: viewOptimizerResponse,
+            closeOptimizerResponse: closeOptimizerResponse,
+            formatResponseJson: formatResponseJson,
+            formatStoredDate: formatStoredDate,
             queueResult: queueResult,
             saveAgentMappings: saveAgentMappings,
             copyAgentPrompt: copyAgentPrompt,
@@ -147,6 +155,7 @@ WEBDOCK.component().register(function (exports) {
         loadAgentCatalog();
         loadAccounts();
         loadHistory();
+        loadOptimizerResponses();
     }
 
     function setTab(tab) {
@@ -163,6 +172,9 @@ WEBDOCK.component().register(function (exports) {
             bindData.activeTab = "accounts";
         } else if (hash.indexOf("agents") >= 0) {
             bindData.activeTab = "agents";
+        } else if (hash.indexOf("responses") >= 0) {
+            bindData.activeTab = "responses";
+            loadOptimizerResponses();
         } else if (hash.indexOf("history") >= 0) {
             bindData.activeTab = "history";
         } else {
@@ -188,6 +200,7 @@ WEBDOCK.component().register(function (exports) {
                 setInfo("Analysis saved.");
                 reportAgentResult(response.result && response.result.agentNotes);
                 loadHistory();
+                loadOptimizerResponses();
             } else {
                 setError(responseMessage(response, "URL analysis failed."));
             }
@@ -234,14 +247,18 @@ WEBDOCK.component().register(function (exports) {
         }
 
         bindData.loading.fetch = true;
+        bindData.urlDetails = null;
         bindData.fetchStatus = "Fetching platform details...";
         api.services.FetchUrlDetails({
             url: bindData.optimizeForm.url,
-            platform: bindData.optimizeForm.platform
+            platform: bindData.optimizeForm.platform,
+            forceRefresh: true,
+            requestedAt: new Date().toISOString()
         }).then(function (response) {
             bindData.loading.fetch = false;
             if (response.success) {
                 applyFetchedDetails(response.result || {});
+                loadOptimizerResponses();
             } else {
                 bindData.fetchStatus = "Platform details could not be fetched.";
             }
@@ -256,18 +273,10 @@ WEBDOCK.component().register(function (exports) {
         if (details.platform) {
             bindData.optimizeForm.platform = details.platform;
         }
-        if (details.title) {
-            bindData.optimizeForm.title = details.title;
-        }
-        if (details.description) {
-            bindData.optimizeForm.description = details.description;
-        }
-        if (details.transcript) {
-            bindData.optimizeForm.transcript = details.transcript;
-        }
-        if (details.language) {
-            bindData.optimizeForm.language = details.language;
-        }
+        bindData.optimizeForm.title = details.title || "";
+        bindData.optimizeForm.description = details.description || "";
+        bindData.optimizeForm.transcript = details.transcript || "";
+        bindData.optimizeForm.language = details.language || "";
 
         var message = "Platform details loaded" + (details.source ? " from " + details.source : "") + ".";
         if (details.messages && details.messages.length) {
@@ -576,6 +585,59 @@ WEBDOCK.component().register(function (exports) {
 
     function copyAgentPrompt(prompt) {
         copyText(prompt, "Agent prompt");
+    }
+
+    function loadOptimizerResponses() {
+        if (!api || bindData.loading.responses) {
+            return;
+        }
+
+        bindData.loading.responses = true;
+        api.services.ListOptimizerResponses({ size: 100 }).then(function (response) {
+            bindData.loading.responses = false;
+            if (response.success) {
+                bindData.optimizerResponses = response.result || [];
+            } else {
+                setError(responseMessage(response, "Optimizer responses could not be loaded."));
+            }
+        }).error(function () {
+            bindData.loading.responses = false;
+            setError("Optimizer responses could not be loaded.");
+        });
+    }
+
+    function viewOptimizerResponse(item) {
+        bindData.selectedOptimizerResponse = item || null;
+    }
+
+    function closeOptimizerResponse() {
+        bindData.selectedOptimizerResponse = null;
+    }
+
+    function formatResponseJson(value) {
+        if (value === undefined || value === null || value === "") {
+            return "{}";
+        }
+        if (typeof value === "string") {
+            try {
+                value = JSON.parse(value);
+            } catch (ignore) {
+                return value;
+            }
+        }
+        try {
+            return JSON.stringify(value, null, 2);
+        } catch (ignore) {
+            return String(value);
+        }
+    }
+
+    function formatStoredDate(value) {
+        if (!value) {
+            return "";
+        }
+        var date = new Date(value);
+        return isNaN(date.getTime()) ? String(value) : date.toLocaleString();
     }
 
     function copyText(value, label) {

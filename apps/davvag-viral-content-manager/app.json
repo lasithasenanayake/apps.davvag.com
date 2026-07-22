@@ -12,7 +12,7 @@
     "description": {
         "title": "DAVVAG VCM",
         "author": "DAVVAG",
-        "version": "0.7",
+        "version": "0.8",
         "icon": "davvag-viral-content-manager-icon.png"
     },
     "tags": [
@@ -33,6 +33,7 @@
                     "/shorts": "viral-dashboard",
                     "/accounts": "viral-dashboard",
                     "/agents": "viral-dashboard",
+                    "/responses": "viral-dashboard",
                     "/history": "viral-dashboard"
                 }
             }
@@ -60,6 +61,10 @@
                     "path": "agents"
                 },
                 {
+                    "name": "Responses",
+                    "path": "responses"
+                },
+                {
                     "name": "History",
                     "path": "history"
                 }
@@ -81,7 +86,8 @@
             "publishing_queue",
             "platform_metrics",
             "ai_agent_logs",
-            "viral_agent_mappings"
+            "viral_agent_mappings",
+            "optimizer_responses"
         ],
         "workflows": [],
         "plugins": [

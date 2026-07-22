@@ -6,6 +6,7 @@
                 <span>{{ history.length }} items</span>
                 <span>{{ accounts.length }} accounts</span>
                 <span>{{ savedAgents.length }} saved agents</span>
+                <span>{{ optimizerResponses.length }} optimizer responses</span>
             </div>
         </div>
         <button type="button" class="vcm-button vcm-button-light" v-on:click="refresh">Refresh</button>
@@ -17,6 +18,7 @@
         <button type="button" v-bind:class="{ 'is-active': activeTab === 'shorts' }" v-on:click="setTab('shorts')">Shorts</button>
         <button type="button" v-bind:class="{ 'is-active': activeTab === 'accounts' }" v-on:click="setTab('accounts')">Accounts</button>
         <button type="button" v-bind:class="{ 'is-active': activeTab === 'agents' }" v-on:click="setTab('agents')">Agents</button>
+        <button type="button" v-bind:class="{ 'is-active': activeTab === 'responses' }" v-on:click="setTab('responses')">Responses</button>
         <button type="button" v-bind:class="{ 'is-active': activeTab === 'history' }" v-on:click="setTab('history')">History</button>
     </nav>
 
@@ -415,6 +417,58 @@
                         <button type="button" class="vcm-button vcm-button-light" v-on:click="copyAgentPrompt(task.suggestedPrompt)">Copy Prompt</button>
                     </div>
                 </article>
+            </div>
+        </section>
+    </section>
+
+    <section class="vcm-workspace" v-if="activeTab === 'responses'">
+        <section class="vcm-panel">
+            <div class="vcm-panel-title">
+                <div>
+                    <h2>Existing Content Optimizer Responses</h2>
+                    <small class="vcm-helper">Every platform detail fetch and completed URL analysis is saved here.</small>
+                </div>
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="loadOptimizerResponses" v-bind:disabled="loading.responses">{{ loading.responses ? "Loading..." : "Reload" }}</button>
+            </div>
+
+            <p class="vcm-empty" v-if="!loading.responses && !optimizerResponses.length">No optimizer responses have been saved yet.</p>
+            <div class="vcm-table" v-if="optimizerResponses.length">
+                <div class="vcm-table-row vcm-response-table-row vcm-table-head">
+                    <span>Type</span>
+                    <span>Platform</span>
+                    <span>Title / URL</span>
+                    <span>Source</span>
+                    <span>Saved</span>
+                    <span>Action</span>
+                </div>
+                <div class="vcm-table-row vcm-response-table-row" v-for="item in optimizerResponses" v-bind:key="item.optimizerResponseId">
+                    <span>{{ item.responseType }}</span>
+                    <span>{{ item.platform }}</span>
+                    <span>{{ item.title || item.url }}</span>
+                    <span>{{ item.source }}</span>
+                    <span>{{ formatStoredDate(item.createdAt) }}</span>
+                    <span><button type="button" class="vcm-copy-button" v-on:click="viewOptimizerResponse(item)">View</button></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="vcm-panel vcm-response-viewer" v-if="selectedOptimizerResponse">
+            <div class="vcm-panel-title">
+                <div>
+                    <h2>{{ selectedOptimizerResponse.title || selectedOptimizerResponse.url }}</h2>
+                    <small class="vcm-helper">{{ selectedOptimizerResponse.responseType }} · {{ selectedOptimizerResponse.platform }} · {{ formatStoredDate(selectedOptimizerResponse.createdAt) }}</small>
+                </div>
+                <button type="button" class="vcm-button vcm-button-light" v-on:click="closeOptimizerResponse">Close</button>
+            </div>
+            <div class="vcm-grid two">
+                <div class="vcm-block">
+                    <h3>Request</h3>
+                    <pre>{{ formatResponseJson(selectedOptimizerResponse.requestPayload) }}</pre>
+                </div>
+                <div class="vcm-block">
+                    <h3>Response</h3>
+                    <pre>{{ formatResponseJson(selectedOptimizerResponse.responsePayload) }}</pre>
+                </div>
             </div>
         </section>
     </section>

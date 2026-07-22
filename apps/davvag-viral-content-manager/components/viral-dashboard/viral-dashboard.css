@@ -568,6 +568,25 @@
     font-weight: 700;
 }
 
+.vcm-response-table-row {
+    grid-template-columns: 140px 100px minmax(180px, 1fr) 150px 180px 80px;
+}
+
+.vcm-response-viewer pre {
+    background: #0f172a;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+    max-height: 560px;
+    overflow: auto;
+    padding: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .vcm-agent-grid,
 .vcm-agent-map-grid {
     display: grid;
