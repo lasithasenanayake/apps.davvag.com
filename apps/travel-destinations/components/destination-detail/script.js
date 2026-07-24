@@ -1,5 +1,6 @@
 WEBDOCK.component().register(function (exports) {
-    var api, maps, router, rootElement, mapHandle;
+    var api, maps, router, rootElement, mapHandle, mapRenderTimer;
+    var mapRenderAttempts = 0, mapRenderStarted = false;
     var state = {
         destination: emptyDestination(), hasDestination: false, reviews: [], comments: [], conditions: [], capabilities: {}, mapConfig:{enabled:false}, mapError:"",
         loading: true, error: "", actionMessage: "", savingFavorite: false, actionLocks: {review:false,comment:false,condition:false,report:false},
@@ -26,6 +27,8 @@ WEBDOCK.component().register(function (exports) {
         onReady: function (scope, element) {
             viewState = scope || state; rootElement = element;
             api = exports.getComponent("api"); maps = resolveMaps(exports); router = exports.getShellComponent("soss-routes");
+            if (mapRenderTimer) { clearTimeout(mapRenderTimer); }
+            mapRenderAttempts = 0; mapRenderStarted = false; mapHandle = null;
             viewState.loading = true; viewState.error = ""; viewState.hasDestination = false; viewState.destination = emptyDestination();
             if (!api || !api.services) { viewState.loading = false; viewState.error = "Destination services are unavailable."; return; }
             var id = queryValue("id");
@@ -269,15 +272,56 @@ WEBDOCK.component().register(function (exports) {
         return fallback;
     }
     function number(value) { return Number(value || 0).toFixed(1); }
-    function scheduleMap() { if (viewState.mapConfig.enabled && viewState.destination.latitude !== undefined) { setTimeout(renderMap,0); } }
+    function scheduleMap() {
+        if (!viewState.mapConfig.enabled || viewState.destination.latitude === undefined) { return; }
+        mapRenderAttempts = 0;
+        mapRenderStarted = false;
+        viewState.mapError = "";
+        if (typeof Vue !== "undefined" && typeof Vue.nextTick === "function") {
+            Vue.nextTick(function () { queueMapRender(0); });
+        } else {
+            queueMapRender(0);
+        }
+    }
+    function queueMapRender(delay) {
+        if (mapRenderTimer) { clearTimeout(mapRenderTimer); }
+        mapRenderTimer = setTimeout(renderMap,delay);
+    }
+    function mapContainer() {
+        var container = null;
+        if (rootElement && rootElement.find) {
+            container = rootElement.find("[data-google-detail-map]")[0];
+        } else if (rootElement && rootElement.querySelector) {
+            container = rootElement.querySelector("[data-google-detail-map]");
+        }
+        return container || document.querySelector("[data-google-detail-map]");
+    }
     function renderMap() {
-        var container = rootElement && rootElement.find ? rootElement.find("[data-google-detail-map]")[0] : document.querySelector("[data-google-detail-map]");
-        if (!container) { return; }
+        if (mapRenderStarted || mapHandle) { return; }
+        var container = mapContainer();
+        if (!container) {
+            mapRenderAttempts++;
+            if (mapRenderAttempts < 50) {
+                queueMapRender(100);
+            } else {
+                viewState.mapError = "The map area could not be initialized. Refresh the page and try again.";
+            }
+            return;
+        }
         maps = maps || resolveMaps(exports);
-        if (!maps || typeof maps.createMap !== "function") { viewState.mapError = "The Google Maps runtime is unavailable. Refresh the page and try again."; return; }
+        if (!maps || typeof maps.createMap !== "function") {
+            mapRenderAttempts++;
+            if (mapRenderAttempts < 50) {
+                queueMapRender(100);
+            } else {
+                viewState.mapError = "The Google Maps runtime is unavailable. Refresh the page and try again.";
+            }
+            return;
+        }
+        mapRenderStarted = true;
         maps.createMap(container,viewState.mapConfig,{center:viewState.destination,zoom:14,points:[viewState.destination]})
-            .then(function(result){mapHandle=result;})
-            .catch(function(error){viewState.mapError=error.message||"Google Maps could not be loaded.";});
+            .then(function(result){mapHandle=result;mapRenderStarted=false;})
+            .catch(function(error){mapRenderStarted=false;viewState.mapError=error.message||"Google Maps could not be loaded.";});
     }
     function resolveMaps(componentExports) {
         var registered = componentExports.getComponent("google-map-runtime");

@@ -70,6 +70,7 @@ checkTravel(!preg_match('/return\s+api\.services\.[A-Za-z0-9_]+\([^;]*\)\.then\(
 checkTravel(strpos($detailView, "actionMessage") !== false, "Review and comment moderation feedback is not rendered.");
 checkTravel(strpos($detailScript, "isTableSeparator") !== false && strpos($detailScript, "renderTable") !== false, "Destination Markdown tables are not rendered.");
 checkTravel(strpos($detailView, "td-markdown") !== false, "Destination Markdown content has no dedicated formatting class.");
+checkTravel(strpos($detailScript, "Vue.nextTick") !== false && strpos($detailScript, "queueMapRender") !== false, "Destination detail does not wait for its map container.");
 
 $mapRuntime = file_get_contents($appRoot . "/components/google-map-runtime/script.js");
 $mapSettingsView = file_get_contents($appRoot . "/components/admin-map-settings/partial.html");
@@ -82,6 +83,7 @@ checkTravel(strpos($mapRuntime, "AdvancedMarkerElement") !== false, "Google Maps
 checkTravel(strpos($mapRuntime, "DEMO_MAP_ID") !== false, "Google Maps runtime has no Advanced Marker Map ID fallback.");
 checkTravel(strpos($mapRuntime, "new window.google.maps.Marker") === false, "Google Maps runtime still creates deprecated legacy markers.");
 checkTravel(strpos($mapRuntime, "waitForContainer") !== false, "Google Maps runtime does not wait for a visible map container.");
+checkTravel(strpos($mapRuntime, "gm_authFailure") !== false && strpos($mapRuntime, "timed out while loading") !== false, "Google Maps authentication and loading failures are not surfaced.");
 checkTravel(strpos($mapRuntime, "PinElement") !== false && strpos($mapRuntime, "uniquePositionCount") !== false, "Map results do not use numbered Advanced Markers safely.");
 checkTravel(strpos($mapSettingsView, "HTTP referrers") !== false, "Map settings do not explain browser API-key restrictions.");
 checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formScript, "onMapClick") !== false, "Destination form does not support draggable and click location selection.");

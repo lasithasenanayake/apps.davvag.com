@@ -179,6 +179,13 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - Kept raw review text whitespace behavior separate from rendered destination Markdown.
 - Validation passes 317 checks with zero failures; a representative table rendered with correct alignment and HTML escaping.
 
+## v0.4.8 public detail map initialization
+
+- Waits for the public Vue detail view to render the map container before initializing Google Maps.
+- Retries both container and runtime discovery to remove the silent blank-map race.
+- Surfaces API authentication, referrer, billing and loader timeout failures instead of leaving a gray placeholder.
+- Validation passes 319 checks with zero failures; a delayed public map container initialized exactly once in the timing regression.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.

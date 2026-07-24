@@ -1,6 +1,6 @@
 (function (window) {
     var runtime = window.TravelDestinationGoogleMaps || {};
-    var bootstrapPromise = null, loadedKey = "";
+    var bootstrapPromise = null, loadedKey = "", rejectBootstrap = null;
 
     runtime.load = function (config, libraries) {
         if (!config || !config.enabled || !config.apiKey) {
@@ -113,6 +113,10 @@
         bootstrapPromise = new Promise(function (resolve, reject) {
             var callback = "__tdGoogleMapsReady";
             var script = document.createElement("script");
+            var completed = false;
+            var timeout = setTimeout(function () {
+                fail("Google Maps timed out while loading. Check the API key, billing, API restrictions and allowed website referrers.");
+            },20000);
             var parameters = [
                 "key=" + encodeURIComponent(config.apiKey),
                 "v=weekly",
@@ -121,21 +125,43 @@
             ];
             if (config.language) { parameters.push("language=" + encodeURIComponent(config.language)); }
             if (config.region) { parameters.push("region=" + encodeURIComponent(config.region)); }
+            function fail(message) {
+                if (completed) { return; }
+                completed = true;
+                clearTimeout(timeout);
+                bootstrapPromise = null;
+                rejectBootstrap = null;
+                delete window[callback];
+                reject(new Error(message));
+            }
+            rejectBootstrap = fail;
             window[callback] = function () {
+                if (completed) { return; }
+                completed = true;
+                clearTimeout(timeout);
+                rejectBootstrap = null;
                 delete window[callback];
                 resolve();
             };
             script.src = "https://maps.googleapis.com/maps/api/js?" + parameters.join("&");
             script.async = true;
             script.onerror = function () {
-                bootstrapPromise = null;
-                delete window[callback];
-                reject(new Error("Google Maps could not be loaded. Check the API key, API restrictions and allowed website referrers."));
+                fail("Google Maps could not be loaded. Check the API key, billing, API restrictions and allowed website referrers.");
             };
             document.head.appendChild(script);
         });
         return bootstrapPromise;
     }
+
+    var previousAuthFailure = window.gm_authFailure;
+    window.gm_authFailure = function () {
+        if (typeof previousAuthFailure === "function") {
+            try { previousAuthFailure(); } catch (ignore) {}
+        }
+        if (rejectBootstrap) {
+            rejectBootstrap("Google Maps rejected the API key. Allow https://www.ephraimgen.com/* in HTTP referrers and enable Maps JavaScript API billing.");
+        }
+    };
 
     function addMarker(map, point, index, options, AdvancedMarkerClass, PinClass) {
         var markerOptions = {map:map, position:position(point), title:String(point.name || point.title || "")};
