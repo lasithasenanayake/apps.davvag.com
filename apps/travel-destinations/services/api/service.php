@@ -1009,9 +1009,16 @@ class ApiService {
             $chunk = new \stdClass();
             $chunk->destination_id = intval($destinationId);
             $chunk->chunk_index = $chunkIndex++;
-            $chunk->content = mb_substr($content, $offset, 12000);
+            // Use utf8mb4 so pasted text containing emoji and other
+            // supplementary Unicode characters works on older MySQL servers.
+            $chunk->content_utf8mb4 = mb_substr($content, $offset, 12000);
             $saved = \SOSSData::Insert($this->descriptionChunkNamespace, $chunk);
             if (empty($saved->success)) {
+                error_log(
+                    "Travel Destinations: description chunk " . intval($chunk->chunk_index)
+                    . " failed for destination " . intval($destinationId)
+                    . ": " . json_encode($saved)
+                );
                 if (count($inserted) > 0) {
                     \SOSSData::Delete($this->descriptionChunkNamespace, $inserted);
                 }
@@ -1044,7 +1051,12 @@ class ApiService {
         });
         $content = "";
         foreach ($chunks as $chunk) {
-            $content .= isset($chunk->content) ? strval($chunk->content) : "";
+            if (isset($chunk->content_utf8mb4) && $chunk->content_utf8mb4 !== null) {
+                $content .= strval($chunk->content_utf8mb4);
+            } else {
+                // Backward compatibility with chunks written by v0.4.5.
+                $content .= isset($chunk->content) ? strval($chunk->content) : "";
+            }
         }
         return mb_substr($content, 0, 250000);
     }

@@ -90,6 +90,7 @@ checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveMapSettings), "Ad
 checkTravel(isset($apiDescriptor->serviceHandler->methods->ResolveMapLocationUrl), "Map URL resolver service is not declared.");
 checkTravel(in_array("travel_destination_map_settings", $app->dependencies->schemas, true), "Map settings schema dependency is missing.");
 checkTravel(in_array("travel_destination_description_chunk", $app->dependencies->schemas, true), "Large description chunk schema dependency is missing.");
+checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
 checkTravel(strpos(file_get_contents($appRoot . "/services/api/service.php"), "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");

@@ -3,7 +3,8 @@
         {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
         {"fieldName": "destination_id", "dataType": "int"},
         {"fieldName": "chunk_index", "dataType": "int"},
-        {"fieldName": "content", "dataType": "java.lang.String", "annotations": {"maxLen": 12000, "encoding": "utf8"}}
+        {"fieldName": "content", "dataType": "java.lang.String", "annotations": {"maxLen": 12000, "encoding": "utf8"}},
+        {"fieldName": "content_utf8mb4", "dataType": "java.lang.String", "annotations": {"maxLen": 12000, "encoding": "utf8mb4"}}
     ],
     "relations": [
         {"relationName": "travel_destination_description_chunk_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]}

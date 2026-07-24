@@ -165,6 +165,13 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - Added a larger editor and live character counter to the submission form.
 - Validation passes 312 checks with zero failures, and the live destination endpoint reconstructs descriptions successfully.
 
+## v0.4.6 Unicode-safe description storage
+
+- Added an `utf8mb4` chunk column for pasted descriptions containing emoji or supplementary Unicode characters.
+- Kept read compatibility with description chunks created by v0.4.5.
+- Added server-side diagnostics for future chunk-storage failures without exposing database details in API responses.
+- Validation passes 314 checks with zero failures; a live 12,000-character mixed Unicode chunk round-tripped exactly through SOSSData.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.
