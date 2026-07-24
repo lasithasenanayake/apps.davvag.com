@@ -2,7 +2,7 @@
     "name": "api",
     "description": "Validated travel destination application services",
     "author": "DAVVAG",
-    "version": "0.4.0",
+    "version": "0.4.4",
     "resources": {
         "files": [
             {
@@ -49,6 +49,7 @@
             "GetCategories": {"method": "GET"},
             "GetAmenities": {"method": "GET"},
             "GetMapConfiguration": {"method": "GET"},
+            "ResolveMapLocationUrl": {"method": "POST"},
             "GetMapResults": {"method": "POST"},
             "SaveDestinationDraft": {"method": "POST"},
             "SubmitDestination": {"method": "POST"},

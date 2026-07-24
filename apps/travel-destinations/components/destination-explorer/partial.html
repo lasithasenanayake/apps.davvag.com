@@ -62,8 +62,8 @@
             </div>
             <div v-if="!loading && items.length > 0 && viewMode==='map'" class="td-map-layout">
                 <div class="td-map-list">
-                    <article v-for="item in mappableItems" :key="item.id" class="td-map-row" :class="{active:selectedId===item.id}" @click="selectMarker(item)">
-                        <strong>{{ item.name }}</strong>
+                    <article v-for="(item,index) in mappableItems" :key="item.id" class="td-map-row" :class="{active:selectedId===item.id}" @click="selectMarker(item)">
+                        <strong><span class="td-map-number">{{ index + 1 }}</span>{{ item.name }}</strong>
                         <div>{{ locationLabel(item) }} · ★ {{ number(item.rating_average) }}</div>
                         <button v-if="selectedId===item.id" class="td-link" @click.stop="openDestination(item)">View place →</button>
                     </article>

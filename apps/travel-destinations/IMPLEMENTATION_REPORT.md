@@ -148,6 +148,14 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - The runtime now resolves the current connected, visible map element by its component data attribute before constructing Google Maps.
 - Explorer rendering now waits for Vue’s DOM update plus two animation frames, ensuring the map view has its final dimensions.
 
+## v0.4.4 coordinate precision and map-link import
+
+- Added full-precision extraction for Google Maps `@lat,lng`, `!3d...!4d...`, query-coordinate and plain coordinate URL formats.
+- Added a protected server resolver for allowlisted Google Maps short links, with manual redirect validation to prevent arbitrary URL fetching.
+- Pasting a map URL in the submission form now fills latitude/longitude and immediately moves the draggable marker.
+- Explorer markers are numbered to match result rows, and duplicate coordinate bounds no longer produce an incorrect zoom.
+- Validation passes 303 checks with zero failures; permissions were installed idempotently and anonymous resolver access was rejected.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.

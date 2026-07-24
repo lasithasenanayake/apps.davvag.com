@@ -35,11 +35,13 @@
             var MapClass = modules[0] && modules[0].Map ? modules[0].Map : window.google.maps.Map;
             var AdvancedMarkerClass = modules[1] && modules[1].AdvancedMarkerElement ? modules[1].AdvancedMarkerElement :
                 (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement);
+            var PinClass = modules[1] && modules[1].PinElement ? modules[1].PinElement :
+                (window.google.maps.marker && window.google.maps.marker.PinElement);
             var map = new MapClass(container, mapOptions);
-            var markers = points.map(function (point) {
-                return addMarker(map, point, options, AdvancedMarkerClass);
+            var markers = points.map(function (point, index) {
+                return addMarker(map, point, index, options, AdvancedMarkerClass, PinClass);
             });
-            if (points.length > 1) {
+            if (uniquePositionCount(points) > 1) {
                 var bounds = new window.google.maps.LatLngBounds();
                 points.forEach(function (point) { bounds.extend(position(point)); });
                 map.fitBounds(bounds, 52);
@@ -135,12 +137,22 @@
         return bootstrapPromise;
     }
 
-    function addMarker(map, point, options, AdvancedMarkerClass) {
+    function addMarker(map, point, index, options, AdvancedMarkerClass, PinClass) {
         var markerOptions = {map:map, position:position(point), title:String(point.name || point.title || "")};
         if (!AdvancedMarkerClass) {
             throw new Error("Google Advanced Markers could not be loaded.");
         }
         markerOptions.gmpDraggable = !!options.draggable;
+        if (PinClass) {
+            var pin = new PinClass({
+                glyph:String(point.markerLabel || index + 1),
+                background:"#c76443",
+                borderColor:"#8f3d28",
+                glyphColor:"#ffffff",
+                scale:1.08
+            });
+            markerOptions.content = pin.element;
+        }
         var marker = new AdvancedMarkerClass(markerOptions);
         marker.__tdPoint = point;
         if (typeof options.onMarkerClick === "function") {
@@ -155,6 +167,15 @@
             });
         }
         return marker;
+    }
+
+    function uniquePositionCount(points) {
+        var positions = {};
+        points.forEach(function (point) {
+            var current = position(point);
+            positions[current.lat.toFixed(7) + "," + current.lng.toFixed(7)] = true;
+        });
+        return Object.keys(positions).length;
     }
 
     function waitForContainer(container) {

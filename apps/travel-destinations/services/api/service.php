@@ -52,6 +52,29 @@ class TravelDestinationRules {
             && floatval($itemLongitude) >= floatval($longitude) - $longitudeDelta
             && floatval($itemLongitude) <= floatval($longitude) + $longitudeDelta;
     }
+
+    public static function coordinatesFromMapUrl($value) {
+        $value = trim(strval($value));
+        if ($value === "" || strlen($value) > 5000) {
+            return null;
+        }
+        $candidates = array($value, urldecode($value), urldecode(urldecode($value)));
+        $patterns = array(
+            '/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i',
+            '/@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)(?:[,\/]|$)/i',
+            '/[?&](?:q|query|ll|center|destination|daddr)=(-?\d{1,2}(?:\.\d+)?)(?:%2C|,|\s+)(-?\d{1,3}(?:\.\d+)?)/i',
+            '/(?:^|[^0-9.-])(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)(?:[^0-9.]|$)/'
+        );
+        foreach ($candidates as $candidate) {
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $candidate, $match)
+                    && TravelDestinationRules::validCoordinates($match[1], $match[2])) {
+                    return array("latitude" => floatval($match[1]), "longitude" => floatval($match[2]));
+                }
+            }
+        }
+        return null;
+    }
 }
 
 class ApiService {
@@ -132,6 +155,41 @@ class ApiService {
             return null;
         }
         return $this->safeAdminMapSettings($this->mapSettings());
+    }
+
+    public function postResolveMapLocationUrl($req, $res) {
+        if ($this->requireProfile($res) === null) {
+            return null;
+        }
+        $body = $this->body($req);
+        $url = $this->text($body, "url", 5000);
+        $coordinates = TravelDestinationRules::coordinatesFromMapUrl($url);
+        if ($coordinates !== null) {
+            return $coordinates;
+        }
+        if (!$this->allowedGoogleMapUrl($url)) {
+            return $this->fail($res, "Paste a valid Google Maps location URL.");
+        }
+        if (!function_exists("curl_init")) {
+            return $this->fail($res, "Short Google Maps links cannot be resolved on this server.");
+        }
+        $currentUrl = $url;
+        for ($redirect = 0; $redirect < 6; $redirect++) {
+            if (!$this->allowedGoogleMapUrl($currentUrl)) {
+                return $this->fail($res, "The map link redirected outside an approved Google Maps host.");
+            }
+            $coordinates = TravelDestinationRules::coordinatesFromMapUrl($currentUrl);
+            if ($coordinates !== null) {
+                return $coordinates;
+            }
+            $nextUrl = $this->mapRedirectLocation($currentUrl);
+            if ($nextUrl === "") {
+                break;
+            }
+            $currentUrl = $this->absoluteRedirectUrl($currentUrl, $nextUrl);
+        }
+        $coordinates = TravelDestinationRules::coordinatesFromMapUrl($currentUrl);
+        return $coordinates !== null ? $coordinates : $this->fail($res, "Coordinates were not found in that Google Maps URL. Open the place in Google Maps and copy its full browser URL.");
     }
 
     public function postSaveMapSettings($req, $res) {
@@ -1390,6 +1448,60 @@ class ApiService {
             base64_decode($payload["tag"])
         );
         return $plain === false ? "" : $plain;
+    }
+
+    private function allowedGoogleMapUrl($url) {
+        $parts = parse_url(trim(strval($url)));
+        if (!is_array($parts) || empty($parts["scheme"]) || empty($parts["host"])) {
+            return false;
+        }
+        if (strtolower($parts["scheme"]) !== "https" || isset($parts["user"]) || isset($parts["pass"]) || (isset($parts["port"]) && intval($parts["port"]) !== 443)) {
+            return false;
+        }
+        $host = strtolower(rtrim($parts["host"], "."));
+        return $host === "maps.app.goo.gl"
+            || $host === "goo.gl"
+            || $host === "maps.google.com"
+            || preg_match('/(^|\.)google\.(com|[a-z]{2,3}|co\.[a-z]{2}|com\.[a-z]{2})$/', $host) === 1;
+    }
+
+    private function mapRedirectLocation($url) {
+        $curl = curl_init($url);
+        curl_setopt_array($curl, array(
+            CURLOPT_NOBODY => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_USERAGENT => "DAVVAG Travel Destinations map-link resolver",
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
+        ));
+        curl_exec($curl);
+        $status = intval(curl_getinfo($curl, CURLINFO_HTTP_CODE));
+        $redirectUrl = strval(curl_getinfo($curl, CURLINFO_REDIRECT_URL));
+        curl_close($curl);
+        return $status >= 300 && $status < 400 ? trim($redirectUrl) : "";
+    }
+
+    private function absoluteRedirectUrl($baseUrl, $redirectUrl) {
+        if (preg_match('/^https:\/\//i', $redirectUrl)) {
+            return $redirectUrl;
+        }
+        $base = parse_url($baseUrl);
+        if (!is_array($base) || empty($base["host"])) {
+            return "";
+        }
+        if (strpos($redirectUrl, "//") === 0) {
+            return "https:" . $redirectUrl;
+        }
+        if (strpos($redirectUrl, "/") === 0) {
+            return "https://" . $base["host"] . $redirectUrl;
+        }
+        $path = isset($base["path"]) ? $base["path"] : "/";
+        $directory = rtrim(str_replace("\\", "/", dirname($path)), "/");
+        return "https://" . $base["host"] . ($directory === "" ? "" : $directory) . "/" . $redirectUrl;
     }
 
     private function isAdmin() {

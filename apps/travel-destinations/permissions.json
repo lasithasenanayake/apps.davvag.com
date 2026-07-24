@@ -38,10 +38,12 @@
         "MarkReviewHelpful",
         "GetMySubmissions",
         "GetMyFavorites",
-        "GetMapConfiguration"
+        "GetMapConfiguration",
+        "ResolveMapLocationUrl"
     ],
     "sysadmin": [
         "GetAdminMapSettings",
-        "SaveMapSettings"
+        "SaveMapSettings",
+        "ResolveMapLocationUrl"
     ]
 }

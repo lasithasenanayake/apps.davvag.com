@@ -26,6 +26,7 @@
             <section v-show="step===3">
                 <h2>3. Location &amp; access</h2>
                 <div v-if="mapConfig.enabled">
+                    <div class="td-field full"><label>Google Maps location URL</label><div class="td-inline-search"><input class="td-input" type="url" v-model="locationUrl" placeholder="Paste a Google Maps place or maps.app.goo.gl link" @paste="mapUrlPasted" @keyup.enter.prevent="extractMapUrl"><button class="td-button secondary" type="button" :disabled="resolvingMapUrl || !locationUrl" @click="extractMapUrl">{{ resolvingMapUrl ? "Extracting…" : "Use map URL" }}</button></div><small>Full Google Maps URLs are read instantly. Short Google Maps links are resolved securely by the server.</small></div>
                     <div v-if="mapConfig.geocodingEnabled" class="td-form-grid">
                         <div class="td-field full"><label>Find a place or address</label><div class="td-inline-search"><input class="td-input" v-model="addressQuery" placeholder="Search with Google Geocoding" @keyup.enter.prevent="searchAddress"><button class="td-button secondary" type="button" :disabled="searchingLocation" @click="searchAddress">{{ searchingLocation ? "Searching…" : "Find" }}</button></div></div>
                     </div>

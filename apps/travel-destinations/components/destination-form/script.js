@@ -2,15 +2,15 @@ WEBDOCK.component().register(function (exports) {
     var api, maps, router, selectedFiles = [], rootElement, mapHandle;
     var state = {
         step: 1, categories: [], amenities: [], capabilities: {}, files: [],
-        saving: false, submitting: false, uploading: false, locating: false, searchingLocation:false, error: "", notice: "", mapError:"",
-        mapConfig:{enabled:false}, addressQuery:"",
+        saving: false, submitting: false, uploading: false, locating: false, searchingLocation:false, resolvingMapUrl:false, error: "", notice: "", mapError:"",
+        mapConfig:{enabled:false}, addressQuery:"", locationUrl:"",
         staySubtypes: ["Hotel","Cabana","Guesthouse","Homestay","Campsite","Eco Lodge","Bungalow","Hostel"],
         form: emptyForm()
     };
     var viewState = state;
     exports.vue = {
         data: state,
-        methods: {next: next, previous: previous, saveDraft: saveDraft, submitForReview: submitForReview, useCurrentLocation: useCurrentLocation, searchAddress:searchAddress, refreshMap:scheduleMap, chooseFiles: chooseFiles, uploadPhotos: uploadPhotos, navigate: navigate},
+        methods: {next: next, previous: previous, saveDraft: saveDraft, submitForReview: submitForReview, useCurrentLocation: useCurrentLocation, searchAddress:searchAddress, extractMapUrl:extractMapUrl, mapUrlPasted:mapUrlPasted, refreshMap:scheduleMap, chooseFiles: chooseFiles, uploadPhotos: uploadPhotos, navigate: navigate},
         onReady: function (scope, element) {
             viewState = scope || state; rootElement=element;
             api = exports.getComponent("api"); maps=resolveMaps(exports); router = exports.getShellComponent("soss-routes");
@@ -108,8 +108,45 @@ WEBDOCK.component().register(function (exports) {
             scheduleMap();
         }).catch(function(error){viewState.searchingLocation=false;viewState.mapError=error.message||"Location search failed.";});
     }
+    function mapUrlPasted(){setTimeout(extractMapUrl,0);}
+    function extractMapUrl(){
+        var value=String(viewState.locationUrl||"").trim();
+        if(viewState.resolvingMapUrl||!value){return;}
+        viewState.error="";viewState.mapError="";viewState.notice="";
+        var coordinates=coordinatesFromMapUrl(value);
+        if(coordinates){applyExtractedCoordinates(coordinates);return;}
+        viewState.resolvingMapUrl=true;
+        api.services.ResolveMapLocationUrl({url:value}).then(function(response){
+            viewState.resolvingMapUrl=false;
+            if(response&&response.success&&response.result){applyExtractedCoordinates({lat:response.result.latitude,lng:response.result.longitude});}
+            else{viewState.error=message(response,"Coordinates could not be extracted from that Google Maps URL.");}
+        }).error(function(response){viewState.resolvingMapUrl=false;viewState.error=message(response,"Coordinates could not be extracted from that Google Maps URL.");});
+    }
+    function applyExtractedCoordinates(coordinates){
+        setCoordinates(coordinates);viewState.notice="Full-precision coordinates were extracted from the map URL and the marker was moved.";scheduleMap();
+    }
+    function coordinatesFromMapUrl(value){
+        var candidates=[String(value||"")];
+        try{candidates.push(decodeURIComponent(candidates[0]));}catch(ignore){}
+        var patterns=[
+            /!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,
+            /@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)(?:[,/]|$)/i,
+            /[?&](?:q|query|ll|center|destination|daddr)=(-?\d{1,2}(?:\.\d+)?)(?:%2C|,|\s+)(-?\d{1,3}(?:\.\d+)?)/i,
+            /(?:^|[^0-9.-])(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)(?:[^0-9.]|$)/
+        ];
+        for(var candidateIndex=0;candidateIndex<candidates.length;candidateIndex++){
+            for(var patternIndex=0;patternIndex<patterns.length;patternIndex++){
+                var match=patterns[patternIndex].exec(candidates[candidateIndex]);
+                if(match){
+                    var lat=Number(match[1]),lng=Number(match[2]);
+                    if(isFinite(lat)&&isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180){return{lat:lat,lng:lng};}
+                }
+            }
+        }
+        return null;
+    }
     function setCoordinates(point){
-        viewState.form.latitude=Number(point.lat);viewState.form.longitude=Number(point.lng);
+        viewState.form.latitude=roundCoordinate(point.lat);viewState.form.longitude=roundCoordinate(point.lng);
         if(mapHandle&&mapHandle.setPosition){mapHandle.setPosition(0,point);}
         if(mapHandle&&mapHandle.map){mapHandle.map.panTo({lat:Number(point.lat),lng:Number(point.lng)});}
     }
@@ -132,4 +169,5 @@ WEBDOCK.component().register(function (exports) {
         var registered=componentExports.getComponent("google-map-runtime");
         return window.TravelDestinationGoogleMaps||(registered&&registered.runtime)||registered;
     }
+    function roundCoordinate(value){return Number(Number(value).toFixed(7));}
 });

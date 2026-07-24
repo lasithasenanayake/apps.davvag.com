@@ -32,6 +32,13 @@ $distance = TravelDestinationRules::distanceKm(6.9271, 79.8612, 7.2906, 80.6337)
 checkTravel($distance > 85 && $distance < 110, "Haversine distance was outside the expected Colombo-Kandy range.");
 checkTravel(TravelDestinationRules::inBoundingBox(7.2906, 80.6337, 6.9271, 79.8612, 100), "A point inside the broad bounding box was rejected.");
 checkTravel(!TravelDestinationRules::inBoundingBox(7.2906, 80.6337, 6.9271, 79.8612, 25), "A point outside the narrow bounding box was accepted.");
+$urlCoordinates = TravelDestinationRules::coordinatesFromMapUrl("https://www.google.com/maps/place/Test/@7.2906123,80.6337456,16z");
+checkTravel($urlCoordinates !== null && abs($urlCoordinates["latitude"] - 7.2906123) < 0.0000001 && abs($urlCoordinates["longitude"] - 80.6337456) < 0.0000001, "Google Maps @ coordinates were not extracted precisely.");
+$dataCoordinates = TravelDestinationRules::coordinatesFromMapUrl("https://www.google.com/maps/place/Test/data=!3d6.927079!4d79.861244");
+checkTravel($dataCoordinates !== null && abs($dataCoordinates["latitude"] - 6.927079) < 0.0000001 && abs($dataCoordinates["longitude"] - 79.861244) < 0.0000001, "Google Maps data coordinates were not extracted.");
+$queryCoordinates = TravelDestinationRules::coordinatesFromMapUrl("https://maps.google.com/?q=6.053519,80.220977");
+checkTravel($queryCoordinates !== null && abs($queryCoordinates["longitude"] - 80.220977) < 0.0000001, "Google Maps query coordinates were not extracted.");
+checkTravel(TravelDestinationRules::coordinatesFromMapUrl("https://example.com/no-location") === null, "An unrelated URL produced coordinates.");
 
 $appRoot = dirname(__DIR__);
 $tenantRoot = dirname($appRoot, 2);
@@ -72,13 +79,19 @@ checkTravel(strpos($mapRuntime, "AdvancedMarkerElement") !== false, "Google Maps
 checkTravel(strpos($mapRuntime, "DEMO_MAP_ID") !== false, "Google Maps runtime has no Advanced Marker Map ID fallback.");
 checkTravel(strpos($mapRuntime, "new window.google.maps.Marker") === false, "Google Maps runtime still creates deprecated legacy markers.");
 checkTravel(strpos($mapRuntime, "waitForContainer") !== false, "Google Maps runtime does not wait for a visible map container.");
+checkTravel(strpos($mapRuntime, "PinElement") !== false && strpos($mapRuntime, "uniquePositionCount") !== false, "Map results do not use numbered Advanced Markers safely.");
 checkTravel(strpos($mapSettingsView, "HTTP referrers") !== false, "Map settings do not explain browser API-key restrictions.");
 checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formScript, "onMapClick") !== false, "Destination form does not support draggable and click location selection.");
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");
+checkTravel(strpos($formScript, "ResolveMapLocationUrl") !== false && strpos($formScript, "coordinatesFromMapUrl") !== false, "Destination form does not extract coordinates from Google Maps URLs.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration), "Public map configuration service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminMapSettings), "Admin map settings read service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveMapSettings), "Admin map settings save service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->ResolveMapLocationUrl), "Map URL resolver service is not declared.");
 checkTravel(in_array("travel_destination_map_settings", $app->dependencies->schemas, true), "Map settings schema dependency is missing.");
+$permissionManifest = json_decode(file_get_contents($appRoot . "/permissions.json"));
+checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, true), "Anonymous users can access the map URL resolver.");
+checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");
 
 putenv("DAVVAG_PROVIDER_SECRET=travel-destination-test-secret");
 $apiService = new \travel_destinations\ApiService();
