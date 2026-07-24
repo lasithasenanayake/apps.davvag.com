@@ -142,10 +142,115 @@ WEBDOCK.component().register(function (exports) {
         else { viewState.actionLocks[key] = value; }
     }
     function safeMarkdown(value) {
-        var escaped = String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-        escaped = escaped.replace(/^### (.+)$/gm,"<h3>$1</h3>").replace(/^## (.+)$/gm,"<h2>$1</h2>").replace(/^# (.+)$/gm,"<h1>$1</h1>");
-        escaped = escaped.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/\*([^*]+)\*/g,"<em>$1</em>");
-        return escaped.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>");
+        var lines = String(value || "").replace(/\r\n?/g,"\n").split("\n");
+        var html = [];
+        var paragraph = [];
+        var index = 0;
+
+        function flushParagraph() {
+            if (!paragraph.length) { return; }
+            html.push("<p>" + paragraph.map(inlineMarkdown).join("<br>") + "</p>");
+            paragraph = [];
+        }
+
+        while (index < lines.length) {
+            var line = lines[index];
+            var heading = /^(#{1,3})\s+(.+)$/.exec(line);
+
+            if (line.indexOf("|") !== -1
+                && index + 1 < lines.length
+                && isTableSeparator(lines[index + 1])) {
+                flushParagraph();
+                var headings = tableCells(line);
+                var alignments = tableCells(lines[index + 1]).map(tableAlignment);
+                var bodyRows = [];
+                index += 2;
+                while (index < lines.length && lines[index].trim() !== "" && lines[index].indexOf("|") !== -1) {
+                    bodyRows.push(tableCells(lines[index]));
+                    index++;
+                }
+                html.push(renderTable(headings, alignments, bodyRows));
+                continue;
+            }
+
+            if (heading) {
+                flushParagraph();
+                html.push("<h" + heading[1].length + ">" + inlineMarkdown(heading[2]) + "</h" + heading[1].length + ">");
+                index++;
+                continue;
+            }
+
+            if (/^\s*[-+*]\s+/.test(line)) {
+                flushParagraph();
+                var listItems = [];
+                while (index < lines.length && /^\s*[-+*]\s+/.test(lines[index])) {
+                    listItems.push(lines[index].replace(/^\s*[-+*]\s+/,""));
+                    index++;
+                }
+                html.push("<ul>" + listItems.map(function (item) {
+                    return "<li>" + inlineMarkdown(item) + "</li>";
+                }).join("") + "</ul>");
+                continue;
+            }
+
+            if (line.trim() === "") {
+                flushParagraph();
+            } else {
+                paragraph.push(line);
+            }
+            index++;
+        }
+        flushParagraph();
+        return html.join("");
+    }
+    function escapeHtml(value) {
+        return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+    function inlineMarkdown(value) {
+        var escaped = escapeHtml(value);
+        return escaped
+            .replace(/`([^`]+)`/g,"<code>$1</code>")
+            .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
+            .replace(/__([^_]+)__/g,"<strong>$1</strong>")
+            .replace(/\*([^*]+)\*/g,"<em>$1</em>")
+            .replace(/_([^_]+)_/g,"<em>$1</em>");
+    }
+    function tableCells(line) {
+        var protectedPipes = String(line || "").replace(/\\\|/g,"\u0000");
+        protectedPipes = protectedPipes.replace(/^\s*\|/,"").replace(/\|\s*$/,"");
+        return protectedPipes.split("|").map(function (cell) {
+            return cell.replace(/\u0000/g,"|").trim();
+        });
+    }
+    function isTableSeparator(line) {
+        var cells = tableCells(line);
+        return cells.length > 0 && cells.every(function (cell) {
+            return /^:?-{3,}:?$/.test(cell.replace(/\s/g,""));
+        });
+    }
+    function tableAlignment(separator) {
+        var value = String(separator || "").replace(/\s/g,"");
+        if (/^:-+:$/.test(value)) { return "center"; }
+        if (/^-+:$/.test(value)) { return "right"; }
+        return "left";
+    }
+    function renderTable(headings, alignments, rows) {
+        var columnCount = headings.length;
+        rows.forEach(function (row) { columnCount = Math.max(columnCount,row.length); });
+        var output = '<div class="td-prose-table-wrap" role="region" aria-label="Scrollable information table" tabindex="0"><table class="td-prose-table"><thead><tr>';
+        var column;
+        for (column = 0; column < columnCount; column++) {
+            output += '<th class="td-align-' + (alignments[column] || "left") + '">' + inlineMarkdown(headings[column] || "") + "</th>";
+        }
+        output += "</tr></thead><tbody>";
+        rows.forEach(function (row) {
+            output += "<tr>";
+            for (column = 0; column < columnCount; column++) {
+                output += '<td class="td-align-' + (alignments[column] || "left") + '">' + inlineMarkdown(row[column] || "") + "</td>";
+            }
+            output += "</tr>";
+        });
+        return output + "</tbody></table></div>";
     }
     function replaceItems(target,items) { target.splice.apply(target,[0,target.length].concat(Array.isArray(items) ? items : [])); }
     function share() { if (navigator.share) { navigator.share({title:viewState.destination.name,url:window.location.href}); } else if (navigator.clipboard) { navigator.clipboard.writeText(window.location.href); } }

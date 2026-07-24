@@ -68,11 +68,14 @@ $detailView = file_get_contents($appRoot . "/components/destination-detail/parti
 checkTravel(strpos($detailScript, "function locked(key, factory, handleResponse, failureMessage)") !== false, "Detail actions do not use the single-callback DAVVAG request lock.");
 checkTravel(!preg_match('/return\s+api\.services\.[A-Za-z0-9_]+\([^;]*\)\.then\(/', $detailScript), "A detail action attaches a response handler before the request lock and may be overwritten.");
 checkTravel(strpos($detailView, "actionMessage") !== false, "Review and comment moderation feedback is not rendered.");
+checkTravel(strpos($detailScript, "isTableSeparator") !== false && strpos($detailScript, "renderTable") !== false, "Destination Markdown tables are not rendered.");
+checkTravel(strpos($detailView, "td-markdown") !== false, "Destination Markdown content has no dedicated formatting class.");
 
 $mapRuntime = file_get_contents($appRoot . "/components/google-map-runtime/script.js");
 $mapSettingsView = file_get_contents($appRoot . "/components/admin-map-settings/partial.html");
 $formScript = file_get_contents($appRoot . "/components/destination-form/script.js");
 $explorerScript = file_get_contents($appRoot . "/components/destination-explorer/script.js");
+$travelStyles = file_get_contents($appRoot . "/components/travel-style/travel-destinations.css");
 $apiDescriptor = json_decode(file_get_contents($appRoot . "/services/api/component.json"));
 checkTravel(strpos($mapRuntime, "maps.googleapis.com/maps/api/js") !== false, "Google Maps runtime does not load the official Maps JavaScript API.");
 checkTravel(strpos($mapRuntime, "AdvancedMarkerElement") !== false, "Google Maps runtime does not support advanced markers.");
@@ -84,6 +87,7 @@ checkTravel(strpos($mapSettingsView, "HTTP referrers") !== false, "Map settings 
 checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formScript, "onMapClick") !== false, "Destination form does not support draggable and click location selection.");
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");
 checkTravel(strpos($formScript, "ResolveMapLocationUrl") !== false && strpos($formScript, "coordinatesFromMapUrl") !== false, "Destination form does not extract coordinates from Google Maps URLs.");
+checkTravel(strpos($travelStyles, ".td-prose-table") !== false && strpos($travelStyles, "overflow-x:auto") !== false, "Markdown tables do not have responsive table styles.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration), "Public map configuration service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminMapSettings), "Admin map settings read service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveMapSettings), "Admin map settings save service is not declared.");

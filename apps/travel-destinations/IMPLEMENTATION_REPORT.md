@@ -172,6 +172,13 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - Added server-side diagnostics for future chunk-storage failures without exposing database details in API responses.
 - Validation passes 314 checks with zero failures; a live 12,000-character mixed Unicode chunk round-tripped exactly through SOSSData.
 
+## v0.4.7 Markdown table formatting
+
+- Added safe GitHub-style Markdown table detection and rendering to destination descriptions.
+- Added header, striped-row, alignment and responsive horizontal-scroll styles.
+- Kept raw review text whitespace behavior separate from rendered destination Markdown.
+- Validation passes 317 checks with zero failures; a representative table rendered with correct alignment and HTML escaping.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.
