@@ -13,7 +13,7 @@ WEBDOCK.component().register(function (exports) {
         methods: {next: next, previous: previous, saveDraft: saveDraft, submitForReview: submitForReview, useCurrentLocation: useCurrentLocation, searchAddress:searchAddress, refreshMap:scheduleMap, chooseFiles: chooseFiles, uploadPhotos: uploadPhotos, navigate: navigate},
         onReady: function (scope, element) {
             viewState = scope || state; rootElement=element;
-            api = exports.getComponent("api"); maps=exports.getComponent("google-map-runtime"); router = exports.getShellComponent("soss-routes");
+            api = exports.getComponent("api"); maps=resolveMaps(exports); router = exports.getShellComponent("soss-routes");
             viewState.error = ""; viewState.notice = "";
             if (!api || !api.services) { viewState.error = "Destination services are unavailable."; return; }
             Promise.all([api.services.Capabilities({}), api.services.GetCategories({}), api.services.GetAmenities({}), api.services.GetMapConfiguration({})]).then(function (responses) {
@@ -99,6 +99,8 @@ WEBDOCK.component().register(function (exports) {
     function searchAddress(){
         var query=String(viewState.addressQuery||"").trim();
         if(viewState.searchingLocation||!query){return;}
+        maps=maps||resolveMaps(exports);
+        if(!maps||typeof maps.geocode!=="function"){viewState.mapError="The Google Maps runtime is unavailable. Refresh the page and try again.";return;}
         viewState.searchingLocation=true;viewState.mapError="";
         maps.geocode(viewState.mapConfig,query).then(function(result){
             viewState.searchingLocation=false;setCoordinates(result);
@@ -114,7 +116,9 @@ WEBDOCK.component().register(function (exports) {
     function scheduleMap(){if(viewState.step===3&&viewState.mapConfig&&viewState.mapConfig.enabled){setTimeout(renderMap,0);}}
     function renderMap(){
         var container=rootElement&&rootElement.find?rootElement.find("[data-google-picker-map]")[0]:document.querySelector("[data-google-picker-map]");
-        if(!container||!maps){return;}
+        if(!container){return;}
+        maps=maps||resolveMaps(exports);
+        if(!maps||typeof maps.createMap!=="function"){viewState.mapError="The Google Maps runtime is unavailable. Refresh the page and try again.";return;}
         var hasCoordinates=isFinite(Number(viewState.form.latitude))&&isFinite(Number(viewState.form.longitude))&&viewState.form.latitude!==null&&viewState.form.longitude!==null;
         var point=hasCoordinates?{latitude:Number(viewState.form.latitude),longitude:Number(viewState.form.longitude),name:viewState.form.name||"Selected location"}:{latitude:viewState.mapConfig.defaultCenter.lat,longitude:viewState.mapConfig.defaultCenter.lng,name:"Choose a location"};
         viewState.mapError="";
@@ -123,5 +127,9 @@ WEBDOCK.component().register(function (exports) {
             onMapClick:function(position){setCoordinates(position);},
             onPositionChanged:function(position){setCoordinates(position);}
         }).then(function(result){mapHandle=result;}).catch(function(error){viewState.mapError=error.message||"Google Maps could not be loaded.";});
+    }
+    function resolveMaps(componentExports){
+        var registered=componentExports.getComponent("google-map-runtime");
+        return window.TravelDestinationGoogleMaps||(registered&&registered.runtime)||registered;
     }
 });

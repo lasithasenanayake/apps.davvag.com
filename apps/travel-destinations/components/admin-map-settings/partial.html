@@ -9,7 +9,7 @@
             <div class="td-form-grid">
                 <label class="td-check full"><input type="checkbox" v-model="form.enabled"> Enable Google Maps for travel destinations</label>
                 <div class="td-field full"><label>Google Maps API key</label><input class="td-input" type="password" v-model="form.api_key" autocomplete="new-password" maxlength="255" :placeholder="form.has_api_key ? 'Saved securely — leave blank to keep it' : 'Paste a restricted browser API key'"><small v-if="form.has_api_key">A key is already saved. It is never returned to this admin form.</small></div>
-                <div class="td-field full"><label>Map ID (recommended)</label><input class="td-input" v-model="form.map_id" maxlength="128" placeholder="Required for Advanced Markers"><small>Leave blank to use standard markers.</small></div>
+                <div class="td-field full"><label>Map ID (recommended)</label><input class="td-input" v-model="form.map_id" maxlength="128" placeholder="Google Cloud Map ID"><small>When blank, Google’s DEMO_MAP_ID is used so Advanced Markers can render. Save your own Map ID for production styling and usage.</small></div>
                 <div class="td-field"><label>Language</label><input class="td-input" v-model="form.language" maxlength="20" placeholder="en"></div>
                 <div class="td-field"><label>Region</label><input class="td-input" v-model="form.region" maxlength="3" placeholder="LK"></div>
                 <div class="td-field"><label>Default latitude</label><input class="td-input" type="number" min="-90" max="90" step="any" v-model.number="form.default_latitude"></div>

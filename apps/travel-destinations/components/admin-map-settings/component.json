@@ -2,7 +2,7 @@
     "name": "admin-map-settings",
     "description": "Google Maps provider settings administration",
     "author": "DAVVAG",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

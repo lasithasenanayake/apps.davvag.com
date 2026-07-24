@@ -127,6 +127,27 @@ Verified results:
 Configure a tenant map provider abstraction first, then complete interactive authenticated QA with traveler and administrator test accounts. Follow with advanced discovery controls, notification workflows, trail-file visualization and an optional cached weather provider.
 # Google Maps provider settings — v0.4.0
 
+## v0.4.1 runtime compatibility fix
+
+- Exposed the Google Maps adapter as an immediate browser singleton as well as a DAVVAG component export, avoiding component initialization-order differences between docks.
+- Updated every map consumer to resolve the singleton, component runtime property or direct component export in that order.
+- Added runtime method guards so missing helpers produce a visible fallback message instead of an uncaught `createMap` exception.
+- Verified that both global and registry export paths contain `createMap`; all 13 JavaScript files parse and all 291 application checks pass.
+
+## v0.4.2 map rendering fix
+
+- Removed the deprecated `google.maps.Marker` fallback and now uses `AdvancedMarkerElement` for every marker.
+- Uses the configured Google Cloud Map ID, or `DEMO_MAP_ID` only when the tenant has not saved one.
+- Waits for the map element to be connected and measurable, assigns explicit map heights, and triggers map resize/centering after initialization.
+- Observes responsive container resizing so tiles redraw correctly when the DAVVAG layout changes.
+- Validation now passes 294 checks with zero failures; all 13 JavaScript resources parse successfully.
+
+## v0.4.3 DAVVAG route-host fix
+
+- Corrected map mounting when DAVVAG retains a detached component element during route rendering.
+- The runtime now resolves the current connected, visible map element by its component data attribute before constructing Google Maps.
+- Explorer rendering now waits for Vue’s DOM update plus two animation frames, ensuring the map view has its final dimensions.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.

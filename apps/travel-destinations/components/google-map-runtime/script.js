@@ -1,9 +1,8 @@
-WEBDOCK.component().register(function (exports) {
+(function (window) {
+    var runtime = window.TravelDestinationGoogleMaps || {};
     var bootstrapPromise = null, loadedKey = "";
 
-    exports.onReady = function () {};
-
-    exports.load = function (config, libraries) {
+    runtime.load = function (config, libraries) {
         if (!config || !config.enabled || !config.apiKey) {
             return Promise.reject(new Error("Google Maps is not configured."));
         }
@@ -15,12 +14,14 @@ WEBDOCK.component().register(function (exports) {
         });
     };
 
-    exports.createMap = function (container, config, options) {
+    runtime.createMap = function (container, config, options) {
         options = options || {};
         if (!container) { return Promise.reject(new Error("The map container is unavailable.")); }
         var points = Array.isArray(options.points) ? options.points.filter(validPoint) : [];
         var libraries = points.length || options.draggable ? ["maps", "marker"] : ["maps"];
-        return exports.load(config, libraries).then(function () {
+        return runtime.load(config, libraries).then(function (modules) {
+            return waitForContainer(container).then(function (readyContainer) {
+            container = readyContainer;
             var center = validPoint(options.center) ? position(options.center) :
                 (points.length ? position(points[0]) : position(config.defaultCenter));
             var mapOptions = {
@@ -28,12 +29,15 @@ WEBDOCK.component().register(function (exports) {
                 zoom: Number(options.zoom || config.defaultZoom || 8),
                 mapTypeControl: true,
                 streetViewControl: false,
-                fullscreenControl: true
+                fullscreenControl: true,
+                mapId: config.mapId || "DEMO_MAP_ID"
             };
-            if (config.mapId) { mapOptions.mapId = config.mapId; }
-            var map = new window.google.maps.Map(container, mapOptions);
+            var MapClass = modules[0] && modules[0].Map ? modules[0].Map : window.google.maps.Map;
+            var AdvancedMarkerClass = modules[1] && modules[1].AdvancedMarkerElement ? modules[1].AdvancedMarkerElement :
+                (window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement);
+            var map = new MapClass(container, mapOptions);
             var markers = points.map(function (point) {
-                return addMarker(map, config, point, options);
+                return addMarker(map, point, options, AdvancedMarkerClass);
             });
             if (points.length > 1) {
                 var bounds = new window.google.maps.LatLngBounds();
@@ -45,6 +49,17 @@ WEBDOCK.component().register(function (exports) {
                     options.onMapClick({lat:event.latLng.lat(), lng:event.latLng.lng()});
                 });
             }
+            requestAnimationFrame(function () {
+                window.google.maps.event.trigger(map, "resize");
+                map.setCenter(center);
+            });
+            if (typeof ResizeObserver !== "undefined") {
+                var observer = new ResizeObserver(function () {
+                    window.google.maps.event.trigger(map, "resize");
+                });
+                observer.observe(container);
+                map.__tdResizeObserver = observer;
+            }
             return {
                 map: map,
                 markers: markers,
@@ -55,14 +70,15 @@ WEBDOCK.component().register(function (exports) {
                     if (marker.setPosition) { marker.setPosition(position(point)); }
                 }
             };
+            });
         });
     };
 
-    exports.geocode = function (config, query) {
+    runtime.geocode = function (config, query) {
         if (!config || !config.geocodingEnabled) {
             return Promise.reject(new Error("Address search is disabled in map settings."));
         }
-        return exports.load(config, ["maps"]).then(function () {
+        return runtime.load(config, ["maps"]).then(function () {
             return new Promise(function (resolve, reject) {
                 var geocoder = new window.google.maps.Geocoder();
                 geocoder.geocode({address:String(query || "").trim()}, function (results, status) {
@@ -119,16 +135,13 @@ WEBDOCK.component().register(function (exports) {
         return bootstrapPromise;
     }
 
-    function addMarker(map, config, point, options) {
+    function addMarker(map, point, options, AdvancedMarkerClass) {
         var markerOptions = {map:map, position:position(point), title:String(point.name || point.title || "")};
-        var marker;
-        if (config.mapId && window.google.maps.marker && window.google.maps.marker.AdvancedMarkerElement) {
-            markerOptions.gmpDraggable = !!options.draggable;
-            marker = new window.google.maps.marker.AdvancedMarkerElement(markerOptions);
-        } else {
-            markerOptions.draggable = !!options.draggable;
-            marker = new window.google.maps.Marker(markerOptions);
+        if (!AdvancedMarkerClass) {
+            throw new Error("Google Advanced Markers could not be loaded.");
         }
+        markerOptions.gmpDraggable = !!options.draggable;
+        var marker = new AdvancedMarkerClass(markerOptions);
         marker.__tdPoint = point;
         if (typeof options.onMarkerClick === "function") {
             marker.addListener("click", function () { options.onMarkerClick(point, marker); });
@@ -142,6 +155,52 @@ WEBDOCK.component().register(function (exports) {
             });
         }
         return marker;
+    }
+
+    function waitForContainer(container) {
+        return new Promise(function (resolve, reject) {
+            var attempts = 0;
+            function ready() {
+                attempts++;
+                var candidate = visibleMapContainer(container);
+                if (candidate) {
+                    resolve(candidate);
+                    return;
+                }
+                if (attempts >= 60) {
+                    reject(new Error("The map container is not visible yet."));
+                    return;
+                }
+                requestAnimationFrame(ready);
+            }
+            ready();
+        });
+    }
+
+    function visibleMapContainer(original) {
+        var candidates = [original], selector = "";
+        if (original && original.attributes) {
+            for (var index = 0; index < original.attributes.length; index++) {
+                var attributeName = original.attributes[index].name;
+                if (attributeName.indexOf("data-google-") === 0) {
+                    selector = "[" + attributeName + "]";
+                    break;
+                }
+            }
+        }
+        if (selector) {
+            candidates = candidates.concat(Array.prototype.slice.call(document.querySelectorAll(selector)));
+        }
+        for (var candidateIndex = candidates.length - 1; candidateIndex >= 0; candidateIndex--) {
+            var candidate = candidates[candidateIndex];
+            if (!candidate || !candidate.getBoundingClientRect) { continue; }
+            var connected = candidate.isConnected !== undefined ? candidate.isConnected : document.documentElement.contains(candidate);
+            var rectangle = candidate.getBoundingClientRect();
+            if (connected && rectangle.width > 1 && rectangle.height > 1) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     function validPoint(point) {
@@ -158,4 +217,13 @@ WEBDOCK.component().register(function (exports) {
             lng:Number(point.lng !== undefined ? point.lng : point.longitude)
         };
     }
-});
+
+    window.TravelDestinationGoogleMaps = runtime;
+    WEBDOCK.component().register(function (exports) {
+        exports.runtime = runtime;
+        exports.load = runtime.load;
+        exports.createMap = runtime.createMap;
+        exports.geocode = runtime.geocode;
+        exports.onReady = function () {};
+    });
+})(window);

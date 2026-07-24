@@ -69,6 +69,9 @@ $explorerScript = file_get_contents($appRoot . "/components/destination-explorer
 $apiDescriptor = json_decode(file_get_contents($appRoot . "/services/api/component.json"));
 checkTravel(strpos($mapRuntime, "maps.googleapis.com/maps/api/js") !== false, "Google Maps runtime does not load the official Maps JavaScript API.");
 checkTravel(strpos($mapRuntime, "AdvancedMarkerElement") !== false, "Google Maps runtime does not support advanced markers.");
+checkTravel(strpos($mapRuntime, "DEMO_MAP_ID") !== false, "Google Maps runtime has no Advanced Marker Map ID fallback.");
+checkTravel(strpos($mapRuntime, "new window.google.maps.Marker") === false, "Google Maps runtime still creates deprecated legacy markers.");
+checkTravel(strpos($mapRuntime, "waitForContainer") !== false, "Google Maps runtime does not wait for a visible map container.");
 checkTravel(strpos($mapSettingsView, "HTTP referrers") !== false, "Map settings do not explain browser API-key restrictions.");
 checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formScript, "onMapClick") !== false, "Destination form does not support draggable and click location selection.");
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");

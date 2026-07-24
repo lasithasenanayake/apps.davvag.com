@@ -25,7 +25,7 @@ WEBDOCK.component().register(function (exports) {
         },
         onReady: function (scope, element) {
             viewState = scope || state; rootElement = element;
-            api = exports.getComponent("api"); maps = exports.getComponent("google-map-runtime"); router = exports.getShellComponent("soss-routes");
+            api = exports.getComponent("api"); maps = resolveMaps(exports); router = exports.getShellComponent("soss-routes");
             viewState.loading = true; viewState.error = ""; viewState.hasDestination = false; viewState.destination = emptyDestination();
             if (!api || !api.services) { viewState.loading = false; viewState.error = "Destination services are unavailable."; return; }
             var id = queryValue("id");
@@ -167,9 +167,15 @@ WEBDOCK.component().register(function (exports) {
     function scheduleMap() { if (viewState.mapConfig.enabled && viewState.destination.latitude !== undefined) { setTimeout(renderMap,0); } }
     function renderMap() {
         var container = rootElement && rootElement.find ? rootElement.find("[data-google-detail-map]")[0] : document.querySelector("[data-google-detail-map]");
-        if (!container || !maps) { return; }
+        if (!container) { return; }
+        maps = maps || resolveMaps(exports);
+        if (!maps || typeof maps.createMap !== "function") { viewState.mapError = "The Google Maps runtime is unavailable. Refresh the page and try again."; return; }
         maps.createMap(container,viewState.mapConfig,{center:viewState.destination,zoom:14,points:[viewState.destination]})
             .then(function(result){mapHandle=result;})
             .catch(function(error){viewState.mapError=error.message||"Google Maps could not be loaded.";});
+    }
+    function resolveMaps(componentExports) {
+        var registered = componentExports.getComponent("google-map-runtime");
+        return window.TravelDestinationGoogleMaps || (registered && registered.runtime) || registered;
     }
 });

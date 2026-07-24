@@ -10,7 +10,7 @@ WEBDOCK.component().register(function (exports) {
         methods:{save:save,testMap:testMap,navigate:navigate},
         onReady:function (scope, element) {
             viewState=scope||state; rootElement=element;
-            api=exports.getComponent("api"); maps=exports.getComponent("google-map-runtime"); router=exports.getShellComponent("soss-routes");
+            api=exports.getComponent("api"); maps=resolveMaps(exports); router=exports.getShellComponent("soss-routes");
             if(!api||!api.services){viewState.loading=false;viewState.error="Destination services are unavailable.";return;}
             load();
         }
@@ -43,6 +43,8 @@ WEBDOCK.component().register(function (exports) {
             if(!r||!r.success||!r.result||!r.result.enabled){
                 viewState.testing=false;viewState.error="Save and enable a valid Google Maps key before testing.";return;
             }
+            maps=maps||resolveMaps(exports);
+            if(!maps||typeof maps.createMap!=="function"){viewState.testing=false;viewState.error="The Google Maps runtime is unavailable. Refresh the page and try again.";return;}
             var container=find("[data-google-preview]");
             maps.createMap(container,r.result,{center:r.result.defaultCenter,zoom:r.result.defaultZoom,points:[{latitude:r.result.defaultCenter.lat,longitude:r.result.defaultCenter.lng,name:"Default map centre"}]})
                 .then(function(result){preview=result;viewState.testing=false;viewState.notice="Google Maps loaded successfully with the saved settings.";})
@@ -55,4 +57,8 @@ WEBDOCK.component().register(function (exports) {
     }
     function navigate(path){if(router&&router.appNavigate){router.appNavigate(path);}else{window.location.hash="#/app/travel-destinations"+path;}}
     function message(r,fallback){return r&&r.result&&r.result.message?r.result.message:fallback;}
+    function resolveMaps(componentExports){
+        var registered=componentExports.getComponent("google-map-runtime");
+        return window.TravelDestinationGoogleMaps||(registered&&registered.runtime)||registered;
+    }
 });

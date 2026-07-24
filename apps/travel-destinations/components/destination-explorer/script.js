@@ -20,7 +20,7 @@ WEBDOCK.component().register(function (exports) {
             viewState = scope || state;
             rootElement = element;
             api = exports.getComponent("api");
-            maps = exports.getComponent("google-map-runtime");
+            maps = resolveMaps(exports);
             router = exports.getShellComponent("soss-routes");
             if (!api || !api.services) { viewState.error = "Destination services are unavailable."; return; }
             viewState.viewMode = window.location.hash.indexOf("/map") >= 0 ? "map" : "list";
@@ -74,14 +74,27 @@ WEBDOCK.component().register(function (exports) {
     function locationLabel(item) { return item.nearest_town || item.district || item.province || "Sri Lanka"; }
     function number(value) { return Number(value || 0).toFixed(1); }
     function serviceMessage(response, fallback) { return response && response.result && (response.result.message || response.result.error) ? (response.result.message || response.result.error) : fallback; }
-    function scheduleMap() { if (viewState.viewMode === "map" && viewState.mapConfig && viewState.mapConfig.enabled) { setTimeout(renderGoogleMap,0); } }
+    function scheduleMap() {
+        if (viewState.viewMode !== "map" || !viewState.mapConfig || !viewState.mapConfig.enabled) { return; }
+        var render = function () {
+            requestAnimationFrame(function () { requestAnimationFrame(renderGoogleMap); });
+        };
+        if (typeof Vue !== "undefined" && Vue.nextTick) { Vue.nextTick(render); }
+        else { setTimeout(render,0); }
+    }
     function renderGoogleMap() {
         var container = find("[data-google-explorer-map]");
-        if (!container || !maps) { return; }
+        if (!container) { return; }
+        maps = maps || resolveMaps(exports);
+        if (!maps || typeof maps.createMap !== "function") { viewState.mapError = "The Google Maps runtime is unavailable. Refresh the page and try again."; return; }
         viewState.mapError = "";
         maps.createMap(container,viewState.mapConfig,{points:viewState.items,onMarkerClick:function(item){selectMarker(item);}})
             .then(function(result){mapHandle=result;})
             .catch(function(error){viewState.mapError=error.message||"Google Maps could not be loaded.";});
     }
     function find(selector) { if (rootElement && rootElement.find) { return rootElement.find(selector)[0]; } return document.querySelector(selector); }
+    function resolveMaps(componentExports) {
+        var registered = componentExports.getComponent("google-map-runtime");
+        return window.TravelDestinationGoogleMaps || (registered && registered.runtime) || registered;
+    }
 });
