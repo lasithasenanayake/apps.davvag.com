@@ -1,0 +1,15 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "name", "dataType": "java.lang.String", "annotations": {"maxLen": 120, "encoding": "utf8"}},
+        {"fieldName": "slug", "dataType": "java.lang.String", "annotations": {"maxLen": 120}},
+        {"fieldName": "parent_id", "dataType": "int"},
+        {"fieldName": "description", "dataType": "java.lang.String", "annotations": {"maxLen": 1000, "encoding": "utf8"}},
+        {"fieldName": "marker_key", "dataType": "java.lang.String", "annotations": {"maxLen": 50}},
+        {"fieldName": "sort_order", "dataType": "int"},
+        {"fieldName": "is_active", "dataType": "boolean"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_category_parent", "relationType": "many-to-one", "targetEntity": "travel_destination_category", "joinColumns": [{"sourceColumn": "parent_id", "targetColumn": "id"}]}
+    ]
+}

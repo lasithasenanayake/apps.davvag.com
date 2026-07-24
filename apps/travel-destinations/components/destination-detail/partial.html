@@ -1,0 +1,86 @@
+<div class="td-app">
+    <div class="td-shell">
+        <nav class="td-nav">
+            <a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark"></span><span>Trail &amp; Tide</span></a>
+            <div class="td-actions"><button class="td-link" @click="back">← Explore</button><button class="td-button secondary" :disabled="savingFavorite" @click="saveFavorite">Save place</button></div>
+        </nav>
+        <div v-if="loading" class="td-loading">Opening the field guide…</div>
+        <div v-if="!loading && error" class="td-alert error">{{ error }}</div>
+        <div v-if="!loading && actionMessage" class="td-alert">{{ actionMessage }}</div>
+        <template v-if="!loading && !error && hasDestination">
+            <header class="td-detail-hero">
+                <div>
+                    <div class="td-actions"><span class="td-badge">{{ destination.verification_status || "Unverified" }}</span><span class="td-badge" v-for="category in destination.categories" :key="category.id">{{ category.name }}</span></div>
+                    <h1>{{ destination.name }}</h1>
+                    <p>{{ destination.short_summary }}</p>
+                    <div class="td-actions" style="margin-top:20px">
+                        <a v-if="directionsUrl" class="td-button" :href="directionsUrl" target="_blank" rel="noopener noreferrer">Open directions</a>
+                        <button class="td-button ghost" style="color:white" @click="share">Share</button>
+                    </div>
+                </div>
+            </header>
+            <div class="td-detail-content">
+                <main>
+                    <section class="td-panel">
+                        <p class="td-eyebrow" style="color:var(--td-leaf)">Field notes</p>
+                        <div class="td-prose" v-html="descriptionHtml"></div>
+                    </section>
+                    <section class="td-panel" style="margin-top:18px">
+                        <div class="td-section-head"><div><h2>Traveler reviews</h2><p>Approved, first-hand reports</p></div></div>
+                        <div v-if="!reviews.length" class="td-empty">No approved reviews yet.</div>
+                        <article v-for="review in reviews" :key="review.id" style="padding:16px 0;border-bottom:1px solid var(--td-line)">
+                            <strong>★ {{ review.overall_rating }} · {{ review.review_title }}</strong>
+                            <div class="td-prose">{{ review.review_markdown }}</div>
+                            <button class="td-link" :disabled="actionLocks['helpful-'+review.id]" @click="markHelpful(review)">Helpful ({{ review.helpful_count || 0 }})</button>
+                        </article>
+                        <form v-if="capabilities.authenticated" class="td-form-grid" style="margin-top:22px" @submit.prevent="submitReview">
+                            <div class="td-field"><label>Rating</label><select class="td-select" v-model.number="reviewForm.overall_rating"><option v-for="value in [5,4,3,2,1]" :key="value" :value="value">{{ value }} stars</option></select></div>
+                            <div class="td-field"><label>Visit date</label><input class="td-input" type="date" v-model="reviewForm.visit_date"></div>
+                            <div class="td-field full"><label>Review title</label><input class="td-input" v-model="reviewForm.review_title" maxlength="255"></div>
+                            <div class="td-field full"><label>Your review (Markdown supported)</label><textarea class="td-textarea" v-model="reviewForm.review_markdown" minlength="2" maxlength="6000" required></textarea></div>
+                            <button class="td-button" :disabled="actionLocks.review" type="submit">{{ actionLocks.review ? "Sending…" : "Submit review" }}</button>
+                        </form>
+                    </section>
+                    <section class="td-panel" style="margin-top:18px">
+                        <div class="td-section-head"><div><h2>Questions &amp; local notes</h2></div></div>
+                        <div v-if="!comments.length" class="td-empty">No approved comments yet.</div>
+                        <article v-for="comment in comments" :key="comment.id" style="padding:12px 0;border-bottom:1px solid var(--td-line)">{{ comment.comment_markdown }}</article>
+                        <form v-if="capabilities.authenticated" style="margin-top:18px" @submit.prevent="submitComment">
+                            <div class="td-field"><label>Add a comment</label><textarea class="td-textarea" v-model="commentForm.comment_markdown" minlength="2" maxlength="3000" required></textarea></div>
+                            <button class="td-button" style="margin-top:10px" :disabled="actionLocks.comment" type="submit">{{ actionLocks.comment ? "Sending…" : "Post for approval" }}</button>
+                        </form>
+                    </section>
+                </main>
+                <aside>
+                    <section class="td-panel">
+                        <div class="td-stat-grid">
+                            <div class="td-stat"><strong>{{ number(destination.rating_average) }}</strong><span>rating</span></div>
+                            <div class="td-stat"><strong>{{ destination.review_count || 0 }}</strong><span>reviews</span></div>
+                            <div class="td-stat"><strong>{{ destination.requires_4wd ? "4WD" : "Road" }}</strong><span>access</span></div>
+                        </div>
+                        <h3>Location</h3>
+                        <p>{{ locationLabel }}</p>
+                        <p v-if="destination.latitude !== undefined">{{ destination.latitude }}, {{ destination.longitude }}</p>
+                        <p v-else class="td-alert">Exact coordinates are restricted to protect this place.</p>
+                        <div v-if="mapConfig.enabled && destination.latitude !== undefined && !mapError" class="td-google-map td-google-detail" data-google-detail-map :aria-label="'Map of '+destination.name"></div>
+                        <p v-if="mapError" class="td-alert error">{{ mapError }}</p>
+                        <h3>Amenities</h3>
+                        <div class="td-checks"><span class="td-check" v-for="amenity in destination.amenities" :key="amenity.id">{{ amenity.name }}</span></div>
+                    </section>
+                    <section class="td-panel" style="margin-top:18px">
+                        <h3>Current conditions</h3>
+                        <div v-if="!conditions.length" style="color:var(--td-muted)">No active approved alerts.</div>
+                        <div v-for="condition in conditions" :key="condition.id" class="td-alert"><strong>{{ condition.report_type }}</strong><div>{{ condition.description }}</div></div>
+                        <form v-if="capabilities.authenticated" @submit.prevent="submitCondition">
+                            <div class="td-field"><label>Condition type</label><select class="td-select" v-model="conditionForm.report_type"><option value="road_blocked">Road blocked</option><option value="trail_closed">Trail closed</option><option value="heavy_rain">Heavy rain</option><option value="flooding">Flooding</option><option value="general_update">General update</option></select></div>
+                            <div class="td-field"><label>What did you observe?</label><textarea class="td-textarea" v-model="conditionForm.description"></textarea></div>
+                            <button class="td-button secondary" style="margin-top:10px" :disabled="actionLocks.condition" type="submit">Report condition</button>
+                        </form>
+                    </section>
+                    <section class="td-alert" style="margin-top:18px">Outdoor conditions change quickly. Verify weather, access, permits and safety before traveling. Leave no waste and respect local communities and wildlife.</section>
+                    <button v-if="capabilities.authenticated" class="td-link" :disabled="actionLocks.report" @click="reportDestination">Report incorrect information</button>
+                </aside>
+            </div>
+        </template>
+    </div>
+</div>

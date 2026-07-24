@@ -1,0 +1,16 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "profile_id", "dataType": "int"},
+        {"fieldName": "parent_comment_id", "dataType": "int"},
+        {"fieldName": "comment_markdown", "dataType": "java.lang.String", "annotations": {"maxLen": 3000, "encoding": "utf8"}},
+        {"fieldName": "moderation_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "is_active", "dataType": "boolean"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_comment_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_comment_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "profile_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_comment_parent", "relationType": "many-to-one", "targetEntity": "travel_destination_comment", "joinColumns": [{"sourceColumn": "parent_comment_id", "targetColumn": "id"}]}
+    ]
+}

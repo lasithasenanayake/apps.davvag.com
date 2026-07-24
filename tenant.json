@@ -1,5 +1,6 @@
 {
     "apps":{
+        "travel-destinations":{"version":"latest"},
         "davvag-mesh":{"version":"latest"},
         "davvag-mesh-networks":{"version":"latest"},
         "davvag-mesh-devices":{"version":"latest"},

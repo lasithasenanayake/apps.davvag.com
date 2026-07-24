@@ -1,0 +1,10 @@
+{
+    "name": "travel-style",
+    "description": "Shared visual system for Travel Destinations",
+    "author": "DAVVAG",
+    "version": "0.4.0",
+    "resources": {
+        "files": [{"type": "mainScript", "location": "script.js"}],
+        "css": [{"type": "css", "location": "travel-destinations.css"}]
+    }
+}

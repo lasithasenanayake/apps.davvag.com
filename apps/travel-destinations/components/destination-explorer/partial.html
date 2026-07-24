@@ -1,0 +1,82 @@
+<div class="td-app">
+    <div class="td-shell">
+        <nav class="td-nav" aria-label="Travel Destinations">
+            <a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark" aria-hidden="true"></span><span>Trail &amp; Tide</span></a>
+            <div class="td-nav-links">
+                <button class="td-link" @click="navigate('/favorites')">Saved</button>
+                <button class="td-link" @click="navigate('/my-submissions')">My places</button>
+                <button class="td-button secondary" @click="navigate('/submit')">Share a place</button>
+            </div>
+        </nav>
+        <section class="td-hero">
+            <div class="td-hero-content">
+                <p class="td-eyebrow">Go thoughtfully. Leave lightly.</p>
+                <h1>Find the wild side of Sri Lanka.</h1>
+                <p>Discover camps, trails, villages and quiet stays—with practical access notes, local context and coordinates you can trust.</p>
+            </div>
+        </section>
+        <form class="td-searchbar" @submit.prevent="search">
+            <div class="td-field">
+                <label for="td-search">Where or what?</label>
+                <input id="td-search" class="td-input" v-model="filters.keyword" placeholder="Waterfalls near Ella, forest camping…">
+            </div>
+            <div class="td-field">
+                <label for="td-category">Experience</label>
+                <select id="td-category" class="td-select" v-model="filters.categoryId">
+                    <option value="">All experiences</option>
+                    <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                </select>
+            </div>
+            <div class="td-field">
+                <label for="td-sort">Sort by</label>
+                <select id="td-sort" class="td-select" v-model="filters.sort">
+                    <option value="featured">Featured</option>
+                    <option value="highest_rated">Highest rated</option>
+                    <option value="recently_added">Recently added</option>
+                    <option value="recently_verified">Recently verified</option>
+                    <option value="name">Name</option>
+                </select>
+            </div>
+            <button class="td-button" :disabled="loading" type="submit">{{ loading ? "Searching…" : "Explore" }}</button>
+        </form>
+        <div v-if="error" class="td-alert error" role="alert">{{ error }}</div>
+        <section aria-live="polite">
+            <div class="td-section-head">
+                <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} published places found</p></div>
+                <div class="td-toggle" aria-label="Choose result view">
+                    <button :class="{active:viewMode==='list'}" @click="setView('list')" type="button">List</button>
+                    <button :class="{active:viewMode==='map'}" @click="setView('map')" type="button">Map</button>
+                </div>
+            </div>
+            <div v-if="loading" class="td-loading">Reading the trail notes…</div>
+            <div v-if="!loading && items.length === 0" class="td-empty"><h3>No places match this search yet.</h3><p>Try a wider place name or remove a filter.</p></div>
+            <div v-if="!loading && items.length > 0 && viewMode==='list'" class="td-grid">
+                <article class="td-card" v-for="item in items" :key="item.id" @click="openDestination(item)" tabindex="0" @keyup.enter="openDestination(item)">
+                    <div class="td-card-media"><span class="td-badge">{{ item.verification_status || "Community place" }}</span></div>
+                    <div class="td-card-body">
+                        <h3>{{ item.name }}</h3>
+                        <p>{{ item.short_summary || "Practical travel details are being gathered." }}</p>
+                        <div class="td-card-meta"><span>{{ locationLabel(item) }}</span><span>★ {{ number(item.rating_average) }} <span v-if="item.review_count">({{ item.review_count }})</span></span></div>
+                    </div>
+                </article>
+            </div>
+            <div v-if="!loading && items.length > 0 && viewMode==='map'" class="td-map-layout">
+                <div class="td-map-list">
+                    <article v-for="item in mappableItems" :key="item.id" class="td-map-row" :class="{active:selectedId===item.id}" @click="selectMarker(item)">
+                        <strong>{{ item.name }}</strong>
+                        <div>{{ locationLabel(item) }} · ★ {{ number(item.rating_average) }}</div>
+                        <button v-if="selectedId===item.id" class="td-link" @click.stop="openDestination(item)">View place →</button>
+                    </article>
+                </div>
+                <div v-if="mapConfig.enabled && !mapError" class="td-google-map td-google-explorer" data-google-explorer-map aria-label="Google map of destination results"></div>
+                <div v-else class="td-coordinate-map" aria-label="Coordinate map of destination results">
+                    <button v-for="item in mappableItems" :key="item.id" class="td-pin" :class="{active:selectedId===item.id}" :style="pinStyle(item)" @click="selectMarker(item)" :aria-label="'Select '+item.name"><span>{{ markerLabel(item) }}</span></button>
+                    <div class="td-map-caption">{{ mapError || "Provider-neutral coordinate overview · select a marker for details" }}</div>
+                </div>
+            </div>
+            <div class="td-actions" style="justify-content:center;margin-top:24px" v-if="pagination.hasMore">
+                <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load more" }}</button>
+            </div>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "reviewer_profile_id", "dataType": "int"},
+        {"fieldName": "overall_rating", "dataType": "int"},
+        {"fieldName": "review_title", "dataType": "java.lang.String", "annotations": {"maxLen": 255, "encoding": "utf8"}},
+        {"fieldName": "review_markdown", "dataType": "java.lang.String", "annotations": {"maxLen": 6000, "encoding": "utf8"}},
+        {"fieldName": "visit_date", "dataType": "java.util.Date"},
+        {"fieldName": "traveler_type", "dataType": "java.lang.String", "annotations": {"maxLen": 80}},
+        {"fieldName": "would_visit_again", "dataType": "boolean"},
+        {"fieldName": "condition_at_visit", "dataType": "java.lang.String", "annotations": {"maxLen": 1000, "encoding": "utf8"}},
+        {"fieldName": "category_ratings", "dataType": "object", "annotations": {"maxLen": 3000}},
+        {"fieldName": "moderation_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "helpful_count", "dataType": "int"},
+        {"fieldName": "is_active", "dataType": "boolean"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_review_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_review_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "reviewer_profile_id", "targetColumn": "id"}]}
+    ]
+}

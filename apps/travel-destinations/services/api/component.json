@@ -1,0 +1,90 @@
+{
+    "name": "api",
+    "description": "Validated travel destination application services",
+    "author": "DAVVAG",
+    "version": "0.4.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "dependency": {
+        "plugins": [
+            {
+                "type": "php",
+                "plugin_location": "global",
+                "location": "/sossdata/SOSSData.php"
+            },
+            {
+                "type": "php",
+                "plugin_location": "global",
+                "location": "/phpcache/cache.php"
+            },
+            {
+                "type": "php",
+                "plugin_location": "global",
+                "location": "/auth/auth.php"
+            },
+            {
+                "type": "php",
+                "plugin_location": "local",
+                "location": "/profile/profile.php"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "travel_destinations\\ApiService",
+        "methods": {
+            "Capabilities": {"method": "GET"},
+            "SearchDestinations": {"method": "POST"},
+            "GetDestination": {"method": "POST"},
+            "GetNearbyDestinations": {"method": "POST"},
+            "GetDestinationReviews": {"method": "POST"},
+            "GetDestinationComments": {"method": "POST"},
+            "GetDestinationConditions": {"method": "POST"},
+            "GetCategories": {"method": "GET"},
+            "GetAmenities": {"method": "GET"},
+            "GetMapConfiguration": {"method": "GET"},
+            "GetMapResults": {"method": "POST"},
+            "SaveDestinationDraft": {"method": "POST"},
+            "SubmitDestination": {"method": "POST"},
+            "UpdateOwnSubmission": {"method": "POST"},
+            "AssociateDestinationMedia": {"method": "POST"},
+            "SaveReview": {"method": "POST"},
+            "DeleteOwnReview": {"method": "POST"},
+            "SaveComment": {"method": "POST"},
+            "DeleteOwnComment": {"method": "POST"},
+            "SaveFavorite": {"method": "POST"},
+            "RemoveFavorite": {"method": "POST"},
+            "SubmitConditionReport": {"method": "POST"},
+            "SubmitContentReport": {"method": "POST"},
+            "MarkReviewHelpful": {"method": "POST"},
+            "GetMySubmissions": {"method": "POST"},
+            "GetMyFavorites": {"method": "POST"},
+            "SaveDestination": {"method": "POST"},
+            "ListAdminDestinations": {"method": "POST"},
+            "PublishDestination": {"method": "POST"},
+            "UnpublishDestination": {"method": "POST"},
+            "ArchiveDestination": {"method": "POST"},
+            "ApproveSubmission": {"method": "POST"},
+            "RejectSubmission": {"method": "POST"},
+            "ReturnSubmission": {"method": "POST"},
+            "ApproveMedia": {"method": "POST"},
+            "ModerateReview": {"method": "POST"},
+            "ModerateComment": {"method": "POST"},
+            "ModerateCondition": {"method": "POST"},
+            "ResolveReport": {"method": "POST"},
+            "MergeDuplicateDestination": {"method": "POST"},
+            "SaveCategory": {"method": "POST"},
+            "SaveAmenity": {"method": "POST"},
+            "GetModerationQueue": {"method": "POST"},
+            "SeedReferenceData": {"method": "POST"},
+            "GetAdminMapSettings": {"method": "GET"},
+            "SaveMapSettings": {"method": "POST"}
+        }
+    }
+}

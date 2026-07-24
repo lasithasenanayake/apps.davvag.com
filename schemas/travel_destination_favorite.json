@@ -1,0 +1,12 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "profile_id", "dataType": "int"},
+        {"fieldName": "list_name", "dataType": "java.lang.String", "annotations": {"maxLen": 120}}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_favorite_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_favorite_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "profile_id", "targetColumn": "id"}]}
+    ]
+}

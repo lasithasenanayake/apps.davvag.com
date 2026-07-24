@@ -1,0 +1,25 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations/admin"><span class="td-brand-mark"></span><span>Travel administration</span></a><div class="td-actions"><button class="td-link" @click="navigate('/admin')">Destinations</button><button class="td-link" @click="navigate('/admin/moderation')">Moderation</button><button class="td-link" @click="navigate('/admin/categories')">Categories</button><button class="td-link" @click="navigate('/admin/amenities')">Amenities</button></div></nav>
+    <div class="td-section-head"><div><p class="td-eyebrow" style="color:var(--td-leaf)">Provider settings</p><h1>Google Maps</h1><p>Save the browser map key once, choose the tenant defaults, and test the integration.</p></div><span class="td-badge">{{ form.enabled ? "Enabled" : "Disabled" }}</span></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="notice" class="td-alert">{{ notice }}</div>
+    <div v-if="loading" class="td-loading">Loading map settings…</div>
+    <div v-if="!loading && authorized" class="td-settings-layout">
+        <form class="td-panel" @submit.prevent="save">
+            <div class="td-alert">Google Maps browser keys are visible to site visitors by design. In Google Cloud, restrict this key to your website’s HTTP referrers and only the Maps JavaScript API (plus Geocoding API if enabled).</div>
+            <div class="td-form-grid">
+                <label class="td-check full"><input type="checkbox" v-model="form.enabled"> Enable Google Maps for travel destinations</label>
+                <div class="td-field full"><label>Google Maps API key</label><input class="td-input" type="password" v-model="form.api_key" autocomplete="new-password" maxlength="255" :placeholder="form.has_api_key ? 'Saved securely — leave blank to keep it' : 'Paste a restricted browser API key'"><small v-if="form.has_api_key">A key is already saved. It is never returned to this admin form.</small></div>
+                <div class="td-field full"><label>Map ID (recommended)</label><input class="td-input" v-model="form.map_id" maxlength="128" placeholder="Required for Advanced Markers"><small>Leave blank to use standard markers.</small></div>
+                <div class="td-field"><label>Language</label><input class="td-input" v-model="form.language" maxlength="20" placeholder="en"></div>
+                <div class="td-field"><label>Region</label><input class="td-input" v-model="form.region" maxlength="3" placeholder="LK"></div>
+                <div class="td-field"><label>Default latitude</label><input class="td-input" type="number" min="-90" max="90" step="any" v-model.number="form.default_latitude"></div>
+                <div class="td-field"><label>Default longitude</label><input class="td-input" type="number" min="-180" max="180" step="any" v-model.number="form.default_longitude"></div>
+                <div class="td-field"><label>Default zoom</label><input class="td-input" type="number" min="2" max="20" v-model.number="form.default_zoom"></div>
+                <label class="td-check"><input type="checkbox" v-model="form.enable_geocoding"> Enable address search (Geocoding API)</label>
+            </div>
+            <div class="td-actions" style="margin-top:22px"><button class="td-button" type="submit" :disabled="saving || !form.encryption_ready">{{ saving ? "Saving…" : "Save settings" }}</button><button class="td-button secondary" type="button" :disabled="testing || !form.has_api_key || !form.enabled" @click="testMap">{{ testing ? "Loading map…" : "Test saved map" }}</button></div>
+            <p v-if="!form.encryption_ready" class="td-alert error">Server encryption is not ready. Configure DAVVAG_PROVIDER_SECRET before saving a key.</p>
+        </form>
+        <section class="td-panel"><h2>Map preview</h2><p>The preview uses the saved server configuration, not unsaved form values.</p><div class="td-google-map td-google-preview" data-google-preview aria-label="Google Maps settings preview"></div><h3>Required Google Cloud setup</h3><ol class="td-setup-list"><li>Enable Maps JavaScript API.</li><li>Set Application restrictions to Websites.</li><li>Add this DAVVAG origin and its HTTPS production origin.</li><li>Set API restrictions to only the APIs used here.</li></ol></section>
+    </div>
+</div></div>

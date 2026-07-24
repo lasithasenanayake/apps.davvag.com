@@ -1,0 +1,7 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark"></span><span>Trail &amp; Tide</span></a><button class="td-link" @click="navigate('/')">Explore more</button></nav>
+    <div class="td-section-head"><div><h1>Saved places</h1><p>Your default Favorites list.</p></div></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="loading" class="td-loading">Opening your saved map…</div>
+    <div v-if="!loading && !error && items.length === 0" class="td-empty"><h3>No saved places yet.</h3><p>Use Save place on any destination detail page.</p></div>
+    <div v-if="!loading && items.length > 0" class="td-grid"><article class="td-card" v-for="item in items" :key="item.id"><div class="td-card-media"></div><div class="td-card-body"><h3 @click="view(item)">{{ item.name }}</h3><p>{{ item.short_summary }}</p><div class="td-actions" style="margin-top:14px"><button class="td-button secondary" @click="view(item)">View</button><button class="td-link" :disabled="removing===item.id" @click="remove(item)">Remove</button></div></div></article></div>
+</div></div>

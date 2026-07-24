@@ -1,0 +1,157 @@
+{
+    "components": {
+        "destination-explorer": {
+            "type": "component",
+            "location": "components"
+        },
+        "destination-detail": {
+            "type": "component",
+            "location": "components"
+        },
+        "destination-form": {
+            "type": "component",
+            "location": "components"
+        },
+        "my-destinations": {
+            "type": "component",
+            "location": "components"
+        },
+        "my-favorites": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-destination-list": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-moderation": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-categories": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-amenities": {
+            "type": "component",
+            "location": "components"
+        },
+        "travel-style": {
+            "type": "component",
+            "location": "components"
+        },
+        "google-map-runtime": {
+            "type": "component",
+            "location": "components"
+        },
+        "admin-map-settings": {
+            "type": "component",
+            "location": "components"
+        },
+        "api": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Travel Destinations",
+        "author": "DAVVAG",
+        "version": "0.4.0",
+        "icon": "appicon.png"
+    },
+    "tags": [
+        "showincms",
+        "showindock"
+    ],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "destination-explorer",
+            "onLoad": [
+                "travel-style",
+                "google-map-runtime",
+                "api"
+            ],
+            "routes": {
+                "partials": {
+                    "/": "destination-explorer",
+                    "/search": "destination-explorer",
+                    "/map": "destination-explorer",
+                    "/place": "destination-detail",
+                    "/submit": "destination-form",
+                    "/my-submissions": "my-destinations",
+                    "/favorites": "my-favorites",
+                    "/admin": "admin-destination-list",
+                    "/admin/moderation": "admin-moderation",
+                    "/admin/categories": "admin-categories",
+                    "/admin/amenities": "admin-amenities",
+                    "/admin/map-settings": "admin-map-settings"
+                }
+            }
+        },
+        "dock": {
+            "subapps": [
+                {
+                    "name": "Explore",
+                    "path": "#/app/travel-destinations"
+                },
+                {
+                    "name": "Map",
+                    "path": "#/app/travel-destinations/map"
+                },
+                {
+                    "name": "Submit a place",
+                    "path": "#/app/travel-destinations/submit"
+                },
+                {
+                    "name": "My submissions",
+                    "path": "#/app/travel-destinations/my-submissions"
+                },
+                {
+                    "name": "Favorites",
+                    "path": "#/app/travel-destinations/favorites"
+                },
+                {
+                    "name": "Administration",
+                    "path": "#/app/travel-destinations/admin"
+                },
+                {
+                    "name": "Map settings",
+                    "path": "#/app/travel-destinations/admin/map-settings"
+                }
+            ]
+        }
+    },
+    "dependencies": {
+        "apps": [
+            "davvag-tools"
+        ],
+        "schemas": [
+            "profile",
+            "travel_destination",
+            "travel_destination_category",
+            "travel_destination_category_link",
+            "travel_destination_amenity",
+            "travel_destination_amenity_link",
+            "travel_destination_media",
+            "travel_destination_review",
+            "travel_destination_review_helpful",
+            "travel_destination_comment",
+            "travel_destination_favorite",
+            "travel_destination_submission_log",
+            "travel_destination_condition",
+            "travel_destination_report",
+            "travel_destination_map_settings"
+        ],
+        "workflows": [],
+        "plugins": [
+            "auth",
+            "phpcache",
+            "profile",
+            "sossdata"
+        ],
+        "php-extensions": [
+            "mbstring",
+            "openssl"
+        ]
+    }
+}

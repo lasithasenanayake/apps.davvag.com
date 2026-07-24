@@ -1,0 +1,12 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "category_id", "dataType": "int"},
+        {"fieldName": "is_primary", "dataType": "boolean"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_category_link_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_category_link_category", "relationType": "many-to-one", "targetEntity": "travel_destination_category", "joinColumns": [{"sourceColumn": "category_id", "targetColumn": "id"}]}
+    ]
+}

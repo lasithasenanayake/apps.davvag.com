@@ -1,0 +1,11 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations/admin"><span class="td-brand-mark"></span><span>Amenity settings</span></a><button class="td-link" @click="navigate('/admin')">Destination list</button></nav>
+    <div class="td-section-head"><div><h1>Practical amenities</h1><p>Normalized, reusable features for discovery filters.</p></div><button class="td-button secondary" :disabled="seeding" @click="seed">Load initial amenities</button></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div>
+    <div v-if="loading" class="td-loading">Loading amenity settings…</div>
+    <div v-if="!loading && authorized" class="td-form-grid">
+        <form class="td-panel" @submit.prevent="save"><h2>{{ form.id ? "Edit amenity" : "New amenity" }}</h2><div class="td-field"><label>Name</label><input class="td-input" v-model="form.name" required></div><div class="td-field"><label>Description</label><textarea class="td-textarea" v-model="form.description"></textarea></div><div class="td-field"><label>Order</label><input class="td-input" type="number" min="0" v-model.number="form.sort_order"></div><label><input type="checkbox" v-model="form.is_active"> Active</label><div class="td-actions" style="margin-top:16px"><button class="td-button" :disabled="saving">{{ saving?"Saving…":"Save amenity" }}</button><button type="button" class="td-link" @click="reset">Clear</button></div></form>
+        <div class="td-panel"><h2>Configured amenities</h2><div v-for="item in items" :key="item.id" style="padding:12px 0;border-bottom:1px solid var(--td-line)"><strong>{{ item.name }}</strong> <span class="td-badge">{{ item.is_active ? "Active":"Inactive" }}</span><button class="td-link" @click="edit(item)">Edit</button></div></div>
+    </div>
+    <div v-if="!loading && !authorized" class="td-alert error">Administrator access is required.</div>
+</div></div>

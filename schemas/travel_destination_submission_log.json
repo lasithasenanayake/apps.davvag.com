@@ -1,0 +1,15 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "profile_id", "dataType": "int"},
+        {"fieldName": "from_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "to_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "note", "dataType": "java.lang.String", "annotations": {"maxLen": 3000, "encoding": "utf8"}},
+        {"fieldName": "event_date", "dataType": "java.util.Date"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_submission_log_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_submission_log_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "profile_id", "targetColumn": "id"}]}
+    ]
+}

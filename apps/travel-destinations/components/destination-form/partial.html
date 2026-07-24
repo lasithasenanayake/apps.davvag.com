@@ -1,0 +1,86 @@
+<div class="td-app">
+    <div class="td-shell">
+        <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark"></span><span>Trail &amp; Tide</span></a><button class="td-link" @click="navigate('/my-submissions')">My submissions</button></nav>
+        <div class="td-section-head">
+            <div><p class="td-eyebrow" style="color:var(--td-leaf)">Community field guide</p><h1>Share a place worth protecting.</h1><p>Save a draft at any time. Your submission is reviewed before it becomes public.</p></div>
+            <span class="td-badge">Step {{ step }} of 6</span>
+        </div>
+        <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="notice" class="td-alert">{{ notice }}</div>
+        <form class="td-panel" @submit.prevent="saveDraft">
+            <section v-show="step===1">
+                <h2>1. The essentials</h2>
+                <div class="td-form-grid">
+                    <div class="td-field full"><label>Destination name</label><input class="td-input" v-model="form.name" maxlength="255" required></div>
+                    <div class="td-field full"><label>Short summary</label><textarea class="td-textarea" v-model="form.short_summary" maxlength="600" placeholder="What makes this place special and who is it suitable for?"></textarea></div>
+                    <div class="td-field full"><label>Description (safe Markdown)</label><textarea class="td-textarea" style="min-height:180px" v-model="form.description_markdown" maxlength="20000"></textarea></div>
+                    <div class="td-field"><label>Primary language</label><input class="td-input" v-model="form.primary_language" maxlength="20"></div>
+                    <div class="td-field"><label>Tags, comma separated</label><input class="td-input" v-model="form.tags" maxlength="1000"></div>
+                </div>
+            </section>
+            <section v-show="step===2">
+                <h2>2. Experience types</h2>
+                <p>Select every category that applies.</p>
+                <div class="td-checks"><label class="td-check" v-for="category in categories" :key="category.id"><input type="checkbox" :value="category.id" v-model="form.category_ids">{{ category.name }}</label></div>
+                <div class="td-field" style="margin-top:18px"><label>Stay subtype, if applicable</label><select class="td-select" v-model="form.stay_subtype"><option value="">Not a stay</option><option v-for="value in staySubtypes" :key="value" :value="value">{{ value }}</option></select></div>
+            </section>
+            <section v-show="step===3">
+                <h2>3. Location &amp; access</h2>
+                <div v-if="mapConfig.enabled">
+                    <div v-if="mapConfig.geocodingEnabled" class="td-form-grid">
+                        <div class="td-field full"><label>Find a place or address</label><div class="td-inline-search"><input class="td-input" v-model="addressQuery" placeholder="Search with Google Geocoding" @keyup.enter.prevent="searchAddress"><button class="td-button secondary" type="button" :disabled="searchingLocation" @click="searchAddress">{{ searchingLocation ? "Searching…" : "Find" }}</button></div></div>
+                    </div>
+                    <div class="td-google-map td-google-picker" data-google-picker-map aria-label="Choose a destination location on Google Maps"></div>
+                    <p class="td-alert">Click the map or drag the marker to set the coordinates. Exact coordinates still follow the privacy option below.</p>
+                </div>
+                <p v-if="mapError" class="td-alert error">{{ mapError }}</p>
+                <div class="td-form-grid">
+                    <div class="td-field"><label>Latitude</label><input class="td-input" type="number" min="-90" max="90" step="any" v-model.number="form.latitude" @change="refreshMap"></div>
+                    <div class="td-field"><label>Longitude</label><input class="td-input" type="number" min="-180" max="180" step="any" v-model.number="form.longitude" @change="refreshMap"></div>
+                    <div class="td-field"><label>Location privacy</label><select class="td-select" v-model="form.location_privacy"><option value="exact_public">Exact public location</option><option value="approximate_public">Approximate public location</option><option value="hidden_sensitive">Hidden sensitive location</option><option value="approved_only">Exact location for approved users/admins</option></select></div>
+                    <div class="td-field"><label>Coordinate accuracy (metres)</label><input class="td-input" type="number" min="0" v-model.number="form.coordinate_accuracy"></div>
+                    <div class="td-field"><label>Province</label><input class="td-input" v-model="form.province"></div>
+                    <div class="td-field"><label>District</label><input class="td-input" v-model="form.district"></div>
+                    <div class="td-field"><label>Nearest town</label><input class="td-input" v-model="form.nearest_town"></div>
+                    <div class="td-field"><label>Village</label><input class="td-input" v-model="form.village"></div>
+                    <div class="td-field full"><label>Location description</label><textarea class="td-textarea" v-model="form.location_description"></textarea></div>
+                    <div class="td-field full"><label>Road and access notes</label><textarea class="td-textarea" v-model="form.access_road_description"></textarea></div>
+                    <div class="td-field full"><button type="button" class="td-button secondary" :disabled="locating" @click="useCurrentLocation">{{ locating ? "Locating…" : "Use my current location" }}</button></div>
+                </div>
+            </section>
+            <section v-show="step===4">
+                <h2>4. Amenities &amp; practical details</h2>
+                <div class="td-checks"><label class="td-check" v-for="amenity in amenities" :key="amenity.id"><input type="checkbox" :value="amenity.id" v-model="form.amenity_ids">{{ amenity.name }}</label></div>
+                <div class="td-form-grid" style="margin-top:18px">
+                    <div class="td-field"><label>Distance from town (km)</label><input class="td-input" type="number" min="0" step=".1" v-model.number="form.distance_from_town_km"></div>
+                    <div class="td-field"><label>Walk from parking (km)</label><input class="td-input" type="number" min="0" step=".1" v-model.number="form.walking_distance_km"></div>
+                    <div class="td-field"><label><input type="checkbox" v-model="form.requires_4wd"> Four-wheel drive recommended</label></div>
+                    <div class="td-field full"><label>Public transport instructions</label><textarea class="td-textarea" v-model="form.public_transport_instructions"></textarea></div>
+                    <div class="td-field full"><label>Safety warnings</label><textarea class="td-textarea" v-model="form.safety_warnings"></textarea></div>
+                    <div class="td-field full"><label>Responsible travel guidance</label><textarea class="td-textarea" v-model="form.responsible_travel_markdown"></textarea></div>
+                </div>
+            </section>
+            <section v-show="step===5">
+                <h2>5. Photos</h2>
+                <p>Save the draft first. JPG, PNG and WebP images up to 10 MB are uploaded through DAVVAG Tools and remain pending moderation.</p>
+                <input class="td-input" type="file" accept="image/jpeg,image/png,image/webp" multiple @change="chooseFiles">
+                <div class="td-actions" style="margin-top:12px"><button type="button" class="td-button secondary" :disabled="uploading || !form.id || !files.length" @click="uploadPhotos">{{ uploading ? "Uploading…" : "Upload selected photos" }}</button></div>
+                <div v-for="file in files" :key="file.name" style="padding:8px 0">{{ file.name }} · {{ Math.round(file.size/1024) }} KB</div>
+            </section>
+            <section v-show="step===6">
+                <h2>6. Review &amp; submit</h2>
+                <div class="td-alert">By submitting, you confirm the information is accurate to the best of your knowledge and does not reveal a fragile or restricted location inappropriately.</div>
+                <h3>{{ form.name || "Untitled destination" }}</h3><p>{{ form.short_summary }}</p>
+                <p><strong>Location:</strong> {{ form.latitude }}, {{ form.longitude }} · {{ form.location_privacy }}</p>
+                <p><strong>Categories:</strong> {{ form.category_ids.length }} selected · <strong>Amenities:</strong> {{ form.amenity_ids.length }} selected</p>
+            </section>
+            <div class="td-actions" style="justify-content:space-between;margin-top:26px;padding-top:18px;border-top:1px solid var(--td-line)">
+                <button type="button" class="td-button ghost" :disabled="step===1" @click="previous">Back</button>
+                <div class="td-actions">
+                    <button type="submit" class="td-button secondary" :disabled="saving">{{ saving ? "Saving…" : "Save draft" }}</button>
+                    <button v-if="step<6" type="button" class="td-button" @click="next">Continue</button>
+                    <button v-else type="button" class="td-button" :disabled="submitting" @click="submitForReview">{{ submitting ? "Submitting…" : "Submit for review" }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

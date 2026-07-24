@@ -1,0 +1,21 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "report_type", "dataType": "java.lang.String", "annotations": {"maxLen": 80}},
+        {"fieldName": "description", "dataType": "java.lang.String", "annotations": {"maxLen": 2000, "encoding": "utf8"}},
+        {"fieldName": "reporter_profile_id", "dataType": "int"},
+        {"fieldName": "observed_at", "dataType": "java.util.Date"},
+        {"fieldName": "expires_at", "dataType": "java.util.Date"},
+        {"fieldName": "media_reference", "dataType": "java.lang.String", "annotations": {"maxLen": 500}},
+        {"fieldName": "moderation_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "confirmation_count", "dataType": "int"},
+        {"fieldName": "dispute_count", "dataType": "int"},
+        {"fieldName": "is_official", "dataType": "boolean"},
+        {"fieldName": "is_pinned", "dataType": "boolean"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_condition_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_condition_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "reporter_profile_id", "targetColumn": "id"}]}
+    ]
+}

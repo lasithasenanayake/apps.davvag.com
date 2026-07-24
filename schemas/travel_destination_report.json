@@ -1,0 +1,18 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "entity_type", "dataType": "java.lang.String", "annotations": {"maxLen": 50}},
+        {"fieldName": "entity_id", "dataType": "int"},
+        {"fieldName": "reporter_profile_id", "dataType": "int"},
+        {"fieldName": "reason", "dataType": "java.lang.String", "annotations": {"maxLen": 100}},
+        {"fieldName": "description", "dataType": "java.lang.String", "annotations": {"maxLen": 3000, "encoding": "utf8"}},
+        {"fieldName": "status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "assigned_moderator_profile_id", "dataType": "int"},
+        {"fieldName": "resolution_notes", "dataType": "java.lang.String", "annotations": {"maxLen": 3000, "encoding": "utf8"}},
+        {"fieldName": "resolved_at", "dataType": "java.util.Date"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_reporter_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "reporter_profile_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_report_moderator_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "assigned_moderator_profile_id", "targetColumn": "id"}]}
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "review_id", "dataType": "int"},
+        {"fieldName": "profile_id", "dataType": "int"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_review_helpful_review", "relationType": "many-to-one", "targetEntity": "travel_destination_review", "joinColumns": [{"sourceColumn": "review_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_review_helpful_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "profile_id", "targetColumn": "id"}]}
+    ]
+}

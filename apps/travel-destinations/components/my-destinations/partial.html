@@ -1,0 +1,9 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark"></span><span>Trail &amp; Tide</span></a><button class="td-button" @click="navigate('/submit')">Share a new place</button></nav>
+    <div class="td-section-head"><div><h1>My submissions</h1><p>Drafts, moderation decisions and published contributions.</p></div></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="loading" class="td-loading">Loading your field notes…</div>
+    <div v-if="!loading && !error && items.length === 0" class="td-empty"><h3>You have not submitted a destination yet.</h3></div>
+    <div v-if="!loading && items.length > 0" class="td-table-wrap"><table class="td-table"><thead><tr><th>Destination</th><th>Status</th><th>Location</th><th>Action</th></tr></thead><tbody>
+        <tr v-for="item in items" :key="item.id"><td><strong>{{ item.name }}</strong><br><span>{{ item.short_summary }}</span></td><td><span class="td-badge">{{ item.status }}</span><div v-if="item.moderation_reason">{{ item.moderation_reason }}</div></td><td>{{ item.nearest_town || item.district || item.province }}</td><td><button v-if="editable(item)" class="td-button secondary" @click="edit(item)">Continue editing</button><button v-if="!editable(item) && item.status==='Published'" class="td-link" @click="view(item)">View</button></td></tr>
+    </tbody></table></div>
+</div></div>

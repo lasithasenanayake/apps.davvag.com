@@ -1,0 +1,8 @@
+WEBDOCK.component().register(function(exports){
+    var api,router;var state={items:[],loading:true,error:"",removing:null};var viewState=state;
+    exports.vue={data:state,methods:{navigate:navigate,view:view,remove:remove},onReady:function(scope){viewState=scope||state;api=exports.getComponent("api");router=exports.getShellComponent("soss-routes");load();}};
+    function load(){viewState.loading=true;viewState.error="";if(!api||!api.services){viewState.loading=false;viewState.error="Destination services are unavailable.";return;}api.services.GetMyFavorites({page:0,pageSize:50}).then(function(r){viewState.loading=false;if(r&&r.success){replaceItems(viewState.items,(r.result&&r.result.items)||[]);}else{viewState.error=msg(r,"Sign in to view saved places.");}}).error(function(){viewState.loading=false;viewState.error="Saved places could not be loaded.";});}
+    function remove(item){if(viewState.removing){return;}viewState.removing=item.id;api.services.RemoveFavorite({destination_id:item.id}).then(function(r){viewState.removing=null;if(r&&r.success){replaceItems(viewState.items,viewState.items.filter(function(x){return x.id!==item.id;}));}else{viewState.error=msg(r,"Favorite could not be removed.");}}).error(function(){viewState.removing=null;viewState.error="Favorite could not be removed.";});}
+    function replaceItems(target,items){target.splice.apply(target,[0,target.length].concat(Array.isArray(items)?items:[]));}
+    function view(item){navigate("/place?id="+encodeURIComponent(item.id));}function navigate(path){if(router&&router.appNavigate){router.appNavigate(path);}else{window.location.hash="#/app/travel-destinations"+path;}}function msg(r,f){return r&&r.result&&r.result.message?r.result.message:f;}
+});

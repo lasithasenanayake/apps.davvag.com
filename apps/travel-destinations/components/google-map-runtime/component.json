@@ -1,0 +1,11 @@
+{
+    "name": "google-map-runtime",
+    "description": "Reusable Google Maps loader and marker adapter",
+    "author": "DAVVAG",
+    "version": "0.4.0",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"}
+        ]
+    }
+}

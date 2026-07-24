@@ -1,0 +1,12 @@
+{
+    "name": "admin-map-settings",
+    "description": "Google Maps provider settings administration",
+    "author": "DAVVAG",
+    "version": "0.4.0",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ]
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "name": "destination-explorer",
+    "description": "Public destination list and Google map discovery",
+    "author": "DAVVAG",
+    "version": "0.4.0",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ]
+    }
+}

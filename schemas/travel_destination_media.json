@@ -1,0 +1,19 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "destination_id", "dataType": "int"},
+        {"fieldName": "media_reference", "dataType": "java.lang.String", "annotations": {"maxLen": 500}},
+        {"fieldName": "media_type", "dataType": "java.lang.String", "annotations": {"maxLen": 50}},
+        {"fieldName": "caption", "dataType": "java.lang.String", "annotations": {"maxLen": 1000, "encoding": "utf8"}},
+        {"fieldName": "alternative_text", "dataType": "java.lang.String", "annotations": {"maxLen": 500, "encoding": "utf8"}},
+        {"fieldName": "credit", "dataType": "java.lang.String", "annotations": {"maxLen": 255, "encoding": "utf8"}},
+        {"fieldName": "display_order", "dataType": "int"},
+        {"fieldName": "is_cover", "dataType": "boolean"},
+        {"fieldName": "uploaded_by_profile_id", "dataType": "int"},
+        {"fieldName": "moderation_status", "dataType": "java.lang.String", "annotations": {"maxLen": 40}}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_media_destination", "relationType": "many-to-one", "targetEntity": "travel_destination", "joinColumns": [{"sourceColumn": "destination_id", "targetColumn": "id"}]},
+        {"relationName": "travel_destination_media_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "uploaded_by_profile_id", "targetColumn": "id"}]}
+    ]
+}

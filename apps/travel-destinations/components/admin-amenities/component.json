@@ -1,0 +1,1 @@
+{"name":"admin-amenities","description":"Destination amenity administration","author":"DAVVAG","version":"0.3.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

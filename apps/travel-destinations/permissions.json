@@ -1,0 +1,47 @@
+{
+    "anonymous": [
+        "Capabilities",
+        "SearchDestinations",
+        "GetDestination",
+        "GetNearbyDestinations",
+        "GetDestinationReviews",
+        "GetDestinationComments",
+        "GetDestinationConditions",
+        "GetCategories",
+        "GetAmenities",
+        "GetMapResults",
+        "GetMapConfiguration"
+    ],
+    "web_user": [
+        "Capabilities",
+        "SearchDestinations",
+        "GetDestination",
+        "GetNearbyDestinations",
+        "GetDestinationReviews",
+        "GetDestinationComments",
+        "GetDestinationConditions",
+        "GetCategories",
+        "GetAmenities",
+        "GetMapResults",
+        "SaveDestinationDraft",
+        "SubmitDestination",
+        "UpdateOwnSubmission",
+        "AssociateDestinationMedia",
+        "SaveReview",
+        "DeleteOwnReview",
+        "SaveComment",
+        "DeleteOwnComment",
+        "SaveFavorite",
+        "RemoveFavorite",
+        "SubmitConditionReport",
+        "SubmitContentReport",
+        "MarkReviewHelpful",
+        "GetMySubmissions",
+        "GetMyFavorites",
+        "GetMapConfiguration"
+    ],
+    "sysadmin": [
+        "GetAdminMapSettings",
+        "SaveMapSettings"
+    ]
+}
