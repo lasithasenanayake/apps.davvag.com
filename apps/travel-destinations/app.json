@@ -56,7 +56,7 @@
     "description": {
         "title": "Travel Destinations",
         "author": "DAVVAG",
-        "version": "0.4.4",
+        "version": "0.4.5",
         "icon": "appicon.png"
     },
     "tags": [
@@ -140,7 +140,8 @@
             "travel_destination_submission_log",
             "travel_destination_condition",
             "travel_destination_report",
-            "travel_destination_map_settings"
+            "travel_destination_map_settings",
+            "travel_destination_description_chunk"
         ],
         "workflows": [],
         "plugins": [

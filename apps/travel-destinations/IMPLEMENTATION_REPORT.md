@@ -156,6 +156,15 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - Explorer markers are numbered to match result rows, and duplicate coordinate bounds no longer produce an incorrect zoom.
 - Validation passes 303 checks with zero failures; permissions were installed idempotently and anonymous resolver access was rejected.
 
+## v0.4.5 large destination descriptions
+
+- Increased the logical `description_markdown` limit from 20,000 to 250,000 characters.
+- Added ordered SOSSData description chunks so long UTF-8 Markdown is not truncated by the database `TEXT` byte limit.
+- Preserved the existing `description_markdown` API field and existing destination compatibility.
+- New chunks are written before old chunks are removed; failed writes roll back the new chunks and retain the previous description.
+- Added a larger editor and live character counter to the submission form.
+- Validation passes 312 checks with zero failures, and the live destination endpoint reconstructs descriptions successfully.
+
 - Added the administrator route `#/app/travel-destinations/admin/map-settings`.
 - Added encrypted-at-rest Google Maps browser API-key storage using the existing `DAVVAG_PROVIDER_SECRET` and AES-256-GCM provider-secret pattern.
 - Added tenant-persistent map ID, language, region, default centre, zoom and optional Geocoding API settings.

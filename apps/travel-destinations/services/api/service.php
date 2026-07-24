@@ -92,6 +92,7 @@ class ApiService {
     private $conditionNamespace = "travel_destination_condition";
     private $reportNamespace = "travel_destination_report";
     private $mapSettingsNamespace = "travel_destination_map_settings";
+    private $descriptionChunkNamespace = "travel_destination_description_chunk";
 
     private $destinationStatuses = array("Draft", "Pending Review", "Returned for Changes", "Approved", "Rejected", "Published", "Archived");
     private $privacyModes = array("exact_public", "approximate_public", "hidden_sensitive", "approved_only");
@@ -298,6 +299,7 @@ class ApiService {
         $destination->categories = $this->linkedReferenceRows($destination->id, $this->categoryLinkNamespace, "category_id", $this->categoryNamespace);
         $destination->amenities = $this->linkedReferenceRows($destination->id, $this->amenityLinkNamespace, "amenity_id", $this->amenityNamespace);
         $destination->media = $this->approvedMedia($destination->id);
+        $destination->description_markdown = $this->fullDestinationDescription($destination);
         $this->applyCoordinatePrivacy($destination, $this->canSeeExactCoordinates($destination));
         $destination->directions_url = $this->directionsUrl($destination);
         return $destination;
@@ -957,7 +959,8 @@ class ApiService {
             $destination->slug .= "-" . substr(md5(uniqid("", true)), 0, 6);
         }
         $destination->short_summary = $this->text($body, "short_summary", 600);
-        $destination->description_markdown = TravelDestinationRules::plainMarkdown(isset($body->description_markdown) ? $body->description_markdown : "", 20000);
+        $fullDescription = TravelDestinationRules::plainMarkdown(isset($body->description_markdown) ? $body->description_markdown : "", 250000);
+        $destination->description_markdown = mb_substr($fullDescription, 0, 12000);
         $destination->tags = $this->text($body, "tags", 1000);
         $destination->primary_language = $this->text($body, "primary_language", 20);
         $destination->primary_language = $destination->primary_language === "" ? "en" : $destination->primary_language;
@@ -990,6 +993,60 @@ class ApiService {
     private function syncDestinationLinks($destination, $body, $res) {
         $this->syncLinks($destination->id, $body, "category_ids", $this->categoryLinkNamespace, "category_id", true, $res);
         $this->syncLinks($destination->id, $body, "amenity_ids", $this->amenityLinkNamespace, "amenity_id", false, $res);
+        $this->syncDestinationDescription($destination->id, $body, $res);
+    }
+
+    private function syncDestinationDescription($destinationId, $body, $res) {
+        if (!isset($body->description_markdown)) {
+            return;
+        }
+        $content = TravelDestinationRules::plainMarkdown($body->description_markdown, 250000);
+        $existing = $this->rows($this->descriptionChunkNamespace, "destination_id:" . intval($destinationId), "asc", 100, 0);
+        $length = mb_strlen($content);
+        $chunkIndex = 0;
+        $inserted = array();
+        for ($offset = 0; $offset < $length; $offset += 12000) {
+            $chunk = new \stdClass();
+            $chunk->destination_id = intval($destinationId);
+            $chunk->chunk_index = $chunkIndex++;
+            $chunk->content = mb_substr($content, $offset, 12000);
+            $saved = \SOSSData::Insert($this->descriptionChunkNamespace, $chunk);
+            if (empty($saved->success)) {
+                if (count($inserted) > 0) {
+                    \SOSSData::Delete($this->descriptionChunkNamespace, $inserted);
+                }
+                $this->fail($res, "The complete destination description could not be saved.");
+                return;
+            }
+            if (isset($saved->result->generatedId)) {
+                $chunk->id = intval($saved->result->generatedId);
+            }
+            $inserted[] = $chunk;
+        }
+        if (count($existing) > 0) {
+            \SOSSData::Delete($this->descriptionChunkNamespace, $existing);
+        }
+        if (class_exists("\\CacheData")) {
+            \CacheData::clearObjects($this->descriptionChunkNamespace);
+        }
+    }
+
+    private function fullDestinationDescription($destination) {
+        if (!$destination || !isset($destination->id)) {
+            return $destination && isset($destination->description_markdown) ? strval($destination->description_markdown) : "";
+        }
+        $chunks = $this->rows($this->descriptionChunkNamespace, "destination_id:" . intval($destination->id), "asc", 100, 0);
+        if (count($chunks) === 0) {
+            return isset($destination->description_markdown) ? strval($destination->description_markdown) : "";
+        }
+        usort($chunks, function ($left, $right) {
+            return intval($left->chunk_index) - intval($right->chunk_index);
+        });
+        $content = "";
+        foreach ($chunks as $chunk) {
+            $content .= isset($chunk->content) ? strval($chunk->content) : "";
+        }
+        return mb_substr($content, 0, 250000);
     }
 
     private function syncLinks($destinationId, $body, $bodyField, $namespace, $targetField, $primary, $res) {

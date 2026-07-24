@@ -12,7 +12,7 @@
                 <div class="td-form-grid">
                     <div class="td-field full"><label>Destination name</label><input class="td-input" v-model="form.name" maxlength="255" required></div>
                     <div class="td-field full"><label>Short summary</label><textarea class="td-textarea" v-model="form.short_summary" maxlength="600" placeholder="What makes this place special and who is it suitable for?"></textarea></div>
-                    <div class="td-field full"><label>Description (safe Markdown)</label><textarea class="td-textarea" style="min-height:180px" v-model="form.description_markdown" maxlength="20000"></textarea></div>
+                    <div class="td-field full"><label>Description (safe Markdown)</label><textarea class="td-textarea" style="min-height:320px" v-model="form.description_markdown" maxlength="250000"></textarea><small>{{ (form.description_markdown || "").length.toLocaleString() }} / 250,000 characters</small></div>
                     <div class="td-field"><label>Primary language</label><input class="td-input" v-model="form.primary_language" maxlength="20"></div>
                     <div class="td-field"><label>Tags, comma separated</label><input class="td-input" v-model="form.tags" maxlength="1000"></div>
                 </div>

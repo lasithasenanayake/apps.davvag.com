@@ -89,6 +89,10 @@ checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminMapSettings),
 checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveMapSettings), "Admin map settings save service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->ResolveMapLocationUrl), "Map URL resolver service is not declared.");
 checkTravel(in_array("travel_destination_map_settings", $app->dependencies->schemas, true), "Map settings schema dependency is missing.");
+checkTravel(in_array("travel_destination_description_chunk", $app->dependencies->schemas, true), "Large description chunk schema dependency is missing.");
+$formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
+checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
+checkTravel(strpos(file_get_contents($appRoot . "/services/api/service.php"), "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 $permissionManifest = json_decode(file_get_contents($appRoot . "/permissions.json"));
 checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, true), "Anonymous users can access the map URL resolver.");
 checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");
