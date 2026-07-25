@@ -42,7 +42,7 @@
         <div v-if="error" class="td-alert error" role="alert">{{ error }}</div>
         <section aria-live="polite">
             <div class="td-section-head">
-                <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} {{ viewMode === "map" ? "mapped" : "published" }} places found</p></div>
+                <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} published places found</p></div>
                 <div class="td-toggle" aria-label="Choose result view">
                     <button :class="{active:viewMode==='list'}" :disabled="loading || loadingMore" @click="setView('list')" type="button">List</button>
                     <button :class="{active:viewMode==='map'}" :disabled="loading || loadingMore" @click="setView('map')" type="button">Map</button>
@@ -62,9 +62,12 @@
             </div>
             <div v-if="!loading && items.length > 0 && viewMode==='map'" class="td-map-layout">
                 <div class="td-map-list">
-                    <article v-for="(item,index) in mappableItems" :key="item.id" class="td-map-row" :class="{active:selectedId===item.id}" @click="selectMarker(item)">
-                        <strong><span class="td-map-number">{{ index + 1 }}</span>{{ item.name }}</strong>
+                    <div class="td-alert" v-if="mappableItems.length === 0">The matching places were found, but they do not have public map coordinates yet.</div>
+                    <div class="td-map-coverage">{{ mappableItems.length }} of {{ items.length }} loaded places have public map coordinates.</div>
+                    <article v-for="item in items" :key="item.id" class="td-map-row" :class="{active:selectedId===item.id}" @click="selectMarker(item)">
+                        <strong><span v-if="hasMapLocation(item)" class="td-map-number">{{ markerNumber(item) }}</span>{{ item.name }}</strong>
                         <div>{{ locationLabel(item) }} · ★ {{ number(item.rating_average) }}</div>
+                        <div v-if="!hasMapLocation(item)" class="td-map-unavailable">Public map location unavailable</div>
                         <button v-if="selectedId===item.id" class="td-link" @click.stop="openDestination(item)">View place →</button>
                     </article>
                     <div class="td-load-more td-load-more-map" v-if="canLoadMore">

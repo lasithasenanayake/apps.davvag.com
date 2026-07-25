@@ -90,11 +90,13 @@ checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formSc
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");
 checkTravel(strpos($explorerScript, 'pageSize: 20') !== false, "Explorer does not load destinations in twenty-place pages.");
 checkTravel(strpos($explorerScript, "function hasMoreResults()") !== false, "Explorer load-more visibility does not fall back to the result total.");
-checkTravel(strpos($explorerScript, "api.services.GetMapResults(filters)") !== false, "Map view does not use the coordinate-only result service.");
+checkTravel(substr_count($explorerScript, "api.services.SearchDestinations(requestFilters())") === 2, "List and map views do not share the same paginated search source.");
+checkTravel(strpos($explorerScript, "function hasMapLocation(item)") !== false, "Explorer does not validate public map coordinates before plotting.");
 $explorerView = file_get_contents($appRoot . "/components/destination-explorer/partial.html");
 checkTravel(substr_count($explorerView, '@click="loadMore"') === 2, "Explorer must expose load-more controls in both list and map views.");
 checkTravel(strpos($explorerView, "td-load-more-map") !== false, "Map view does not keep its load-more control with the mapped result list.");
-checkTravel(strpos($explorerView, '"mapped" : "published"') !== false, "Explorer result count does not distinguish mapped places from all published places.");
+checkTravel(strpos($explorerView, 'v-for="item in items"') !== false, "Map view hides matching destinations that lack public coordinates.");
+checkTravel(strpos($explorerView, "Public map location unavailable") !== false, "Map view does not explain why a matching destination has no marker.");
 checkTravel(strpos($formScript, "ResolveMapLocationUrl") !== false && strpos($formScript, "coordinatesFromMapUrl") !== false, "Destination form does not extract coordinates from Google Maps URLs.");
 checkTravel(strpos($travelStyles, ".td-prose-table") !== false && strpos($travelStyles, "overflow-x:auto") !== false, "Markdown tables do not have responsive table styles.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration), "Public map configuration service is not declared.");
