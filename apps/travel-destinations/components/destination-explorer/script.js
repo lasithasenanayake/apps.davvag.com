@@ -2,7 +2,7 @@ WEBDOCK.component().register(function (exports) {
     var api, maps, router, rootElement, mapHandle;
     var state = {
         items: [], categories: [], amenities: [],
-        filters: {keyword: "", categoryId: "", sort: "featured", page: 0, pageSize: 18},
+        filters: {keyword: "", categoryId: "", sort: "featured", page: 0, pageSize: 4},
         pagination: {}, loading: false, loadingMore: false, error: "",
         viewMode: "list", selectedId: null, resultTitle: "Places worth the journey",
         mapConfig: {enabled:false}, mapError: ""
@@ -14,6 +14,9 @@ WEBDOCK.component().register(function (exports) {
         computed: {
             mappableItems: function () {
                 return viewState.items.filter(function (item) { return item.latitude !== undefined && item.longitude !== undefined; });
+            },
+            canLoadMore: function () {
+                return hasMoreResults();
             }
         },
         onReady: function (scope, element) {
@@ -45,18 +48,32 @@ WEBDOCK.component().register(function (exports) {
         }).error(function () { viewState.loading = false; viewState.error = "Search could not be completed."; });
     }
     function loadMore() {
-        if (viewState.loadingMore || !viewState.pagination.hasMore) { return; }
+        if (viewState.loadingMore || !hasMoreResults()) { return; }
         viewState.loadingMore = true; viewState.filters.page = Number(viewState.pagination.page || 0) + 1;
         api.services.SearchDestinations(requestFilters()).then(function (response) {
             viewState.loadingMore = false;
             if (response.success) {
                 var result = response.result || {};
-                Array.prototype.push.apply(viewState.items, result.items || []); viewState.pagination = result.pagination || {};
+                appendUniqueItems(viewState.items, result.items || []); viewState.pagination = result.pagination || {};
                 scheduleMap();
             } else { viewState.error = serviceMessage(response, "More places could not be loaded."); }
         }).error(function () { viewState.loadingMore = false; viewState.error = "More places could not be loaded."; });
     }
     function replaceItems(target,items) { target.splice.apply(target,[0,target.length].concat(Array.isArray(items) ? items : [])); }
+    function appendUniqueItems(target, items) {
+        var known = {};
+        target.forEach(function (item) { known[String(item.id)] = true; });
+        (Array.isArray(items) ? items : []).forEach(function (item) {
+            var key = String(item.id);
+            if (!known[key]) { known[key] = true; target.push(item); }
+        });
+    }
+    function hasMoreResults() {
+        var pagination = viewState.pagination || {};
+        var total = Number(pagination.total);
+        return pagination.hasMore === true || pagination.hasMore === 1 || pagination.hasMore === "1" ||
+            (isFinite(total) && total > viewState.items.length);
+    }
     function requestFilters() { var copy = JSON.parse(JSON.stringify(viewState.filters)); if (!copy.categoryId) { delete copy.categoryId; } return copy; }
     function setView(mode) { viewState.viewMode = mode; if (mode === "map" && !viewState.selectedId && viewState.items.length) { viewState.selectedId = viewState.items[0].id; } if (mode === "map") { scheduleMap(); } }
     function selectMarker(item) {

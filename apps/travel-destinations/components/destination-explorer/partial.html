@@ -67,6 +67,10 @@
                         <div>{{ locationLabel(item) }} · ★ {{ number(item.rating_average) }}</div>
                         <button v-if="selectedId===item.id" class="td-link" @click.stop="openDestination(item)">View place →</button>
                     </article>
+                    <div class="td-load-more td-load-more-map" v-if="canLoadMore">
+                        <p>Showing {{ items.length }} of {{ pagination.total }} places</p>
+                        <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 4 more places" }}</button>
+                    </div>
                 </div>
                 <div v-if="mapConfig.enabled && !mapError" class="td-google-map td-google-explorer" data-google-explorer-map aria-label="Google map of destination results"></div>
                 <div v-else class="td-coordinate-map" aria-label="Coordinate map of destination results">
@@ -74,8 +78,9 @@
                     <div class="td-map-caption">{{ mapError || "Provider-neutral coordinate overview · select a marker for details" }}</div>
                 </div>
             </div>
-            <div class="td-actions" style="justify-content:center;margin-top:24px" v-if="pagination.hasMore">
-                <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load more" }}</button>
+            <div class="td-load-more" v-if="viewMode==='list' && canLoadMore">
+                <p>Showing {{ items.length }} of {{ pagination.total }} places</p>
+                <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 4 more places" }}</button>
             </div>
         </section>
     </div>
