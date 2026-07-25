@@ -88,7 +88,7 @@ checkTravel(strpos($mapRuntime, "PinElement") !== false && strpos($mapRuntime, "
 checkTravel(strpos($mapSettingsView, "HTTP referrers") !== false, "Map settings do not explain browser API-key restrictions.");
 checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formScript, "onMapClick") !== false, "Destination form does not support draggable and click location selection.");
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");
-checkTravel(strpos($explorerScript, 'pageSize: 4') !== false, "Explorer does not load destinations in four-place pages.");
+checkTravel(strpos($explorerScript, 'pageSize: 20') !== false, "Explorer does not load destinations in twenty-place pages.");
 checkTravel(strpos($explorerScript, "function hasMoreResults()") !== false, "Explorer load-more visibility does not fall back to the result total.");
 $explorerView = file_get_contents($appRoot . "/components/destination-explorer/partial.html");
 checkTravel(substr_count($explorerView, '@click="loadMore"') === 2, "Explorer must expose load-more controls in both list and map views.");

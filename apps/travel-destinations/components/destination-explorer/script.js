@@ -2,7 +2,7 @@ WEBDOCK.component().register(function (exports) {
     var api, maps, router, rootElement, mapHandle;
     var state = {
         items: [], categories: [], amenities: [],
-        filters: {keyword: "", categoryId: "", sort: "featured", page: 0, pageSize: 4},
+        filters: {keyword: "", categoryId: "", sort: "featured", page: 0, pageSize: 20},
         pagination: {}, loading: false, loadingMore: false, error: "",
         viewMode: "list", selectedId: null, resultTitle: "Places worth the journey",
         mapConfig: {enabled:false}, mapError: ""

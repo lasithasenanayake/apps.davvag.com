@@ -69,7 +69,7 @@
                     </article>
                     <div class="td-load-more td-load-more-map" v-if="canLoadMore">
                         <p>Showing {{ items.length }} of {{ pagination.total }} places</p>
-                        <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 4 more places" }}</button>
+                        <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 20 more places" }}</button>
                     </div>
                 </div>
                 <div v-if="mapConfig.enabled && !mapError" class="td-google-map td-google-explorer" data-google-explorer-map aria-label="Google map of destination results"></div>
@@ -80,7 +80,7 @@
             </div>
             <div class="td-load-more" v-if="viewMode==='list' && canLoadMore">
                 <p>Showing {{ items.length }} of {{ pagination.total }} places</p>
-                <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 4 more places" }}</button>
+                <button class="td-button secondary" type="button" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? "Loading…" : "Load 20 more places" }}</button>
             </div>
         </section>
     </div>
