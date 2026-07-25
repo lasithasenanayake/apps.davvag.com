@@ -42,10 +42,10 @@
         <div v-if="error" class="td-alert error" role="alert">{{ error }}</div>
         <section aria-live="polite">
             <div class="td-section-head">
-                <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} published places found</p></div>
+                <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} {{ viewMode === "map" ? "mapped" : "published" }} places found</p></div>
                 <div class="td-toggle" aria-label="Choose result view">
-                    <button :class="{active:viewMode==='list'}" @click="setView('list')" type="button">List</button>
-                    <button :class="{active:viewMode==='map'}" @click="setView('map')" type="button">Map</button>
+                    <button :class="{active:viewMode==='list'}" :disabled="loading || loadingMore" @click="setView('list')" type="button">List</button>
+                    <button :class="{active:viewMode==='map'}" :disabled="loading || loadingMore" @click="setView('map')" type="button">Map</button>
                 </div>
             </div>
             <div v-if="loading" class="td-loading">Reading the trail notes…</div>

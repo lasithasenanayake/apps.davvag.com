@@ -90,9 +90,11 @@ checkTravel(strpos($formScript, "onPositionChanged") !== false && strpos($formSc
 checkTravel(strpos($explorerScript, "GetMapConfiguration") !== false, "Explorer does not load the saved map configuration.");
 checkTravel(strpos($explorerScript, 'pageSize: 20') !== false, "Explorer does not load destinations in twenty-place pages.");
 checkTravel(strpos($explorerScript, "function hasMoreResults()") !== false, "Explorer load-more visibility does not fall back to the result total.");
+checkTravel(strpos($explorerScript, "api.services.GetMapResults(filters)") !== false, "Map view does not use the coordinate-only result service.");
 $explorerView = file_get_contents($appRoot . "/components/destination-explorer/partial.html");
 checkTravel(substr_count($explorerView, '@click="loadMore"') === 2, "Explorer must expose load-more controls in both list and map views.");
 checkTravel(strpos($explorerView, "td-load-more-map") !== false, "Map view does not keep its load-more control with the mapped result list.");
+checkTravel(strpos($explorerView, '"mapped" : "published"') !== false, "Explorer result count does not distinguish mapped places from all published places.");
 checkTravel(strpos($formScript, "ResolveMapLocationUrl") !== false && strpos($formScript, "coordinatesFromMapUrl") !== false, "Destination form does not extract coordinates from Google Maps URLs.");
 checkTravel(strpos($travelStyles, ".td-prose-table") !== false && strpos($travelStyles, "overflow-x:auto") !== false, "Markdown tables do not have responsive table styles.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration), "Public map configuration service is not declared.");
@@ -104,7 +106,9 @@ checkTravel(in_array("travel_destination_description_chunk", $app->dependencies-
 checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
-checkTravel(strpos(file_get_contents($appRoot . "/services/api/service.php"), "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
+$apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
+checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
+checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
 $permissionManifest = json_decode(file_get_contents($appRoot . "/permissions.json"));
 checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, true), "Anonymous users can access the map URL resolver.");
 checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");

@@ -37,7 +37,7 @@ WEBDOCK.component().register(function (exports) {
     function search() {
         if (viewState.loading) { return; }
         viewState.loading = true; viewState.error = ""; viewState.filters.page = 0;
-        api.services.SearchDestinations(requestFilters()).then(function (response) {
+        destinationRequest(requestFilters()).then(function (response) {
             viewState.loading = false;
             if (!response.success) { viewState.error = serviceMessage(response, "Search could not be completed."); return; }
             var result = response.result || {};
@@ -50,7 +50,7 @@ WEBDOCK.component().register(function (exports) {
     function loadMore() {
         if (viewState.loadingMore || !hasMoreResults()) { return; }
         viewState.loadingMore = true; viewState.filters.page = Number(viewState.pagination.page || 0) + 1;
-        api.services.SearchDestinations(requestFilters()).then(function (response) {
+        destinationRequest(requestFilters()).then(function (response) {
             viewState.loadingMore = false;
             if (response.success) {
                 var result = response.result || {};
@@ -74,8 +74,21 @@ WEBDOCK.component().register(function (exports) {
         return pagination.hasMore === true || pagination.hasMore === 1 || pagination.hasMore === "1" ||
             (isFinite(total) && total > viewState.items.length);
     }
+    function destinationRequest(filters) {
+        if (viewState.viewMode === "map" && typeof api.services.GetMapResults === "function") {
+            return api.services.GetMapResults(filters);
+        }
+        return api.services.SearchDestinations(filters);
+    }
     function requestFilters() { var copy = JSON.parse(JSON.stringify(viewState.filters)); if (!copy.categoryId) { delete copy.categoryId; } return copy; }
-    function setView(mode) { viewState.viewMode = mode; if (mode === "map" && !viewState.selectedId && viewState.items.length) { viewState.selectedId = viewState.items[0].id; } if (mode === "map") { scheduleMap(); } }
+    function setView(mode) {
+        if (mode === viewState.viewMode || viewState.loading || viewState.loadingMore) {
+            if (mode === "map") { scheduleMap(); }
+            return;
+        }
+        viewState.viewMode = mode;
+        search();
+    }
     function selectMarker(item) {
         viewState.selectedId = item.id;
         if (mapHandle && mapHandle.map && item.latitude !== undefined) { mapHandle.map.panTo({lat:Number(item.latitude),lng:Number(item.longitude)}); }

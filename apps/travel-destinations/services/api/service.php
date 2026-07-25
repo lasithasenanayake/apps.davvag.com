@@ -889,6 +889,12 @@ class ApiService {
                 }
             }
             $this->applyCoordinatePrivacy($item, false);
+            if ($mapOnly && !TravelDestinationRules::validCoordinates(
+                isset($item->latitude) ? $item->latitude : null,
+                isset($item->longitude) ? $item->longitude : null
+            )) {
+                continue;
+            }
             $items[] = $item;
         }
         $this->sortDestinations($items, $sort);
