@@ -1,0 +1,82 @@
+<section class="cp-page">
+  <div class="cp-shell">
+    <header class="cp-top">
+      <div class="cp-brand"><div class="cp-logo">C</div><div><h2>Coupon administration</h2><p>Manage campaigns and secure generated coupon codes</p></div></div>
+      <nav class="cp-nav">
+        <button v-on:click="go('admin')">Admin</button>
+        <button v-on:click="go('admin/packages')">Packages</button>
+        <button v-on:click="go('admin/rewards')">Rewards</button>
+        <button class="active">Coupons</button>
+      </nav>
+    </header>
+
+    <div class="cp-alert error" v-for="error in errors">{{error}}</div>
+    <div class="cp-alert info" v-for="item in info">{{item}}</div>
+
+    <div class="cp-admin-layout">
+      <div class="cp-card">
+        <div class="cp-head"><h3>Coupon campaigns</h3><button class="cp-btn cp-primary" v-on:click="resetForm">New campaign</button></div>
+        <div class="cp-body"><div class="cp-admin-toolbar"><label>Search campaigns<input v-model="campaignSearch" placeholder="Code, name, type, or status"></label></div></div>
+        <div class="cp-table-wrap">
+          <table class="cp-table">
+            <thead><tr><th>Campaign</th><th>Credits</th><th>Limits</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="item in visibleCampaigns()">
+                <td><strong>{{item.campaign_code}}</strong><br><span class="cp-muted">{{item.name}}</span></td>
+                <td>{{item.credit_amount}}</td>
+                <td>{{item.total_redemption_limit > 0 ? item.total_redemption_limit : 'Unlimited'}} total<br><span class="cp-muted">{{item.per_profile_limit}} per profile</span></td>
+                <td>{{item.credit_expiry_days > 0 ? item.credit_expiry_days + ' days' : 'Never'}}</td>
+                <td><span class="cp-badge">{{item.status}}</span></td>
+                <td><div class="cp-admin-actions"><button class="cp-btn cp-light" v-on:click="edit(item)">Edit</button><button class="cp-btn cp-danger" v-on:click="removeCampaign(item)" v-bind:disabled="busy">Delete</button></div></td>
+              </tr>
+              <tr v-if="visibleCampaigns().length === 0"><td colspan="6" class="cp-empty">No coupon campaigns found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cp-card cp-admin-editor">
+        <div class="cp-head"><h3>{{form.id ? 'Edit campaign' : 'Create campaign'}}</h3><button class="cp-btn cp-light" v-if="form.id" v-on:click="resetForm">Cancel</button></div>
+        <form class="cp-body cp-form" v-on:submit.prevent="save">
+          <label>Program<select v-model="form.program_id" required><option v-for="program in programs" v-bind:value="program.id">{{program.code}} - {{program.name}}</option></select></label>
+          <div class="cp-row"><label>Campaign code<input v-model="form.campaign_code" maxlength="60" required></label><label>Name<input v-model="form.name" maxlength="180" required></label></div>
+          <div class="cp-row"><label>Coupon type<select v-model="form.coupon_type"><option>GIFT</option><option>PROMOTIONAL</option></select></label><label>Credits<input v-model="form.credit_amount" type="number" min="1" required></label></div>
+          <div class="cp-row"><label>Total redemption limit<input v-model="form.total_redemption_limit" type="number" min="0"></label><label>Per-profile limit<input v-model="form.per_profile_limit" type="number" min="1" required></label></div>
+          <div class="cp-row"><label>First-time profiles only<select v-model="form.first_time_only"><option value="false">No</option><option value="true">Yes</option></select></label><label>Minimum account age days<input v-model="form.minimum_account_age_days" type="number" min="0"></label></div>
+          <div class="cp-row"><label>Credit expiry days<input v-model="form.credit_expiry_days" type="number" min="0"></label><label>Status<select v-model="form.status"><option>ACTIVE</option><option>INACTIVE</option></select></label></div>
+          <div class="cp-row"><label>Active from<input v-model="form.active_from" type="datetime-local"></label><label>Active until<input v-model="form.active_until" type="datetime-local"></label></div>
+          <label>Eligible group IDs JSON <span class="cp-help">Optional array of allowed group IDs.</span><textarea v-model="form.eligible_group_ids_json" placeholder="[]"></textarea></label>
+          <label>Description<textarea v-model="form.description" maxlength="2000"></textarea></label>
+          <div class="cp-admin-actions"><button class="cp-btn cp-primary" v-bind:disabled="busy">{{form.id ? 'Update campaign' : 'Create campaign'}}</button><button type="button" class="cp-btn cp-light" v-on:click="resetForm">Reset</button></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="cp-section-title"><h3>Generate secure coupons</h3><span class="cp-help">Plaintext codes are shown only once.</span></div>
+    <div class="cp-card">
+      <form class="cp-body cp-form" v-on:submit.prevent="generate">
+        <div class="cp-row"><label>Campaign<select v-model="generator.campaign_id" required><option v-for="campaign in campaigns" v-bind:value="campaign.id">{{campaign.campaign_code}} - {{campaign.name}}</option></select></label><label>Number of codes<input v-model="generator.count" type="number" min="1" max="500" required></label></div>
+        <div class="cp-row"><label>Uses per code<input v-model="generator.maximum_redemptions" type="number" min="1" required></label><label>Assigned profile ID <span class="cp-help">0 allows any eligible profile.</span><input v-model="generator.assigned_profile_id" type="number" min="0"></label></div>
+        <label>Code expires at<input v-model="generator.expires_at" type="datetime-local"></label>
+        <button class="cp-btn cp-primary" v-bind:disabled="busy || campaigns.length === 0">Generate codes</button>
+      </form>
+      <div class="cp-body" v-if="generatedCodes.length"><div class="cp-code-output" v-for="code in generatedCodes">{{code}}</div></div>
+    </div>
+
+    <div class="cp-section-title"><h3>Generated coupons</h3><span class="cp-help">Only masked codes are retained.</span></div>
+    <div class="cp-card">
+      <div class="cp-body"><div class="cp-admin-toolbar"><label>Search generated coupons<input v-model="codeSearch" placeholder="Masked code, campaign, profile, or status"></label></div></div>
+      <div class="cp-table-wrap">
+        <table class="cp-table">
+          <thead><tr><th>Coupon</th><th>Campaign</th><th>Assigned profile</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr v-for="item in visibleCodes()">
+              <td class="cp-code">{{item.masked_code}}</td><td>{{item.campaign_code}}<br><span class="cp-muted">{{item.campaign_name}}</span></td><td>{{item.assigned_profile_id > 0 ? item.assigned_profile_id : 'Any'}}</td><td>{{item.redemption_count}} / {{item.maximum_redemptions}}</td><td>{{item.expires_at || 'Never'}}</td><td><span class="cp-badge">{{item.status}}</span></td><td><button class="cp-btn cp-danger" v-on:click="removeCode(item)" v-bind:disabled="busy">Delete</button></td>
+            </tr>
+            <tr v-if="visibleCodes().length === 0"><td colspan="7" class="cp-empty">No generated coupons found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

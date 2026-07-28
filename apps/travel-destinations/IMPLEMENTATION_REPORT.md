@@ -1,6 +1,6 @@
 # Travel Destinations MVP — Implementation Report
 
-Date: 2026-07-24
+Updated: 2026-07-28
 
 ## Active tenant
 
@@ -33,8 +33,8 @@ Created:
 
 - `apps/travel-destinations/app.json`, `app.php`, `permissions.json`, installer and app icon.
 - One API service descriptor, client proxy and PHP service implementation.
-- Ten UI components: explorer, detail, submission form, submissions, favorites, admin destination list, admin moderation, admin categories, admin amenities and shared style.
-- Thirteen `travel_destination*` schemas.
+- Thirteen UI/runtime components plus one API service, including explorer, detail, submission, moderation, map and weather settings.
+- Sixteen `travel_destination*` schemas plus the existing shared `profile` dependency.
 - Static/contract test runner and this report.
 
 Modified without replacing existing registrations:
@@ -46,7 +46,7 @@ Modified without replacing existing registrations:
 
 `web_user` also receives `davvag-tools`, which the submission uploader requires.
 
-The app descriptor registers 11 component/service entries and 11 partial routes. The app is versioned at `0.3.2`; UI component versions are bumped whenever resources change so DAVVAG docks do not reuse stale scripts or views.
+The app descriptor currently registers 14 component/service entries and 13 partial routes. The app is versioned at `0.5.0`; changed components are versioned to prevent DAVVAG docks from reusing stale scripts or views.
 
 ## Data model and services
 
@@ -56,7 +56,7 @@ Schemas:
 - Review, helpful vote, comment, favorite and submission log.
 - Condition report and content report.
 
-The API exposes 43 service operations covering:
+The API currently exposes 50 service operations covering:
 
 - Public capabilities, search, map results, nearby search, details and approved community content.
 - Traveler drafts, submission, eligible self-editing, shared media association, reviews, comments, helpful votes, favorites, condition reports and content reports.
@@ -83,7 +83,7 @@ No workflows were created. The existing notification capability was discovered b
 
 Map: provider-neutral MVP with coordinate markers, list synchronization, current-device location and OpenStreetMap directions URLs. It does not hardcode a tile/geocoder credential.
 
-Weather: optional provider integration only. No weather provider is configured, and the app remains functional without one.
+Weather: optional, disabled-by-default Open-Meteo integration. Requests are made server-side, successful forecasts are cached for one hour, restricted coordinates are not sent to the provider, and public output includes forecast time and provider attribution. Administrators must confirm that their Open-Meteo plan/licence fits the deployment before enabling it.
 
 ## Installation
 
@@ -117,14 +117,14 @@ Verified results:
 
 - The current map is an MVP coordinate visualization. Tile rendering, marker clustering, drag-to-select, search-this-area, reverse geocoding, place search and GeoJSON trail visualization require a configured reusable map provider.
 - The explorer UI exposes the primary filters; several advanced filters already accepted by the backend are not yet surfaced as controls.
-- Weather, sunrise/sunset, notifications, GPX/GeoJSON processing, named lists and booking integration remain optional enhancements.
+- Notifications, GPX/GeoJSON processing, named lists and booking integration remain optional enhancements.
 - No authenticated traveler or administrator credentials were available for an end-to-end live database session, so those protected HTTP routes were verified for registration and anonymous denial, while authorization/state rules were exercised by the static contract suite.
 - The in-app browser runtime reported no available browser backend. Resource routes were verified over HTTP, but interactive visual QA in the public and admin docks could not be executed in this session.
 - The app icon is a tenant-local placeholder and should be replaced by final brand artwork.
 
 ## Recommended next phase
 
-Configure a tenant map provider abstraction first, then complete interactive authenticated QA with traveler and administrator test accounts. Follow with advanced discovery controls, notification workflows, trail-file visualization and an optional cached weather provider.
+Complete interactive authenticated QA with traveler and administrator test accounts. Continue Phase 2 with GPX/GeoJSON trail-file visualization, offline saved destination information and named travel lists.
 # Google Maps provider settings — v0.4.0
 
 ## v0.4.1 runtime compatibility fix
@@ -196,3 +196,62 @@ Configure a tenant map provider abstraction first, then complete interactive aut
 - API keys are browser-visible when the Maps JavaScript API runs, as required by Google’s client SDK. The settings screen instructs administrators to restrict the key by HTTP referrer and API.
 - App and changed component versions were bumped to `0.4.0`.
 - Validation: 291 PHP/static app checks passed, all 13 JavaScript resources parsed successfully, PHP lint passed, new descriptors returned HTTP 200, public disabled configuration exposed no key, the permission installer remained idempotent, and four permission entries were installed.
+
+# Phase 2 weather integration — v0.5.0
+
+- Confirmed Phase 1 completion with 328/328 existing application checks, clean PHP lint and successful public framework-route tests.
+- Confirmed condition reports, the first Phase 2 recommendation, were already implemented with traveler submission, expiry filtering, moderation and public display.
+- Added tenant schema `travel_destination_weather_settings` and administrator route `#/app/travel-destinations/admin/weather-settings`.
+- Added `GetDestinationWeather`, `GetAdminWeatherSettings` and `SaveWeatherSettings` service contracts with public/admin permission separation.
+- Added an optional Open-Meteo provider that is disabled by default, uses only a fixed HTTPS provider endpoint, validates settings, fetches server-side and returns safe unavailable states without breaking destination details.
+- Reuses DAVVAG `CacheData`; successful coordinate/unit/forecast combinations are cached for one hour.
+- Applies destination coordinate privacy before constructing provider requests, so hidden or approved-only coordinates are not disclosed.
+- Normalizes current temperature, apparent temperature, precipitation, wind, gusts, visibility, daily summaries, sunrise and sunset into a stable app response.
+- Displays observation time, timezone, cached state, provider attribution and CC BY 4.0 licence on the destination detail screen.
+- The admin screen discloses Open-Meteo free-service non-commercial and usage-limit constraints and requires explicit licence confirmation before enablement.
+- Installed four new permission records and one disabled default settings record through the idempotent installer.
+- Validation: 355/355 application checks passed; all PHP files linted; new JSON files parsed; both changed JavaScript resources loaded successfully in the JavaScript runtime; 40 descriptor/resource HTTP checks passed; all 50 service routes resolved; the server-side Open-Meteo fetch returned a current forecast; public disabled weather returned a stable successful response; anonymous admin-settings access was denied.
+- Interactive visual QA remains pending because no in-app browser backend was available in this session.
+
+# Phase 2 recommended enhancements — v0.6.0
+
+This section supersedes earlier MVP counts and the earlier list of Phase 2 limitations.
+
+Implemented:
+
+- Approved GeoJSON route rendering, moderated GPX uploads/downloads, route metadata and administrator moderation.
+- Versioned offline destination bundles stored per device, including destination details, approved routes, current conditions and availability. Live weather and offline map tiles are intentionally excluded.
+- Traveler workspace for Favorites, named lists, itineraries, verified-visit history, personal recommendations, guide profiles and notification preferences.
+- Verified visit submissions and administrator verification, with public aggregate visit counts.
+- Verified local-guide profiles linked to destinations, with public contact and validated external booking URLs.
+- Deterministic, provider-local marker clustering without introducing another map-provider SDK.
+- Provider-neutral availability records and external booking handoff. The app does not collect or duplicate provider payments.
+- DAVVAG in-app moderation notifications using the existing Profile notification pipeline and opt-in preferences.
+- Approved destination translations, language selection and translated search matching.
+- Debounced search suggestions from published destinations, locations, tags and categories.
+- Administrator-managed featured collections surfaced on public discovery.
+- Trip planning with dates, ordered stops, notes and removal controls.
+- Deterministic personal recommendations based on favorites, named lists and verified visits.
+
+New persistence consists of 13 Phase 2 schemas: routes, lists and list items, visits, guides and guide links, availability, notification preferences, translations, collections and collection items, trips and trip items. The application now declares 84 service operations and installs 88 permission rows across anonymous, traveler and administrator groups.
+
+Security and integration decisions:
+
+- GeoJSON accepts only bounded LineString/MultiLineString data, validates every coordinate and limits feature/coordinate counts.
+- GPX references must originate from the existing DAVVAG uploader namespace; file type, size and filename are constrained in the UI and again on the server.
+- Public reads expose only published/approved records. Every traveler mutation checks the active profile and ownership; every publishing/moderation mutation requires an administrator.
+- External booking/contact URLs are limited to HTTP/HTTPS, reject embedded credentials and non-standard ports, and open as explicit provider handoffs.
+- Recommendations are explainable and deterministic; no traveler data is sent to an AI or external recommendation provider.
+- Offline copies carry a stale-data warning and do not imply offline maps, current weather, current permits or live safety status.
+
+Verification completed on 2026-07-28:
+
+- PHP lint: all application PHP files passed.
+- JSON: every application descriptor, permission manifest and schema parsed successfully.
+- Static/contract suite: 604 checks, 0 failures, including Phase 2 schemas, methods, permissions, UI contracts, GeoJSON normalization and booking URL validation.
+- Permission installer: inserted 43 new rows on the first Phase 2 run; the second run inserted 0 and found all 88 rows.
+- HTTP component/resource sweep: 42/42 returned HTTP 200.
+- HTTP service-handler sweep: all 84 declared handlers resolved using their declared verb; 0 missing handlers or method errors. Validation/protected-handler responses accounted for the expected HTTP 500 results.
+- Public live checks: search suggestions, featured collections, routes, offline bundle, visit summary, availability, guides and translations all returned successful framework responses. Anonymous traveler mutations were denied by the permission layer.
+
+Remaining QA limitation: the connected in-app browser backend was unavailable. A local headless browser reached DAVVAG CMS but that browser session could not load its CMS configuration, so authenticated interactive traveler/admin visual QA still requires a configured browser session and test accounts.

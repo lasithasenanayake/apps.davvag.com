@@ -1,0 +1,16 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "provider", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "is_enabled", "dataType": "boolean"},
+        {"fieldName": "forecast_days", "dataType": "int"},
+        {"fieldName": "temperature_unit", "dataType": "java.lang.String", "annotations": {"maxLen": 20}},
+        {"fieldName": "wind_speed_unit", "dataType": "java.lang.String", "annotations": {"maxLen": 20}},
+        {"fieldName": "license_confirmed", "dataType": "boolean"},
+        {"fieldName": "updated_by_profile_id", "dataType": "int"},
+        {"fieldName": "updated_at", "dataType": "java.util.Date"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_weather_settings_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "updated_by_profile_id", "targetColumn": "id"}]}
+    ]
+}

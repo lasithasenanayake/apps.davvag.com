@@ -15,8 +15,14 @@
 </header>
 <div class="cp-alert error" v-for="e in errors">{{e}}</div>
 <div class="cp-alert info" v-for="m in info">{{m}}</div>
+
+<div class="cp-admin-links">
+<button class="cp-admin-link" v-on:click="go('admin/packages')"><strong>Packages</strong><span>View, map products, create, edit, and delete purchasable credit packages.</span></button>
+<button class="cp-admin-link" v-on:click="go('admin/rewards')"><strong>Rewards</strong><span>View, create, edit, and delete daily, weekly, and monthly reward rules.</span></button>
+<button class="cp-admin-link" v-on:click="go('admin/coupons')"><strong>Coupons</strong><span>Manage coupon campaigns, generate secure codes, and disable or delete coupons.</span></button>
+</div>
 <div class="cp-tabs">
-<button v-for="x in ['wallets','grant','packages','rewards','coupons']" v-bind:class="{active:tab===x}" v-on:click="tab=x">{{x}}</button>
+<button v-for="x in ['wallets','grant']" v-bind:class="{active:tab===x}" v-on:click="tab=x">{{x}}</button>
 </div>
 <div class="cp-card" v-if="tab==='wallets'">
 <div class="cp-head">

@@ -1,0 +1,1 @@
+{"name":"coupon-admin","description":"Credit coupon campaign administration","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

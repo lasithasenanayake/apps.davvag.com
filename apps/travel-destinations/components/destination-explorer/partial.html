@@ -3,7 +3,7 @@
         <nav class="td-nav" aria-label="Travel Destinations">
             <a class="td-brand" href="#/app/travel-destinations"><span class="td-brand-mark" aria-hidden="true"></span><span>Trail &amp; Tide</span></a>
             <div class="td-nav-links">
-                <button class="td-link" @click="navigate('/favorites')">Saved</button>
+                <button class="td-link" @click="navigate('/favorites')">Travel workspace</button>
                 <button class="td-link" @click="navigate('/my-submissions')">My places</button>
                 <button class="td-button secondary" @click="navigate('/submit')">Share a place</button>
             </div>
@@ -18,7 +18,8 @@
         <form class="td-searchbar" @submit.prevent="search">
             <div class="td-field">
                 <label for="td-search">Where or what?</label>
-                <input id="td-search" class="td-input" v-model="filters.keyword" placeholder="Waterfalls near Ella, forest camping…">
+                <input id="td-search" class="td-input" v-model="filters.keyword" @input="suggest" autocomplete="off" placeholder="Waterfalls near Ella, forest camping">
+                <div v-if="suggestions.length" class="td-suggestions"><button v-for="item in suggestions" :key="item.type+'-'+item.label" type="button" @click="useSuggestion(item)"><span>{{ item.label }}</span><small>{{ item.type }}</small></button></div>
             </div>
             <div class="td-field">
                 <label for="td-category">Experience</label>
@@ -40,6 +41,7 @@
             <button class="td-button" :disabled="loading" type="submit">{{ loading ? "Searching…" : "Explore" }}</button>
         </form>
         <div v-if="error" class="td-alert error" role="alert">{{ error }}</div>
+        <section v-if="collections.length" class="td-collections"><div class="td-section-head"><div><h2>Featured collections</h2><p>Editor-curated ways to explore Sri Lanka.</p></div></div><div class="td-collection-strip"><button v-for="collection in collections" :key="collection.id" @click="openCollection(collection)"><strong>{{ collection.title }}</strong><span>{{ collection.summary }}</span><small>{{ collection.destination_count }} places</small></button></div></section>
         <section aria-live="polite">
             <div class="td-section-head">
                 <div><h2>{{ resultTitle }}</h2><p>{{ pagination.total || 0 }} published places found</p></div>

@@ -48,6 +48,10 @@
             "type": "component",
             "location": "components"
         },
+        "admin-weather-settings": {
+            "type": "component",
+            "location": "components"
+        },
         "api": {
             "type": "service",
             "location": "services"
@@ -56,7 +60,7 @@
     "description": {
         "title": "Travel Destinations",
         "author": "DAVVAG",
-        "version": "0.4.12",
+        "version": "0.6.0",
         "icon": "appicon.png"
     },
     "tags": [
@@ -84,7 +88,8 @@
                     "/admin/moderation": "admin-moderation",
                     "/admin/categories": "admin-categories",
                     "/admin/amenities": "admin-amenities",
-                    "/admin/map-settings": "admin-map-settings"
+                    "/admin/map-settings": "admin-map-settings",
+                    "/admin/weather-settings": "admin-weather-settings"
                 }
             }
         },
@@ -107,7 +112,7 @@
                     "path": "#/app/travel-destinations/my-submissions"
                 },
                 {
-                    "name": "Favorites",
+                    "name": "Travel workspace",
                     "path": "#/app/travel-destinations/favorites"
                 },
                 {
@@ -117,6 +122,10 @@
                 {
                     "name": "Map settings",
                     "path": "#/app/travel-destinations/admin/map-settings"
+                },
+                {
+                    "name": "Weather settings",
+                    "path": "#/app/travel-destinations/admin/weather-settings"
                 }
             ]
         }
@@ -129,6 +138,7 @@
         "schemas": [
 
             "profile",
+            "profile_notify_u",
             "travel_destination",
             "travel_destination_category",
             "travel_destination_category_link",
@@ -143,7 +153,21 @@
             "travel_destination_condition",
             "travel_destination_report",
             "travel_destination_map_settings",
-            "travel_destination_description_chunk"
+            "travel_destination_description_chunk",
+            "travel_destination_weather_settings"
+            ,"travel_destination_route"
+            ,"travel_destination_list"
+            ,"travel_destination_list_item"
+            ,"travel_destination_visit"
+            ,"travel_destination_guide"
+            ,"travel_destination_guide_destination"
+            ,"travel_destination_availability"
+            ,"travel_destination_notification_preference"
+            ,"travel_destination_translation"
+            ,"travel_destination_collection"
+            ,"travel_destination_collection_item"
+            ,"travel_destination_trip"
+            ,"travel_destination_trip_item"
         ],
         "workflows": [],
         "plugins": [

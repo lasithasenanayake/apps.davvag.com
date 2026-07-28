@@ -38,9 +38,15 @@
             var PinClass = modules[1] && modules[1].PinElement ? modules[1].PinElement :
                 (window.google.maps.marker && window.google.maps.marker.PinElement);
             var map = new MapClass(container, mapOptions);
-            var markers = points.map(function (point, index) {
+            var displayPoints = options.cluster ? runtime.clusterPoints(points,mapOptions.zoom) : points;
+            var markers = displayPoints.map(function (point, index) {
                 return addMarker(map, point, index, options, AdvancedMarkerClass, PinClass);
             });
+            (Array.isArray(options.routes) ? options.routes : []).forEach(function(route){
+                var geojson=route&&route.geojson?route.geojson:route;if(!geojson||!map.data){return;}
+                try{if(typeof geojson==="string"){geojson=JSON.parse(geojson);}map.data.addGeoJson(geojson);}catch(ignore){}
+            });
+            if(map.data){map.data.setStyle({strokeColor:"#c76443",strokeWeight:4,strokeOpacity:0.9,fillColor:"#c76443",fillOpacity:0.16});}
             if (uniquePositionCount(points) > 1) {
                 var bounds = new window.google.maps.LatLngBounds();
                 points.forEach(function (point) { bounds.extend(position(point)); });
@@ -74,6 +80,12 @@
             };
             });
         });
+    };
+
+    runtime.clusterPoints = function(points,zoom){
+        var size=Math.max(0.02,6/Math.pow(2,Math.max(1,Number(zoom||8))));var buckets={};
+        (Array.isArray(points)?points:[]).filter(validPoint).forEach(function(point){var p=position(point),key=Math.floor(p.lat/size)+":"+Math.floor(p.lng/size);if(!buckets[key]){buckets[key]=[];}buckets[key].push(point);});
+        return Object.keys(buckets).map(function(key){var members=buckets[key];if(members.length===1){return members[0];}var lat=0,lng=0;members.forEach(function(point){var p=position(point);lat+=p.lat;lng+=p.lng;});return {latitude:lat/members.length,longitude:lng/members.length,name:members.length+" destinations",markerLabel:String(members.length),__tdCluster:true,__tdMembers:members};});
     };
 
     runtime.geocode = function (config, query) {
@@ -181,6 +193,7 @@
         }
         var marker = new AdvancedMarkerClass(markerOptions);
         marker.__tdPoint = point;
+        if(point.__tdCluster){marker.addListener("click",function(){var bounds=new window.google.maps.LatLngBounds();point.__tdMembers.forEach(function(member){bounds.extend(position(member));});map.fitBounds(bounds,60);});return marker;}
         if (typeof options.onMarkerClick === "function") {
             marker.addListener("click", function () { options.onMarkerClick(point, marker); });
         }
@@ -271,6 +284,7 @@
         exports.load = runtime.load;
         exports.createMap = runtime.createMap;
         exports.geocode = runtime.geocode;
+        exports.clusterPoints = runtime.clusterPoints;
         exports.onReady = function () {};
     });
 })(window);

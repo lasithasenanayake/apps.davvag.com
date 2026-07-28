@@ -1,0 +1,22 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations/admin"><span class="td-brand-mark"></span><span>Travel administration</span></a><div class="td-actions"><button class="td-link" @click="navigate('/admin')">Destinations</button><button class="td-link" @click="navigate('/admin/map-settings')">Map settings</button></div></nav>
+    <div class="td-section-head"><div><p class="td-eyebrow" style="color:var(--td-leaf)">Phase 2 provider</p><h1>Weather forecasts</h1><p>Optional server-side forecasts for public destination details.</p></div><span class="td-badge">{{ form.enabled ? "Enabled" : "Disabled" }}</span></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="notice" class="td-alert">{{ notice }}</div>
+    <div v-if="loading" class="td-loading">Loading weather settings…</div>
+    <div v-if="!loading && authorized" class="td-settings-layout">
+        <form class="td-panel" @submit.prevent="save">
+            <div class="td-alert">Open-Meteo data is CC BY 4.0. Its free API is for non-commercial use and has usage limits. Confirm that the selected plan and licence fit this deployment before enabling it.</div>
+            <div class="td-form-grid">
+                <label class="td-check full"><input type="checkbox" v-model="form.enabled"> Show weather on destination pages</label>
+                <div class="td-field"><label>Forecast days</label><input class="td-input" type="number" min="1" max="7" v-model.number="form.forecast_days"></div>
+                <div class="td-field"><label>Cache duration</label><input class="td-input" value="60 minutes" disabled></div>
+                <div class="td-field"><label>Temperature</label><select class="td-select" v-model="form.temperature_unit"><option value="celsius">Celsius</option><option value="fahrenheit">Fahrenheit</option></select></div>
+                <div class="td-field"><label>Wind speed</label><select class="td-select" v-model="form.wind_speed_unit"><option value="kmh">km/h</option><option value="ms">m/s</option><option value="mph">mph</option><option value="kn">knots</option></select></div>
+                <label class="td-check full"><input type="checkbox" v-model="form.license_confirmed"> I confirm this deployment may use the selected Open-Meteo service and will retain provider attribution.</label>
+            </div>
+            <button class="td-button" style="margin-top:20px" type="submit" :disabled="saving">{{ saving ? "Saving…" : "Save weather settings" }}</button>
+        </form>
+        <section class="td-panel"><h2>Test a published destination</h2><p>Testing uses its public-safe coordinates and the saved configuration.</p><div class="td-inline-search"><input class="td-input" type="number" min="1" v-model.number="form.test_destination_id" placeholder="Destination ID"><button class="td-button secondary" :disabled="testing || !form.enabled" @click="testWeather">{{ testing ? "Loading…" : "Test" }}</button></div><div v-if="preview && preview.available" class="td-weather-card" style="margin-top:18px"><strong>{{ preview.current.summary }}</strong><span>{{ preview.current.temperature }} {{ preview.units.temperature }}</span><small>Observed {{ preview.observationTime }} · {{ preview.provider.name }}</small></div></section>
+    </div>
+    <div v-if="!loading && !authorized" class="td-alert error">Administrator access is required.</div>
+</div></div>

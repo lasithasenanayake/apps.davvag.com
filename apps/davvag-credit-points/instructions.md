@@ -498,6 +498,7 @@ price_minor
 currency
 payment_channel
 provider_product_id
+product_id
 purchase_limit_per_profile
 first_purchase_only
 active_from
@@ -507,6 +508,8 @@ status
 ```
 
 Store prices in the smallest currency unit as integers.
+
+`product_id` is an optional mapping to the tenant `products.itemid` catalog record. It is distinct from `provider_product_id`, which remains the external payment provider's identifier. Administration must validate a mapped product server-side and allow the mapping to be cleared.
 
 Never accept the package price or awarded credit amount from the browser as authoritative.
 

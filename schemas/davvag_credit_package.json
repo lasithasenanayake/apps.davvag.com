@@ -80,6 +80,13 @@
                                        }
                    },
                    {
+                       "fieldName":  "product_id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
                        "fieldName":  "purchase_limit_per_profile",
                        "dataType":  "int",
                        "annotations":  {
@@ -121,5 +128,18 @@
                                            "default":  "ACTIVE"
                                        }
                    }
-               ]
+               ],
+    "relations":  [
+                      {
+                          "relationName":  "davvag_credit_package_products",
+                          "relationType":  "many-to-one",
+                          "targetEntity":  "products",
+                          "joinColumns":  [
+                                              {
+                                                  "sourceColumn":  "product_id",
+                                                  "targetColumn":  "itemid"
+                                              }
+                                          ]
+                      }
+                  ]
 }

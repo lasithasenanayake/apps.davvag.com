@@ -103,17 +103,26 @@ checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration),
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminMapSettings), "Admin map settings read service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveMapSettings), "Admin map settings save service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->ResolveMapLocationUrl), "Map URL resolver service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->GetDestinationWeather), "Public destination weather service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminWeatherSettings), "Admin weather settings read service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveWeatherSettings), "Admin weather settings save service is not declared.");
 checkTravel(in_array("travel_destination_map_settings", $app->dependencies->schemas, true), "Map settings schema dependency is missing.");
 checkTravel(in_array("travel_destination_description_chunk", $app->dependencies->schemas, true), "Large description chunk schema dependency is missing.");
+checkTravel(in_array("travel_destination_weather_settings", $app->dependencies->schemas, true), "Weather settings schema dependency is missing.");
 checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
 $apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
 checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
+$weatherSettingsView = file_get_contents($appRoot . "/components/admin-weather-settings/partial.html");
+checkTravel(strpos($weatherSettingsView, "CC BY 4.0") !== false && strpos($weatherSettingsView, "non-commercial") !== false, "Weather settings do not disclose provider licence constraints.");
+checkTravel(strpos($detailScript, "GetDestinationWeather") !== false && strpos($detailView, "weather.provider.attributionUrl") !== false, "Destination details do not load and attribute optional weather data.");
 $permissionManifest = json_decode(file_get_contents($appRoot . "/permissions.json"));
 checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, true), "Anonymous users can access the map URL resolver.");
 checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");
+checkTravel(in_array("GetDestinationWeather", $permissionManifest->anonymous, true), "Anonymous users cannot access public destination weather.");
+checkTravel(in_array("GetAdminWeatherSettings", $permissionManifest->sysadmin, true) && in_array("SaveWeatherSettings", $permissionManifest->sysadmin, true), "Weather settings are not restricted to the administrator permission manifest.");
 
 putenv("DAVVAG_PROVIDER_SECRET=travel-destination-test-secret");
 $apiService = new \travel_destinations\ApiService();
@@ -128,6 +137,51 @@ $encryptedItem->api_key_enc = $encryptedKey;
 checkTravel($decryptSecret->invoke($apiService, $encryptedItem, "api_key_enc") === "AIza-test-browser-key-value", "Map API-key encryption round trip failed.");
 checkTravel(strpos(json_encode($encryptedKey), "AIza-test-browser-key-value") === false, "Map API key was retained as plaintext in encrypted storage.");
 putenv("DAVVAG_PROVIDER_SECRET");
+
+$normalizeWeather = $apiReflection->getMethod("normalizeWeatherResponse");
+$normalizeWeather->setAccessible(true);
+$weatherPayload = json_decode('{"timezone":"Asia/Colombo","current":{"time":"2026-07-28T12:00","temperature_2m":27.4,"apparent_temperature":30.1,"precipitation":0.2,"weather_code":61,"wind_speed_10m":12.3,"wind_gusts_10m":24.6,"visibility":8000},"current_units":{"temperature_2m":"°C","precipitation":"mm","wind_speed_10m":"km/h","visibility":"m"},"daily":{"time":["2026-07-28","2026-07-29"],"weather_code":[61,2],"temperature_2m_max":[29.5,30.1],"temperature_2m_min":[23.2,22.8],"precipitation_sum":[4.5,0.2],"precipitation_probability_max":[80,20],"sunrise":["2026-07-28T06:01","2026-07-29T06:01"],"sunset":["2026-07-28T18:28","2026-07-29T18:28"],"wind_speed_10m_max":[18.2,14.0],"wind_gusts_10m_max":[31.0,25.0]},"daily_units":{"precipitation_probability_max":"%"}}');
+$normalizedWeather = $normalizeWeather->invoke($apiService, $weatherPayload, array("forecast_days" => 2, "temperature_unit" => "celsius", "wind_speed_unit" => "kmh"));
+checkTravel(is_array($normalizedWeather) && $normalizedWeather["available"] === true, "Valid weather provider payload was not normalized.");
+checkTravel($normalizedWeather["current"]["summary"] === "Light rain", "Weather-code summary normalization failed.");
+checkTravel(count($normalizedWeather["forecast"]) === 2 && $normalizedWeather["forecast"][0]["sunrise"] === "2026-07-28T06:01", "Daily forecast or sunrise normalization failed.");
+checkTravel($normalizedWeather["provider"]["name"] === "Open-Meteo" && $normalizedWeather["provider"]["licence"] === "CC BY 4.0", "Weather provider attribution is incomplete.");
+
+$phaseTwoSchemas = array("travel_destination_route","travel_destination_list","travel_destination_list_item","travel_destination_visit","travel_destination_guide","travel_destination_guide_destination","travel_destination_availability","travel_destination_notification_preference","travel_destination_translation","travel_destination_collection","travel_destination_collection_item","travel_destination_trip","travel_destination_trip_item");
+foreach ($phaseTwoSchemas as $namespace) {
+    checkTravel(in_array($namespace, $app->dependencies->schemas, true), "Phase 2 schema dependency is missing: " . $namespace . ".");
+}
+$publicPhaseTwo = array("GetDestinationRoutes","GetOfflineDestinationBundle","GetDestinationVisitSummary","GetDestinationAvailability","GetDestinationGuides","GetSearchSuggestions","GetFeaturedCollections","GetCollection","GetDestinationTranslations");
+$travelerPhaseTwo = array("GetRecommendations","SaveDestinationRoute","SubmitVerifiedVisit","GetMyVisits","SaveTravelList","DeleteTravelList","AddDestinationToList","RemoveDestinationFromList","GetMyTravelLists","SaveGuideProfile","GetMyGuideProfile","GetNotificationPreferences","SaveNotificationPreferences","SaveTrip","DeleteTrip","AddTripDestination","RemoveTripDestination","GetMyTrips");
+$adminPhaseTwo = array("ModerateDestinationRoute","ModerateVerifiedVisit","VerifyGuideProfile","SaveDestinationAvailability","SaveDestinationTranslation","SaveFeaturedCollection","GetPhaseTwoAdminData");
+foreach (array_merge($publicPhaseTwo,$travelerPhaseTwo,$adminPhaseTwo) as $method) {
+    checkTravel(isset($apiDescriptor->serviceHandler->methods->{$method}), "Phase 2 service is not declared: " . $method . ".");
+}
+foreach ($publicPhaseTwo as $method) { checkTravel(in_array($method,$permissionManifest->anonymous,true), "Anonymous public Phase 2 permission is missing: " . $method . "."); }
+foreach (array_merge($publicPhaseTwo,$travelerPhaseTwo) as $method) { checkTravel(in_array($method,$permissionManifest->web_user,true), "Traveler Phase 2 permission is missing: " . $method . "."); }
+foreach ($adminPhaseTwo as $method) { checkTravel(in_array($method,$permissionManifest->sysadmin,true), "Administrator Phase 2 permission is missing: " . $method . "."); }
+checkTravel(strpos($explorerScript,"GetSearchSuggestions") !== false && strpos($explorerView,"Featured collections") !== false, "Search suggestions or featured collections are missing from discovery.");
+checkTravel(strpos($mapRuntime,"clusterPoints") !== false && strpos($mapRuntime,"addGeoJson") !== false, "Map clustering or GeoJSON rendering is missing.");
+checkTravel(strpos($detailScript,"travel-destinations-offline-v1") !== false && strpos($detailView,"Save offline") !== false, "Offline destination bundles are not exposed.");
+checkTravel(strpos($detailScript,"travel_destination_route") !== false && strpos($detailView,"GPX upload") !== false, "GPX route upload is not exposed.");
+checkTravel(strpos($detailView,"verified visits") !== false && strpos($detailView,"Verified local guides") !== false, "Verified visits or guide profiles are not displayed.");
+checkTravel(strpos($detailView,"Continue to provider") !== false && strpos($detailView,"does not duplicate provider payments") !== false, "Provider-neutral booking handoff is unclear.");
+$workspaceScript = file_get_contents($appRoot . "/components/my-favorites/script.js");
+$workspaceView = file_get_contents($appRoot . "/components/my-favorites/partial.html");
+checkTravel(strpos($workspaceScript,"GetMyTravelLists") !== false && strpos($workspaceScript,"GetMyTrips") !== false, "Named lists or trips are missing from the travel workspace.");
+checkTravel(strpos($workspaceScript,"GetRecommendations") !== false && strpos($workspaceView,"recommended") !== false, "Personal recommendations are missing from the workspace.");
+checkTravel(strpos($workspaceScript,"SaveNotificationPreferences") !== false && strpos($workspaceView,"In-app notifications") !== false, "Notification preferences are missing from the workspace.");
+$adminModerationSource = file_get_contents($appRoot . "/components/admin-moderation/script.js");
+checkTravel(strpos($adminModerationSource,"ModerateDestinationRoute") !== false && strpos($adminModerationSource,"VerifyGuideProfile") !== false, "Phase 2 moderation queues are incomplete.");
+checkTravel(file_exists($tenantRoot . "/global/templetes/app/travel_destination_update.jnx"), "In-app notification template is missing.");
+$normalizeGeoJson = $apiReflection->getMethod("normalizeGeoJson");$normalizeGeoJson->setAccessible(true);
+$validRoute = $normalizeGeoJson->invoke($apiService,'{"type":"LineString","coordinates":[[80.7,7.8],[80.8,7.9]]}');
+$invalidRoute = $normalizeGeoJson->invoke($apiService,'{"type":"Point","coordinates":[80.7,7.8]}');
+checkTravel(is_object($validRoute) && $validRoute->type === "FeatureCollection", "Valid GeoJSON route was not normalized.");
+checkTravel($invalidRoute === null, "Unsupported GeoJSON geometry was accepted.");
+$safeHttpUrl = $apiReflection->getMethod("safeHttpUrl");$safeHttpUrl->setAccessible(true);
+checkTravel($safeHttpUrl->invoke($apiService,"https://booking.example/path") === "https://booking.example/path", "Valid booking URL was rejected.");
+checkTravel($safeHttpUrl->invoke($apiService,"javascript:alert(1)") === "", "Unsafe booking URL was accepted.");
 
 $systemFields = array("sysversionid", "syscreated", "sysupdated", "sysviewobject", "syscreatedby", "syslastupdatedby");
 foreach ($app->dependencies->schemas as $namespace) {

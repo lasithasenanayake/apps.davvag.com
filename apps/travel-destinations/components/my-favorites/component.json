@@ -1,1 +1,1 @@
-{"name":"my-favorites","description":"Traveler saved destinations","author":"DAVVAG","version":"0.3.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"my-favorites","description":"Traveler favorites, lists, trips, visits, recommendations, guide profile and notification preferences","author":"DAVVAG","version":"0.6.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

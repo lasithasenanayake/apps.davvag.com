@@ -1,1 +1,1 @@
-{"name":"admin-moderation","description":"Administrator moderation queues","author":"DAVVAG","version":"0.3.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"admin-moderation","description":"Administrator moderation queues and Phase 2 publishing tools","author":"DAVVAG","version":"0.6.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

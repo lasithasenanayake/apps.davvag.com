@@ -1,8 +1,8 @@
 {
     "name": "destination-detail",
-    "description": "Public destination detail with reviews, comments and conditions",
+    "description": "Destination detail with offline bundles, routes, visits, guides, availability, translations and community content",
     "author": "DAVVAG",
-    "version": "0.4.8",
+    "version": "0.6.0",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

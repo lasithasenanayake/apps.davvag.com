@@ -2,16 +2,16 @@ WEBDOCK.component().register(function (exports) {
     var api, maps, router, rootElement, mapHandle, mapRenderTimer;
     var mapRenderAttempts = 0, mapRenderStarted = false;
     var state = {
-        destination: emptyDestination(), hasDestination: false, reviews: [], comments: [], conditions: [], capabilities: {}, mapConfig:{enabled:false}, mapError:"",
+        destination: emptyDestination(), hasDestination: false, reviews: [], comments: [], conditions: [], routes:[], availability:[], guides:[], translations:[], lists:[], trips:[], visitSummary:{verifiedVisits:0}, capabilities: {}, mapConfig:{enabled:false}, mapError:"", weather:{available:false,loading:false,forecast:[]}, language:"",
         loading: true, error: "", actionMessage: "", savingFavorite: false, actionLocks: {review:false,comment:false,condition:false,report:false},
         reviewForm: {overall_rating: 5, review_title: "", review_markdown: "", visit_date: ""},
         commentForm: {comment_markdown: ""},
-        conditionForm: {report_type: "general_update", description: ""}
+        conditionForm: {report_type: "general_update", description: ""}, visitForm:{visit_date:"",verification_method:"manual",notes:""}, routeForm:{name:"",format:"geojson",route_type:"out_and_back",geojson:"",distance_km:"",elevation_gain_m:"",estimated_minutes:"",gpx_media_reference:""}, selectedListId:"",selectedTripId:"",routeFileName:"",offlineSaved:false
     };
     var viewState = state;
     exports.vue = {
         data: state,
-        methods: {back: back, share: share, saveFavorite: saveFavorite, submitReview: submitReview, submitComment: submitComment, submitCondition: submitCondition, markHelpful: markHelpful, reportDestination: reportDestination, number: number},
+        methods: {back: back, share: share, saveFavorite: saveFavorite, saveOffline:saveOffline, submitVisit:submitVisit, submitRoute:submitRoute, selectRouteFile:selectRouteFile, addToList:addToList, addToTrip:addToTrip, changeLanguage:changeLanguage, submitReview: submitReview, submitComment: submitComment, submitCondition: submitCondition, markHelpful: markHelpful, reportDestination: reportDestination, number: number},
         computed: {
             descriptionHtml: function () { return safeMarkdown(viewState.destination.description_markdown); },
             locationLabel: function () {
@@ -37,7 +37,7 @@ WEBDOCK.component().register(function (exports) {
                 viewState.capabilities = responses[0].success ? (responses[0].result || {}) : {};
                 if (!responses[1].success) { throw new Error("Destination was not found."); }
                 viewState.mapConfig = responses[2].success ? (responses[2].result || {enabled:false}) : {enabled:false};
-                viewState.destination = normalizeDestination(responses[1].result); viewState.hasDestination = true; viewState.loading = false; loadCommunity(); scheduleMap();
+                viewState.destination = normalizeDestination(responses[1].result); viewState.hasDestination = true; viewState.loading = false; loadCommunity(); loadWeather(); loadEnhancements(); scheduleMap();
             }).catch(function (error) { viewState.hasDestination = false; viewState.loading = false; viewState.error = error.message || "Destination could not be loaded."; });
         }
     };
@@ -57,6 +57,23 @@ WEBDOCK.component().register(function (exports) {
         api.services.GetDestinationComments(request).then(function (r) { replaceItems(viewState.comments,resultItems(r)); });
         api.services.GetDestinationConditions(request).then(function (r) { replaceItems(viewState.conditions,resultItems(r)); });
     }
+    function loadWeather() {
+        if (!viewState.hasDestination || !viewState.destination.id || !api.services.GetDestinationWeather) { return; }
+        viewState.weather = {available:false,loading:true,forecast:[]};
+        api.services.GetDestinationWeather({destinationId:viewState.destination.id}).then(function (r) {
+            var result = r && r.success && r.result ? r.result : {available:false,reason:"provider_unavailable",message:"Weather is temporarily unavailable."};
+            result.loading = false;result.forecast = Array.isArray(result.forecast) ? result.forecast : [];viewState.weather = result;
+        }).error(function () { viewState.weather = {available:false,loading:false,reason:"provider_unavailable",message:"Weather is temporarily unavailable."}; });
+    }
+    function loadEnhancements(){var id=viewState.destination.id;Promise.all([call("GetDestinationRoutes",{destinationId:id}),call("GetDestinationAvailability",{destinationId:id}),call("GetDestinationGuides",{destinationId:id}),call("GetDestinationVisitSummary",{destinationId:id}),call("GetDestinationTranslations",{destinationId:id})]).then(function(rows){replaceItems(viewState.routes,value(rows[0],[]));replaceItems(viewState.availability,value(rows[1],[]));replaceItems(viewState.guides,value(rows[2],[]));viewState.visitSummary=value(rows[3],{verifiedVisits:0});replaceItems(viewState.translations,value(rows[4],[]));scheduleMap();});Promise.all([call("GetMyTravelLists",{}),call("GetMyTrips",{})]).then(function(rows){replaceItems(viewState.lists,value(rows[0],[]));replaceItems(viewState.trips,value(rows[1],[]));}).catch(function(){});}
+    function saveOffline(){call("GetOfflineDestinationBundle",{destinationId:viewState.destination.id}).then(function(r){if(!r.success){viewState.error=message(r,"Offline copy could not be saved.");return;}try{var key="travel-destinations-offline-v1",stored=JSON.parse(localStorage.getItem(key)||"{}");stored[String(viewState.destination.id)]=r.result;localStorage.setItem(key,JSON.stringify(stored));viewState.offlineSaved=true;viewState.actionMessage="Destination information saved on this device. Offline maps and live weather are not included.";}catch(ignore){viewState.error="This browser could not store the offline copy.";}});}
+    function submitVisit(){var payload=JSON.parse(JSON.stringify(viewState.visitForm));payload.destination_id=viewState.destination.id;locked("visit",function(){return api.services.SubmitVerifiedVisit(payload);},function(r){if(r&&r.success){viewState.actionMessage="Visit submitted for verification.";viewState.visitForm={visit_date:"",verification_method:"manual",notes:""};}else{viewState.error=message(r,"Visit could not be submitted.");}},"Visit could not be submitted.");}
+    var selectedRouteFile=null;function selectRouteFile(event){selectedRouteFile=event.target.files&&event.target.files[0]?event.target.files[0]:null;viewState.routeFileName=selectedRouteFile?selectedRouteFile.name:"";if(selectedRouteFile&&(!/^[A-Za-z0-9._-]+\.gpx$/i.test(selectedRouteFile.name)||selectedRouteFile.size>5242880)){selectedRouteFile=null;viewState.routeFileName="";viewState.error="Choose a GPX file no larger than 5 MB with a filename containing only letters, numbers, dots, dashes or underscores.";}}
+    function submitRoute(){if(viewState.routeForm.format==="gpx"&&selectedRouteFile){exports.getAppComponent("davvag-tools","davvag-file-uploader",function(uploader){uploader.initialize();uploader.upload([selectedRouteFile],"travel_destination_route",viewState.destination.id,function(){viewState.routeForm.gpx_media_reference="components/dock/soss-uploader/service/get/travel_destination_route/"+viewState.destination.id+"-"+selectedRouteFile.name;saveRoute();});});return;}saveRoute();}
+    function saveRoute(){var payload=JSON.parse(JSON.stringify(viewState.routeForm));payload.destination_id=viewState.destination.id;locked("route",function(){return api.services.SaveDestinationRoute(payload);},function(r){if(r&&r.success){viewState.actionMessage="Route submitted for moderation.";viewState.routeForm={name:"",format:"geojson",route_type:"out_and_back",geojson:"",distance_km:"",elevation_gain_m:"",estimated_minutes:"",gpx_media_reference:""};selectedRouteFile=null;viewState.routeFileName="";}else{viewState.error=message(r,"Route could not be submitted.");}},"Route could not be submitted.");}
+    function addToList(){if(!viewState.selectedListId){return;}locked("list",function(){return api.services.AddDestinationToList({list_id:Number(viewState.selectedListId),destination_id:viewState.destination.id});},function(r){viewState.actionMessage=r&&r.success?"Added to your list.":message(r,"Place could not be added.");},"Place could not be added.");}function addToTrip(){if(!viewState.selectedTripId){return;}locked("trip",function(){return api.services.AddTripDestination({trip_id:Number(viewState.selectedTripId),destination_id:viewState.destination.id});},function(r){viewState.actionMessage=r&&r.success?"Added to your trip.":message(r,"Place could not be added.");},"Place could not be added.");}
+    function changeLanguage(){call("GetDestination",{id:viewState.destination.id,language:viewState.language}).then(function(r){if(r&&r.success){viewState.destination=normalizeDestination(r.result);scheduleMap();}});}
+    function call(name,payload){return new Promise(function(resolve,reject){if(!api.services[name]){resolve({success:false,result:null});return;}api.services[name](payload||{}).then(resolve).error(reject);});}function value(response,fallback){return response&&response.success&&response.result!==undefined?response.result:fallback;}
     function saveFavorite() {
         if (viewState.savingFavorite) { return; } viewState.savingFavorite = true;
         api.services.SaveFavorite({destination_id: viewState.destination.id}).then(function (r) { viewState.savingFavorite = false; if (!r.success) { viewState.error = message(r, "Could not save this place."); } }).error(function () { viewState.savingFavorite = false; viewState.error = "Could not save this place."; });
@@ -319,7 +336,7 @@ WEBDOCK.component().register(function (exports) {
             return;
         }
         mapRenderStarted = true;
-        maps.createMap(container,viewState.mapConfig,{center:viewState.destination,zoom:14,points:[viewState.destination]})
+        maps.createMap(container,viewState.mapConfig,{center:viewState.destination,zoom:14,points:[viewState.destination],routes:viewState.routes})
             .then(function(result){mapHandle=result;mapRenderStarted=false;})
             .catch(function(error){mapRenderStarted=false;viewState.mapError=error.message||"Google Maps could not be loaded.";});
     }

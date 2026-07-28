@@ -1,0 +1,1 @@
+{"name":"package-admin","description":"Credit package administration","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

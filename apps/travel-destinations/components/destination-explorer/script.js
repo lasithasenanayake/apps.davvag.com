@@ -1,7 +1,7 @@
 WEBDOCK.component().register(function (exports) {
-    var api, maps, router, rootElement, mapHandle;
+    var api, maps, router, rootElement, mapHandle, suggestionTimer;
     var state = {
-        items: [], categories: [], amenities: [],
+        items: [], categories: [], amenities: [], suggestions: [], collections: [],
         filters: {keyword: "", categoryId: "", sort: "featured", page: 0, pageSize: 20},
         pagination: {}, loading: false, loadingMore: false, error: "",
         viewMode: "list", selectedId: null, resultTitle: "Places worth the journey",
@@ -10,7 +10,7 @@ WEBDOCK.component().register(function (exports) {
     var viewState = state;
     exports.vue = {
         data: state,
-        methods: {search: search, loadMore: loadMore, setView: setView, navigate: navigate, openDestination: openDestination, locationLabel: locationLabel, number: number, pinStyle: pinStyle, selectMarker: selectMarker, markerLabel: markerLabel, hasMapLocation: hasMapLocation, markerNumber: markerNumber},
+        methods: {search: search, suggest: suggest, useSuggestion: useSuggestion, openCollection: openCollection, loadMore: loadMore, setView: setView, navigate: navigate, openDestination: openDestination, locationLabel: locationLabel, number: number, pinStyle: pinStyle, selectMarker: selectMarker, markerLabel: markerLabel, hasMapLocation: hasMapLocation, markerNumber: markerNumber},
         computed: {
             mappableItems: function () {
                 return viewState.items.filter(hasMapLocation);
@@ -27,13 +27,21 @@ WEBDOCK.component().register(function (exports) {
             router = exports.getShellComponent("soss-routes");
             if (!api || !api.services) { viewState.error = "Destination services are unavailable."; return; }
             viewState.viewMode = window.location.hash.indexOf("/map") >= 0 ? "map" : "list";
-            Promise.all([api.services.GetCategories({}),api.services.GetMapConfiguration({})]).then(function (responses) {
+            Promise.all([api.services.GetCategories({}),api.services.GetMapConfiguration({}),api.services.GetFeaturedCollections({})]).then(function (responses) {
                 replaceItems(viewState.categories, responses[0] && responses[0].success && Array.isArray(responses[0].result) ? responses[0].result : []);
                 viewState.mapConfig = responses[1] && responses[1].success ? (responses[1].result || {enabled:false}) : {enabled:false};
+                replaceItems(viewState.collections, responses[2] && responses[2].success && Array.isArray(responses[2].result) ? responses[2].result : []);
                 search();
             }).catch(function () { viewState.error = "Map and category settings could not be loaded."; search(); });
         }
     };
+    function suggest() {
+        clearTimeout(suggestionTimer);var query=String(viewState.filters.keyword||"").trim();
+        if(query.length<2){replaceItems(viewState.suggestions,[]);return;}
+        suggestionTimer=setTimeout(function(){api.services.GetSearchSuggestions({query:query,limit:8}).then(function(r){replaceItems(viewState.suggestions,r&&r.success&&Array.isArray(r.result)?r.result:[]);});},180);
+    }
+    function useSuggestion(item){replaceItems(viewState.suggestions,[]);if(item.destinationId){openDestination({id:item.destinationId});return;}viewState.filters.keyword=item.label;search();}
+    function openCollection(collection){viewState.loading=true;viewState.error="";api.services.GetCollection({id:collection.id}).then(function(r){viewState.loading=false;if(!r.success){viewState.error=serviceMessage(r,"Collection could not be opened.");return;}var value=r.result||{};replaceItems(viewState.items,value.destinations||[]);viewState.pagination={total:viewState.items.length,page:0,hasMore:false};viewState.resultTitle=value.title||"Featured collection";viewState.selectedId=viewState.items.length?viewState.items[0].id:null;scheduleMap();}).error(function(){viewState.loading=false;viewState.error="Collection could not be opened.";});}
     function search() {
         if (viewState.loading) { return; }
         viewState.loading = true; viewState.error = ""; viewState.filters.page = 0;
@@ -127,7 +135,7 @@ WEBDOCK.component().register(function (exports) {
         maps = maps || resolveMaps(exports);
         if (!maps || typeof maps.createMap !== "function") { viewState.mapError = "The Google Maps runtime is unavailable. Refresh the page and try again."; return; }
         viewState.mapError = "";
-        maps.createMap(container,viewState.mapConfig,{points:viewState.items,onMarkerClick:function(item){selectMarker(item);}})
+        maps.createMap(container,viewState.mapConfig,{points:viewState.items,cluster:true,onMarkerClick:function(item){selectMarker(item);}})
             .then(function(result){mapHandle=result;})
             .catch(function(error){viewState.mapError=error.message||"Google Maps could not be loaded.";});
     }

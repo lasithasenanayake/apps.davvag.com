@@ -1,0 +1,12 @@
+{
+    "name": "admin-weather-settings",
+    "description": "Optional weather provider settings administration",
+    "author": "DAVVAG",
+    "version": "0.5.0",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ]
+    }
+}

@@ -112,8 +112,29 @@ if ($existingMapSettings->success && count($existingMapSettings->result) === 0) 
     $mapSettingsInserted = 1;
 }
 
+$weatherSettingsInserted = 0;
+$existingWeatherSettings = SOSSData::Query("travel_destination_weather_settings", "provider:open_meteo", null, "asc", 1, 0, AUTH_DOMAIN, false);
+if ($existingWeatherSettings->success && count($existingWeatherSettings->result) === 0) {
+    $weatherSettings = new stdClass();
+    $weatherSettings->provider = "open_meteo";
+    $weatherSettings->is_enabled = false;
+    $weatherSettings->forecast_days = 3;
+    $weatherSettings->temperature_unit = "celsius";
+    $weatherSettings->wind_speed_unit = "kmh";
+    $weatherSettings->license_confirmed = false;
+    $weatherSettings->updated_by_profile_id = 0;
+    $weatherSettings->updated_at = date("Y-m-d H:i:s");
+    $savedWeatherSettings = SOSSData::Insert("travel_destination_weather_settings", $weatherSettings, AUTH_DOMAIN);
+    if (!$savedWeatherSettings->success) {
+        fwrite(STDERR, "Failed to seed weather settings.\n");
+        exit(1);
+    }
+    $weatherSettingsInserted = 1;
+}
+
 echo "Permission entries inserted: " . $inserted . PHP_EOL;
 echo "Permission entries already present: " . $existing . PHP_EOL;
 echo "Reference entries inserted: " . $referenceInserted . PHP_EOL;
 echo "Map settings inserted: " . $mapSettingsInserted . PHP_EOL;
+echo "Weather settings inserted: " . $weatherSettingsInserted . PHP_EOL;
 ?>

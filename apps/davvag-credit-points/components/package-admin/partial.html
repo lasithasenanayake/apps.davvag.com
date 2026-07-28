@@ -1,0 +1,72 @@
+<section class="cp-page">
+  <div class="cp-shell">
+    <header class="cp-top">
+      <div class="cp-brand"><div class="cp-logo">C</div><div><h2>Package administration</h2><p>View, map, create, edit, and delete credit packages</p></div></div>
+      <nav class="cp-nav">
+        <button v-on:click="go('admin')">Admin</button>
+        <button class="active">Packages</button>
+        <button v-on:click="go('admin/rewards')">Rewards</button>
+        <button v-on:click="go('admin/coupons')">Coupons</button>
+      </nav>
+    </header>
+
+    <div class="cp-alert error" v-for="error in errors">{{error}}</div>
+    <div class="cp-alert info" v-for="item in info">{{item}}</div>
+
+    <div class="cp-admin-layout">
+      <div class="cp-card">
+        <div class="cp-head"><h3>Packages</h3><button class="cp-btn cp-primary" v-on:click="resetForm">New package</button></div>
+        <div class="cp-body">
+          <div class="cp-admin-toolbar"><label>Search packages<input v-model="search" placeholder="Code, title, product, currency, or status"></label></div>
+        </div>
+        <div class="cp-table-wrap">
+          <table class="cp-table">
+            <thead><tr><th>Package</th><th>Credits</th><th>Price</th><th>Mapped product</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr v-for="item in visiblePackages()">
+                <td><strong>{{item.package_code}}</strong><br><span class="cp-muted">{{item.title}}</span></td>
+                <td>{{item.credit_amount}}<span v-if="item.bonus_credit_amount > 0"> + {{item.bonus_credit_amount}}</span></td>
+                <td class="cp-nowrap">{{formatPrice(item)}}</td>
+                <td><span v-if="item.product_id > 0">#{{item.product_id}} {{item.mapped_product_name || 'Product'}}</span><span class="cp-muted" v-else>Not mapped</span></td>
+                <td><span class="cp-badge">{{item.status}}</span></td>
+                <td><div class="cp-admin-actions"><button class="cp-btn cp-light" v-on:click="edit(item)">Edit</button><button class="cp-btn cp-danger" v-on:click="remove(item)" v-bind:disabled="busy">Delete</button></div></td>
+              </tr>
+              <tr v-if="visiblePackages().length === 0"><td colspan="6" class="cp-empty">No packages found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cp-card cp-admin-editor">
+        <div class="cp-head"><h3>{{form.id ? 'Edit package' : 'Create package'}}</h3><button class="cp-btn cp-light" v-if="form.id" v-on:click="resetForm">Cancel</button></div>
+        <form class="cp-body cp-form" v-on:submit.prevent="save">
+          <label>Program<select v-model="form.program_id" required><option v-for="program in programs" v-bind:value="program.id">{{program.code}} - {{program.name}}</option></select></label>
+          <div class="cp-row"><label>Package code<input v-model="form.package_code" maxlength="60" required></label><label>Title<input v-model="form.title" maxlength="180" required></label></div>
+          <div class="cp-row"><label>Credits<input v-model="form.credit_amount" type="number" min="1" required></label><label>Bonus credits<input v-model="form.bonus_credit_amount" type="number" min="0" required></label></div>
+          <div class="cp-row"><label>Price in minor units<input v-model="form.price_minor" type="number" min="0" required></label><label>Currency<select v-model="form.currency" required><option value="" disabled>Select currency</option><option v-for="currency in currencies" v-bind:value="currency.code">{{currency.code}} - {{currency.name}}</option></select></label></div>
+
+          <label>Mapped DAVVAG product <span class="cp-help">Optional; separate from the provider product id.</span></label>
+          <div class="cp-product-selection" v-if="form.product_id > 0"><div><strong>#{{form.product_id}} {{form.mapped_product_name}}</strong><span>Package is mapped to this catalog product.</span></div><div class="cp-admin-actions"><button type="button" class="cp-btn cp-light" v-on:click="openProductPicker">Change</button><button type="button" class="cp-btn cp-danger" v-on:click="clearProduct">Clear</button></div></div>
+          <button type="button" class="cp-btn cp-light" v-else v-on:click="openProductPicker">Select a product</button>
+          <div class="cp-product-picker" v-if="showProductPicker">
+            <div class="cp-product-picker-search"><input v-model="productSearch" v-on:keyup.enter="searchProducts" placeholder="Search products"><button type="button" class="cp-btn cp-primary" v-on:click="searchProducts" v-bind:disabled="loadingProducts">Search</button><button type="button" class="cp-btn cp-light" v-on:click="showProductPicker=false">Close</button></div>
+            <div class="cp-empty" v-if="loadingProducts">Loading products...</div>
+            <div class="cp-empty" v-if="!loadingProducts &amp;&amp; products.length === 0">No products found.</div>
+            <div class="cp-product-option" v-for="product in products">
+              <img v-bind:src="productImage(product)" alt="">
+              <div><strong>#{{product.product_id}} {{product.product_title}}</strong><span>{{product.category || 'Unassigned'}} · {{product.product_currency_code}} {{product.product_price}}</span><span>{{product.caption}}</span></div>
+              <button type="button" class="cp-btn cp-primary" v-on:click="selectProduct(product)">Map product</button>
+            </div>
+          </div>
+
+          <div class="cp-row"><label>Payment channel<input v-model="form.payment_channel" maxlength="30"></label><label>Provider product ID<input v-model="form.provider_product_id" maxlength="190"></label></div>
+          <div class="cp-row"><label>Purchase limit per profile<input v-model="form.purchase_limit_per_profile" type="number" min="0"></label><label>First purchase only<select v-model="form.first_purchase_only"><option value="false">No</option><option value="true">Yes</option></select></label></div>
+          <div class="cp-row"><label>Active from<input v-model="form.active_from" type="datetime-local"></label><label>Active until<input v-model="form.active_until" type="datetime-local"></label></div>
+          <div class="cp-row"><label>Sort order<input v-model="form.sort_order" type="number" min="0"></label><label>Status<select v-model="form.status"><option>ACTIVE</option><option>INACTIVE</option></select></label></div>
+          <label>Description<textarea v-model="form.description" maxlength="2000"></textarea></label>
+          <div class="cp-admin-actions"><button class="cp-btn cp-primary" v-bind:disabled="busy">{{form.id ? 'Update package' : 'Create package'}}</button><button type="button" class="cp-btn cp-light" v-on:click="resetForm">Reset</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

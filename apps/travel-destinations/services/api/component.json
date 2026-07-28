@@ -2,7 +2,7 @@
     "name": "api",
     "description": "Validated travel destination application services",
     "author": "DAVVAG",
-    "version": "0.4.7",
+    "version": "0.6.0",
     "resources": {
         "files": [
             {
@@ -42,6 +42,7 @@
             "Capabilities": {"method": "GET"},
             "SearchDestinations": {"method": "POST"},
             "GetDestination": {"method": "POST"},
+            "GetDestinationWeather": {"method": "POST"},
             "GetNearbyDestinations": {"method": "POST"},
             "GetDestinationReviews": {"method": "POST"},
             "GetDestinationComments": {"method": "POST"},
@@ -85,7 +86,43 @@
             "GetModerationQueue": {"method": "POST"},
             "SeedReferenceData": {"method": "POST"},
             "GetAdminMapSettings": {"method": "GET"},
-            "SaveMapSettings": {"method": "POST"}
+            "SaveMapSettings": {"method": "POST"},
+            "GetAdminWeatherSettings": {"method": "GET"},
+            "SaveWeatherSettings": {"method": "POST"}
+            ,"GetDestinationRoutes": {"method": "POST"}
+            ,"GetOfflineDestinationBundle": {"method": "POST"}
+            ,"GetDestinationVisitSummary": {"method": "POST"}
+            ,"GetDestinationAvailability": {"method": "POST"}
+            ,"GetDestinationGuides": {"method": "POST"}
+            ,"GetSearchSuggestions": {"method": "POST"}
+            ,"GetFeaturedCollections": {"method": "GET"}
+            ,"GetCollection": {"method": "POST"}
+            ,"GetDestinationTranslations": {"method": "POST"}
+            ,"GetRecommendations": {"method": "POST"}
+            ,"SaveDestinationRoute": {"method": "POST"}
+            ,"SubmitVerifiedVisit": {"method": "POST"}
+            ,"GetMyVisits": {"method": "POST"}
+            ,"SaveTravelList": {"method": "POST"}
+            ,"DeleteTravelList": {"method": "POST"}
+            ,"AddDestinationToList": {"method": "POST"}
+            ,"RemoveDestinationFromList": {"method": "POST"}
+            ,"GetMyTravelLists": {"method": "POST"}
+            ,"SaveGuideProfile": {"method": "POST"}
+            ,"GetMyGuideProfile": {"method": "GET"}
+            ,"GetNotificationPreferences": {"method": "GET"}
+            ,"SaveNotificationPreferences": {"method": "POST"}
+            ,"SaveTrip": {"method": "POST"}
+            ,"DeleteTrip": {"method": "POST"}
+            ,"AddTripDestination": {"method": "POST"}
+            ,"RemoveTripDestination": {"method": "POST"}
+            ,"GetMyTrips": {"method": "POST"}
+            ,"ModerateDestinationRoute": {"method": "POST"}
+            ,"ModerateVerifiedVisit": {"method": "POST"}
+            ,"VerifyGuideProfile": {"method": "POST"}
+            ,"SaveDestinationAvailability": {"method": "POST"}
+            ,"SaveDestinationTranslation": {"method": "POST"}
+            ,"SaveFeaturedCollection": {"method": "POST"}
+            ,"GetPhaseTwoAdminData": {"method": "POST"}
         }
     }
 }

@@ -93,6 +93,20 @@ class ApiService {
     private $reportNamespace = "travel_destination_report";
     private $mapSettingsNamespace = "travel_destination_map_settings";
     private $descriptionChunkNamespace = "travel_destination_description_chunk";
+    private $weatherSettingsNamespace = "travel_destination_weather_settings";
+    private $routeNamespace = "travel_destination_route";
+    private $listNamespace = "travel_destination_list";
+    private $listItemNamespace = "travel_destination_list_item";
+    private $visitNamespace = "travel_destination_visit";
+    private $guideNamespace = "travel_destination_guide";
+    private $guideDestinationNamespace = "travel_destination_guide_destination";
+    private $availabilityNamespace = "travel_destination_availability";
+    private $notificationPreferenceNamespace = "travel_destination_notification_preference";
+    private $translationNamespace = "travel_destination_translation";
+    private $collectionNamespace = "travel_destination_collection";
+    private $collectionItemNamespace = "travel_destination_collection_item";
+    private $tripNamespace = "travel_destination_trip";
+    private $tripItemNamespace = "travel_destination_trip_item";
 
     private $destinationStatuses = array("Draft", "Pending Review", "Returned for Changes", "Approved", "Rejected", "Published", "Archived");
     private $privacyModes = array("exact_public", "approximate_public", "hidden_sensitive", "approved_only");
@@ -100,6 +114,8 @@ class ApiService {
     private $reviewStatuses = array("Pending", "Approved", "Rejected", "Hidden");
     private $reportReasons = array("incorrect_location", "duplicate_destination", "closed_destination", "private_property", "unsafe_destination", "misleading_description", "inappropriate_image", "inappropriate_review", "inappropriate_comment", "environmental_concern", "spam");
     private $conditionTypes = array("road_blocked", "trail_closed", "heavy_rain", "flooding", "landslide", "strong_wind", "fire_risk", "unsafe_water", "construction", "entrance_closed", "permit_change", "high_crowd_level", "mobile_signal_unavailable", "campsite_unavailable", "general_update");
+    private $routeTypes = array("loop", "out_and_back", "point_to_point");
+    private $visitStatuses = array("Pending", "Verified", "Rejected");
 
     public function getCapabilities($req, $res) {
         $profileId = $this->currentProfileId();
@@ -156,6 +172,46 @@ class ApiService {
             return null;
         }
         return $this->safeAdminMapSettings($this->mapSettings());
+    }
+
+    public function getGetAdminWeatherSettings($req, $res) {
+        if ($this->requireAdmin($res) === null) {
+            return null;
+        }
+        return $this->safeAdminWeatherSettings($this->weatherSettings());
+    }
+
+    public function postSaveWeatherSettings($req, $res) {
+        $profileId = $this->requireAdmin($res);
+        if ($profileId === null) {
+            return null;
+        }
+        $body = $this->body($req);
+        $forecastDays = isset($body->forecast_days) ? intval($body->forecast_days) : 3;
+        $temperatureUnit = $this->allowedText($body, "temperature_unit", array("celsius", "fahrenheit"), "celsius");
+        $windSpeedUnit = $this->allowedText($body, "wind_speed_unit", array("kmh", "ms", "mph", "kn"), "kmh");
+        $enabled = $this->bodyBoolean($body, "enabled");
+        $licenseConfirmed = $this->bodyBoolean($body, "license_confirmed");
+        if ($forecastDays < 1 || $forecastDays > 7) {
+            return $this->fail($res, "Forecast days must be between 1 and 7.");
+        }
+        if ($enabled && !$licenseConfirmed) {
+            return $this->fail($res, "Confirm the weather provider licence before enabling forecasts.");
+        }
+        $settings = $this->weatherSettings();
+        if ($settings === null) {
+            $settings = new \stdClass();
+            $settings->provider = "open_meteo";
+        }
+        $settings->is_enabled = $enabled;
+        $settings->forecast_days = $forecastDays;
+        $settings->temperature_unit = $temperatureUnit;
+        $settings->wind_speed_unit = $windSpeedUnit;
+        $settings->license_confirmed = $licenseConfirmed;
+        $settings->updated_by_profile_id = intval($profileId);
+        $settings->updated_at = date("Y-m-d H:i:s");
+        $saved = $this->saveObject($this->weatherSettingsNamespace, "id", $settings, $res);
+        return $saved === null ? null : $this->safeAdminWeatherSettings($saved);
     }
 
     public function postResolveMapLocationUrl($req, $res) {
@@ -300,9 +356,75 @@ class ApiService {
         $destination->amenities = $this->linkedReferenceRows($destination->id, $this->amenityLinkNamespace, "amenity_id", $this->amenityNamespace);
         $destination->media = $this->approvedMedia($destination->id);
         $destination->description_markdown = $this->fullDestinationDescription($destination);
+        $destination->available_languages = array($destination->primary_language);
+        foreach ($this->rows($this->translationNamespace, "destination_id:" . intval($destination->id) . ",moderation_status:Approved", "asc", 50, 0) as $translation) {
+            if (!in_array($translation->language_code, $destination->available_languages, true)) { $destination->available_languages[] = $translation->language_code; }
+        }
+        $requestedLanguage = isset($body->language) ? strtolower(trim(strval($body->language))) : "";
+        if ($requestedLanguage !== "" && $requestedLanguage !== strtolower(strval($destination->primary_language))) {
+            $translation = $this->findOne($this->translationNamespace, "destination_id:" . intval($destination->id) . ",language_code:" . $requestedLanguage . ",moderation_status:Approved");
+            if ($translation !== null) {
+                $destination->original_language = $destination->primary_language; $destination->content_language = $requestedLanguage;
+                $destination->name = $translation->name; $destination->short_summary = $translation->short_summary; $destination->description_markdown = $translation->description_markdown;
+            }
+        }
         $this->applyCoordinatePrivacy($destination, $this->canSeeExactCoordinates($destination));
         $destination->directions_url = $this->directionsUrl($destination);
         return $destination;
+    }
+
+    public function postGetDestinationWeather($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null) {
+            return null;
+        }
+        $destination = $this->findOne($this->destinationNamespace, "id:" . $destinationId);
+        if ($destination === null || !$this->canReadDestination($destination)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        $settings = $this->weatherSettings();
+        if ($settings === null || !$this->booleanValue($settings, "is_enabled") || !$this->booleanValue($settings, "license_confirmed")) {
+            return array("available" => false, "reason" => "disabled", "message" => "Weather forecasts are not configured for this site.");
+        }
+        $publicLocation = clone $destination;
+        $this->applyCoordinatePrivacy($publicLocation, $this->canSeeExactCoordinates($destination));
+        if (!isset($publicLocation->latitude) || !isset($publicLocation->longitude)
+            || !TravelDestinationRules::validCoordinates($publicLocation->latitude, $publicLocation->longitude)) {
+            return array("available" => false, "reason" => "location_restricted", "message" => "Weather is unavailable because this destination's coordinates are restricted.");
+        }
+        $safeSettings = $this->safeAdminWeatherSettings($settings);
+        $cacheKey = md5(implode("|", array(
+            round(floatval($publicLocation->latitude), 4),
+            round(floatval($publicLocation->longitude), 4),
+            $safeSettings["forecast_days"],
+            $safeSettings["temperature_unit"],
+            $safeSettings["wind_speed_unit"]
+        )));
+        if (class_exists("\\CacheData")) {
+            $cached = \CacheData::getObjects($cacheKey, "travel_destination_weather");
+            if ($cached !== null) {
+                $cached = json_decode(json_encode($cached), true);
+                $cached["cached"] = true;
+                return $cached;
+            }
+        }
+        $payload = $this->fetchOpenMeteoForecast(
+            floatval($publicLocation->latitude),
+            floatval($publicLocation->longitude),
+            $safeSettings
+        );
+        if ($payload === null) {
+            return array("available" => false, "reason" => "provider_unavailable", "message" => "Weather is temporarily unavailable. Destination information is still available.");
+        }
+        $forecast = $this->normalizeWeatherResponse($payload, $safeSettings);
+        if ($forecast === null) {
+            return array("available" => false, "reason" => "invalid_provider_response", "message" => "Weather is temporarily unavailable. Destination information is still available.");
+        }
+        if (class_exists("\\CacheData")) {
+            \CacheData::setObjects($cacheKey, "travel_destination_weather", $forecast);
+        }
+        return $forecast;
     }
 
     public function postGetDestinationReviews($req, $res) {
@@ -823,7 +945,10 @@ class ApiService {
             "reviews" => $this->rows($this->reviewNamespace, "moderation_status:Pending,is_active:1", "asc", 200, 0),
             "comments" => $this->rows($this->commentNamespace, "moderation_status:Pending,is_active:1", "asc", 200, 0),
             "conditions" => $this->rows($this->conditionNamespace, "moderation_status:Pending", "asc", 200, 0),
-            "reports" => $this->rows($this->reportNamespace, "status:Open", "asc", 200, 0)
+            "reports" => $this->rows($this->reportNamespace, "status:Open", "asc", 200, 0),
+            "routes" => $this->rows($this->routeNamespace, "moderation_status:Pending", "asc", 200, 0),
+            "visits" => $this->rows($this->visitNamespace, "verification_status:Pending", "asc", 200, 0),
+            "guides" => $this->rows($this->guideNamespace, "verification_status:Pending", "asc", 200, 0)
         );
     }
 
@@ -836,6 +961,445 @@ class ApiService {
         $this->seedReferenceRows($this->categoryNamespace, $categories);
         $this->seedReferenceRows($this->amenityNamespace, $amenities);
         return array("categories" => $this->activeReferenceRows($this->categoryNamespace), "amenities" => $this->activeReferenceRows($this->amenityNamespace));
+    }
+
+    public function postGetDestinationRoutes($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        return $this->rows($this->routeNamespace, "destination_id:" . $destinationId . ",moderation_status:Approved", "asc", 50, 0);
+    }
+
+    public function postGetOfflineDestinationBundle($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        $destination = $destinationId === null ? null : $this->findOne($this->destinationNamespace, "id:" . $destinationId);
+        if ($destination === null || !$this->canReadDestination($destination)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        $destination->categories = $this->linkedReferenceRows($destinationId, $this->categoryLinkNamespace, "category_id", $this->categoryNamespace);
+        $destination->amenities = $this->linkedReferenceRows($destinationId, $this->amenityLinkNamespace, "amenity_id", $this->amenityNamespace);
+        $destination->media = $this->approvedMedia($destinationId);
+        $destination->description_markdown = $this->fullDestinationDescription($destination);
+        $this->applyCoordinatePrivacy($destination, $this->canSeeExactCoordinates($destination));
+        return array(
+            "bundleVersion" => 1,
+            "savedAt" => gmdate("c"),
+            "destination" => $destination,
+            "routes" => $this->rows($this->routeNamespace, "destination_id:" . $destinationId . ",moderation_status:Approved", "asc", 50, 0),
+            "availability" => $this->publicAvailability($destinationId),
+            "conditions" => $this->activeConditions($destinationId),
+            "notice" => "Offline information may be outdated. Reconnect and verify weather, access, permits and safety before travel."
+        );
+    }
+
+    public function postGetDestinationVisitSummary($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        $visits = $this->rows($this->visitNamespace, "destination_id:" . $destinationId . ",verification_status:Verified", "desc", 1000, 0);
+        return array("verifiedVisits" => count($visits), "latestVerifiedVisit" => count($visits) && isset($visits[0]->visit_date) ? $visits[0]->visit_date : null);
+    }
+
+    public function postGetDestinationAvailability($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        return $this->publicAvailability($destinationId);
+    }
+
+    public function postGetDestinationGuides($req, $res) {
+        $body = $this->body($req);
+        $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) {
+            return $this->fail($res, "Destination was not found.");
+        }
+        $links = $this->rows($this->guideDestinationNamespace, "destination_id:" . $destinationId, "asc", 100, 0);
+        $guides = array();
+        foreach ($links as $link) {
+            $guide = $this->findOne($this->guideNamespace, "id:" . intval($link->guide_id));
+            if ($guide === null || !isset($guide->verification_status) || $guide->verification_status !== "Verified" || !$this->booleanValue($guide, "is_available")) {
+                continue;
+            }
+            $profile = $this->findOne("profile", "id:" . intval($guide->profile_id));
+            $guides[] = array(
+                "id" => intval($guide->id), "profileId" => intval($guide->profile_id),
+                "name" => $profile && isset($profile->name) ? strval($profile->name) : "Verified local guide",
+                "headline" => isset($guide->headline) ? $guide->headline : "", "bio_markdown" => isset($guide->bio_markdown) ? $guide->bio_markdown : "",
+                "languages" => isset($guide->languages) ? $guide->languages : "", "service_areas" => isset($guide->service_areas) ? $guide->service_areas : "",
+                "public_contact" => isset($guide->public_contact) ? $guide->public_contact : "", "booking_url" => isset($guide->booking_url) ? $guide->booking_url : "",
+                "verification_status" => "Verified"
+            );
+        }
+        return $guides;
+    }
+
+    public function postGetSearchSuggestions($req, $res) {
+        $body = $this->body($req);
+        $query = mb_strtolower($this->text($body, "query", 80));
+        $limit = isset($body->limit) ? min(12, max(1, intval($body->limit))) : 8;
+        if (mb_strlen($query) < 2) {
+            return array();
+        }
+        $values = array();
+        foreach ($this->rows($this->destinationNamespace, "status:Published", "desc", 500, 0) as $destination) {
+            foreach (array("name", "province", "district", "nearest_town", "village") as $field) {
+                if (!empty($destination->{$field})) { $values[] = array("label" => strval($destination->{$field}), "type" => $field === "name" ? "destination" : "location", "destinationId" => $field === "name" ? intval($destination->id) : null); }
+            }
+            if (!empty($destination->tags)) {
+                foreach (preg_split('/\s*,\s*/', strval($destination->tags)) as $tag) { if ($tag !== "") { $values[] = array("label" => $tag, "type" => "tag", "destinationId" => null); } }
+            }
+        }
+        foreach ($this->activeReferenceRows($this->categoryNamespace) as $category) { $values[] = array("label" => $category->name, "type" => "category", "destinationId" => null); }
+        $unique = array();
+        foreach ($values as $value) {
+            $label = trim($value["label"]); $lower = mb_strtolower($label); $position = mb_strpos($lower, $query);
+            if ($position === false || isset($unique[$lower])) { continue; }
+            $value["score"] = $position === 0 ? 100 - mb_strlen($label) : 40 - $position; $unique[$lower] = $value;
+        }
+        $suggestions = array_values($unique);
+        usort($suggestions, function ($left, $right) { return $right["score"] <=> $left["score"]; });
+        return array_slice($suggestions, 0, $limit);
+    }
+
+    public function getGetFeaturedCollections($req, $res) {
+        $items = $this->rows($this->collectionNamespace, "publication_status:Published,is_featured:1", "desc", 20, 0);
+        foreach ($items as $item) { $item->destination_count = count($this->rows($this->collectionItemNamespace, "collection_id:" . intval($item->id), "asc", 500, 0)); }
+        return $items;
+    }
+
+    public function postGetCollection($req, $res) {
+        $body = $this->body($req);
+        $collection = isset($body->id) ? $this->findOne($this->collectionNamespace, "id:" . intval($body->id)) : null;
+        if ($collection === null && !empty($body->slug)) { $collection = $this->findOne($this->collectionNamespace, "slug:" . TravelDestinationRules::slug($body->slug)); }
+        if ($collection === null || !isset($collection->publication_status) || $collection->publication_status !== "Published") { return $this->fail($res, "Collection was not found."); }
+        $collection->destinations = array();
+        foreach ($this->rows($this->collectionItemNamespace, "collection_id:" . intval($collection->id), "asc", 200, 0) as $link) {
+            $destination = $this->publicDestinationSummary(intval($link->destination_id));
+            if ($destination !== null) { $destination->editor_note = isset($link->editor_note) ? $link->editor_note : ""; $collection->destinations[] = $destination; }
+        }
+        return $collection;
+    }
+
+    public function postGetDestinationTranslations($req, $res) {
+        $body = $this->body($req); $destinationId = $this->requiredId($body, "destinationId", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) { return $this->fail($res, "Destination was not found."); }
+        $rows = $this->rows($this->translationNamespace, "destination_id:" . $destinationId . ",moderation_status:Approved", "asc", 50, 0);
+        foreach ($rows as $row) { unset($row->translated_by_profile_id); }
+        return $rows;
+    }
+
+    public function postGetRecommendations($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; }
+        $signalIds = array();
+        foreach ($this->rows($this->favoriteNamespace, "profile_id:" . $profileId, "desc", 200, 0) as $row) { $signalIds[intval($row->destination_id)] = true; }
+        foreach ($this->rows($this->visitNamespace, "profile_id:" . $profileId . ",verification_status:Verified", "desc", 200, 0) as $row) { $signalIds[intval($row->destination_id)] = true; }
+        foreach ($this->rows($this->listNamespace, "profile_id:" . $profileId, "desc", 100, 0) as $list) { foreach ($this->rows($this->listItemNamespace, "list_id:" . intval($list->id), "asc", 200, 0) as $row) { $signalIds[intval($row->destination_id)] = true; } }
+        $categoryScores = array(); $tagScores = array(); $provinceScores = array();
+        foreach (array_keys($signalIds) as $destinationId) {
+            $source = $this->findOne($this->destinationNamespace, "id:" . $destinationId); if ($source === null) { continue; }
+            foreach ($this->linkedReferenceRows($destinationId, $this->categoryLinkNamespace, "category_id", $this->categoryNamespace) as $category) { $categoryScores[intval($category->id)] = isset($categoryScores[intval($category->id)]) ? $categoryScores[intval($category->id)] + 3 : 3; }
+            foreach (preg_split('/\s*,\s*/', mb_strtolower(isset($source->tags) ? $source->tags : "")) as $tag) { if ($tag !== "") { $tagScores[$tag] = isset($tagScores[$tag]) ? $tagScores[$tag] + 1 : 1; } }
+            if (!empty($source->province)) { $provinceScores[mb_strtolower($source->province)] = 2; }
+        }
+        $recommendations = array();
+        foreach ($this->rows($this->destinationNamespace, "status:Published", "desc", 500, 0) as $candidate) {
+            if (isset($signalIds[intval($candidate->id)])) { continue; }
+            $score = $this->booleanValue($candidate, "is_featured") ? 1 : 0; $reasons = array();
+            foreach ($this->linkedReferenceRows($candidate->id, $this->categoryLinkNamespace, "category_id", $this->categoryNamespace) as $category) { if (isset($categoryScores[intval($category->id)])) { $score += $categoryScores[intval($category->id)]; $reasons[] = $category->name; } }
+            foreach (preg_split('/\s*,\s*/', mb_strtolower(isset($candidate->tags) ? $candidate->tags : "")) as $tag) { if (isset($tagScores[$tag])) { $score += $tagScores[$tag]; } }
+            if (!empty($candidate->province) && isset($provinceScores[mb_strtolower($candidate->province)])) { $score += 2; $reasons[] = $candidate->province; }
+            $candidate->recommendation_score = $score; $candidate->recommendation_reason = count($reasons) ? "Matches your interest in " . implode(", ", array_slice(array_unique($reasons), 0, 2)) : "Featured destination";
+            $this->applyCoordinatePrivacy($candidate, false); $recommendations[] = $candidate;
+        }
+        usort($recommendations, function ($left, $right) { $score = intval($right->recommendation_score) <=> intval($left->recommendation_score); return $score !== 0 ? $score : floatval($right->rating_average) <=> floatval($left->rating_average); });
+        return array_slice($recommendations, 0, 12);
+    }
+
+    public function postSaveDestinationRoute($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; }
+        $body = $this->body($req); $destinationId = $this->requiredId($body, "destination_id", $res);
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) { return $this->fail($res, "Destination was not found."); }
+        $format = $this->allowedText($body, "format", array("geojson", "gpx"), "geojson");
+        $route = new \stdClass(); $route->destination_id = $destinationId; $route->name = $this->text($body, "name", 180);
+        $route->route_type = $this->allowedText($body, "route_type", $this->routeTypes, "out_and_back"); $route->format = $format;
+        $route->geojson = $format === "geojson" ? $this->normalizeGeoJson(isset($body->geojson) ? $body->geojson : null) : null;
+        $route->gpx_media_reference = $format === "gpx" ? $this->validatedRouteMediaReference($this->text($body, "gpx_media_reference", 500)) : "";
+        if ($route->name === "" || ($format === "geojson" && $route->geojson === null) || ($format === "gpx" && $route->gpx_media_reference === "")) { return $this->fail($res, "Add a route name and valid GeoJSON or uploaded GPX reference."); }
+        $route->distance_km = isset($body->distance_km) ? max(0, min(1000, floatval($body->distance_km))) : 0; $route->elevation_gain_m = isset($body->elevation_gain_m) ? max(0, min(20000, floatval($body->elevation_gain_m))) : 0;
+        $route->estimated_minutes = isset($body->estimated_minutes) ? max(0, min(100000, intval($body->estimated_minutes))) : 0; $route->uploaded_by_profile_id = $profileId; $route->moderation_status = "Pending"; $route->display_order = 0;
+        return $this->saveObject($this->routeNamespace, "id", $route, $res);
+    }
+
+    public function postSubmitVerifiedVisit($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; }
+        $body = $this->body($req); $destinationId = $this->requiredId($body, "destination_id", $res); $visitDate = isset($body->visit_date) ? $this->validDateValue($body->visit_date) : "";
+        if ($destinationId === null || !$this->isPublishedDestination($destinationId) || $visitDate === "" || strtotime($visitDate) > time()) { return $this->fail($res, "Choose a published destination and a valid visit date that is not in the future."); }
+        $existing = $this->findOne($this->visitNamespace, "destination_id:" . $destinationId . ",profile_id:" . $profileId . ",visit_date:" . $visitDate);
+        if ($existing !== null) { return $this->fail($res, "A visit for this destination and date already exists."); }
+        $visit = new \stdClass(); $visit->destination_id = $destinationId; $visit->profile_id = $profileId; $visit->visit_date = $visitDate;
+        $visit->verification_method = $this->allowedText($body, "verification_method", array("photo", "booking", "guide", "manual"), "manual");
+        $visit->evidence_media_reference = $this->text($body, "evidence_media_reference", 500); $visit->notes = $this->text($body, "notes", 1500); $visit->verification_status = "Pending"; $visit->verified_by_profile_id = 0;
+        return $this->saveObject($this->visitNamespace, "id", $visit, $res);
+    }
+
+    public function postGetMyVisits($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $result = $this->pagedRows($this->visitNamespace, "profile_id:" . $profileId, $body, 20, 100);
+        foreach ($result["items"] as $item) { $item->destination = $this->publicDestinationSummary(intval($item->destination_id)); }
+        return $result;
+    }
+
+    public function postSaveTravelList($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $list = isset($body->id) ? $this->findOne($this->listNamespace, "id:" . intval($body->id)) : null;
+        if ($list !== null && intval($list->profile_id) !== $profileId) { return $this->fail($res, "You may edit only your own list."); }
+        if ($list === null && count($this->rows($this->listNamespace, "profile_id:" . $profileId, "desc", 100, 0)) >= 20) { return $this->fail($res, "You may create up to 20 travel lists."); }
+        if ($list === null) { $list = new \stdClass(); $list->profile_id = $profileId; $list->is_default = false; }
+        $list->name = $this->text($body, "name", 120); $list->description = $this->text($body, "description", 1000); $list->is_public = $this->bodyBoolean($body, "is_public");
+        if ($list->name === "") { return $this->fail($res, "List name is required."); }
+        return $this->saveObject($this->listNamespace, "id", $list, $res);
+    }
+
+    public function postDeleteTravelList($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $list = isset($body->id) ? $this->findOne($this->listNamespace, "id:" . intval($body->id)) : null;
+        if ($list === null || intval($list->profile_id) !== $profileId || $this->booleanValue($list, "is_default")) { return $this->fail($res, "This list cannot be deleted."); }
+        foreach ($this->rows($this->listItemNamespace, "list_id:" . intval($list->id), "asc", 1000, 0) as $item) { \SOSSData::Delete($this->listItemNamespace, $item); }
+        $deleted = \SOSSData::Delete($this->listNamespace, $list); return !empty($deleted->success) ? array("deleted" => true, "id" => intval($list->id)) : $this->fail($res, "List could not be deleted.");
+    }
+
+    public function postAddDestinationToList($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $listId = $this->requiredId($body, "list_id", $res); $destinationId = $this->requiredId($body, "destination_id", $res); if ($listId === null || $destinationId === null) { return null; }
+        $list = $this->findOne($this->listNamespace, "id:" . $listId); if ($list === null || intval($list->profile_id) !== $profileId || !$this->isPublishedDestination($destinationId)) { return $this->fail($res, "List or destination is unavailable."); }
+        $existing = $this->findOne($this->listItemNamespace, "list_id:" . $listId . ",destination_id:" . $destinationId); if ($existing !== null) { return $existing; }
+        $item = new \stdClass(); $item->list_id = $listId; $item->destination_id = $destinationId; $item->notes = $this->text($body, "notes", 1000); $item->display_order = isset($body->display_order) ? max(0, intval($body->display_order)) : 0;
+        return $this->saveObject($this->listItemNamespace, "id", $item, $res);
+    }
+
+    public function postRemoveDestinationFromList($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $listId = $this->requiredId($body, "list_id", $res); $destinationId = $this->requiredId($body, "destination_id", $res); if ($listId === null || $destinationId === null) { return null; }
+        $list = $this->findOne($this->listNamespace, "id:" . $listId); $item = $this->findOne($this->listItemNamespace, "list_id:" . $listId . ",destination_id:" . $destinationId);
+        if ($list === null || intval($list->profile_id) !== $profileId || $item === null) { return $this->fail($res, "List item was not found."); }
+        $deleted = \SOSSData::Delete($this->listItemNamespace, $item); return !empty($deleted->success) ? array("removed" => true) : $this->fail($res, "List item could not be removed.");
+    }
+
+    public function postGetMyTravelLists($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; }
+        $lists = $this->rows($this->listNamespace, "profile_id:" . $profileId, "desc", 100, 0);
+        foreach ($lists as $list) { $list->items = array(); foreach ($this->rows($this->listItemNamespace, "list_id:" . intval($list->id), "asc", 500, 0) as $item) { $destination = $this->publicDestinationSummary(intval($item->destination_id)); if ($destination !== null) { $destination->list_item_id = intval($item->id); $destination->list_notes = isset($item->notes) ? $item->notes : ""; $list->items[] = $destination; } } }
+        return $lists;
+    }
+
+    public function postSaveGuideProfile($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $guide = $this->findOne($this->guideNamespace, "profile_id:" . $profileId); if ($guide === null) { $guide = new \stdClass(); $guide->profile_id = $profileId; }
+        $guide->headline = $this->text($body, "headline", 180); $guide->bio_markdown = TravelDestinationRules::plainMarkdown(isset($body->bio_markdown) ? $body->bio_markdown : "", 6000);
+        $guide->languages = $this->text($body, "languages", 500); $guide->service_areas = $this->text($body, "service_areas", 1000); $guide->public_contact = $this->text($body, "public_contact", 255);
+        $guide->booking_url = $this->safeHttpUrl($this->text($body, "booking_url", 500)); $guide->is_available = $this->bodyBoolean($body, "is_available"); $guide->verification_status = "Pending"; $guide->verified_by_profile_id = 0;
+        if ($guide->headline === "" || mb_strlen($guide->bio_markdown) < 20 || $guide->languages === "") { return $this->fail($res, "Guide headline, languages and a short biography are required."); }
+        $saved = $this->saveObject($this->guideNamespace, "id", $guide, $res); if ($saved !== null) { $this->syncGuideDestinations(intval($saved->id), isset($body->destination_ids) && is_array($body->destination_ids) ? $body->destination_ids : array(), $res); }
+        return $saved;
+    }
+
+    public function getGetMyGuideProfile($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; }
+        $guide = $this->findOne($this->guideNamespace, "profile_id:" . $profileId); if ($guide === null) { return array("profile_id" => $profileId, "verification_status" => "Not submitted", "destination_ids" => array()); }
+        $guide->destination_ids = array_map(function ($link) { return intval($link->destination_id); }, $this->rows($this->guideDestinationNamespace, "guide_id:" . intval($guide->id), "asc", 200, 0)); return $guide;
+    }
+
+    public function getGetNotificationPreferences($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } return $this->notificationPreferences($profileId);
+    }
+
+    public function postSaveNotificationPreferences($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $preference = $this->findOne($this->notificationPreferenceNamespace, "profile_id:" . $profileId); if ($preference === null) { $preference = new \stdClass(); $preference->profile_id = $profileId; }
+        foreach (array("submission_updates", "condition_alerts", "trip_reminders", "recommendation_updates") as $field) { $preference->{$field} = $this->bodyBoolean($body, $field); }
+        return $this->saveObject($this->notificationPreferenceNamespace, "id", $preference, $res);
+    }
+
+    public function postSaveTrip($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req);
+        $trip = isset($body->id) ? $this->findOne($this->tripNamespace, "id:" . intval($body->id)) : null; if ($trip !== null && intval($trip->profile_id) !== $profileId) { return $this->fail($res, "You may edit only your own trip."); }
+        if ($trip === null && count($this->rows($this->tripNamespace, "profile_id:" . $profileId, "desc", 100, 0)) >= 30) { return $this->fail($res, "You may create up to 30 trips."); }
+        if ($trip === null) { $trip = new \stdClass(); $trip->profile_id = $profileId; }
+        $trip->name = $this->text($body, "name", 180); $trip->start_date = isset($body->start_date) && trim($body->start_date) !== "" ? $this->validDateValue($body->start_date) : ""; $trip->end_date = isset($body->end_date) && trim($body->end_date) !== "" ? $this->validDateValue($body->end_date) : "";
+        $trip->notes = $this->text($body, "notes", 3000); $trip->status = $this->allowedText($body, "status", array("Planning", "Confirmed", "Completed", "Cancelled"), "Planning");
+        if ($trip->name === "" || ($trip->start_date !== "" && $trip->end_date !== "" && strtotime($trip->end_date) < strtotime($trip->start_date))) { return $this->fail($res, "Trip name and a valid date range are required."); }
+        return $this->saveObject($this->tripNamespace, "id", $trip, $res);
+    }
+
+    public function postDeleteTrip($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req); $trip = isset($body->id) ? $this->findOne($this->tripNamespace, "id:" . intval($body->id)) : null;
+        if ($trip === null || intval($trip->profile_id) !== $profileId) { return $this->fail($res, "Trip was not found."); }
+        foreach ($this->rows($this->tripItemNamespace, "trip_id:" . intval($trip->id), "asc", 1000, 0) as $item) { \SOSSData::Delete($this->tripItemNamespace, $item); }
+        $deleted = \SOSSData::Delete($this->tripNamespace, $trip); return !empty($deleted->success) ? array("deleted" => true) : $this->fail($res, "Trip could not be deleted.");
+    }
+
+    public function postAddTripDestination($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req); $tripId = $this->requiredId($body, "trip_id", $res); $destinationId = $this->requiredId($body, "destination_id", $res);
+        if ($tripId === null || $destinationId === null) { return null; } $trip = $this->findOne($this->tripNamespace, "id:" . $tripId); if ($trip === null || intval($trip->profile_id) !== $profileId || !$this->isPublishedDestination($destinationId)) { return $this->fail($res, "Trip or destination is unavailable."); }
+        $item = $this->findOne($this->tripItemNamespace, "trip_id:" . $tripId . ",destination_id:" . $destinationId); if ($item === null) { $item = new \stdClass(); $item->trip_id = $tripId; $item->destination_id = $destinationId; }
+        $item->planned_date = isset($body->planned_date) && trim($body->planned_date) !== "" ? $this->validDateValue($body->planned_date) : ""; $item->arrival_time = $this->text($body, "arrival_time", 10); $item->notes = $this->text($body, "notes", 1500); $item->display_order = isset($body->display_order) ? max(0, intval($body->display_order)) : 0;
+        return $this->saveObject($this->tripItemNamespace, "id", $item, $res);
+    }
+
+    public function postRemoveTripDestination($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $body = $this->body($req); $item = isset($body->item_id) ? $this->findOne($this->tripItemNamespace, "id:" . intval($body->item_id)) : null; $trip = $item ? $this->findOne($this->tripNamespace, "id:" . intval($item->trip_id)) : null;
+        if ($item === null || $trip === null || intval($trip->profile_id) !== $profileId) { return $this->fail($res, "Trip item was not found."); }
+        $deleted = \SOSSData::Delete($this->tripItemNamespace, $item); return !empty($deleted->success) ? array("removed" => true) : $this->fail($res, "Trip item could not be removed.");
+    }
+
+    public function postGetMyTrips($req, $res) {
+        $profileId = $this->requireProfile($res); if ($profileId === null) { return null; } $trips = $this->rows($this->tripNamespace, "profile_id:" . $profileId, "desc", 100, 0);
+        foreach ($trips as $trip) { $trip->items = array(); foreach ($this->rows($this->tripItemNamespace, "trip_id:" . intval($trip->id), "asc", 500, 0) as $item) { $item->destination = $this->publicDestinationSummary(intval($item->destination_id)); if ($item->destination !== null) { $trip->items[] = $item; } } }
+        return $trips;
+    }
+
+    public function postModerateDestinationRoute($req, $res) { return $this->moderatePhaseTwoRecord($req, $res, $this->routeNamespace, "moderation_status", array("Approved", "Rejected"), "uploaded_by_profile_id", "route"); }
+    public function postModerateVerifiedVisit($req, $res) { return $this->moderatePhaseTwoRecord($req, $res, $this->visitNamespace, "verification_status", $this->visitStatuses, "profile_id", "visit"); }
+    public function postVerifyGuideProfile($req, $res) { return $this->moderatePhaseTwoRecord($req, $res, $this->guideNamespace, "verification_status", array("Verified", "Rejected"), "profile_id", "guide"); }
+
+    public function postSaveDestinationAvailability($req, $res) {
+        if ($this->requireAdmin($res) === null) { return null; } $body = $this->body($req); $destinationId = $this->requiredId($body, "destination_id", $res); if ($destinationId === null || !$this->isReadableDestinationId($destinationId)) { return $this->fail($res, "Destination was not found."); }
+        $record = isset($body->id) ? $this->findOne($this->availabilityNamespace, "id:" . intval($body->id)) : new \stdClass(); if ($record === null) { return $this->fail($res, "Availability record was not found."); }
+        $record->destination_id = $destinationId; $record->provider_type = $this->allowedText($body, "provider_type", array("external", "manual", "davvag_orders"), "manual"); $record->external_reference = $this->text($body, "external_reference", 180);
+        $record->available_from = isset($body->available_from) && trim($body->available_from) !== "" ? $this->validDateValue($body->available_from) : ""; $record->available_to = isset($body->available_to) && trim($body->available_to) !== "" ? $this->validDateValue($body->available_to) : "";
+        $record->availability_status = $this->allowedText($body, "availability_status", array("Available", "Limited", "Unavailable", "Contact"), "Contact"); $record->inventory_summary = $this->text($body, "inventory_summary", 1000); $record->price_from = isset($body->price_from) ? max(0, floatval($body->price_from)) : 0;
+        $record->currency_code = strtoupper($this->text($body, "currency_code", 3)); if ($record->currency_code !== "" && !preg_match('/^[A-Z]{3}$/', $record->currency_code)) { return $this->fail($res, "Currency code must contain three letters."); }
+        $record->booking_url = $this->safeHttpUrl($this->text($body, "booking_url", 500)); $record->last_checked_at = date("Y-m-d H:i:s"); $record->moderation_status = "Approved";
+        if ($record->available_from !== "" && $record->available_to !== "" && strtotime($record->available_to) < strtotime($record->available_from)) { return $this->fail($res, "Availability date range is invalid."); }
+        return $this->saveObject($this->availabilityNamespace, "id", $record, $res);
+    }
+
+    public function postSaveDestinationTranslation($req, $res) {
+        $profileId = $this->requireAdmin($res); if ($profileId === null) { return null; } $body = $this->body($req); $destinationId = $this->requiredId($body, "destination_id", $res); $language = strtolower($this->text($body, "language_code", 20));
+        if ($destinationId === null || !$this->isReadableDestinationId($destinationId) || !preg_match('/^[a-z]{2,8}(?:-[a-z0-9]{1,8})?$/', $language)) { return $this->fail($res, "Destination or language code is invalid."); }
+        $record = $this->findOne($this->translationNamespace, "destination_id:" . $destinationId . ",language_code:" . $language); if ($record === null) { $record = new \stdClass(); $record->destination_id = $destinationId; $record->language_code = $language; }
+        $record->name = $this->text($body, "name", 255); $record->short_summary = $this->text($body, "short_summary", 1000); $record->description_markdown = TravelDestinationRules::plainMarkdown(isset($body->description_markdown) ? $body->description_markdown : "", 20000); $record->moderation_status = "Approved"; $record->translated_by_profile_id = $profileId;
+        if ($record->name === "" || $record->short_summary === "") { return $this->fail($res, "Translated name and summary are required."); }
+        return $this->saveObject($this->translationNamespace, "id", $record, $res);
+    }
+
+    public function postSaveFeaturedCollection($req, $res) {
+        $profileId = $this->requireAdmin($res); if ($profileId === null) { return null; } $body = $this->body($req); $record = isset($body->id) ? $this->findOne($this->collectionNamespace, "id:" . intval($body->id)) : new \stdClass(); if ($record === null) { return $this->fail($res, "Collection was not found."); }
+        $record->title = $this->text($body, "title", 255); $record->slug = TravelDestinationRules::slug(!empty($body->slug) ? $body->slug : $record->title); $record->summary = $this->text($body, "summary", 1500); $record->cover_media_reference = $this->text($body, "cover_media_reference", 500);
+        $record->is_featured = $this->bodyBoolean($body, "is_featured"); $record->publication_status = $this->allowedText($body, "publication_status", array("Draft", "Published", "Archived"), "Draft"); $record->published_at = $record->publication_status === "Published" ? date("Y-m-d H:i:s") : ""; $record->created_by_profile_id = $profileId;
+        if ($record->title === "" || $record->slug === "") { return $this->fail($res, "Collection title is required."); }
+        $saved = $this->saveObject($this->collectionNamespace, "id", $record, $res); if ($saved !== null) { $this->syncCollectionItems(intval($saved->id), isset($body->destination_ids) && is_array($body->destination_ids) ? $body->destination_ids : array(), $res); }
+        return $saved;
+    }
+
+    public function postGetPhaseTwoAdminData($req, $res) {
+        if ($this->requireAdmin($res) === null) { return null; }
+        return array(
+            "routes" => $this->rows($this->routeNamespace, "moderation_status:Pending", "asc", 200, 0),
+            "visits" => $this->rows($this->visitNamespace, "verification_status:Pending", "asc", 200, 0),
+            "guides" => $this->rows($this->guideNamespace, "verification_status:Pending", "asc", 200, 0),
+            "collections" => $this->rows($this->collectionNamespace, "", "desc", 200, 0),
+            "availability" => $this->rows($this->availabilityNamespace, "", "desc", 200, 0),
+            "translations" => $this->rows($this->translationNamespace, "", "desc", 200, 0)
+        );
+    }
+
+    private function isReadableDestinationId($destinationId) {
+        $destination = $this->findOne($this->destinationNamespace, "id:" . intval($destinationId));
+        return $destination !== null && $this->canReadDestination($destination);
+    }
+
+    private function publicDestinationSummary($destinationId) {
+        $destination = $this->findOne($this->destinationNamespace, "id:" . intval($destinationId));
+        if ($destination === null || !isset($destination->status) || $destination->status !== "Published") { return null; }
+        $this->applyCoordinatePrivacy($destination, false); unset($destination->description_markdown, $destination->camping_info, $destination->hiking_info, $destination->stay_info, $destination->village_info, $destination->moderation_notes, $destination->moderation_reason);
+        return $destination;
+    }
+
+    private function publicAvailability($destinationId) {
+        $today = strtotime(date("Y-m-d")); $items = array();
+        foreach ($this->rows($this->availabilityNamespace, "destination_id:" . intval($destinationId) . ",moderation_status:Approved", "desc", 100, 0) as $item) {
+            if (!empty($item->available_to) && strtotime($item->available_to) < $today) { continue; }
+            unset($item->external_reference); $items[] = $item;
+        }
+        return $items;
+    }
+
+    private function activeConditions($destinationId) {
+        $now = time(); return array_values(array_filter($this->rows($this->conditionNamespace, "destination_id:" . intval($destinationId) . ",moderation_status:Approved", "desc", 100, 0), function ($item) use ($now) { return empty($item->expires_at) || strtotime($item->expires_at) >= $now; }));
+    }
+
+    private function normalizeGeoJson($value) {
+        if (is_string($value)) { if (strlen($value) > 500000) { return null; } $value = json_decode($value, true); }
+        elseif (is_object($value)) { $value = json_decode(json_encode($value), true); }
+        if (!is_array($value)) { return null; }
+        if (isset($value["type"]) && in_array($value["type"], array("LineString", "MultiLineString"), true)) { $value = array("type" => "Feature", "properties" => array(), "geometry" => $value); }
+        if (isset($value["type"]) && $value["type"] === "Feature") { $value = array("type" => "FeatureCollection", "features" => array($value)); }
+        if (!isset($value["type"]) || $value["type"] !== "FeatureCollection" || !isset($value["features"]) || !is_array($value["features"]) || count($value["features"]) > 25) { return null; }
+        $safeFeatures = array(); $coordinateCount = 0;
+        foreach ($value["features"] as $feature) {
+            if (!is_array($feature) || !isset($feature["geometry"]) || !is_array($feature["geometry"])) { return null; }
+            $geometry = $feature["geometry"]; $type = isset($geometry["type"]) ? $geometry["type"] : "";
+            if (!in_array($type, array("LineString", "MultiLineString"), true) || !isset($geometry["coordinates"])) { return null; }
+            $coordinates = $this->sanitizeRouteCoordinates($geometry["coordinates"], $type === "MultiLineString" ? 2 : 1, $coordinateCount); if ($coordinates === null || $coordinateCount > 10000) { return null; }
+            $properties = isset($feature["properties"]) && is_array($feature["properties"]) ? $feature["properties"] : array();
+            $safeFeatures[] = array("type" => "Feature", "properties" => array("name" => isset($properties["name"]) ? mb_substr(strip_tags(strval($properties["name"])), 0, 180) : "", "color" => isset($properties["color"]) && preg_match('/^#[0-9a-f]{6}$/i', $properties["color"]) ? $properties["color"] : "#c76443"), "geometry" => array("type" => $type, "coordinates" => $coordinates));
+        }
+        return json_decode(json_encode(array("type" => "FeatureCollection", "features" => $safeFeatures)));
+    }
+
+    private function sanitizeRouteCoordinates($coordinates, $depth, &$count) {
+        if (!is_array($coordinates)) { return null; }
+        if ($depth > 1) { $safe = array(); foreach ($coordinates as $child) { $normalized = $this->sanitizeRouteCoordinates($child, $depth - 1, $count); if ($normalized === null) { return null; } $safe[] = $normalized; } return $safe; }
+        $safe = array(); foreach ($coordinates as $point) { if (!is_array($point) || count($point) < 2 || !TravelDestinationRules::validCoordinates($point[1], $point[0])) { return null; } $safe[] = array(round(floatval($point[0]), 7), round(floatval($point[1]), 7)); $count++; }
+        return count($safe) >= 2 ? $safe : null;
+    }
+
+    private function validatedRouteMediaReference($value) {
+        $value = trim(strval($value)); return preg_match('#^components/dock/soss-uploader/service/get/travel_destination_route/[A-Za-z0-9._-]+\.gpx$#i', $value) ? $value : "";
+    }
+
+    private function safeHttpUrl($value) {
+        $value = trim(strval($value)); if ($value === "") { return ""; } $parts = parse_url($value);
+        if (!is_array($parts) || empty($parts["scheme"]) || empty($parts["host"]) || !in_array(strtolower($parts["scheme"]), array("https", "http"), true) || isset($parts["user"]) || isset($parts["pass"])) { return ""; }
+        if (isset($parts["port"]) && !in_array(intval($parts["port"]), array(80, 443), true)) { return ""; } return $value;
+    }
+
+    private function syncGuideDestinations($guideId, $destinationIds, $res) {
+        foreach ($this->rows($this->guideDestinationNamespace, "guide_id:" . intval($guideId), "asc", 500, 0) as $link) { \SOSSData::Delete($this->guideDestinationNamespace, $link); }
+        $links = array(); foreach (array_slice(array_values(array_unique(array_map("intval", $destinationIds))), 0, 50) as $destinationId) { if ($this->isPublishedDestination($destinationId)) { $link = new \stdClass(); $link->guide_id = intval($guideId); $link->destination_id = $destinationId; $links[] = $link; } }
+        if (count($links)) { $saved = \SOSSData::Insert($this->guideDestinationNamespace, $links); if (empty($saved->success)) { $res->SetError("Guide destinations could not be saved."); } }
+    }
+
+    private function syncCollectionItems($collectionId, $destinationIds, $res) {
+        foreach ($this->rows($this->collectionItemNamespace, "collection_id:" . intval($collectionId), "asc", 1000, 0) as $link) { \SOSSData::Delete($this->collectionItemNamespace, $link); }
+        $links = array(); foreach (array_slice(array_values(array_unique(array_map("intval", $destinationIds))), 0, 100) as $index => $destinationId) { if ($this->isPublishedDestination($destinationId)) { $link = new \stdClass(); $link->collection_id = intval($collectionId); $link->destination_id = $destinationId; $link->editor_note = ""; $link->display_order = $index + 1; $links[] = $link; } }
+        if (count($links)) { $saved = \SOSSData::Insert($this->collectionItemNamespace, $links); if (empty($saved->success)) { $res->SetError("Collection destinations could not be saved."); } }
+    }
+
+    private function notificationPreferences($profileId) {
+        $preference = $this->findOne($this->notificationPreferenceNamespace, "profile_id:" . intval($profileId));
+        return $preference !== null ? $preference : array("profile_id" => intval($profileId), "submission_updates" => true, "condition_alerts" => true, "trip_reminders" => true, "recommendation_updates" => false);
+    }
+
+    private function moderatePhaseTwoRecord($req, $res, $namespace, $field, $statuses, $ownerField, $entityType) {
+        $adminId = $this->requireAdmin($res); if ($adminId === null) { return null; } $body = $this->body($req); $record = isset($body->id) ? $this->findOne($namespace, "id:" . intval($body->id)) : null; $status = isset($body->status) ? trim($body->status) : "";
+        if ($record === null || !in_array($status, $statuses, true)) { return $this->fail($res, "Record or moderation status is invalid."); }
+        $record->{$field} = $status; if (property_exists($record, "verified_by_profile_id")) { $record->verified_by_profile_id = $adminId; $record->verified_at = date("Y-m-d H:i:s"); }
+        $saved = $this->saveObject($namespace, "id", $record, $res); if ($saved !== null && isset($record->{$ownerField})) { $this->notifyProfile(intval($record->{$ownerField}), ucfirst($entityType) . " update", "Your " . $entityType . " status is now " . $status . ".", "#/app/travel-destinations/favorites"); }
+        return $saved;
+    }
+
+    private function notifyProfile($profileId, $title, $message, $url) {
+        if ($profileId < 1 || !class_exists("\\Profile")) { return; } $preferences = $this->notificationPreferences($profileId); $enabled = is_array($preferences) ? !empty($preferences["submission_updates"]) : $this->booleanValue($preferences, "submission_updates"); if (!$enabled) { return; }
+        $data = new \stdClass(); $data->title = $title; $data->message = $message; $data->url = $url; $queued = \Profile::AddNotify($profileId, "travel_destination_update", $data, $url); if (is_object($queued)) { \Profile::Send_Notify(); }
     }
 
     private function search($body, $mapOnly, $res) {
@@ -861,9 +1425,14 @@ class ApiService {
         $categoryDestinationIds = $categoryId > 0 ? $this->destinationIdsForLink($this->categoryLinkNamespace, "category_id", $categoryId) : null;
         $amenityDestinationIds = count($amenityIds) > 0 ? $this->destinationIdsWithAllAmenities($amenityIds) : null;
         $keyword = isset($body->keyword) ? mb_strtolower(trim($body->keyword)) : "";
+        $searchLanguage = isset($body->language) ? strtolower(trim(strval($body->language))) : "";
         $minimumRating = isset($body->minimumRating) ? max(0, min(5, floatval($body->minimumRating))) : 0;
         $items = array();
         foreach ($rows as $item) {
+            if ($searchLanguage !== "" && (!isset($item->primary_language) || strtolower(strval($item->primary_language)) !== $searchLanguage)) {
+                $translation = $this->findOne($this->translationNamespace, "destination_id:" . intval($item->id) . ",language_code:" . $searchLanguage . ",moderation_status:Approved");
+                if ($translation !== null) { $item->original_language = isset($item->primary_language) ? $item->primary_language : ""; $item->content_language = $searchLanguage; $item->name = $translation->name; $item->short_summary = $translation->short_summary; }
+            }
             if ($categoryDestinationIds !== null && !in_array(intval($item->id), $categoryDestinationIds, true)) {
                 continue;
             }
@@ -1119,6 +1688,7 @@ class ApiService {
         $saved = $this->saveObject($this->destinationNamespace, "id", $destination, $res);
         if ($saved !== null) {
             $this->logTransition($destination->id, $adminId, $from, $toStatus, $destination->moderation_reason);
+            if (isset($destination->created_by_profile_id)) { $this->notifyProfile(intval($destination->created_by_profile_id), "Destination update", $destination->name . " is now " . $toStatus . ".", "#/app/travel-destinations/my-submissions"); }
         }
         return $saved;
     }
@@ -1427,6 +1997,150 @@ class ApiService {
         $storeProfile = \Profile::getUserProfile();
         $profile = is_object($storeProfile) && isset($storeProfile->profile) ? $storeProfile->profile : $storeProfile;
         return is_object($profile) && isset($profile->id) && intval($profile->id) > 0 ? intval($profile->id) : null;
+    }
+
+    private function weatherSettings() {
+        return $this->findOne($this->weatherSettingsNamespace, "provider:open_meteo");
+    }
+
+    private function safeAdminWeatherSettings($settings) {
+        return array(
+            "id" => $settings && isset($settings->id) ? intval($settings->id) : null,
+            "provider" => "open_meteo",
+            "enabled" => $settings ? $this->booleanValue($settings, "is_enabled") : false,
+            "forecast_days" => $settings && isset($settings->forecast_days) ? min(7, max(1, intval($settings->forecast_days))) : 3,
+            "temperature_unit" => $settings && isset($settings->temperature_unit) && in_array($settings->temperature_unit, array("celsius", "fahrenheit"), true) ? $settings->temperature_unit : "celsius",
+            "wind_speed_unit" => $settings && isset($settings->wind_speed_unit) && in_array($settings->wind_speed_unit, array("kmh", "ms", "mph", "kn"), true) ? $settings->wind_speed_unit : "kmh",
+            "license_confirmed" => $settings ? $this->booleanValue($settings, "license_confirmed") : false,
+            "cache_minutes" => 60
+        );
+    }
+
+    private function fetchOpenMeteoForecast($latitude, $longitude, $settings) {
+        if (!function_exists("curl_init") || !TravelDestinationRules::validCoordinates($latitude, $longitude)) {
+            return null;
+        }
+        $query = http_build_query(array(
+            "latitude" => round(floatval($latitude), 4),
+            "longitude" => round(floatval($longitude), 4),
+            "current" => "temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,visibility",
+            "daily" => "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max",
+            "temperature_unit" => $settings["temperature_unit"],
+            "wind_speed_unit" => $settings["wind_speed_unit"],
+            "precipitation_unit" => "mm",
+            "timezone" => "auto",
+            "forecast_days" => $settings["forecast_days"]
+        ), "", "&", PHP_QUERY_RFC3986);
+        $curl = curl_init("https://api.open-meteo.com/v1/forecast?" . $query);
+        curl_setopt_array($curl, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_USERAGENT => "DAVVAG Travel Destinations weather integration",
+            CURLOPT_HTTPHEADER => array("Accept: application/json"),
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
+        ));
+        if (defined("CURLOPT_PROTOCOLS") && defined("CURLPROTO_HTTPS")) {
+            curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+        }
+        $response = curl_exec($curl);
+        $status = intval(curl_getinfo($curl, CURLINFO_HTTP_CODE));
+        $error = curl_errno($curl);
+        curl_close($curl);
+        if ($error !== 0 || $status !== 200 || !is_string($response) || strlen($response) > 1048576) {
+            return null;
+        }
+        $decoded = json_decode($response);
+        return is_object($decoded) && empty($decoded->error) ? $decoded : null;
+    }
+
+    private function normalizeWeatherResponse($payload, $settings) {
+        if (!is_object($payload) || !isset($payload->current) || !is_object($payload->current)
+            || !isset($payload->daily) || !is_object($payload->daily)) {
+            return null;
+        }
+        $current = $payload->current;
+        $daily = $payload->daily;
+        if (!isset($current->time) || !isset($current->temperature_2m) || !isset($daily->time) || !is_array($daily->time)) {
+            return null;
+        }
+        $currentUnits = isset($payload->current_units) && is_object($payload->current_units) ? $payload->current_units : new \stdClass();
+        $dailyUnits = isset($payload->daily_units) && is_object($payload->daily_units) ? $payload->daily_units : new \stdClass();
+        $days = array();
+        $dayCount = min(intval($settings["forecast_days"]), count($daily->time));
+        for ($index = 0; $index < $dayCount; $index++) {
+            $weatherCode = intval($this->weatherArrayValue($daily, "weather_code", $index, 0));
+            $days[] = array(
+                "date" => strval($this->weatherArrayValue($daily, "time", $index, "")),
+                "summary" => $this->weatherCodeLabel($weatherCode),
+                "weatherCode" => $weatherCode,
+                "temperatureMax" => $this->weatherNumber($this->weatherArrayValue($daily, "temperature_2m_max", $index, null)),
+                "temperatureMin" => $this->weatherNumber($this->weatherArrayValue($daily, "temperature_2m_min", $index, null)),
+                "precipitation" => $this->weatherNumber($this->weatherArrayValue($daily, "precipitation_sum", $index, null)),
+                "precipitationProbability" => $this->weatherNumber($this->weatherArrayValue($daily, "precipitation_probability_max", $index, null)),
+                "windSpeedMax" => $this->weatherNumber($this->weatherArrayValue($daily, "wind_speed_10m_max", $index, null)),
+                "windGustMax" => $this->weatherNumber($this->weatherArrayValue($daily, "wind_gusts_10m_max", $index, null)),
+                "sunrise" => strval($this->weatherArrayValue($daily, "sunrise", $index, "")),
+                "sunset" => strval($this->weatherArrayValue($daily, "sunset", $index, ""))
+            );
+        }
+        $currentCode = isset($current->weather_code) ? intval($current->weather_code) : 0;
+        return array(
+            "available" => true,
+            "cached" => false,
+            "cacheMinutes" => 60,
+            "provider" => array(
+                "name" => "Open-Meteo",
+                "attributionUrl" => "https://open-meteo.com/",
+                "licence" => "CC BY 4.0"
+            ),
+            "timezone" => isset($payload->timezone) ? strval($payload->timezone) : "GMT",
+            "observationTime" => strval($current->time),
+            "generatedAt" => gmdate("c"),
+            "units" => array(
+                "temperature" => isset($currentUnits->temperature_2m) ? strval($currentUnits->temperature_2m) : ($settings["temperature_unit"] === "fahrenheit" ? "°F" : "°C"),
+                "windSpeed" => isset($currentUnits->wind_speed_10m) ? strval($currentUnits->wind_speed_10m) : $settings["wind_speed_unit"],
+                "precipitation" => isset($currentUnits->precipitation) ? strval($currentUnits->precipitation) : "mm",
+                "visibility" => isset($currentUnits->visibility) ? strval($currentUnits->visibility) : "m",
+                "precipitationProbability" => isset($dailyUnits->precipitation_probability_max) ? strval($dailyUnits->precipitation_probability_max) : "%"
+            ),
+            "current" => array(
+                "summary" => $this->weatherCodeLabel($currentCode),
+                "weatherCode" => $currentCode,
+                "temperature" => $this->weatherNumber($current->temperature_2m),
+                "apparentTemperature" => isset($current->apparent_temperature) ? $this->weatherNumber($current->apparent_temperature) : null,
+                "precipitation" => isset($current->precipitation) ? $this->weatherNumber($current->precipitation) : null,
+                "windSpeed" => isset($current->wind_speed_10m) ? $this->weatherNumber($current->wind_speed_10m) : null,
+                "windGust" => isset($current->wind_gusts_10m) ? $this->weatherNumber($current->wind_gusts_10m) : null,
+                "visibility" => isset($current->visibility) ? $this->weatherNumber($current->visibility) : null
+            ),
+            "forecast" => $days
+        );
+    }
+
+    private function weatherArrayValue($object, $field, $index, $fallback) {
+        return isset($object->{$field}) && is_array($object->{$field}) && array_key_exists($index, $object->{$field})
+            ? $object->{$field}[$index]
+            : $fallback;
+    }
+
+    private function weatherNumber($value) {
+        return is_numeric($value) ? round(floatval($value), 1) : null;
+    }
+
+    private function weatherCodeLabel($code) {
+        $code = intval($code);
+        $labels = array(
+            0 => "Clear sky", 1 => "Mainly clear", 2 => "Partly cloudy", 3 => "Overcast",
+            45 => "Fog", 48 => "Freezing fog", 51 => "Light drizzle", 53 => "Drizzle", 55 => "Heavy drizzle",
+            56 => "Light freezing drizzle", 57 => "Freezing drizzle", 61 => "Light rain", 63 => "Rain", 65 => "Heavy rain",
+            66 => "Light freezing rain", 67 => "Freezing rain", 71 => "Light snow", 73 => "Snow", 75 => "Heavy snow",
+            77 => "Snow grains", 80 => "Light rain showers", 81 => "Rain showers", 82 => "Heavy rain showers",
+            85 => "Light snow showers", 86 => "Heavy snow showers", 95 => "Thunderstorm", 96 => "Thunderstorm with hail", 99 => "Severe thunderstorm with hail"
+        );
+        return isset($labels[$code]) ? $labels[$code] : "Weather update";
     }
 
     private function mapSettings() {
