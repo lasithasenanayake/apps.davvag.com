@@ -1,1 +1,1 @@
-{"name":"submissions","description":"Teacher submission review","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"submissions","description":"Teacher submission and quiz review","author":"DAVVAG","version":"1.1","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

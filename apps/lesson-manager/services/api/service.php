@@ -5,6 +5,7 @@ if (defined("PLUGIN_PATH")) {
     if (file_exists(PLUGIN_PATH . "/sossdata/SOSSData.php")) require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
     if (file_exists(PLUGIN_PATH . "/auth/auth.php")) require_once(PLUGIN_PATH . "/auth/auth.php");
     if (defined("PLUGIN_PATH_LOCAL") && file_exists(PLUGIN_PATH_LOCAL . "/profile/profile.php")) require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
+    if (file_exists(PLUGIN_PATH . "/davvag-flow/flow.php")) require_once(PLUGIN_PATH . "/davvag-flow/flow.php");
 }
 
 class LessonRules {
@@ -73,79 +74,95 @@ class ApiService {
     private $providerNs = "lesson_manager_provider_connection";
 
     public function postBootstrap($req, $res) {
+        if (!$this->requireTeacher($res)) return null;
+        $subjects=array();foreach($this->rows($this->subjectNs,"","asc") as $subject)if($this->canManageSubject($subject))$subjects[]=$subject;$courseIds=array();foreach($subjects as $subject)$courseIds[strval($subject->course_id)]=true;$courses=array();foreach($this->rows($this->courseNs,"","asc") as $course)if(isset($courseIds[strval($course->id)]))$courses[]=$course;$assignments=array();foreach($this->rows($this->assignmentNs,"","desc") as $assignment)foreach($subjects as $subject)if(strval($subject->id)===strval($assignment->subject_id)){$assignments[]=$assignment;break;}
         return array(
             "role" => $this->currentRole(), "profile" => $this->currentProfile(),
-            "courses" => $this->rows($this->courseNs, "", "asc"),
-            "subjects" => $this->rows($this->subjectNs, "", "asc"),
+            "courses" => $courses,
+            "subjects" => $subjects,
             "classGrades" => $this->rows($this->classNs, "", "asc"),
-            "assignments" => $this->rows($this->assignmentNs, "", "desc"),
+            "assignments" => $assignments,
             "profiles" => $this->isTeacher() ? $this->rows("profile", "", "asc") : array()
         );
     }
 
     public function postDashboard($req, $res) {
-        $lessons = $this->rows($this->lessonNs, "", "asc");
-        $quizzes = $this->rows($this->quizNs, "", "desc");
+        if ($this->currentRole() === "student") return array("studentCourses" => $this->studentCourses(new \stdClass(), $res), "role" => "student");
+        if (!$this->requireTeacher($res)) return null;
+        $lessons = $this->filterManagedLessons($this->rows($this->lessonNs, "", "asc"));
+        $lessonIds=array();foreach($lessons as $lesson)$lessonIds[strval($lesson->id)]=true;
+        $quizzes = array();foreach($this->rows($this->quizNs,"","desc") as $quiz)if(isset($lessonIds[strval($quiz->lesson_id)]))$quizzes[]=$quiz;
         $progress = $this->rows($this->progressNs, "", "desc");
         $submissions = $this->rows($this->submissionNs, "", "desc");
-        $pending = 0; foreach ($submissions as $row) if (!isset($row->status) || in_array(strtolower($row->status), array("submitted", "pending"))) $pending++;
-        if ($this->currentRole() === "student") return array("studentCourses" => $this->studentCourses(new \stdClass()), "role" => "student");
+        $managedProgress=array();foreach($progress as $row)if(isset($lessonIds[strval($row->lesson_id)]))$managedProgress[]=$row;$managedAttempts=array();foreach($this->rows($this->attemptNs,"","desc") as $attempt)if(isset($lessonIds[strval($attempt->lesson_id)]))$managedAttempts[]=$attempt;$pending = 0; foreach ($submissions as $row) if (isset($lessonIds[strval(isset($row->lesson_id)?$row->lesson_id:0)])&&(!isset($row->status) || in_array(strtolower($row->status), array("submitted", "submitted_late", "pending", "pending_manual_marking")))) $pending++;
         return array("role" => $this->currentRole(), "stats" => array(
             "lessons" => count($lessons), "published" => $this->countStatus($lessons, "published"),
-            "quizzes" => count($quizzes), "active_students" => $this->distinctCount($progress, "student_id"), "pending_marking" => $pending
-        ), "recentLessons" => array_slice(array_reverse($lessons), 0, 6), "recentAttempts" => array_slice($this->rows($this->attemptNs, "", "desc"), 0, 6));
+            "quizzes" => count($quizzes), "active_students" => $this->distinctCount($managedProgress, "student_id"), "pending_marking" => $pending
+        ), "recentLessons" => array_slice(array_reverse($lessons), 0, 6), "recentAttempts" => array_slice($managedAttempts, 0, 6));
     }
 
-    public function postListLessons($req, $res) { return $this->listBody($req, $this->lessonNs, array("id","course_id","subject_id","status"), array("title","description"), "asc"); }
+    public function postListLessons($req, $res) { if(!$this->requireTeacher($res))return null;return $this->filterManagedLessons($this->listBody($req,$this->lessonNs,array("id","course_id","subject_id","status"),array("title","description"),"asc")); }
     public function postSaveLesson($req, $res) {
         if (!$this->requireTeacher($res)) return null;
         $item = $this->body($req);
         if (empty($item->subject_id) || empty($item->title)) return $this->error($res, "Subject and lesson title are required.");
         $subject = $this->byId($this->subjectNs, $item->subject_id);
         if (!$subject || empty($subject->course_id)) return $this->error($res, "Select a valid subject assigned to a course.");
+        if (!$this->canManageSubject($subject)) return $this->error($res, "You are not authorized to manage this subject.");
+        $existing = !empty($item->id) ? $this->byId($this->lessonNs, $item->id) : null;
+        if (!empty($item->id) && !$existing) return $this->error($res, "Lesson not found.");
+        if ($existing && !$this->canManageLesson($existing)) return $this->error($res, "You are not authorized to update this lesson.");
         $item->course_id = $subject->course_id;
         if (!isset($item->lesson_order) || intval($item->lesson_order) < 1) $item->lesson_order = count($this->rows($this->lessonNs, "subject_id:" . intval($item->subject_id), "asc")) + 1;
         if (empty($item->status)) $item->status = "draft";
         if (!isset($item->passing_mark)) $item->passing_mark = 70;
         $item->updated_at = date("Y-m-d H:i:s");
         if (empty($item->id)) { $profile = $this->currentProfile(); $item->created_by = $profile->id; $item->created_at = $item->updated_at; }
+        elseif ($existing) { $item->created_by = isset($existing->created_by)?$existing->created_by:0; $item->created_at = isset($existing->created_at)?$existing->created_at:$item->updated_at; }
         $saved = $this->persist($this->lessonNs, $item, $res);
         if ($saved && strtolower($saved->status) === "published") $this->notifyCourse($saved->course_id, "lesson-published", "New lesson published: " . $saved->title, "lesson", $saved->id);
         return $saved;
     }
-    public function postDeleteLesson($req, $res) { return $this->delete($this->lessonNs, $this->body($req), $res); }
+    public function postDeleteLesson($req, $res) { if(!$this->requireTeacher($res))return null;$body=$this->body($req);$lesson=$this->byId($this->lessonNs,isset($body->id)?$body->id:0);if(!$lesson)return $this->error($res,"Lesson not found.");if(!$this->canManageLesson($lesson))return $this->error($res,"You are not authorized to archive this lesson.");if($this->lessonHasDependents($lesson->id)){$lesson->status="archived";$lesson->updated_at=date("Y-m-d H:i:s");return $this->persist($this->lessonNs,$lesson,$res);}return $this->delete($this->lessonNs,$lesson,$res); }
     public function postReorderLessons($req, $res) {
         if (!$this->requireTeacher($res)) return null;
-        $body = $this->body($req); $items = isset($body->lessons) ? $body->lessons : array(); $saved = array();
+        $body = $this->body($req); $items = isset($body->lessons) ? $body->lessons : array(); $saved = array();$validated=array();$seen=array();
         $subjectId = 0;
-        foreach ($items as $index => $item) {
+        foreach ($items as $item) {
             $stored = isset($item->id) ? $this->byId($this->lessonNs, $item->id) : null;
             if (!$stored || empty($stored->subject_id)) return $this->error($res, "Every reordered lesson must belong to a subject.");
+            if (!$this->canManageLesson($stored)) return $this->error($res, "You are not authorized to reorder this subject.");
             if ($subjectId === 0) $subjectId = intval($stored->subject_id);
             if (intval($stored->subject_id) !== $subjectId) return $this->error($res, "Lessons can only be reordered within the same subject.");
-            $stored->lesson_order = $index + 1; $saved[] = $this->persist($this->lessonNs, $stored, $res);
+            if(isset($seen[strval($stored->id)]))return $this->error($res,"A lesson cannot appear twice in the order.");$seen[strval($stored->id)]=true;$validated[]=$stored;
         }
+        if($subjectId>0&&count($items)!==count($this->rows($this->lessonNs,"subject_id:".$subjectId,"asc")))return $this->error($res,"Submit the complete subject lesson list when reordering.");
+        foreach($validated as $index=>$stored){$stored->lesson_order=$index+1;$saved[]=$this->persist($this->lessonNs,$stored,$res);}
         return $saved;
     }
 
-    public function postListContent($req, $res) { return $this->listBody($req, $this->contentNs, array("id","lesson_id","content_type","status"), array("title","body"), "asc"); }
+    public function postListContent($req, $res) { if(!$this->requireTeacher($res))return null;return $this->filterManagedChildren($this->listBody($req,$this->contentNs,array("id","lesson_id","content_type","status"),array("title","body"),"asc"),"lesson_id"); }
     public function postSaveContent($req, $res) {
         if (!$this->requireTeacher($res)) return null;
         $item = $this->body($req);
         if (empty($item->lesson_id) || empty($item->title)) return $this->error($res, "Lesson and content title are required.");
+        $lesson=$this->byId($this->lessonNs,$item->lesson_id);if(!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable lesson is required.");
+        if(isset($item->url)&&trim(strval($item->url))!==""&&!$this->safeResourceReference($item->url))return $this->error($res,"Only HTTPS or approved uploaded resource references are accepted.");
         $item->body = $this->sanitizeRichText(isset($item->body) ? $item->body : "");
         return $this->persist($this->contentNs, $item, $res);
     }
-    public function postDeleteContent($req, $res) { return $this->delete($this->contentNs, $this->body($req), $res); }
-    public function postListVideos($req, $res) { return $this->listBody($req, $this->videoNs, array("id","lesson_id","provider","status"), array("title","video_url","transcript"), "asc"); }
+    public function postDeleteContent($req, $res) { return $this->deleteManagedChild($this->contentNs,$this->body($req),$res,"lesson_id"); }
+    public function postListVideos($req, $res) { if(!$this->requireTeacher($res))return null;return $this->filterManagedChildren($this->listBody($req,$this->videoNs,array("id","lesson_id","provider","status"),array("title","video_url","transcript"),"asc"),"lesson_id"); }
     public function postSaveVideo($req, $res) {
         if (!$this->requireTeacher($res)) return null; $item = $this->body($req);
         if (empty($item->lesson_id) || empty($item->title) || (empty($item->video_url) && empty($item->media_reference))) return $this->error($res, "Lesson, title, and a video URL or media reference are required.");
+        $lesson=$this->byId($this->lessonNs,$item->lesson_id);if(!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable lesson is required.");
         if (empty($item->provider)) $item->provider = $this->videoProvider(isset($item->video_url) ? $item->video_url : "");
+        if(!$this->validVideoReference($item))return $this->error($res,"The video URL or media reference is not valid for the selected provider.");
         if (empty($item->status)) $item->status = "published";
         return $this->persist($this->videoNs, $item, $res);
     }
-    public function postDeleteVideo($req, $res) { return $this->delete($this->videoNs, $this->body($req), $res); }
+    public function postDeleteVideo($req, $res) { return $this->deleteManagedChild($this->videoNs,$this->body($req),$res,"lesson_id"); }
 
     public function postFetchVideoMetadata($req, $res) {
         if (!$this->requireTeacher($res)) return null;
@@ -177,7 +194,7 @@ class ApiService {
         $provider = strtolower(trim(isset($body->provider) ? $body->provider : ""));
         if (!in_array($provider, array("youtube", "facebook"), true)) return $this->error($res, "Unsupported provider.");
         $item = $this->providerConnection($provider);
-        if (!$item) { $item = new \stdClass(); $item->provider = $provider; $item->created_by = $this->currentProfile()->id; $item->created_at = date("Y-m-d H:i:s"); }
+        if (!$item) { $item = new \stdClass(); $item->provider = $provider;$item->connection_scope="tenant"; $item->created_by = $this->currentProfile()->id; $item->created_at = date("Y-m-d H:i:s"); }
         foreach (array("account_name", "account_id", "page_id", "client_id") as $field) if (isset($body->{$field})) $item->{$field} = trim(strval($body->{$field}));
         $secretFields = array("client_secret"=>"client_secret_enc", "api_key"=>"api_key_enc", "access_token"=>"access_token_enc", "refresh_token"=>"refresh_token_enc");
         foreach ($secretFields as $source => $target) if (isset($body->{$source}) && trim(strval($body->{$source})) !== "" && strval($body->{$source}) !== "********") $item->{$target} = $this->encryptProviderSecret(strval($body->{$source}));
@@ -215,14 +232,14 @@ class ApiService {
         if ($clientId === "" || $clientSecret === "") return $this->error($res, "Client ID and client secret are required before OAuth connection.");
         $state = bin2hex(random_bytes(24)); $redirect = $this->providerCallbackUrl();
         if (!isset($_SESSION)) session_start();
-        $_SESSION["lesson_manager_oauth_" . $state] = array("provider"=>$provider, "created"=>time(), "redirect_uri"=>$redirect);
+        $_SESSION["lesson_manager_oauth_" . $state] = array("provider"=>$provider, "created"=>time(), "redirect_uri"=>$redirect,"profile_id"=>$this->currentProfile()->id);
         if ($provider === "youtube") {
             $params = array("client_id"=>$clientId,"redirect_uri"=>$redirect,"response_type"=>"code","access_type"=>"offline","prompt"=>"consent","include_granted_scopes"=>"true","scope"=>"https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl","state"=>$state);
             return array("authorize_url"=>"https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query($params));
         }
         if ($provider === "facebook") {
             $params = array("client_id"=>$clientId,"redirect_uri"=>$redirect,"response_type"=>"code","scope"=>"pages_show_list,pages_read_engagement,pages_read_user_content","state"=>$state);
-            return array("authorize_url"=>"https://www.facebook.com/v19.0/dialog/oauth?" . http_build_query($params));
+            return array("authorize_url"=>$this->facebookDialogUrl() . "?" . http_build_query($params));
         }
         return $this->error($res, "Unsupported provider.");
     }
@@ -234,12 +251,14 @@ class ApiService {
         if ($state === "" || !isset($_SESSION[$key])) return $this->error($res, "OAuth state is missing or expired.");
         $stateData = $_SESSION[$key]; unset($_SESSION[$key]);
         if (empty($stateData["created"]) || time() - intval($stateData["created"]) > 900) return $this->error($res, "OAuth state has expired.");
+        if(empty($stateData["profile_id"])||intval($stateData["profile_id"])!==intval($this->currentProfile()->id))return $this->error($res,"OAuth callback ownership could not be verified.");
         if ($code === "") return $this->error($res, isset($_GET["error_description"]) ? $_GET["error_description"] : "Provider authorization was cancelled.");
         $provider = $stateData["provider"]; $item = $this->providerConnection($provider); if (!$item) return $this->error($res, "Provider configuration no longer exists.");
         $fields = array("client_id"=>$item->client_id,"client_secret"=>$this->providerValue($item,"client_secret_enc"),"code"=>$code,"redirect_uri"=>$stateData["redirect_uri"]);
         if ($provider === "youtube") { $fields["grant_type"] = "authorization_code"; $token = $this->curlRequest("https://oauth2.googleapis.com/token", "POST", $fields, array()); }
-        else { $token = $this->curlRequest("https://graph.facebook.com/v19.0/oauth/access_token", "GET", $fields, array()); }
+        else { $token = $this->curlRequest($this->facebookGraphUrl("oauth/access_token"), "GET", $fields, array()); }
         if (!$token->success || !isset($token->data["access_token"])) return $this->error($res, "OAuth token exchange failed: " . $token->message);
+        if($provider==="facebook"){$long=$this->curlRequest($this->facebookGraphUrl("oauth/access_token"),"GET",array("grant_type"=>"fb_exchange_token","client_id"=>$item->client_id,"client_secret"=>$this->providerValue($item,"client_secret_enc"),"fb_exchange_token"=>$token->data["access_token"]),array());if($long->success&&!empty($long->data["access_token"]))$token=$long;}
         $item->access_token_enc = $this->encryptProviderSecret($token->data["access_token"]);
         if (isset($token->data["refresh_token"])) $item->refresh_token_enc = $this->encryptProviderSecret($token->data["refresh_token"]);
         if (isset($token->data["expires_in"])) $item->expires_at = date("Y-m-d H:i:s", time() + intval($token->data["expires_in"]));
@@ -248,7 +267,7 @@ class ApiService {
             $identity = $this->curlRequest("https://www.googleapis.com/youtube/v3/channels", "GET", array("part"=>"snippet", "mine"=>"true"), array("Authorization: Bearer " . $token->data["access_token"]));
             if ($identity->success && !empty($identity->data["items"][0])) { $channel=$identity->data["items"][0]; if(isset($channel["id"]))$item->account_id=$channel["id"]; if(isset($channel["snippet"]["title"]))$item->account_name=$channel["snippet"]["title"]; }
         } else {
-            $pages = $this->curlRequest("https://graph.facebook.com/v19.0/me/accounts", "GET", array("fields"=>"id,name,access_token", "access_token"=>$token->data["access_token"]), array());
+            $pages = $this->curlRequest($this->facebookGraphUrl("me/accounts"), "GET", array("fields"=>"id,name,access_token", "access_token"=>$token->data["access_token"]), array());
             if ($pages->success && !empty($pages->data["data"])) { $page=$pages->data["data"][0]; if(!empty($item->page_id))foreach($pages->data["data"] as $candidate)if(isset($candidate["id"])&&strval($candidate["id"])===strval($item->page_id)){$page=$candidate;break;} if(isset($page["id"])){$item->page_id=$page["id"];$item->account_id=$page["id"];}if(isset($page["name"]))$item->account_name=$page["name"];if(isset($page["access_token"]))$item->access_token_enc=$this->encryptProviderSecret($page["access_token"]); }
         }
         $item->status = "connected"; $item->last_error = ""; $item->updated_at = date("Y-m-d H:i:s"); $this->persist($this->providerNs, $item, $res);
@@ -256,26 +275,23 @@ class ApiService {
         return array("provider"=>$provider,"status"=>"connected");
     }
 
-    public function postListQuizzes($req, $res) { return $this->listBody($req, $this->quizNs, array("id","lesson_id","status"), array("title"), "desc"); }
+    public function postListQuizzes($req, $res) { if(!$this->requireTeacher($res))return null;return $this->filterManagedQuizRows($this->listBody($req,$this->quizNs,array("id","lesson_id","status"),array("title"),"desc")); }
     public function postSaveQuiz($req, $res) {
         if (!$this->requireTeacher($res)) return null; $item = $this->body($req);
         if (empty($item->lesson_id) || empty($item->title)) return $this->error($res, "Lesson and quiz title are required.");
+        $lesson=$this->byId($this->lessonNs,$item->lesson_id);if(!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable lesson is required.");
+        if(isset($item->passing_percentage)&&(floatval($item->passing_percentage)<0||floatval($item->passing_percentage)>100))return $this->error($res,"Passing percentage must be between 0 and 100.");
+        if(isset($item->attempt_limit)&&intval($item->attempt_limit)<0)return $this->error($res,"Attempt limit cannot be negative.");
+        if(isset($item->time_limit_minutes)&&intval($item->time_limit_minutes)<0)return $this->error($res,"Time limit cannot be negative.");
         if (!isset($item->passing_percentage)) $item->passing_percentage = 70;
         if (!isset($item->attempt_limit)) $item->attempt_limit = 3;
         if (empty($item->status)) $item->status = "draft";
         if (empty($item->created_at)) { $item->created_at = date("Y-m-d H:i:s"); $item->created_by = $this->currentProfile()->id; }
         $saved = $this->persist($this->quizNs, $item, $res);
-        if ($saved && strtolower($saved->status) === "published") {
-            $lesson = $this->byId($this->lessonNs, $saved->lesson_id);
-            $assessment = empty($saved->assessment_id) ? new \stdClass() : $this->byId($this->assessmentNs, $saved->assessment_id);
-            if (!$assessment) $assessment = new \stdClass();
-            $assessment->class_grade_id = 0; $assessment->subject_id = $lesson && isset($lesson->subject_id) ? $lesson->subject_id : 0;
-            $assessment->title = $saved->title; $assessment->assessment_type = "lesson_quiz"; $assessment->max_mark = $this->quizMaxMark($saved->id); $assessment->weight = 0; $assessment->status = "active";
-            $assessment = $this->persist($this->assessmentNs, $assessment, $res); if ($assessment && empty($saved->assessment_id)) { $saved->assessment_id = $assessment->id; $saved = $this->persist($this->quizNs, $saved, $res); }
-        }
+        if($saved)$saved=$this->syncQuizAssessment($saved,$lesson,$res);
         return $saved;
     }
-    public function postDeleteQuiz($req, $res) { return $this->delete($this->quizNs, $this->body($req), $res); }
+    public function postDeleteQuiz($req, $res) { if(!$this->requireTeacher($res))return null;$body=$this->body($req);$quiz=$this->byId($this->quizNs,isset($body->id)?$body->id:0);if(!$quiz)return $this->error($res,"Quiz not found.");$lesson=$this->byId($this->lessonNs,$quiz->lesson_id);if(!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"You are not authorized to delete this quiz.");if(count($this->rows($this->attemptNs,"quiz_id:".intval($quiz->id),"desc")))return $this->error($res,"A quiz with learner attempts must be closed instead of deleted.");foreach($this->rows($this->questionNs,"quiz_id:".intval($quiz->id),"desc") as $question)$this->delete($this->questionNs,$question,$res);$quiz->status="closed";$this->syncQuizAssessment($quiz,$lesson,$res);return $this->delete($this->quizNs,$quiz,$res); }
     public function postListQuestions($req, $res) {
         $body = $this->body($req);
         if (!$this->isTeacher()) {
@@ -284,42 +300,47 @@ class ApiService {
             if (!$quiz || strtolower($quiz->status) !== "published" || !$lesson || !$this->canAccessCourse($lesson->course_id, $student->id) || !$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Quiz access denied.");
         }
         $rows = $this->listObject($body, $this->questionNs, array("id","quiz_id","question_type","difficulty"), array("question_text","explanation"), "asc");
-        if ($this->isTeacher()) return $rows;
+        if ($this->isTeacher()) return $this->filterManagedQuestionRows($rows);
+        if(LessonRules::truthy(isset($quiz->random_questions)?$quiz->random_questions:false))shuffle($rows);
+        foreach($rows as $row)if(LessonRules::truthy(isset($quiz->random_answers)?$quiz->random_answers:false)&&isset($row->options)&&is_array($row->options))shuffle($row->options);
         foreach ($rows as $row) { unset($row->correct_answer); unset($row->explanation); unset($row->negative_marks); }
         return $rows;
     }
-    public function postSaveQuestion($req, $res) { return $this->teacherSave($req, $res, $this->questionNs, array("quiz_id","question_text"), "Quiz and question text are required."); }
-    public function postDeleteQuestion($req, $res) { return $this->delete($this->questionNs, $this->body($req), $res); }
+    public function postSaveQuestion($req, $res) { if(!$this->requireTeacher($res))return null;$item=$this->body($req);if(empty($item->quiz_id)||empty($item->question_text))return $this->error($res,"Quiz and question text are required.");$quiz=$this->byId($this->quizNs,$item->quiz_id);$lesson=$quiz?$this->byId($this->lessonNs,$quiz->lesson_id):null;if(!$quiz||!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable quiz is required.");if(!in_array(isset($item->question_type)?$item->question_type:"",array("multiple_choice","true_false","multiple_answer","fill_blank","short_answer"),true))return $this->error($res,"Unsupported question type.");if(floatval(isset($item->marks)?$item->marks:0)<=0)return $this->error($res,"Question marks must be greater than zero.");$saved=$this->persist($this->questionNs,$item,$res);if($saved)$this->syncQuizAssessment($quiz,$lesson,$res);return $saved; }
+    public function postDeleteQuestion($req, $res) { if(!$this->requireTeacher($res))return null;$body=$this->body($req);$question=$this->byId($this->questionNs,isset($body->id)?$body->id:0);$quiz=$question?$this->byId($this->quizNs,$question->quiz_id):null;$lesson=$quiz?$this->byId($this->lessonNs,$quiz->lesson_id):null;if(!$question||!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable question is required.");$deleted=$this->delete($this->questionNs,$question,$res);if($deleted)$this->syncQuizAssessment($quiz,$lesson,$res);return $deleted; }
+
+    public function postListQuizAgents($req,$res) {
+        if(!$this->requireTeacher($res))return null;
+        try{$service=$this->creatorService();$result=$service->getListAgents(null,null);return isset($result->agents)?$result->agents:array();}
+        catch(\Exception $e){return $this->error($res,"AI agents could not be loaded: ".$e->getMessage());}
+    }
 
     public function postGenerateQuiz($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req);
         if (empty($body->lesson_id)) return $this->error($res, "Select a lesson first.");
         $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found.");
-        $quiz = new \stdClass(); $quiz->lesson_id = $lesson->id; $quiz->title = isset($body->title) && $body->title ? $body->title : $lesson->title . " knowledge check";
-        $quiz->passing_percentage = isset($body->passing_percentage) ? $body->passing_percentage : 70; $quiz->attempt_limit = 3; $quiz->time_limit_minutes = 15;
-        $quiz->random_questions = "true"; $quiz->random_answers = "true"; $quiz->negative_marking = "false"; $quiz->status = "draft";
-        $quiz = $this->persist($this->quizNs, $quiz, $res); if (!$quiz) return null;
+        if(!$this->canManageLesson($lesson))return $this->error($res,"You are not authorized to generate a quiz for this lesson.");
+        $agentCode=trim(isset($body->agent_code)?strval($body->agent_code):"");if($agentCode==="")return $this->error($res,"Select a saved AI quiz agent.");
         $source = isset($lesson->description) ? strval($lesson->description) : "";
-        foreach ($this->rows($this->contentNs, "lesson_id:" . intval($lesson->id), "asc") as $row) $source .= " " . (isset($row->body) ? $this->plainText($row->body) : "");
+        foreach ($this->rows($this->contentNs, "lesson_id:" . intval($lesson->id), "asc") as $row){$source.="\nCONTENT ".(isset($row->title)?$row->title:"").": ".(isset($row->body)?$this->plainText($row->body):"");if(isset($row->url)&&$row->url){$source.="\nRESOURCE: ".$row->url;$resourceText=$this->uploadedResourceText($row->url);if($resourceText!=="")$source.="\nEXTRACTED RESOURCE TEXT: ".$resourceText;}}
         foreach ($this->rows($this->videoNs, "lesson_id:" . intval($lesson->id), "asc") as $row) $source .= " " . (isset($row->transcript) ? $this->plainText($row->transcript) : "");
         if (isset($body->notes)) $source .= " " . $body->notes;
-        $sentences = $this->sourceSentences($source); if (count($sentences) === 0) $sentences[] = $lesson->title . " is the focus of this lesson.";
-        $limit = isset($body->question_count) ? max(1, min(20, intval($body->question_count))) : 5; $questions = array();
-        for ($i = 0; $i < $limit; $i++) {
-            $sentence = $sentences[$i % count($sentences)]; $question = new \stdClass(); $question->quiz_id = $quiz->id; $question->sort_order = $i + 1; $question->marks = 1; $question->negative_marks = 0; $question->difficulty = $i < 2 ? "easy" : ($i < 4 ? "medium" : "hard"); $question->requires_manual_marking = "false";
-            if ($i % 3 === 0) { $question->question_type = "true_false"; $question->question_text = "True or false: " . $sentence; $question->options = array("True", "False"); $question->correct_answer = "True"; }
-            elseif ($i % 3 === 1) { $keyword = $this->keyword($sentence); $question->question_type = "fill_blank"; $question->question_text = str_ireplace($keyword, "_____", $sentence); $question->options = array(); $question->correct_answer = $keyword; }
-            else { $question->question_type = "multiple_choice"; $question->question_text = "Which statement is supported by the lesson?"; $question->options = array($sentence, "This topic is unrelated to the lesson.", "The lesson provides no information about this topic.", "None of the above."); $question->correct_answer = $sentence; }
-            $question->explanation = "Generated from lesson material: " . $sentence; $questions[] = $this->persist($this->questionNs, $question, $res);
-        }
-        return array("quiz" => $quiz, "questions" => $questions, "source_characters" => strlen($source), "generator" => "lesson-material-draft");
+        $limit=isset($body->question_count)?max(1,min(20,intval($body->question_count))):5;if(strlen(trim($source))<40)return $this->error($res,"Add sufficient lesson material or transcript before generating a quiz.");
+        $prompt=$this->quizGenerationPrompt($lesson,$source,$limit);
+        $profile=$this->currentProfile();$flowInput=new \stdClass();$flowInput->agentCode=$agentCode;$flowInput->message=$prompt;$flowInput->profile=array("profileId"=>strval($profile->id),"name"=>isset($profile->name)?$profile->name:"Teacher","sourceApp"=>"lesson-manager");$flowInput->sessionId="lesson-quiz-".intval($lesson->id)."-".bin2hex(random_bytes(4));$flowInput->flow=array("flowCode"=>"lesson-manager-generate-quiz","name"=>"Lesson quiz generation");$flowInput->connector=array("code"=>"lesson-manager","label"=>"Lesson Manager");$flowInput->payload=array("lesson_id"=>$lesson->id,"question_count"=>$limit);
+        try{$execution=\DavvagFlow::Execute("lesson-manager","generate-quiz",$flowInput);$agentResult=isset($execution->outData->agentResult)?$execution->outData->agentResult:null;$reply=$agentResult&&isset($agentResult->reply)?$agentResult->reply:"";$generated=$this->decodeAgentJson($reply);}catch(\Exception $e){return $this->error($res,"AI quiz generation failed: ".$e->getMessage());}
+        if(!$generated||!isset($generated->questions)||!is_array($generated->questions)||count($generated->questions)===0)return $this->error($res,"The AI agent did not return valid quiz JSON.");
+        $quiz=new \stdClass();$quiz->lesson_id=$lesson->id;$quiz->title=isset($body->title)&&trim($body->title)!==""?$body->title:(isset($generated->title)?$generated->title:$lesson->title." knowledge check");$quiz->instructions=isset($generated->instructions)?$generated->instructions:"Answer every question.";$quiz->passing_percentage=isset($body->passing_percentage)?max(0,min(100,floatval($body->passing_percentage))):70;$quiz->attempt_limit=3;$quiz->time_limit_minutes=15;$quiz->random_questions="true";$quiz->random_answers="true";$quiz->negative_marking="false";$quiz->status="draft";$quiz->created_by=$profile->id;$quiz->created_at=date("Y-m-d H:i:s");$quiz=$this->persist($this->quizNs,$quiz,$res);if(!$quiz)return null;
+        $questions=array();$allowed=array("multiple_choice","true_false","multiple_answer","fill_blank","short_answer");foreach(array_slice($generated->questions,0,$limit) as $index=>$draft){if(!is_object($draft))continue;$type=isset($draft->question_type)&&in_array($draft->question_type,$allowed,true)?$draft->question_type:"multiple_choice";if(empty($draft->question_text))continue;$q=new \stdClass();$q->quiz_id=$quiz->id;$q->question_type=$type;$q->question_text=trim($draft->question_text);$q->options=isset($draft->options)&&is_array($draft->options)?$draft->options:array();$q->correct_answer=isset($draft->correct_answer)?$draft->correct_answer:"";$q->explanation=isset($draft->explanation)?$draft->explanation:"";$q->difficulty=isset($draft->difficulty)&&in_array($draft->difficulty,array("easy","medium","hard"),true)?$draft->difficulty:"medium";$q->marks=max(.5,floatval(isset($draft->marks)?$draft->marks:1));$q->negative_marks=max(0,floatval(isset($draft->negative_marks)?$draft->negative_marks:0));$q->sort_order=$index+1;$q->requires_manual_marking=$type==="short_answer"?"true":"false";$questions[]=$this->persist($this->questionNs,$q,$res);}
+        if(count($questions)===0){$quiz->status="invalid";$this->persist($this->quizNs,$quiz,$res);return $this->error($res,"The AI response contained no usable questions.");}
+        return array("quiz"=>$quiz,"questions"=>$questions,"source_characters"=>strlen($source),"generator"=>"ai-agent-creator","agent_code"=>$agentCode,"workflow"=>"lesson-manager/generate-quiz");
     }
 
-    public function postStudentCourses($req, $res) { return $this->studentCourses($this->body($req)); }
+    public function postStudentCourses($req, $res) { return $this->studentCourses($this->body($req),$res); }
     public function postLearningCourse($req, $res) {
         $body = $this->body($req); if (empty($body->course_id)) return $this->error($res, "course_id is required.");
-        $student = $this->requestedStudent($body); if (!$this->canAccessCourse($body->course_id, $student->id)) return $this->error($res, "This course is not assigned to you.");
-        $course = $this->byId($this->courseNs, $body->course_id); $lessons = $this->rows($this->lessonNs, "course_id:" . intval($body->course_id), "asc"); usort($lessons, array($this, "sortLessonsBySubject"));
+        $student = $this->requestedStudent($body); if(!$this->validProfile($student))return $this->error($res,"An active profile is required.");if (!$this->canAccessCourse($body->course_id, $student->id)) return $this->error($res, "This course is not assigned to you.");
+        $course = $this->byId($this->courseNs, $body->course_id);if(!$course)return $this->error($res,"Course not found."); $lessons = $this->rows($this->lessonNs, "course_id:" . intval($body->course_id), "asc"); usort($lessons, array($this, "sortLessonsBySubject"));
         $progress = $this->rows($this->progressNs, "course_id:" . intval($body->course_id) . ",student_id:" . intval($student->id), "asc"); $progressMap = $this->mapBy($progress, "lesson_id");
         $subjects = $this->mapBy($this->rows($this->subjectNs, "course_id:" . intval($body->course_id), "asc"), "id");
         $previousMet = true; $activeSubjectId = null; $out = array();
@@ -331,10 +352,10 @@ class ApiService {
             $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time(); $unlocked = $this->isTeacher() || ($previousMet && $available);
             $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$previousMet) $reason = "Complete the previous lesson requirements.";
             $entry = clone $lesson; $entry->subject = isset($subjects[strval($lesson->subject_id)]) ? $subjects[strval($lesson->subject_id)] : null; $entry->progress = $p; $entry->unlocked = $unlocked; $entry->lock_reason = $reason;
-            $entry->content = $unlocked ? $this->safeContentRows($this->rows($this->contentNs, "lesson_id:" . intval($lesson->id), "asc")) : array();
-            $entry->videos = $unlocked ? $this->rows($this->videoNs, "lesson_id:" . intval($lesson->id), "asc") : array();
-            $entry->quizzes = $unlocked ? $this->publishedRows($this->quizNs, "lesson_id:" . intval($lesson->id)) : array();
-            $entry->assignmentRules = $unlocked ? $this->rows($this->ruleNs, "lesson_id:" . intval($lesson->id), "asc") : array(); $out[] = $entry;
+            $entry->content = $unlocked ? $this->safeContentRows($this->publishedRows($this->contentNs, "lesson_id:" . intval($lesson->id))) : array();
+            $entry->videos = $unlocked ? $this->safeVideoRows($this->publishedRows($this->videoNs, "lesson_id:" . intval($lesson->id))) : array();
+            $entry->quizzes = $unlocked ? $this->studentQuizRows($lesson->id,$student->id) : array();
+            $entry->assignmentRules = $unlocked ? $this->studentAssignmentRules($lesson->id,$student->id) : array(); $out[] = $entry;
             $previousMet = !LessonRules::truthy(isset($lesson->progression_enabled) ? $lesson->progression_enabled : true) || LessonRules::requirementsMet($lesson, $p);
         }
         return array("course" => $course, "student" => $student, "lessons" => $out);
@@ -347,24 +368,38 @@ class ApiService {
         return $this->touchProgress($body, $allowed[$body->activity], $res);
     }
 
+    public function postStartQuiz($req,$res) {
+        $body=$this->body($req);if(empty($body->quiz_id))return $this->error($res,"quiz_id is required.");
+        $quiz=$this->byId($this->quizNs,$body->quiz_id);if(!$quiz||strtolower(isset($quiz->status)?$quiz->status:"")!=="published")return $this->error($res,"Quiz is not available.");
+        $lesson=$this->byId($this->lessonNs,$quiz->lesson_id);$student=$this->requestedStudent($body);if(!$lesson||!$this->validProfile($student))return $this->error($res,"An active learner profile is required.");
+        if(!$this->canAccessCourse($lesson->course_id,$student->id)||!$this->lessonUnlockedFor($lesson,$student->id))return $this->error($res,"Complete the previous lesson requirements before opening this quiz.");
+        $attempts=$this->rows($this->attemptNs,"quiz_id:".intval($quiz->id).",student_id:".intval($student->id),"desc");$active=null;foreach($attempts as $existing){if(isset($existing->status)&&$existing->status==="in_progress"){$limit=intval(isset($quiz->time_limit_minutes)?$quiz->time_limit_minutes:0);if($limit<=0||strtotime($existing->started_at)+($limit*60)>=time()){$active=$existing;break;}$existing->status="timed_out";$existing->completed_at=date("Y-m-d H:i:s");$this->persist($this->attemptNs,$existing,$res);}}
+        if(!$active){if(intval(isset($quiz->attempt_limit)?$quiz->attempt_limit:0)>0&&count($attempts)>=intval($quiz->attempt_limit))return $this->error($res,"Attempt limit reached.");$active=new \stdClass();$active->quiz_id=$quiz->id;$active->lesson_id=$lesson->id;$active->course_id=$lesson->course_id;$active->student_id=$student->id;$active->student_name=$student->name;$active->attempt_number=count($attempts)+1;$active->answers=new \stdClass();$active->marks=0;$active->max_mark=$this->quizMaxMark($quiz->id);$active->percentage=0;$active->passed="false";$active->status="in_progress";$active->started_at=date("Y-m-d H:i:s");$active=$this->persist($this->attemptNs,$active,$res);}
+        $progress=$this->progress($lesson->course_id,$lesson->id,$student);$progress->quiz_started="true";if(empty($progress->quiz_started_at))$progress->quiz_started_at=date("Y-m-d H:i:s");$this->finishProgress($lesson,$progress,$res);
+        return array("attempt"=>$active,"questions"=>$this->studentQuestionRows($quiz),"server_time"=>date("c"),"deadline"=>intval(isset($quiz->time_limit_minutes)?$quiz->time_limit_minutes:0)>0?date("c",strtotime($active->started_at)+intval($quiz->time_limit_minutes)*60):null);
+    }
+
     public function postSubmitQuiz($req, $res) {
-        $body = $this->body($req); if (empty($body->quiz_id)) return $this->error($res, "quiz_id is required.");
+        $body = $this->body($req); if (empty($body->quiz_id)||empty($body->attempt_id)) return $this->error($res, "quiz_id and attempt_id are required.");
         $quiz = $this->byId($this->quizNs, $body->quiz_id); if (!$quiz || strtolower($quiz->status) !== "published") return $this->error($res, "Quiz is not available.");
         $lesson = $this->byId($this->lessonNs, $quiz->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found.");
-        $student = $this->requestedStudent($body); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied.");
+        $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied.");
         if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements before opening this quiz.");
-        $attempts = $this->rows($this->attemptNs, "quiz_id:" . intval($quiz->id) . ",student_id:" . intval($student->id), "desc");
-        if (intval($quiz->attempt_limit) > 0 && count($attempts) >= intval($quiz->attempt_limit)) return $this->error($res, "Attempt limit reached.");
+        $attempt=$this->byId($this->attemptNs,$body->attempt_id);if(!$attempt||strval($attempt->quiz_id)!==strval($quiz->id)||strval($attempt->student_id)!==strval($student->id)||strtolower(isset($attempt->status)?$attempt->status:"")!=="in_progress")return $this->error($res,"The active quiz attempt is invalid or already submitted.");
+        $timeLimit=intval(isset($quiz->time_limit_minutes)?$quiz->time_limit_minutes:0);if($timeLimit>0&&strtotime($attempt->started_at)+($timeLimit*60)<time()){$attempt->status="timed_out";$attempt->completed_at=date("Y-m-d H:i:s");$this->persist($this->attemptNs,$attempt,$res);return $this->error($res,"The quiz time limit has expired.");}
         $answers = isset($body->answers) ? $body->answers : new \stdClass(); $questions = $this->rows($this->questionNs, "quiz_id:" . intval($quiz->id), "asc"); $score = 0; $max = 0; $manual = false;
         foreach ($questions as $q) { $max += floatval(isset($q->marks) ? $q->marks : 1); $answer = $this->answerFor($answers, $q->id); $earned = LessonRules::scoreQuestion($q, $answer, LessonRules::truthy($quiz->negative_marking)); if ($earned === null) $manual = true; else $score += $earned; }
         $score = max(0, $score); $percentage = $max > 0 ? round(($score / $max) * 100, 2) : 0; $passed = !$manual && $percentage >= floatval($quiz->passing_percentage);
-        $attempt = new \stdClass(); $attempt->quiz_id = $quiz->id; $attempt->lesson_id = $lesson->id; $attempt->course_id = $lesson->course_id; $attempt->student_id = $student->id; $attempt->student_name = $student->name;
-        $attempt->attempt_number = count($attempts) + 1; $attempt->answers = $answers; $attempt->marks = $score; $attempt->max_mark = $max; $attempt->percentage = $percentage; $attempt->passed = $passed ? "true" : "false"; $attempt->status = $manual ? "pending_manual_marking" : ($passed ? "passed" : "failed"); $attempt->started_at = isset($body->started_at) ? $body->started_at : date("Y-m-d H:i:s"); $attempt->completed_at = date("Y-m-d H:i:s");
-        $attempt = $this->persist($this->attemptNs, $attempt, $res); $this->saveQuizMark($quiz, $lesson, $student, $attempt, $res);
-        $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->quiz_completed = $manual ? "false" : "true"; $progress->quiz_passed = $passed ? "true" : "false"; $progress->quiz_attempts = $attempt->attempt_number; $progress->quiz_mark = $score; $this->finishProgress($lesson, $progress, $res);
-        $this->queueNotification($student, $passed ? "quiz-passed" : "quiz-failed", ($passed ? "Passed: " : "Attempt completed: ") . $quiz->title, "quiz", $quiz->id);
+        $attempt->answers = $answers; $attempt->automatic_marks=$score;$attempt->manual_marks=0;$attempt->marks = $score; $attempt->max_mark = $max; $attempt->percentage = $percentage; $attempt->passed = $passed ? "true" : "false"; $attempt->status = $manual ? "pending_manual_marking" : ($passed ? "passed" : "failed"); $attempt->completed_at = date("Y-m-d H:i:s");
+        $attempt = $this->persist($this->attemptNs, $attempt, $res);if(!$manual)$this->saveQuizMark($quiz, $lesson, $student, $attempt, $res);
+        $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->quiz_completed = $manual ? "false" : "true";if(!$manual)$progress->quiz_completed_at=date("Y-m-d H:i:s"); $progress->quiz_passed = $passed ? "true" : "false"; $progress->quiz_attempts = $attempt->attempt_number; $progress->quiz_mark = $score; $this->finishProgress($lesson, $progress, $res);
+        $event=$manual?"quiz-submitted":($passed?"quiz-passed":"quiz-failed");$message=$manual?"Quiz submitted for teacher marking: ".$quiz->title:(($passed?"Passed: ":"Attempt completed: ").$quiz->title);$this->queueNotification($student,$event,$message,"quiz",$quiz->id);
         return array("attempt" => $attempt, "passed" => $passed, "manual_marking" => $manual, "next_unlocked" => $passed && LessonRules::requirementsMet($lesson, $progress));
     }
+
+    public function postListQuizAttempts($req,$res){if(!$this->requireTeacher($res))return null;$body=$this->body($req);$rows=$this->listObject($body,$this->attemptNs,array("quiz_id","lesson_id","course_id","student_id","status"),array("student_name","feedback"),"desc");$out=array();foreach($rows as $attempt){$lesson=$this->byId($this->lessonNs,$attempt->lesson_id);if(!$lesson||!$this->canManageLesson($lesson))continue;if(isset($body->subject_id)&&$body->subject_id&&strval($lesson->subject_id)!==strval($body->subject_id))continue;if(isset($body->date_from)&&$body->date_from&&strtotime($attempt->started_at)<strtotime($body->date_from))continue;if(isset($body->date_to)&&$body->date_to&&strtotime($attempt->started_at)>strtotime($body->date_to." 23:59:59"))continue;if(isset($body->pass_status)&&$body->pass_status!==""){$passed=LessonRules::truthy(isset($attempt->passed)?$attempt->passed:false);if(($body->pass_status==="passed")!==$passed)continue;}$item=clone $attempt;$item->lesson=$lesson;$item->quiz=$this->byId($this->quizNs,$attempt->quiz_id);$item->quiz_title=$item->quiz&&isset($item->quiz->title)?$item->quiz->title:"Quiz #".$attempt->quiz_id;$item->total_marks=isset($attempt->marks)?$attempt->marks:0;$item->max_marks=isset($attempt->max_mark)?$attempt->max_mark:0;$item->questions=$this->rows($this->questionNs,"quiz_id:".intval($attempt->quiz_id),"asc");$item->manual_max_marks=0;foreach($item->questions as $question)if(LessonRules::truthy(isset($question->requires_manual_marking)?$question->requires_manual_marking:false)||$question->question_type==="short_answer")$item->manual_max_marks+=floatval(isset($question->marks)?$question->marks:1);$out[]=$item;}return $out;}
+
+    public function postReviewQuizAttempt($req,$res){if(!$this->requireTeacher($res))return null;$body=$this->body($req);$attempt=$this->byId($this->attemptNs,isset($body->attempt_id)?$body->attempt_id:0);if(!$attempt||$attempt->status!=="pending_manual_marking")return $this->error($res,"A pending manual quiz attempt is required.");$lesson=$this->byId($this->lessonNs,$attempt->lesson_id);$quiz=$this->byId($this->quizNs,$attempt->quiz_id);if(!$lesson||!$quiz||!$this->canManageLesson($lesson))return $this->error($res,"You are not authorized to review this attempt.");$automatic=floatval(isset($attempt->automatic_marks)?$attempt->automatic_marks:$attempt->marks);$manualMax=0;foreach($this->rows($this->questionNs,"quiz_id:".intval($quiz->id),"asc") as $q)if(LessonRules::truthy(isset($q->requires_manual_marking)?$q->requires_manual_marking:false)||$q->question_type==="short_answer")$manualMax+=floatval(isset($q->marks)?$q->marks:1);$manual=max(0,floatval(isset($body->manual_marks)?$body->manual_marks:0));if($manual>$manualMax)return $this->error($res,"Manual marks cannot exceed ".$manualMax.".");$attempt->manual_marks=$manual;$attempt->marks=$automatic+$manual;$attempt->percentage=floatval($attempt->max_mark)>0?round(($attempt->marks/$attempt->max_mark)*100,2):0;$passed=$attempt->percentage>=floatval($quiz->passing_percentage);$attempt->passed=$passed?"true":"false";$attempt->status=$passed?"passed":"failed";$attempt->feedback=isset($body->feedback)?trim(strval($body->feedback)):"";$profile=$this->currentProfile();$attempt->reviewed_by=$profile->id;$attempt->reviewed_at=date("Y-m-d H:i:s");$attempt=$this->persist($this->attemptNs,$attempt,$res);$student=$this->profile($attempt->student_id);$this->saveQuizMark($quiz,$lesson,$student,$attempt,$res);$progress=$this->progress($lesson->course_id,$lesson->id,$student);$progress->quiz_completed="true";$progress->quiz_passed=$passed?"true":"false";$progress->quiz_attempts=max(intval($progress->quiz_attempts),intval($attempt->attempt_number));$progress->quiz_mark=$attempt->marks;$this->finishProgress($lesson,$progress,$res);$this->queueNotification($student,$passed?"quiz-passed":"quiz-failed","Your manually reviewed quiz score is ".$attempt->percentage."%.","quiz",$quiz->id);return $attempt;}
 
     public function postOverrideLesson($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req); if (empty($body->lesson_id) || empty($body->student_id)) return $this->error($res, "Lesson and student are required.");
@@ -372,59 +407,80 @@ class ApiService {
         $student = $this->profile($body->student_id); $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->override_unlocked = "true"; $progress->teacher_approved = "true"; return $this->finishProgress($lesson, $progress, $res);
     }
 
-    public function postListAssignmentRules($req, $res) { return $this->listBody($req, $this->ruleNs, array("id","lesson_id","assignment_id"), array("allowed_formats"), "desc"); }
+    public function postListAssignmentRules($req, $res) { if(!$this->requireTeacher($res))return null;return $this->filterManagedChildren($this->listBody($req,$this->ruleNs,array("id","lesson_id","assignment_id"),array("allowed_formats"),"desc"),"lesson_id"); }
     public function postSaveAssignmentRule($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req); if (empty($body->lesson_id)) return $this->error($res, "Lesson is required.");
-        $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found.");
+        $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson||!$this->canManageLesson($lesson)) return $this->error($res, "A manageable lesson is required.");
         if (empty($body->assignment_id) && isset($body->assignment)) { $assignment = $body->assignment; $assignment->subject_id = $lesson->subject_id; if (empty($assignment->class_grade_id)) $assignment->class_grade_id = 0; if (empty($assignment->status)) $assignment->status = "published"; $assignment->created_by = $this->currentProfile()->id; $assignment->created_at = date("Y-m-d H:i:s"); $assignment = $this->persist($this->assignmentNs, $assignment, $res); if ($assignment) $body->assignment_id = $assignment->id; unset($body->assignment); }
-        if (empty($body->assignment_id)) return $this->error($res, "Assignment is required."); return $this->persist($this->ruleNs, $body, $res);
+        if (empty($body->assignment_id)) return $this->error($res, "Assignment is required.");$assignment=$this->byId($this->assignmentNs,$body->assignment_id);if(!$assignment||strval($assignment->subject_id)!==strval($lesson->subject_id))return $this->error($res,"The assignment must belong to the lesson subject.");if(!isset($body->max_submissions)||intval($body->max_submissions)<1)$body->max_submissions=1;if(!isset($body->max_file_size_mb)||intval($body->max_file_size_mb)<1)$body->max_file_size_mb=10;if(empty($body->allowed_formats))$body->allowed_formats="pdf,doc,docx,jpg,jpeg,png,mp4,mp3,zip";$body->supporting_files=$this->validatedSupportingFiles(isset($body->supporting_files)?$body->supporting_files:array(),$res);if($body->supporting_files===null)return null;$saved=$this->persist($this->ruleNs,$body,$res);if($saved)$this->notifyCourse($lesson->course_id,"assignment-requested","Assignment available: ".$assignment->title,"assignment",$assignment->id);return $saved;
     }
     public function postSubmitAssignment($req, $res) {
-        $body = $this->body($req); if (empty($body->assignment_id) || empty($body->lesson_id)) return $this->error($res, "Assignment and lesson are required."); $student = $this->requestedStudent($body); $lesson = $this->byId($this->lessonNs, $body->lesson_id);
+        $body = $this->body($req); if (empty($body->assignment_id) || empty($body->lesson_id)) return $this->error($res, "Assignment and lesson are required."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id);
         if (!$lesson) return $this->error($res, "Lesson not found.");
         if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied.");
         if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements before submitting this assignment.");
-        $existing = $this->rows($this->submissionNs, "assignment_id:" . intval($body->assignment_id) . ",student_id:" . intval($student->id), "desc"); $rule = $this->findOne($this->ruleNs, "assignment_id:" . intval($body->assignment_id));
+        $assignment=$this->byId($this->assignmentNs,$body->assignment_id);$rule=$this->findOne($this->ruleNs,"lesson_id:".intval($lesson->id).",assignment_id:".intval($body->assignment_id));if(!$assignment||!$rule||strval($assignment->subject_id)!==strval($lesson->subject_id))return $this->error($res,"This assignment is not linked to the selected lesson.");if(isset($assignment->status)&&strtolower($assignment->status)!=="published")return $this->error($res,"Assignment is not available.");
+        $existing = $this->rows($this->submissionNs, "assignment_id:" . intval($body->assignment_id) . ",lesson_id:".intval($lesson->id).",student_id:" . intval($student->id), "desc");
+        if(count($existing)>0&&!LessonRules::truthy(isset($rule->allow_resubmission)?$rule->allow_resubmission:false))return $this->error($res,"Resubmission is not allowed for this assignment.");
         if ($rule && intval($rule->max_submissions) > 0 && count($existing) >= intval($rule->max_submissions)) return $this->error($res, "Submission limit reached.");
-        $submission = new \stdClass(); $submission->assignment_id = $body->assignment_id; $submission->student_id = $student->id; $submission->student_name = $student->name; $submission->content = isset($body->content) ? $body->content : ""; $submission->file_url = isset($body->file_url) ? $body->file_url : ""; $submission->submitted_at = date("Y-m-d H:i:s"); $submission->status = "submitted"; $submission = $this->persist($this->submissionNs, $submission, $res);
-        $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->assignment_submitted = "true"; $this->finishProgress($lesson, $progress, $res); $this->notifyTeachers("assignment-submitted", $student->name . " submitted an assignment.", "submission", $submission->id); return $submission;
+        $late=!empty($assignment->due_at)&&strtotime($assignment->due_at)<time();if($late&&!LessonRules::truthy(isset($rule->allow_late)?$rule->allow_late:false))return $this->error($res,"The assignment due date has passed and late submissions are disabled.");
+        $files=$this->validatedSubmissionFiles(isset($body->files)?$body->files:array(),$rule,$res);if($files===null)return null;$content=trim(isset($body->content)?strval($body->content):"");$external=trim(isset($body->file_url)?strval($body->file_url):"");if($external!==""&&!$this->safeHttpUrl($external))return $this->error($res,"External submission links must use HTTPS.");$type=strtolower(isset($rule->submission_type)?$rule->submission_type:"file_and_text");if(strpos($type,"file")!==false&&count($files)===0&&$external==="")return $this->error($res,"Upload at least one permitted file.");if(strpos($type,"text")!==false&&$content==="")return $this->error($res,"A written response is required.");
+        $submission = new \stdClass(); $submission->assignment_id = $body->assignment_id;$submission->course_id=$lesson->course_id;$submission->lesson_id=$lesson->id;$submission->attempt_number=count($existing)+1; $submission->student_id = $student->id; $submission->student_name = $student->name; $submission->content = $content; $submission->file_url = $external; $submission->files=$files;$submission->submitted_at = date("Y-m-d H:i:s"); $submission->status = $late?"submitted_late":"submitted";if($late&&isset($assignment->late_penalty_per_day)){$days=max(1,ceil((time()-strtotime($assignment->due_at))/86400));$submission->late_penalty=$days*floatval($assignment->late_penalty_per_day);} $submission = $this->persist($this->submissionNs, $submission, $res);
+        $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->assignment_submitted = "true";$progress->assignment_submitted_at=date("Y-m-d H:i:s"); $this->finishProgress($lesson, $progress, $res); $this->notifyTeachersForLesson($lesson,"assignment-submitted", $student->name . " submitted an assignment.", "submission", $submission->id); return $submission;
     }
 
     public function postReviewSubmission($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req); if (empty($body->submission_id)) return $this->error($res, "submission_id is required."); $submission = $this->byId($this->submissionNs, $body->submission_id); if (!$submission) return $this->error($res, "Submission not found.");
-        $assignment = $this->byId($this->assignmentNs, $submission->assignment_id); $rule = $this->findOne($this->ruleNs, "assignment_id:" . intval($submission->assignment_id)); $profile = $this->currentProfile(); $marks = isset($body->marks) ? floatval($body->marks) : 0; $pass = $rule ? $marks >= floatval($rule->passing_mark) : $marks >= (floatval($assignment->max_mark) * .5);
-        $submission->marks = $marks; $submission->feedback = isset($body->feedback) ? $body->feedback : ""; $submission->status = isset($body->status) ? $body->status : ($pass ? "graded" : "resubmission_requested"); $submission->graded_by = $profile->id; $submission->graded_at = date("Y-m-d H:i:s"); $submission = $this->persist($this->submissionNs, $submission, $res);
-        $mark = $this->findOne($this->markNs, "submission_id:" . intval($submission->id)); if (!$mark) $mark = new \stdClass(); $mark->assignment_id = $assignment->id; $mark->submission_id = $submission->id; $mark->class_grade_id = isset($assignment->class_grade_id) ? $assignment->class_grade_id : 0; $mark->subject_id = isset($assignment->subject_id) ? $assignment->subject_id : 0; $mark->student_id = $submission->student_id; $mark->student_name = $submission->student_name; $mark->marks = $marks; $mark->max_mark = $assignment->max_mark; $mark->graded_by = $profile->id; $mark->graded_at = date("Y-m-d H:i:s"); $mark->note = $submission->feedback; $this->persist($this->markNs, $mark, $res);
-        if ($rule) { $lesson = $this->byId($this->lessonNs, $rule->lesson_id); if ($lesson) { $student = $this->profile($submission->student_id); $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->assignment_mark = $marks; $progress->assignment_passed = $pass ? "true" : "false"; if (isset($body->approve) && LessonRules::truthy($body->approve)) $progress->teacher_approved = "true"; $this->finishProgress($lesson, $progress, $res); } }
+        $assignment = $this->byId($this->assignmentNs, $submission->assignment_id); $rule = $this->findOne($this->ruleNs, "lesson_id:".intval(isset($submission->lesson_id)?$submission->lesson_id:0).",assignment_id:" . intval($submission->assignment_id));$lesson=$rule?$this->byId($this->lessonNs,$rule->lesson_id):null;if(!$assignment||!$rule||!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"You are not authorized to review this submission."); $profile = $this->currentProfile(); $marks = isset($body->marks) ? floatval($body->marks) : 0;if($marks<0||$marks>floatval($assignment->max_mark))return $this->error($res,"Marks must be between 0 and ".$assignment->max_mark."."); $pass = $marks >= floatval($rule->passing_mark);
+        $decision=isset($body->status)?strtolower($body->status):($pass?"graded":"resubmission_requested");if(!in_array($decision,array("graded","resubmission_requested"),true))return $this->error($res,"Unsupported review decision.");$submission->marks = $marks;$submission->passed=$pass?"true":"false"; $submission->feedback = isset($body->feedback) ? trim(strval($body->feedback)) : ""; $submission->status = $decision; $submission->graded_by = $profile->id; $submission->graded_at = date("Y-m-d H:i:s"); $submission = $this->persist($this->submissionNs, $submission, $res);
+        $mark = $this->findOne($this->markNs, "assignment_id:" . intval($assignment->id) . ",student_id:" . intval($submission->student_id)); if (!$mark) $mark = new \stdClass(); $mark->assignment_id = $assignment->id; $mark->submission_id = $submission->id; $mark->class_grade_id = isset($assignment->class_grade_id) ? $assignment->class_grade_id : 0; $mark->subject_id = isset($assignment->subject_id) ? $assignment->subject_id : 0; $mark->student_id = $submission->student_id; $mark->student_name = $submission->student_name; $mark->marks = $marks; $mark->max_mark = $assignment->max_mark; $mark->graded_by = $profile->id; $mark->graded_at = date("Y-m-d H:i:s"); $mark->note = $submission->feedback; $this->persist($this->markNs, $mark, $res);
+        if ($rule) { if ($lesson) { $student = $this->profile($submission->student_id); $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->assignment_mark = $marks; $progress->assignment_passed = $pass ? "true" : "false";$progress->assignment_reviewed_at=date("Y-m-d H:i:s"); if (isset($body->approve) && LessonRules::truthy($body->approve)&&$pass) $progress->teacher_approved = "true"; $this->finishProgress($lesson, $progress, $res); } }
         $this->queueNotification($this->profile($submission->student_id), $pass ? "marks-awarded" : "resubmission-requested", "Your assignment was reviewed. Mark: " . $marks, "submission", $submission->id); return $submission;
     }
 
     public function postSubmissionsReport($req, $res) {
+        if(!$this->requireTeacher($res))return null;
         $body = $this->body($req); $rows = $this->listObject($body, $this->submissionNs, array("assignment_id","student_id","status"), array("student_name","content","feedback"), "desc"); $out = array();
-        foreach ($rows as $row) { $assignment = $this->byId($this->assignmentNs, $row->assignment_id); if (isset($body->course_id) && $body->course_id && (!$assignment || !$this->assignmentInCourse($assignment, $body->course_id))) continue; if (isset($body->subject_id) && $body->subject_id && (!$assignment || strval($assignment->subject_id) !== strval($body->subject_id))) continue; $rule = $this->findOne($this->ruleNs, "assignment_id:" . intval($row->assignment_id)); if (isset($body->lesson_id) && $body->lesson_id && (!$rule || strval($rule->lesson_id) !== strval($body->lesson_id))) continue; $item = clone $row; $item->assignment = $assignment; $item->rule = $rule; $out[] = $item; }
+        foreach ($rows as $row) { $assignment = $this->byId($this->assignmentNs, $row->assignment_id);$rule = $this->findOne($this->ruleNs, "lesson_id:".intval(isset($row->lesson_id)?$row->lesson_id:0).",assignment_id:" . intval($row->assignment_id));if(!$rule)$rule=$this->findOne($this->ruleNs,"assignment_id:".intval($row->assignment_id));$lesson=$rule?$this->byId($this->lessonNs,$rule->lesson_id):null;if(!$lesson||!$this->canManageLesson($lesson))continue; if (isset($body->course_id) && $body->course_id && strval($lesson->course_id)!==strval($body->course_id)) continue; if (isset($body->subject_id) && $body->subject_id && strval($lesson->subject_id)!==strval($body->subject_id)) continue; if (isset($body->lesson_id) && $body->lesson_id && strval($lesson->id) !== strval($body->lesson_id)) continue;if(isset($body->date_from)&&$body->date_from&&strtotime($row->submitted_at)<strtotime($body->date_from))continue;if(isset($body->date_to)&&$body->date_to&&strtotime($row->submitted_at)>strtotime($body->date_to." 23:59:59"))continue;if(isset($body->pass_status)&&$body->pass_status!==""){$isPass=floatval(isset($row->marks)?$row->marks:0)>=floatval($rule->passing_mark);if(($body->pass_status==="passed")!==$isPass)continue;} $item = clone $row; $item->assignment = $assignment; $item->rule = $rule;$item->lesson=$lesson; $out[] = $item; }
         return $out;
     }
     public function postProgressReport($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req); $rows = $this->listObject($body, $this->progressNs, array("course_id","lesson_id","student_id"), array("student_name"), "desc"); $lessons = $this->mapBy($this->rows($this->lessonNs, "", "asc"), "id"); $out = array();
-        foreach ($rows as $row) { $item = clone $row; $item->lesson = isset($lessons[strval($row->lesson_id)]) ? $lessons[strval($row->lesson_id)] : null; if (isset($body->subject_id) && $body->subject_id && (!$item->lesson || strval($item->lesson->subject_id) !== strval($body->subject_id))) continue; $item->completion_percentage = $this->progressPercentage($item->lesson, $row); $out[] = $item; } return $out;
+        foreach ($rows as $row) { $item = clone $row; $item->lesson = isset($lessons[strval($row->lesson_id)]) ? $lessons[strval($row->lesson_id)] : null;if(!$item->lesson||!$this->canManageLesson($item->lesson))continue; if (isset($body->subject_id) && $body->subject_id && strval($item->lesson->subject_id) !== strval($body->subject_id)) continue;if(isset($body->teacher_id)&&$body->teacher_id&&!$this->lessonMatchesTeacher($item->lesson,$body->teacher_id))continue;$activity=!empty($row->last_viewed_at)?$row->last_viewed_at:(isset($row->completed_at)?$row->completed_at:"");if(isset($body->date_from)&&$body->date_from&&($activity===""||strtotime($activity)<strtotime($body->date_from)))continue;if(isset($body->date_to)&&$body->date_to&&($activity===""||strtotime($activity)>strtotime($body->date_to." 23:59:59")))continue;if(isset($body->completion_status)&&$body->completion_status!==""){$complete=LessonRules::truthy(isset($row->lesson_completed)?$row->lesson_completed:false);$started=!empty($row->last_viewed_at)||!empty($row->started_at);$status=$complete?"completed":($started?"in_progress":"not_started");if($status!==$body->completion_status)continue;} $item->completion_percentage = $this->progressPercentage($item->lesson, $row); $out[] = $item; } return $out;
+    }
+
+    public function postResultsReport($req,$res){
+        if(!$this->requireTeacher($res))return null;$body=$this->body($req);$enrollments=$this->rows($this->enrollmentNs,"","desc");$out=array();
+        foreach($enrollments as $enrollment){
+            if(!$this->isActiveEnrollment($enrollment))continue;$courseId=$this->courseIdForEnrollment($enrollment);if($courseId<=0)continue;
+            if(isset($body->course_id)&&$body->course_id&&strval($courseId)!==strval($body->course_id))continue;if(isset($body->student_id)&&$body->student_id&&strval($enrollment->student_id)!==strval($body->student_id))continue;
+            $course=$this->byId($this->courseNs,$courseId);if(!$course||!$this->canManageCourse($courseId))continue;if(isset($body->teacher_id)&&$body->teacher_id&&!$this->courseHasTeacher($courseId,$body->teacher_id))continue;
+            if(isset($body->search)&&trim($body->search)!==""){$student=$this->profile($enrollment->student_id);if(strpos(strtolower(isset($student->name)?$student->name:""),strtolower(trim($body->search)))===false)continue;}
+            $summary=$this->courseLearningSummary($course,$this->profile($enrollment->student_id),$enrollment);$totals=$this->courseMarkTotals($enrollment->student_id,$courseId);$summary->total_marks=$totals->earned;$summary->maximum_marks=$totals->maximum;$summary->percentage=$totals->maximum>0?round(($totals->earned/$totals->maximum)*100,2):0;$summary->grade=$this->gradeForPercentage($summary->percentage);
+            if(isset($body->completion_status)&&$body->completion_status!==""&&$summary->course_status!==$body->completion_status)continue;
+            if((isset($body->date_from)&&$body->date_from)||(isset($body->date_to)&&$body->date_to)){$activity=$this->latestCourseActivity($enrollment->student_id,$courseId);if(!$activity)continue;if(isset($body->date_from)&&$body->date_from&&strtotime($activity)<strtotime($body->date_from))continue;if(isset($body->date_to)&&$body->date_to&&strtotime($activity)>strtotime($body->date_to." 23:59:59"))continue;}
+            $out[]=$summary;
+        }
+        return $out;
     }
 
     public function postSeedDemo($req, $res) {
-        if (!$this->requireTeacher($res)) return null; $courses = $this->rows($this->courseNs, "", "asc"); if (count($courses) === 0) return $this->error($res, "Create a course in Course Manager first."); $course = $courses[0];
-        $subjects = $this->rows($this->subjectNs, "course_id:" . intval($course->id), "asc"); if (count($subjects) === 0) return $this->error($res, "Create a subject under the course in Course Manager first."); $subject = $subjects[0];
+        if (!$this->requireTeacher($res)) return null; $courses = array();foreach($this->rows($this->courseNs,"","asc") as $candidate)if($this->canManageCourse($candidate->id))$courses[]=$candidate; if (count($courses) === 0) return $this->error($res, "Create a course in Course Manager first."); $course = $courses[0];
+        $subjects = array();foreach($this->rows($this->subjectNs,"course_id:".intval($course->id),"asc") as $candidate)if($this->canManageSubject($candidate))$subjects[]=$candidate; if (count($subjects) === 0) return $this->error($res, "Create a subject under the course in Course Manager first."); $subject = $subjects[0];
         if ($this->findOne($this->lessonNs, "subject_id:" . intval($subject->id) . ",title:Welcome to the subject")) return $this->postDashboard($req, $res);
         $lesson = new \stdClass(); $lesson->course_id = $course->id; $lesson->subject_id = $subject->id; $lesson->title = "Welcome to the subject"; $lesson->description = "Understand the subject learning goals, lesson structure, and how to complete each activity."; $lesson->lesson_order = 1; $lesson->passing_mark = 70; $lesson->status = "published"; $lesson->progression_enabled = "true"; $lesson->require_reading = "true"; $lesson->require_video = "false"; $lesson->require_quiz = "false"; $lesson->require_assignment = "false"; $lesson->require_teacher_approval = "false"; $lesson->created_at = date("Y-m-d H:i:s"); $lesson->updated_at = $lesson->created_at; $lesson = $this->persist($this->lessonNs, $lesson, $res);
         $content = new \stdClass(); $content->lesson_id = $lesson->id; $content->content_type = "article"; $content->title = "Getting started"; $content->body = "Welcome. Read this introduction, explore the resources, and mark the lesson as read when you are ready to continue."; $content->sort_order = 1; $content->is_required = "true"; $content->status = "published"; $this->persist($this->contentNs, $content, $res); return $this->postDashboard($req, $res);
     }
 
-    private function studentCourses($body) {
+    private function studentCourses($body,$res=null) {
         $student = $this->requestedStudent($body); $out = array();
+        if(!$this->validProfile($student)){if($res)$res->SetError("An active profile is required.");return array();}
         if ($this->isTeacher() && (!isset($body->student_id) || intval($body->student_id) <= 0)) {
-            foreach ($this->rows($this->courseNs, "", "asc") as $course) $out[] = $this->courseLearningSummary($course, $student, null);
+            foreach ($this->rows($this->courseNs, "", "asc") as $course) if($this->canManageCourse($course->id))$out[] = $this->courseLearningSummary($course, $student, null);
             return $out;
         }
         $enrollments = $this->rows($this->enrollmentNs, "student_id:" . intval($student->id), "desc"); $seen = array();
-        foreach ($enrollments as $enrollment) { if (!$this->isActiveEnrollment($enrollment)) continue; $courseId = $this->courseIdForEnrollment($enrollment); if ($courseId <= 0 || isset($seen[strval($courseId)])) continue; $seen[strval($courseId)] = true; $course = $this->byId($this->courseNs, $courseId); if (!$course) continue; $out[] = $this->courseLearningSummary($course, $student, $enrollment); }
+        foreach ($enrollments as $enrollment) { if (!$this->isActiveEnrollment($enrollment)) continue; $courseId = $this->courseIdForEnrollment($enrollment); if ($courseId <= 0 || isset($seen[strval($courseId)])) continue;if($this->isTeacher()&&!$this->canManageCourse($courseId))continue; $seen[strval($courseId)] = true; $course = $this->byId($this->courseNs, $courseId); if (!$course) continue; $out[] = $this->courseLearningSummary($course, $student, $enrollment); }
         return $out;
     }
 
@@ -435,15 +491,16 @@ class ApiService {
         $progress = $this->rows($this->progressNs, "course_id:" . intval($course->id) . ",student_id:" . intval($student->id), "asc");
         $completed = 0; $quizPending = 0; $assignmentPending = 0; $current = null;
         foreach ($lessons as $lesson) { $p = $this->findIn($progress, "lesson_id", $lesson->id); if ($p && LessonRules::truthy($p->lesson_completed)) $completed++; elseif ($current === null) $current = $lesson; if (LessonRules::truthy(isset($lesson->require_quiz)?$lesson->require_quiz:false) && (!$p || !LessonRules::truthy($p->quiz_passed))) $quizPending++; if (LessonRules::truthy(isset($lesson->require_assignment)?$lesson->require_assignment:false) && (!$p || !LessonRules::truthy($p->assignment_passed))) $assignmentPending++; }
-        $marks = $this->rows($this->markNs, "student_id:" . intval($student->id), "desc"); $earned = 0;
-        foreach ($marks as $m) if ($this->markBelongsToCourse($m, $course->id)) $earned += floatval(isset($m->marks)?$m->marks:0);
-        $item = clone $course; $item->enrollment = $enrollment; $item->completion_percentage = LessonRules::completionPercent($completed, count($lessons)); $item->completed_lessons = $completed; $item->total_lessons = count($lessons); $item->current_lesson = $current; $item->pending_quizzes = $quizPending; $item->pending_assignments = $assignmentPending; $item->total_marks = $earned; $item->course_status = count($lessons)>0 && $completed===count($lessons)?"completed":($completed>0?"in_progress":"not_started"); return $item;
+        $totals=$this->courseMarkTotals($student->id,$course->id);$earned=$totals->earned;
+        $teacherNames=array();foreach($this->rows($this->subjectNs,"course_id:".intval($course->id),"asc") as $subject)if(!empty($subject->teacher_id)){$teacher=$this->profile($subject->teacher_id);if(isset($teacher->name))$teacherNames[$teacher->name]=true;}
+        $item = clone $course; $item->enrollment = $enrollment;$item->student_id=isset($student->id)?$student->id:0;$item->student_name=isset($student->name)?$student->name:"Unknown learner"; $item->completion_percentage = LessonRules::completionPercent($completed, count($lessons)); $item->completed_lessons = $completed; $item->total_lessons = count($lessons); $item->current_lesson = $current; $item->pending_quizzes = $quizPending; $item->pending_assignments = $assignmentPending; $item->total_marks = $earned;$item->teacher_names=array_keys($teacherNames); $item->course_status = count($lessons)>0 && $completed===count($lessons)?"completed":($completed>0?"in_progress":"not_started"); return $item;
     }
 
-    private function touchProgress($body, $activity, $res) { if (empty($body->lesson_id)) return $this->error($res, "lesson_id is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found."); $student = $this->requestedStudent($body); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied."); if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements first."); $progress = $this->progress($lesson->course_id, $lesson->id, $student); if ($activity === "viewed") { if (empty($progress->started_at)) $progress->started_at = date("Y-m-d H:i:s"); $progress->last_viewed_at = date("Y-m-d H:i:s"); } else $progress->{$activity} = "true"; return $this->finishProgress($lesson, $progress, $res); }
+    private function touchProgress($body, $activity, $res) { if (empty($body->lesson_id)) return $this->error($res, "lesson_id is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied."); if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements first."); $progress = $this->progress($lesson->course_id, $lesson->id, $student); if ($activity === "viewed") { if (empty($progress->started_at)) $progress->started_at = date("Y-m-d H:i:s"); $progress->last_viewed_at = date("Y-m-d H:i:s"); } else $progress->{$activity} = "true"; return $this->finishProgress($lesson, $progress, $res); }
     private function progress($courseId, $lessonId, $student) { $p = $this->findOne($this->progressNs, "lesson_id:" . intval($lessonId) . ",student_id:" . intval($student->id)); if ($p) return $p; $p = new \stdClass(); $p->course_id=$courseId; $p->lesson_id=$lessonId; $p->student_id=$student->id; $p->student_name=$student->name; $p->quiz_attempts=0; return $p; }
-    private function finishProgress($lesson, $progress, $res) { $complete = LessonRules::requirementsMet($lesson, $progress); $wasComplete = LessonRules::truthy(isset($progress->lesson_completed)?$progress->lesson_completed:false); $progress->lesson_completed = $complete ? "true" : "false"; if ($complete && empty($progress->completed_at)) $progress->completed_at = date("Y-m-d H:i:s"); $saved = $this->persist($this->progressNs, $progress, $res); if ($complete && !$wasComplete) $this->queueNotification($this->profile($progress->student_id), "next-lesson-unlocked", "Lesson completed. Your next lesson is now available.", "lesson", $lesson->id); return $saved; }
+    private function finishProgress($lesson, $progress, $res) { $complete = LessonRules::requirementsMet($lesson, $progress); $wasComplete = LessonRules::truthy(isset($progress->lesson_completed)?$progress->lesson_completed:false); $progress->lesson_completed = $complete ? "true" : "false"; if ($complete && empty($progress->completed_at)) $progress->completed_at = date("Y-m-d H:i:s");if($complete&&!$wasComplete)$progress->next_unlocked_at=date("Y-m-d H:i:s"); $saved = $this->persist($this->progressNs, $progress, $res); if ($complete && !$wasComplete){$student=$this->profile($progress->student_id);$this->queueNotification($student, "next-lesson-unlocked", "Lesson completed. Your next lesson is now available.", "lesson", $lesson->id);if($this->courseCompletedFor($lesson->course_id,$progress->student_id))$this->queueNotification($student,"course-completed","Course completed.","course",$lesson->course_id);} return $saved; }
     private function saveQuizMark($quiz,$lesson,$student,$attempt,$res) { $mark = $this->findOne($this->markNs, "assessment_id:" . intval(isset($quiz->assessment_id)?$quiz->assessment_id:0) . ",student_id:" . intval($student->id)); if (!$mark) $mark = new \stdClass(); $mark->assessment_id=isset($quiz->assessment_id)?$quiz->assessment_id:0; $mark->assignment_id=0; $mark->submission_id=0; $mark->class_grade_id=0; $mark->subject_id=isset($lesson->subject_id)?$lesson->subject_id:0; $mark->student_id=$student->id; $mark->student_name=$student->name; $mark->marks=$attempt->marks; $mark->max_mark=$attempt->max_mark; $mark->weight=0; $mark->graded_by=0; $mark->graded_at=date("Y-m-d H:i:s"); $mark->note="Lesson quiz attempt " . $attempt->attempt_number; $this->persist($this->markNs,$mark,$res); }
+    private function syncQuizAssessment($quiz,$lesson,$res){$published=strtolower(isset($quiz->status)?$quiz->status:"")==="published";$assessment=!empty($quiz->assessment_id)?$this->byId($this->assessmentNs,$quiz->assessment_id):null;if(!$published&&!$assessment)return $quiz;if(!$assessment)$assessment=new \stdClass();$assessment->class_grade_id=0;$assessment->subject_id=isset($lesson->subject_id)?$lesson->subject_id:0;$assessment->title=$quiz->title;$assessment->assessment_type="lesson_quiz";$assessment->max_mark=$this->quizMaxMark($quiz->id);$assessment->weight=0;$assessment->status=$published?"active":"inactive";$assessment=$this->persist($this->assessmentNs,$assessment,$res);if($assessment&&empty($quiz->assessment_id)){$quiz->assessment_id=$assessment->id;$quiz=$this->persist($this->quizNs,$quiz,$res);}return $quiz;}
 
     private function teacherSave($req,$res,$ns,$required,$message) { if (!$this->requireTeacher($res)) return null; $item=$this->body($req); foreach($required as $field) if(empty($item->{$field})) return $this->error($res,$message); return $this->persist($ns,$item,$res); }
     private function listBody($req,$ns,$fields,$search,$sorting) { return $this->listObject($this->body($req),$ns,$fields,$search,$sorting); }
@@ -472,6 +529,9 @@ class ApiService {
     private function progressPercentage($lesson,$p){if(!$lesson)return 0;$total=0;$done=0;$map=array("require_reading"=>"reading_completed","require_video"=>"video_completed","require_quiz"=>"quiz_passed","require_assignment"=>"assignment_passed","require_teacher_approval"=>"teacher_approved");foreach($map as $r=>$s)if(LessonRules::truthy(isset($lesson->{$r})?$lesson->{$r}:false)){$total++;if(LessonRules::truthy(isset($p->{$s})?$p->{$s}:false))$done++;}return $total?LessonRules::completionPercent($done,$total):(LessonRules::truthy(isset($p->lesson_completed)?$p->lesson_completed:false)?100:0);}
     private function assignmentInCourse($assignment,$courseId){$subjects=$this->rows($this->subjectNs,"course_id:".intval($courseId),"asc");foreach($subjects as $s)if(strval($s->id)===strval($assignment->subject_id))return true;return false;}
     private function markBelongsToCourse($mark,$courseId){if(!empty($mark->assignment_id)){ $assignment=$this->byId($this->assignmentNs,$mark->assignment_id); if($assignment&&$this->assignmentInCourse($assignment,$courseId))return true;}if(!empty($mark->assessment_id)){foreach($this->rows($this->quizNs,"assessment_id:".intval($mark->assessment_id),"desc") as $quiz){$lesson=$this->byId($this->lessonNs,$quiz->lesson_id);if($lesson&&strval($lesson->course_id)===strval($courseId))return true;}}if(!empty($mark->subject_id)){foreach($this->rows($this->subjectNs,"course_id:".intval($courseId),"asc") as $subject)if(strval($subject->id)===strval($mark->subject_id))return true;}return false;}
+    private function courseMarkTotals($studentId,$courseId){$earned=0;$maximum=0;$seen=array();foreach($this->rows($this->markNs,"student_id:".intval($studentId),"desc") as $mark){if(!$this->markBelongsToCourse($mark,$courseId))continue;$key=!empty($mark->assignment_id)?"assignment:".$mark->assignment_id:(!empty($mark->assessment_id)?"assessment:".$mark->assessment_id:"mark:".(isset($mark->id)?$mark->id:count($seen)));if(isset($seen[$key]))continue;$seen[$key]=true;$earned+=floatval(isset($mark->marks)?$mark->marks:0);$maximum+=floatval(isset($mark->max_mark)?$mark->max_mark:0);}$out=new \stdClass();$out->earned=$earned;$out->maximum=$maximum;return $out;}
+    private function latestCourseActivity($studentId,$courseId){$latest=0;foreach($this->rows($this->progressNs,"course_id:".intval($courseId).",student_id:".intval($studentId),"desc") as $progress){foreach(array("last_viewed_at","completed_at","assignment_reviewed_at","quiz_completed_at") as $field)if(!empty($progress->{$field}))$latest=max($latest,strtotime($progress->{$field}));}return $latest?date("Y-m-d H:i:s",$latest):null;}
+    private function courseCompletedFor($courseId,$studentId){$lessons=$this->publishedRows($this->lessonNs,"course_id:".intval($courseId));if(!count($lessons))return false;foreach($lessons as $lesson){$progress=$this->findOne($this->progressNs,"lesson_id:".intval($lesson->id).",student_id:".intval($studentId));if(!$progress||!LessonRules::truthy(isset($progress->lesson_completed)?$progress->lesson_completed:false))return false;}return true;}
 
     private function sanitizeRichText($html) {
         $html = strval($html);
@@ -480,18 +540,51 @@ class ApiService {
         $html = preg_replace('/\s(on[a-z]+|style|srcdoc)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
         $html = preg_replace_callback('/\s(href|src)\s*=\s*(["\'])(.*?)\2/i', function($match) {
             $url = trim(html_entity_decode($match[3], ENT_QUOTES, 'UTF-8'));
-            if ($url === '' || strpos($url, '#') === 0 || preg_match('#^(https?:|mailto:|tel:)#i', $url)) return ' ' . strtolower($match[1]) . '=' . $match[2] . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . $match[2];
+            if ($url === '' || strpos($url, '#') === 0 || preg_match('#^(https?:|mailto:|tel:)#i', $url) || $this->safeResourceReference($url)) return ' ' . strtolower($match[1]) . '=' . $match[2] . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . $match[2];
             return '';
         }, $html);
         return trim($html);
     }
     private function safeContentRows($rows) { foreach($rows as $row)if(isset($row->body))$row->body=$this->sanitizeRichText($row->body);return $rows; }
+    private function safeVideoRows($rows){$out=array();foreach($rows as $row)if($this->validVideoReference($row))$out[]=$row;return $out;}
+
+    private function safeResourceReference($value){$value=trim(strval($value));return $this->safeHttpUrl($value)||preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/[A-Za-z0-9_-]+/[A-Za-z0-9._-]+$#',$value);}
+    private function validVideoReference($item){$provider=strtolower(isset($item->provider)?$item->provider:"");$url=trim(isset($item->video_url)?strval($item->video_url):"");$media=trim(isset($item->media_reference)?strval($item->media_reference):"");if($provider==="youtube")return $this->youtubeVideoId($url)!=="";if($provider==="facebook")return $this->facebookVideoId($url)!=="";if($provider==="cloudflare"){$p=parse_url($url);return $this->safeHttpUrl($url)&&isset($p["host"])&&preg_match('/(^|\.)(cloudflarestream\.com|videodelivery\.net)$/i',$p["host"]);}if($provider==="local")return $media!==""&&$this->safeResourceReference($media);return $provider==="direct"&&$this->safeHttpUrl($url);}
+
+    private function filterManagedLessons($rows){$out=array();foreach($rows as $row)if($this->canManageLesson($row))$out[]=$row;return $out;}
+    private function filterManagedChildren($rows,$lessonField){$out=array();foreach($rows as $row){$lesson=isset($row->{$lessonField})?$this->byId($this->lessonNs,$row->{$lessonField}):null;if($lesson&&$this->canManageLesson($lesson))$out[]=$row;}return $out;}
+    private function filterManagedQuizRows($rows){$out=array();foreach($rows as $row){$lesson=$this->byId($this->lessonNs,$row->lesson_id);if($lesson&&$this->canManageLesson($lesson))$out[]=$row;}return $out;}
+    private function filterManagedQuestionRows($rows){$out=array();foreach($rows as $row){$quiz=$this->byId($this->quizNs,$row->quiz_id);$lesson=$quiz?$this->byId($this->lessonNs,$quiz->lesson_id):null;if($lesson&&$this->canManageLesson($lesson))$out[]=$row;}return $out;}
+    private function deleteManagedChild($ns,$body,$res,$lessonField){if(!$this->requireTeacher($res))return null;$item=$this->byId($ns,isset($body->id)?$body->id:0);$lesson=$item&&isset($item->{$lessonField})?$this->byId($this->lessonNs,$item->{$lessonField}):null;if(!$item||!$lesson||!$this->canManageLesson($lesson))return $this->error($res,"A manageable record is required.");return $this->delete($ns,$item,$res);}
+    private function lessonHasDependents($lessonId){foreach(array($this->contentNs,$this->videoNs,$this->quizNs,$this->progressNs,$this->ruleNs) as $ns)if(count($this->rows($ns,"lesson_id:".intval($lessonId),"desc")))return true;return false;}
+
+    private function canManageSubject($subject){if(!$subject||!$this->isTeacher())return false;if($this->isAdmin()||$this->currentRole()==="staff")return true;$profile=$this->currentProfile();return empty($subject->teacher_id)||($this->validProfile($profile)&&strval($subject->teacher_id)===strval($profile->id));}
+    private function canManageLesson($lesson){$subject=$lesson&&!empty($lesson->subject_id)?$this->byId($this->subjectNs,$lesson->subject_id):null;return $subject&&strval($subject->course_id)===strval($lesson->course_id)&&$this->canManageSubject($subject);}
+    private function canManageCourse($courseId){if($this->isAdmin()||$this->currentRole()==="staff")return true;foreach($this->rows($this->subjectNs,"course_id:".intval($courseId),"asc") as $subject)if($this->canManageSubject($subject))return true;return false;}
+    private function lessonMatchesTeacher($lesson,$teacherId){$subject=$lesson?$this->byId($this->subjectNs,$lesson->subject_id):null;return $subject&&isset($subject->teacher_id)&&strval($subject->teacher_id)===strval($teacherId);}
+    private function courseHasTeacher($courseId,$teacherId){foreach($this->rows($this->subjectNs,"course_id:".intval($courseId),"asc") as $subject)if(isset($subject->teacher_id)&&strval($subject->teacher_id)===strval($teacherId))return true;return false;}
+
+    private function studentAssignmentRules($lessonId,$studentId){$out=array();foreach($this->rows($this->ruleNs,"lesson_id:".intval($lessonId),"asc") as $rule){$assignment=$this->byId($this->assignmentNs,$rule->assignment_id);if(!$assignment||strtolower(isset($assignment->status)?$assignment->status:"")!=="published")continue;$item=clone $rule;$item->assignment=$assignment;$item->submissions=$this->rows($this->submissionNs,"lesson_id:".intval($lessonId).",assignment_id:".intval($rule->assignment_id).",student_id:".intval($studentId),"desc");$item->latest_submission=count($item->submissions)?$item->submissions[0]:null;$out[]=$item;}return $out;}
+    private function studentQuizRows($lessonId,$studentId){$out=array();foreach($this->publishedRows($this->quizNs,"lesson_id:".intval($lessonId)) as $quiz){$item=clone $quiz;$attempts=$this->rows($this->attemptNs,"quiz_id:".intval($quiz->id).",student_id:".intval($studentId),"desc");$item->latest_attempt=count($attempts)?$attempts[0]:null;$item->attempts_used=count($attempts);$out[]=$item;}return $out;}
+
+    private function studentQuestionRows($quiz){$rows=$this->rows($this->questionNs,"quiz_id:".intval($quiz->id),"asc");if(LessonRules::truthy(isset($quiz->random_questions)?$quiz->random_questions:false))shuffle($rows);foreach($rows as $row){if(LessonRules::truthy(isset($quiz->random_answers)?$quiz->random_answers:false)&&isset($row->options)&&is_array($row->options))shuffle($row->options);unset($row->correct_answer);unset($row->explanation);unset($row->negative_marks);}return $rows;}
+
+    private function validatedSubmissionFiles($files,$rule,$res){if(is_object($files))$files=get_object_vars($files);if(!is_array($files))return $this->error($res,"Uploaded files are invalid.");$allowed=array_filter(array_map('trim',explode(',',strtolower(strval(isset($rule->allowed_formats)?$rule->allowed_formats:"")))));$max=max(1,intval(isset($rule->max_file_size_mb)?$rule->max_file_size_mb:10))*1048576;$out=array();foreach($files as $file){if(is_array($file))$file=(object)$file;if(!is_object($file)||empty($file->media_reference)||empty($file->name))return $this->error($res,"Every upload requires a valid media reference and original name.");$reference=trim($file->media_reference);if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_assignment_submission/([A-Za-z0-9._-]+)$#',$reference,$match))return $this->error($res,"An uploaded file reference is invalid.");$extension=strtolower(pathinfo($file->name,PATHINFO_EXTENSION));if(!in_array($extension,$allowed,true))return $this->error($res,"File type .".$extension." is not allowed.");$path=$this->uploadedMediaPath("lesson_assignment_submission",$match[2]);if(!$path||!file_exists($path))return $this->error($res,"An uploaded file could not be verified.");$size=filesize($path);if($size>$max)return $this->error($res,"An uploaded file exceeds the maximum size.");$mime=function_exists('mime_content_type')?mime_content_type($path):"application/octet-stream";$entry=new \stdClass();$entry->name=basename($file->name);$entry->media_reference=$reference;$entry->mime_type=$mime;$entry->size_bytes=$size;$out[]=$entry;}return $out;}
+    private function validatedSupportingFiles($files,$res){if(is_object($files))$files=get_object_vars($files);if(!is_array($files))return $this->error($res,"Assignment supporting files are invalid.");$out=array();foreach($files as $file){if(is_array($file))$file=(object)$file;if(!is_object($file)||empty($file->name)||empty($file->media_reference)||!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_assignment_support/([A-Za-z0-9._-]+)$#',$file->media_reference,$match))return $this->error($res,"An assignment supporting file is invalid.");$path=$this->uploadedMediaPath("lesson_assignment_support",$match[2]);if(!$path||!file_exists($path))return $this->error($res,"An assignment supporting file could not be verified.");$entry=new \stdClass();$entry->name=basename($file->name);$entry->media_reference=$file->media_reference;$entry->size_bytes=filesize($path);$out[]=$entry;}return $out;}
+    private function uploadedMediaPath($namespace,$name){if(!defined("MEDIA_FOLDER")||!defined("DATASTORE_DOMAIN"))return null;if(!preg_match('/^[A-Za-z0-9_-]+$/',$namespace)||!preg_match('/^[A-Za-z0-9._-]+$/',$name))return null;$base=rtrim(MEDIA_FOLDER,"/\\").DIRECTORY_SEPARATOR.DATASTORE_DOMAIN.DIRECTORY_SEPARATOR.$namespace;$path=$base.DIRECTORY_SEPARATOR.$name;$baseReal=realpath($base);$pathReal=realpath($path);return $baseReal&&$pathReal&&strpos($pathReal,$baseReal.DIRECTORY_SEPARATOR)===0?$pathReal:null;}
+    private function uploadedResourceText($reference){if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_content_resource/([A-Za-z0-9._-]+)$#',trim(strval($reference)),$match))return "";$path=$this->uploadedMediaPath("lesson_content_resource",$match[2]);if(!$path||!file_exists($path)||filesize($path)>5242880)return "";$extension=strtolower(pathinfo($match[2],PATHINFO_EXTENSION));if(in_array($extension,array("txt","md","csv","json","xml","html","htm"),true))return substr($this->plainText(file_get_contents($path)),0,30000);if($extension==="docx"&&class_exists("ZipArchive")){$zip=new \ZipArchive();if($zip->open($path)===true){$xml=$zip->getFromName("word/document.xml");$zip->close();if($xml!==false)return substr($this->plainText(str_replace(array("</w:p>","</w:tr>")," ",$xml)),0,30000);}}if($extension==="pdf"){$raw=file_get_contents($path);preg_match_all('/\((?:\\.|[^\\()])*\)/s',$raw,$matches);$parts=array();foreach(array_slice($matches[0],0,3000) as $part){$part=substr($part,1,-1);$part=preg_replace_callback('/\\([0-7]{1,3})/',function($m){return chr(octdec($m[1]));},$part);$parts[]=str_replace(array('\\n','\\r','\\t','\\(', '\\)','\\\\'),array(' ',' ',' ','(',')','\\'),$part);}return substr($this->plainText(implode(" ",$parts)),0,30000);}return "";}
+
+    private function creatorService(){if(!defined("TENANT_RESOURCE_LOCATION"))throw new \Exception("The active tenant is unavailable.");$file=TENANT_RESOURCE_LOCATION."/apps/ai-agent-creator/services/creator-api/service.php";if(!file_exists($file))throw new \Exception("ai-agent-creator is not installed.");require_once($file);if(!class_exists("\\ai_agent_creator\\CreatorService"))throw new \Exception("ai-agent-creator could not be loaded.");return new \ai_agent_creator\CreatorService();}
+    private function quizGenerationPrompt($lesson,$source,$count){return "Create an accurate editable lesson quiz from the supplied source. Return JSON only, with no markdown, using this shape: {\"title\":\"...\",\"instructions\":\"...\",\"questions\":[{\"question_type\":\"multiple_choice|true_false|multiple_answer|fill_blank|short_answer\",\"question_text\":\"...\",\"options\":[\"...\"],\"correct_answer\":\"string or array\",\"explanation\":\"...\",\"difficulty\":\"easy|medium|hard\",\"marks\":1,\"negative_marks\":0}]}. Generate exactly ".$count." questions. Every objective answer must be supported by the source. Use short_answer only when manual marking is appropriate. Lesson: ".$lesson->title."\nSOURCE:\n".substr($source,0,60000);}
+    private function decodeAgentJson($reply){$text=trim(strval($reply));$text=preg_replace('/^```(?:json)?\s*/i','',$text);$text=preg_replace('/\s*```$/','',$text);$start=strpos($text,'{');$end=strrpos($text,'}');if($start===false||$end===false||$end<$start)return null;$decoded=json_decode(substr($text,$start,$end-$start+1));return json_last_error()===JSON_ERROR_NONE?$decoded:null;}
+
+    private function gradeForPercentage($percentage){foreach($this->rows("course_manager_grading_scale","","asc") as $scale){if(isset($scale->active)&&!LessonRules::truthy($scale->active))continue;if($percentage>=floatval($scale->min_mark)&&$percentage<=floatval($scale->max_mark))return isset($scale->grade_letter)?$scale->grade_letter:(isset($scale->label)?$scale->label:"");}return $percentage>=50?"Pass":"Fail";}
 
     private function providerConnection($provider) { return in_array($provider,array("youtube","facebook"),true) ? $this->findOne($this->providerNs,"provider:".$this->clean($provider)) : null; }
     private function safeProviderConnection($provider) { $item=$this->providerConnection($provider); return $item ? $this->safeProviderRow($item) : array("provider"=>$provider,"status"=>"disconnected","has_client_secret"=>false,"has_api_key"=>false,"has_access_token"=>false,"has_refresh_token"=>false); }
     private function safeProviderRow($item) {
         if (!$item) return null; $safe=new \stdClass();
-        foreach(array("id","provider","account_name","account_id","page_id","client_id","status","expires_at","last_tested_at","last_error","updated_at") as $field) if(isset($item->{$field})) $safe->{$field}=$item->{$field};
+        foreach(array("id","provider","connection_scope","account_name","account_id","page_id","client_id","status","expires_at","last_tested_at","last_error","updated_at") as $field) if(isset($item->{$field})) $safe->{$field}=$item->{$field};
         $safe->has_client_secret=$this->providerValue($item,"client_secret_enc")!==""; $safe->has_api_key=$this->providerValue($item,"api_key_enc")!==""; $safe->has_access_token=$this->providerValue($item,"access_token_enc")!==""; $safe->has_refresh_token=$this->providerValue($item,"refresh_token_enc")!=="";
         return $safe;
     }
@@ -533,7 +626,7 @@ class ApiService {
     private function facebookMetadata($url,$res) {
         $id=$this->facebookVideoId($url); $connection=$this->providerConnection("facebook"); if(!$connection)return $this->error($res,"Connect Facebook in Settings before fetching video metadata."); $token=$this->providerValue($connection,"access_token_enc"); if($token==="")return $this->error($res,"The Facebook connection has no access token.");
         if($id==="")return $this->error($res,"The Facebook URL does not expose a supported numeric video or reel ID.");
-        $response=$this->curlRequest("https://graph.facebook.com/v19.0/".rawurlencode($id),"GET",array("fields"=>"id,title,description,length,thumbnails","access_token"=>$token),array()); if(!$response->success)return $this->error($res,"Facebook metadata request failed: ".$response->message);
+        $response=$this->curlRequest($this->facebookGraphUrl(rawurlencode($id)),"GET",array("fields"=>"id,title,description,length,thumbnails","access_token"=>$token),array()); if(!$response->success)return $this->error($res,"Facebook metadata request failed: ".$response->message);
         $d=$response->data;$thumb="";if(isset($d["thumbnails"]["data"])&&is_array($d["thumbnails"]["data"]))foreach($d["thumbnails"]["data"] as $t)if(!empty($t["uri"])){$thumb=$t["uri"];if(!empty($t["is_preferred"]))break;}
         return array("provider"=>"facebook","video_id"=>$id,"title"=>isset($d["title"])?$d["title"]:(isset($d["description"])?$d["description"]:""),"thumbnail_url"=>$thumb,"transcript"=>"","duration_seconds"=>isset($d["length"])?intval($d["length"]):0,"messages"=>array("Facebook did not expose transcript text for this video. You can enter it manually."));
     }
@@ -545,7 +638,10 @@ class ApiService {
     private function isoDurationSeconds($duration){try{$i=new \DateInterval($duration);return intval($i->d)*86400+intval($i->h)*3600+intval($i->i)*60+intval($i->s);}catch(\Exception $e){return 0;}}
 
     private function testYouTubeConnection($item) { $this->refreshYouTubeAccessToken($item);$key=$this->providerValue($item,"api_key_enc");$token=$this->providerValue($item,"access_token_enc");if($key===""&&$token==="")return (object)array("success"=>false,"message"=>"Add an API key or complete OAuth connection.");$p=array("part"=>"id","id"=>"dQw4w9WgXcQ");if($key!=="")$p["key"]=$key;$r=$this->curlRequest("https://www.googleapis.com/youtube/v3/videos","GET",$p,$token!==""?array("Authorization: Bearer ".$token):array());return (object)array("success"=>$r->success,"message"=>$r->success?"YouTube API connection succeeded.":"YouTube API connection failed: ".$r->message); }
-    private function testFacebookConnection($item) { $token=$this->providerValue($item,"access_token_enc");if($token==="")return (object)array("success"=>false,"message"=>"Complete OAuth or add a valid Facebook access token.");$r=$this->curlRequest("https://graph.facebook.com/v19.0/me","GET",array("fields"=>"id,name","access_token"=>$token),array());if($r->success){if(isset($r->data["name"]))$item->account_name=$r->data["name"];if(isset($r->data["id"]))$item->account_id=$r->data["id"];}return (object)array("success"=>$r->success,"message"=>$r->success?"Facebook API connection succeeded.":"Facebook API connection failed: ".$r->message); }
+    private function testFacebookConnection($item) { $token=$this->providerValue($item,"access_token_enc");if($token==="")return (object)array("success"=>false,"message"=>"Complete OAuth or add a valid Facebook access token.");$r=$this->curlRequest($this->facebookGraphUrl("me"),"GET",array("fields"=>"id,name","access_token"=>$token),array());if($r->success){if(isset($r->data["name"]))$item->account_name=$r->data["name"];if(isset($r->data["id"]))$item->account_id=$r->data["id"];}return (object)array("success"=>$r->success,"message"=>$r->success?"Facebook API connection succeeded.":"Facebook API connection failed: ".$r->message); }
+    private function facebookGraphVersion(){ $value=getenv("DAVVAG_FACEBOOK_GRAPH_VERSION");$value=$value!==false?trim($value):"";if($value==="")$value="v26.0";return preg_match('/^v\d+\.\d+$/',$value)?$value:"v26.0"; }
+    private function facebookGraphUrl($path){return "https://graph.facebook.com/".$this->facebookGraphVersion()."/".ltrim($path,"/");}
+    private function facebookDialogUrl(){return "https://www.facebook.com/".$this->facebookGraphVersion()."/dialog/oauth";}
     private function refreshYouTubeAccessToken($item) { if(!$item||empty($item->expires_at)||strtotime($item->expires_at)>time()+120)return;$refresh=$this->providerValue($item,"refresh_token_enc");$secret=$this->providerValue($item,"client_secret_enc");if($refresh===""||empty($item->client_id)||$secret==="")return;$r=$this->curlRequest("https://oauth2.googleapis.com/token","POST",array("client_id"=>$item->client_id,"client_secret"=>$secret,"refresh_token"=>$refresh,"grant_type"=>"refresh_token"),array());if($r->success&&!empty($r->data["access_token"])){$item->access_token_enc=$this->encryptProviderSecret($r->data["access_token"]);$item->expires_at=date("Y-m-d H:i:s",time()+intval(isset($r->data["expires_in"])?$r->data["expires_in"]:3600));$item->status="connected";$item->last_error="";$dummy=new LessonManagerMemoryResponse();$this->persist($this->providerNs,$item,$dummy);}}
 
     private function curlRequest($url,$method,$fields,$headers) {
@@ -557,17 +653,19 @@ class ApiService {
 
     private function isActiveEnrollment($enrollment){return !isset($enrollment->status)||strtolower($enrollment->status)==="active";}
     private function courseIdForEnrollment($enrollment){if(isset($enrollment->course_id)&&intval($enrollment->course_id)>0)return intval($enrollment->course_id);if(!empty($enrollment->class_grade_id)){ $classGrade=$this->byId($this->classNs,$enrollment->class_grade_id); if($classGrade&&isset($classGrade->course_id))return intval($classGrade->course_id);}return 0;}
-    private function canAccessCourse($courseId,$studentId){if($this->isTeacher())return true;$rows=$this->rows($this->enrollmentNs,"student_id:".intval($studentId),"desc");foreach($rows as $r)if($this->isActiveEnrollment($r)&&intval($this->courseIdForEnrollment($r))===intval($courseId))return true;return false;}
+    private function canAccessCourse($courseId,$studentId){if($this->isTeacher())return true;if(intval($studentId)<1)return false;$rows=$this->rows($this->enrollmentNs,"student_id:".intval($studentId),"desc");foreach($rows as $r)if($this->isActiveEnrollment($r)&&intval($this->courseIdForEnrollment($r))===intval($courseId))return true;return false;}
     private function lessonUnlockedFor($target,$studentId){if($this->isTeacher())return true;if(!$target||empty($target->subject_id))return false;if(isset($target->status)&&strtolower($target->status)!=="published")return false;$lessons=$this->rows($this->lessonNs,"subject_id:".intval($target->subject_id),"asc");usort($lessons,array($this,"sortLessons"));$previousMet=true;foreach($lessons as $lesson){if(isset($lesson->status)&&strtolower($lesson->status)!=="published")continue;$available=empty($lesson->available_at)||strtotime($lesson->available_at)<=time();if(strval($lesson->id)===strval($target->id))return $previousMet&&$available;$progress=$this->findOne($this->progressNs,"lesson_id:".intval($lesson->id).",student_id:".intval($studentId));$previousMet=!LessonRules::truthy(isset($lesson->progression_enabled)?$lesson->progression_enabled:true)||LessonRules::requirementsMet($lesson,$progress);}return false;}
     private function requestedStudent($body){if($this->isTeacher()&&isset($body->student_id)&&intval($body->student_id)>0)return $this->profile($body->student_id);return $this->currentProfile();}
     private function profile($id){$row=$this->byId("profile",$id);$out=new \stdClass();$out->id=intval($id);$out->name=$row&&isset($row->name)?$row->name:"Student #".$id;if($row&&isset($row->email))$out->email=$row->email;return $out;}
-    private function currentProfile(){ $out=new \stdClass();$out->id=0;$out->name="Current user";if(class_exists("\\Profile")){$p=\Profile::getUserProfile();if(isset($p->profile)&&isset($p->profile->id)){return $p->profile;}}if(class_exists("\\Auth")){$u=\Auth::Autendicate();if(isset($u->userid)){$rows=$this->rows("profile","linkeduserid:".$this->clean($u->userid),"desc");if(count($rows)>0)return $rows[0];if(isset($u->email))$out->name=$u->email;}}return $out; }
+    private function currentProfile(){ $out=new \stdClass();$out->id=0;$out->name="Current user";if(class_exists("\\Profile")){$stored=\Profile::getUserProfile();$profile=is_object($stored)&&isset($stored->profile)?$stored->profile:$stored;if(is_object($profile)&&isset($profile->id)&&intval($profile->id)>0)return $profile;}return $out; }
     private function currentRole(){if(defined("GROUPID")){$g=strtolower(GROUPID);if($g==="sysadmin")return "admin";if($g==="web_user")return "student";return $g;}if(class_exists("\\Auth")){$u=\Auth::Autendicate();if(isset($u->group))return strtolower($u->group);}return "anonymous";}
-    private function isTeacher(){return in_array($this->currentRole(),array("admin","sysadmin","staff","teacher"));}
-    private function requireTeacher($res){if($this->isTeacher())return true;$res->SetError("Teacher or administrator permission is required.");return false;}
-    private function notifyCourse($courseId,$event,$message,$type,$id){foreach($this->rows($this->enrollmentNs,"course_id:".intval($courseId),"desc") as $e)if(!isset($e->status)||strtolower($e->status)==="active")$this->queueNotification($this->profile($e->student_id),$event,$message,$type,$id);}
-    private function notifyTeachers($event,$message,$type,$id){/* Course Manager has no teacher enrolment table; queue a system notification. */$p=new \stdClass();$p->id=0;$p->name="Teaching team";$this->queueNotification($p,$event,$message,$type,$id);}
-    private function queueNotification($profile,$event,$message,$type,$id){$n=new \stdClass();$n->entity_type=$type;$n->entity_id=$id;$n->profile_id=isset($profile->id)?$profile->id:0;$n->profile_name=isset($profile->name)?$profile->name:"";$n->email=isset($profile->email)?$profile->email:"";$n->event_type=$event;$n->message=$message;$n->status="queued";$n->created_at=date("Y-m-d H:i:s");$dummy=new LessonManagerMemoryResponse();$this->persist($this->notificationNs,$n,$dummy);}
+    private function isTeacher(){return in_array($this->currentRole(),array("admin","sysadmin","staff","teacher"),true);}
+    private function isAdmin(){return in_array($this->currentRole(),array("admin","sysadmin"),true);}
+    private function validProfile($profile){return is_object($profile)&&isset($profile->id)&&intval($profile->id)>0;}
+    private function requireTeacher($res){if(!$this->isTeacher()){$res->SetError("Teacher or administrator permission is required.");return false;}if(!$this->validProfile($this->currentProfile())){$res->SetError("An active profile is required.");return false;}return true;}
+    private function notifyCourse($courseId,$event,$message,$type,$id){foreach($this->rows($this->enrollmentNs,"","desc") as $e)if($this->isActiveEnrollment($e)&&intval($this->courseIdForEnrollment($e))===intval($courseId))$this->queueNotification($this->profile($e->student_id),$event,$message,$type,$id);}
+    private function notifyTeachersForLesson($lesson,$event,$message,$type,$id){$subject=$lesson?$this->byId($this->subjectNs,$lesson->subject_id):null;if($subject&&!empty($subject->teacher_id))$this->queueNotification($this->profile($subject->teacher_id),$event,$message,$type,$id);}
+    private function queueNotification($profile,$event,$message,$type,$id){if(!$this->validProfile($profile))return;$existing=$this->findOne($this->notificationNs,"profile_id:".intval($profile->id).",event_type:".$this->clean($event).",entity_type:".$this->clean($type).",entity_id:".intval($id).",status:queued");if($existing)return;$n=new \stdClass();$n->entity_type=$type;$n->entity_id=$id;$n->profile_id=$profile->id;$n->profile_name=isset($profile->name)?$profile->name:"";$n->email=isset($profile->email)?$profile->email:"";$n->event_type=$event;$n->message=$message;$n->status="queued";$n->created_at=date("Y-m-d H:i:s");$dummy=new LessonManagerMemoryResponse();$this->persist($this->notificationNs,$n,$dummy);}
 }
 
 class LessonManagerMemoryResponse { private $error=null; public function SetError($error){$this->error=$error;} public function GetError(){return $this->error;} }

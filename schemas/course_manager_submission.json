@@ -58,6 +58,10 @@
             }
         },
         {
+            "fieldName": "passed",
+            "dataType": "boolean"
+        },
+        {
             "fieldName": "late_penalty",
             "dataType": "decimal",
             "annotations": {
@@ -93,6 +97,22 @@
         {
             "fieldName": "graded_at",
             "dataType": "java.util.Date"
+        },
+        {
+            "fieldName": "course_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "lesson_id",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "attempt_number",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "files",
+            "dataType": "object"
         }
     ],
     "relations": [

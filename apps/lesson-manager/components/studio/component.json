@@ -1,1 +1,1 @@
-{"name":"studio","description":"Lesson authoring studio","author":"DAVVAG","version":"1.2","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"studio","description":"Lesson authoring studio","author":"DAVVAG","version":"1.3","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

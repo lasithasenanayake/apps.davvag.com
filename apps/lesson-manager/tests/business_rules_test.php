@@ -19,6 +19,8 @@ $sanitize=$reflection->getMethod("sanitizeRichText");$sanitize->setAccessible(tr
 $safe=$sanitize->invoke($service,'<p onclick="bad()"><strong>Safe</strong><script>alert(1)</script><a href="javascript:bad">bad</a></p>');
 check(strpos($safe,"<strong>Safe</strong>")!==false,"rich text keeps allowed formatting");
 check(stripos($safe,"script")===false&&stripos($safe,"onclick")===false&&stripos($safe,"javascript:")===false,"rich text removes executable markup");
+$safeLocal=$sanitize->invoke($service,'<img src="components/dock/soss-uploader/service/get/lesson_content_image/example.png"><img src="javascript:bad">');
+check(strpos($safeLocal,"lesson_content_image/example.png")!==false&&stripos($safeLocal,"javascript:")===false,"rich text keeps approved uploader images and rejects executable URLs");
 $videoId=$reflection->getMethod("youtubeVideoId");$videoId->setAccessible(true);
 check($videoId->invoke($service,"https://www.youtube.com/watch?v=dQw4w9WgXcQ")==="dQw4w9WgXcQ","YouTube URLs are normalized to video IDs");
 putenv("DAVVAG_PROVIDER_SECRET=lesson-manager-test-secret");
@@ -29,6 +31,9 @@ putenv("DAVVAG_PROVIDER_SECRET");
 $_SERVER["HTTP_HOST"]="localhost";$_SERVER["REQUEST_URI"]="/davvag-core/components/lesson-manager/api/service/StartProviderOAuth";
 $baseUrl=$reflection->getMethod("appBaseUrl");$baseUrl->setAccessible(true);
 check($baseUrl->invoke($service)==="http://localhost/davvag-core","OAuth callback URLs preserve a subdirectory installation path");
+$decode=$reflection->getMethod("decodeAgentJson");$decode->setAccessible(true);$draft=$decode->invoke($service,"```json\n{\"title\":\"Draft\",\"questions\":[]}\n```");
+check($draft&&$draft->title==="Draft","saved-agent JSON responses are decoded from fenced output");
+$component=json_decode(file_get_contents(__DIR__."/../services/api/component.json"),true);foreach($component["serviceHandler"]["methods"] as $method=>$settings){$prefix=strtoupper(isset($settings["method"])?$settings["method"]:"POST")==="GET"?"get":"post";check($reflection->hasMethod($prefix.$method),"service descriptor method ".$method." has a PHP handler");}
 if($failures===0)echo "LessonRules tests passed.".PHP_EOL;
 exit($failures?1:0);
 ?>

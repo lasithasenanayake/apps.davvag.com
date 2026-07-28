@@ -4,10 +4,11 @@
  {"fieldName":"student_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
  {"fieldName":"started_at","dataType":"java.util.Date"},{"fieldName":"last_viewed_at","dataType":"java.util.Date"},
  {"fieldName":"reading_completed","dataType":"boolean"},{"fieldName":"video_completed","dataType":"boolean"},
- {"fieldName":"quiz_completed","dataType":"boolean"},{"fieldName":"quiz_passed","dataType":"boolean"},
- {"fieldName":"assignment_submitted","dataType":"boolean"},{"fieldName":"assignment_passed","dataType":"boolean"},
+ {"fieldName":"quiz_started","dataType":"boolean"},{"fieldName":"quiz_started_at","dataType":"java.util.Date"},
+ {"fieldName":"quiz_completed","dataType":"boolean"},{"fieldName":"quiz_completed_at","dataType":"java.util.Date"},{"fieldName":"quiz_passed","dataType":"boolean"},
+ {"fieldName":"assignment_submitted","dataType":"boolean"},{"fieldName":"assignment_submitted_at","dataType":"java.util.Date"},{"fieldName":"assignment_reviewed_at","dataType":"java.util.Date"},{"fieldName":"assignment_passed","dataType":"boolean"},
  {"fieldName":"teacher_approved","dataType":"boolean"},{"fieldName":"override_unlocked","dataType":"boolean"},
- {"fieldName":"lesson_completed","dataType":"boolean"},{"fieldName":"completed_at","dataType":"java.util.Date"},
+ {"fieldName":"lesson_completed","dataType":"boolean"},{"fieldName":"completed_at","dataType":"java.util.Date"},{"fieldName":"next_unlocked_at","dataType":"java.util.Date"},
  {"fieldName":"quiz_attempts","dataType":"int"},{"fieldName":"quiz_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
  {"fieldName":"assignment_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}}
 ],"relations":[

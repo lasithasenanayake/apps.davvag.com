@@ -1,0 +1,24 @@
+{
+  "name": "Lesson Manager saved-agent quiz generation",
+  "start_up_node": "run-agent",
+  "inputData": [
+    {"name": "agentCode", "datatype": "string"},
+    {"name": "message", "datatype": "string"},
+    {"name": "profile", "datatype": "object"},
+    {"name": "sessionId", "datatype": "string"},
+    {"name": "flow", "datatype": "object"},
+    {"name": "connector", "datatype": "object"},
+    {"name": "payload", "datatype": "object"}
+  ],
+  "run-agent": {
+    "urntype": "class",
+    "file": "saved_agent.php",
+    "class": "SavedAgentWorkflow",
+    "method": {
+      "name": "run",
+      "params": [{"inputData": ""}],
+      "return": true,
+      "returnobj": "agentResult"
+    }
+  }
+}

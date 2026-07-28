@@ -7,7 +7,11 @@
  {"fieldName":"max_mark","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
  {"fieldName":"percentage","dataType":"decimal","annotations":{"decimalPoints":"5,2"}},
  {"fieldName":"passed","dataType":"boolean"},{"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50}},
- {"fieldName":"started_at","dataType":"java.util.Date"},{"fieldName":"completed_at","dataType":"java.util.Date"}
+ {"fieldName":"started_at","dataType":"java.util.Date"},{"fieldName":"completed_at","dataType":"java.util.Date"},
+ {"fieldName":"automatic_marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"manual_marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
+ {"fieldName":"feedback","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+ {"fieldName":"reviewed_by","dataType":"int"},{"fieldName":"reviewed_at","dataType":"java.util.Date"}
 ],"relations":[
  {"relationName":"attempt_quiz","relationType":"many-to-one","targetEntity":"lesson_manager_quiz","joinColumns":[{"sourceColumn":"quiz_id","targetColumn":"id"}]},
  {"relationName":"attempt_student","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"student_id","targetColumn":"id"}]}

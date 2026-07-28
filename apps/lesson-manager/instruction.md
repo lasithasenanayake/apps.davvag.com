@@ -555,3 +555,19 @@ DAVVAG_PROVIDER_SECRET=<long-random-server-secret>
 ```
 
 Provider credentials cannot be persisted until this server environment variable (or an equivalent server-defined `DAVVAG_PROVIDER_SECRET` constant) is configured. YouTube caption retrieval remains subject to YouTube account ownership and API permissions. Facebook transcript text is retained as a manual fallback when Meta does not expose it for the connected video.
+
+## Implementation Status — Lesson Manager 1.3
+
+The remaining code-level requirements were implemented on 2026-07-27:
+
+* Subject/course ownership and teacher-only management services are enforced.
+* Student access uses active profiles, enrollment checks, publishing state, availability, and subject-scoped progression.
+* Davvag uploader integration covers materials, rich-text images, local video, assignment support files, and submissions.
+* Quiz generation runs through a selected saved `ai-agent-creator` agent using `lesson-manager/generate-quiz` in `davvag-flow`.
+* Quiz attempts are created and timed by the server, attempt limits are enforced, automatic and manual marks are supported, and marks persist to Course Manager.
+* Assignment rules enforce due dates, late/resubmission limits, submission types, formats, sizes, physical upload verification, marking, feedback, and pass/fail state.
+* Student dashboards and learning screens expose progress, pending work, marks, history, and feedback.
+* Teacher review and reports cover assignment work, manually marked quizzes, course results, grades, pass rates, inactivity, and filterable progress.
+* Lifecycle notifications are queued through the existing Course Manager notification schema.
+
+Static PHP, JSON, JavaScript, descriptor-handler, and business-rule verification passes. Real dock navigation, deployed schema installation, live upload storage, OAuth providers, and a configured saved AI agent remain release-environment verification gates and must pass before production certification.

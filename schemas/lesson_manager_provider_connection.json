@@ -2,6 +2,7 @@
   "fields": [
     {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
     {"fieldName":"provider","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"connection_scope","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"tenant"}},
     {"fieldName":"account_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
     {"fieldName":"account_id","dataType":"java.lang.String","annotations":{"maxLen":255}},
     {"fieldName":"page_id","dataType":"java.lang.String","annotations":{"maxLen":255}},
