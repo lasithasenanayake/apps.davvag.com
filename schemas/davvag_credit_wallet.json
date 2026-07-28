@@ -1,0 +1,97 @@
+{
+    "fields":  [
+                   {
+                       "fieldName":  "id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "isPrimary":  true,
+                                           "autoIncrement":  true
+                                       }
+                   },
+                   {
+                       "fieldName":  "program_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "owner_profile_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "wallet_type",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  40
+                                       }
+                   },
+                   {
+                       "fieldName":  "posted_balance",
+                       "dataType":  "long",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "reserved_balance",
+                       "dataType":  "long",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "available_balance",
+                       "dataType":  "long",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "balance_version",
+                       "dataType":  "long",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "status",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  20,
+                                           "default":  "ACTIVE"
+                                       }
+                   },
+                   {
+                       "fieldName":  "suspended_reason",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  1000,
+                                           "encoding":  "utf8"
+                                       }
+                   }
+               ],
+    "relations":  [
+                      {
+                          "relationName":  "credit_wallet_program",
+                          "relationType":  "many-to-one",
+                          "targetEntity":  "davvag_credit_program",
+                          "joinColumns":  [
+                                              {
+                                                  "sourceColumn":  "program_id",
+                                                  "targetColumn":  "id"
+                                              }
+                                          ]
+                      },
+                      {
+                          "relationName":  "credit_wallet_owner",
+                          "relationType":  "many-to-one",
+                          "targetEntity":  "profile",
+                          "joinColumns":  [
+                                              {
+                                                  "sourceColumn":  "owner_profile_id",
+                                                  "targetColumn":  "id"
+                                              }
+                                          ]
+                      }
+                  ]
+}

@@ -33,6 +33,7 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-cms-v7"
         ],
         "schemas": [],

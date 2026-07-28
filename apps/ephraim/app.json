@@ -65,9 +65,11 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-sample-app-1"
         ],
         "schemas": [
+
             "attr_projects",
             "eprahimprofilerequest",
             "profile"

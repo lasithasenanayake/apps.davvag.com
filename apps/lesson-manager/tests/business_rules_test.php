@@ -14,6 +14,9 @@ $question=obj(array("marks"=>2,"negative_marks"=>0.5,"correct_answer"=>array("A"
 check(LessonRules::scoreQuestion($question,array("C","A"),true)===2.0,"multiple answers are order independent");
 check(LessonRules::scoreQuestion($question,array("A"),true)===-0.5,"negative mark is applied");
 check(LessonRules::completionPercent(3,4)===75.0,"completion percentage is calculated");
+check(LessonRules::validCreditRequirement(true,0),"free lessons do not require credit points");
+check(LessonRules::validCreditRequirement(false,25),"non-free lessons accept a positive whole credit requirement");
+check(!LessonRules::validCreditRequirement(false,0)&&!LessonRules::validCreditRequirement(false,"1.5"),"non-free lessons reject missing or fractional credit requirements");
 $service=new ApiService();$reflection=new ReflectionClass($service);
 $sanitize=$reflection->getMethod("sanitizeRichText");$sanitize->setAccessible(true);
 $safe=$sanitize->invoke($service,'<p onclick="bad()"><strong>Safe</strong><script>alert(1)</script><a href="javascript:bad">bad</a></p>');

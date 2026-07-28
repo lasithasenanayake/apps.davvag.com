@@ -89,9 +89,11 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-tools"
         ],
         "schemas": [
+
             "d_album_carousel_dtl_v1",
             "d_album_carousel_v1",
             "d_cms_album_imagev1",

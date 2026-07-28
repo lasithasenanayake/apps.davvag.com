@@ -141,6 +141,7 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools"
         ],
         "schemas": [

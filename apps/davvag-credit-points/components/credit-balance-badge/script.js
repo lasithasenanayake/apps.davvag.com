@@ -1,0 +1,1 @@
+WEBDOCK.component().register(function(exports){var api;var data={balance:{symbol:'C',availableBalance:0},ready:false};exports.vue={data:data,onReady:function(){api=exports.getComponent('credit-api');api.services.Balance({}).then(function(r){if(r.success){data.balance=r.result;data.ready=true;}});}};exports.onReady=function(){};});

@@ -3,6 +3,7 @@ require_once (PLUGIN_PATH . "/auth/auth.php");
 require_once (PLUGIN_PATH . "/phpcache/cache.php");
 require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
+require_once (TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 class LoginService {
     
     function __construct(){
@@ -147,7 +148,8 @@ class LoginService {
             }
         }
 
-        $data->currencycode=defined("CURRENCY_CODE")?CURRENCY_CODE:"LKR";
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        $data->currencycode=$currency->defaultCurrency()->code;
         $result=SOSSData::Insert ("payment_ext_request", $data);
         if($result->success){
             $data->id=$result->result->generatedId;

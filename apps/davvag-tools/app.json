@@ -50,6 +50,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "user_object",
             "user_view_objects",
             "usergroups",

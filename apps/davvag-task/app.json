@@ -69,6 +69,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "davvag_task_header_active",
             "davvag_task_project_types",
             "davvag_task_projects",

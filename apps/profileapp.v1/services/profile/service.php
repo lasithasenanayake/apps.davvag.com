@@ -4,6 +4,7 @@ require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once (TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 class ProfileService{
     //public var $appname="profileapp";
     private function sortConfigItems($items){
@@ -42,25 +43,8 @@ class ProfileService{
     }
 
     private function getCurrencyCode(){
-        $result = SOSSData::Query("currency_configuration", "");
-        if(isset($result->success) && $result->success && isset($result->result)){
-            foreach($result->result as $item){
-                $active = !isset($item->status) || strtolower($item->status) === "active";
-                if($active && isset($item->isBase) && strtoupper($item->isBase) === "Y" && isset($item->code)){
-                    return $item->code;
-                }
-            }
-            foreach($result->result as $item){
-                $active = !isset($item->status) || strtolower($item->status) === "active";
-                if($active && isset($item->code)){
-                    return $item->code;
-                }
-            }
-        }
-        if(defined("CURRENCY_CODE")){
-            return CURRENCY_CODE;
-        }
-        return null;
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return $currency->defaultCurrency()->code;
     }
 
     private function seedInvoiceTaxes(){
@@ -399,17 +383,8 @@ class ProfileService{
     }
 
     public function getCurrencyConfig($req,$res){
-        $code = $this->getCurrencyCode();
-        if($code === null){
-            return null;
-        }
-        $result = SOSSData::Query("currency_configuration", urlencode("code:".$code));
-        if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
-            return $result->result[0];
-        }
-        $item = new stdClass();
-        $item->code = $code;
-        return $item;
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return $currency->defaultCurrency();
     }
 
     private function transactionListConfig($type){

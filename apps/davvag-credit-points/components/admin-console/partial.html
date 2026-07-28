@@ -1,0 +1,170 @@
+﻿<section class="cp-page">
+<div class="cp-shell">
+<header class="cp-top">
+<div class="cp-brand">
+<div class="cp-logo">C</div>
+<div>
+<h2>Credit administration</h2>
+<p>Programs, issuance, rewards, coupons, and reconciliation</p>
+</div>
+</div>
+<nav class="cp-nav">
+<button v-on:click="go('')">Wallet</button>
+<button class="active">Administration</button>
+</nav>
+</header>
+<div class="cp-alert error" v-for="e in errors">{{e}}</div>
+<div class="cp-alert info" v-for="m in info">{{m}}</div>
+<div class="cp-tabs">
+<button v-for="x in ['wallets','grant','packages','rewards','coupons']" v-bind:class="{active:tab===x}" v-on:click="tab=x">{{x}}</button>
+</div>
+<div class="cp-card" v-if="tab==='wallets'">
+<div class="cp-head">
+<h3>User wallets</h3>
+</div>
+<div class="cp-table-wrap">
+<table class="cp-table">
+<thead>
+<tr>
+<th>ID</th>
+<th>Profile</th>
+<th>Posted</th>
+<th>Reserved</th>
+<th>Available</th>
+<th>Status</th>
+<th>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr v-for="w in wallets">
+<td>{{w.id}}</td>
+<td>{{w.owner_profile_id}}</td>
+<td>{{w.posted_balance}}</td>
+<td>{{w.reserved_balance}}</td>
+<td>{{w.available_balance}}</td>
+<td>{{w.status}}</td>
+<td>
+<button class="cp-btn cp-light" v-on:click="reconcile(w)">Reconcile</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cp-card" v-if="tab==='grant'">
+<div class="cp-head">
+<h3>Audited credit grant</h3>
+</div>
+<form class="cp-body cp-form" v-on:submit.prevent="grantCredits">
+<div class="cp-row">
+<label>Profile ID<input v-model="grant.profile_id" type="number" min="1" required>
+</label>
+<label>Whole credits<input v-model="grant.amount" type="number" min="1" required>
+</label>
+</div>
+<label>Reason<input v-model="grant.description" required>
+</label>
+<label>Optional expiry<input v-model="grant.expires_at" type="datetime-local">
+</label>
+<button class="cp-btn cp-primary" v-bind:disabled="busy">Grant credits</button>
+</form>
+</div>
+<div class="cp-card" v-if="tab==='packages'">
+<div class="cp-head">
+<h3>Create package</h3>
+</div>
+<form class="cp-body cp-form" v-on:submit.prevent="savePackage">
+<div class="cp-row">
+<label>Code<input v-model="pack.package_code" required>
+</label>
+<label>Title<input v-model="pack.title" required>
+</label>
+</div>
+<div class="cp-row">
+<label>Credits<input type="number" min="1" v-model="pack.credit_amount" required>
+</label>
+<label>Bonus<input type="number" min="0" v-model="pack.bonus_credit_amount">
+</label>
+</div>
+<div class="cp-row">
+<label>Price in minor units<input type="number" min="0" v-model="pack.price_minor" required>
+</label>
+<label>Currency<select v-model="pack.currency" required><option value="" disabled>Select configured currency</option><option v-for="currency in currencies" v-bind:value="currency.code">{{currency.code}} - {{currency.name}} ({{currency.symbol}})</option></select>
+</label>
+</div>
+<label>Description<textarea v-model="pack.description">
+</textarea>
+</label>
+<button class="cp-btn cp-primary" v-bind:disabled="busy">Save package</button>
+</form>
+</div>
+<div class="cp-card" v-if="tab==='rewards'">
+<div class="cp-head">
+<h3>Create reward rule</h3>
+</div>
+<form class="cp-body cp-form" v-on:submit.prevent="saveReward">
+<div class="cp-row">
+<label>Rule code<input v-model="reward.rule_code" required>
+</label>
+<label>Title<input v-model="reward.title" required>
+</label>
+</div>
+<div class="cp-row">
+<label>Cadence<select v-model="reward.cadence">
+<option>DAILY</option>
+<option>WEEKLY</option>
+<option>MONTHLY</option>
+</select>
+</label>
+<label>Credits<input type="number" min="1" v-model="reward.credit_amount" required>
+</label>
+</div>
+<label>Promotional expiry days (0 = none)<input type="number" min="0" v-model="reward.expiry_days">
+</label>
+<button class="cp-btn cp-primary" v-bind:disabled="busy">Save reward</button>
+</form>
+</div>
+<div class="cp-card" v-if="tab==='coupons'">
+<div class="cp-head">
+<h3>Coupon campaign</h3>
+</div>
+<form class="cp-body cp-form" v-on:submit.prevent="saveCampaign">
+<div class="cp-row">
+<label>Campaign code<input v-model="campaign.campaign_code" required>
+</label>
+<label>Name<input v-model="campaign.name" required>
+</label>
+</div>
+<div class="cp-row">
+<label>Credits<input type="number" min="1" v-model="campaign.credit_amount" required>
+</label>
+<label>Per-profile limit<input type="number" min="1" v-model="campaign.per_profile_limit">
+</label>
+</div>
+<button class="cp-btn cp-primary" v-bind:disabled="busy">Save campaign</button>
+</form>
+<div class="cp-head">
+<h3>Generate secure codes</h3>
+</div>
+<form class="cp-body cp-form" v-on:submit.prevent="generate">
+<label>Campaign<select v-model="generator.campaign_id" required>
+<option v-for="c in campaigns" v-bind:value="c.id">{{c.campaign_code}} - {{c.name}}</option>
+</select>
+</label>
+<div class="cp-row">
+<label>Number of codes<input type="number" min="1" max="500" v-model="generator.count">
+</label>
+<label>Uses per code<input type="number" min="1" v-model="generator.maximum_redemptions">
+</label>
+</div>
+<button class="cp-btn cp-primary" v-bind:disabled="busy">Generate codes once</button>
+</form>
+<div class="cp-body" v-if="codes.length">
+<div class="cp-code" v-for="c in codes">{{c}}</div>
+</div>
+</div>
+</div>
+</section>
+
+

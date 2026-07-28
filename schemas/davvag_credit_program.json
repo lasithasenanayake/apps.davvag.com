@@ -1,0 +1,108 @@
+{
+    "fields":  [
+                   {
+                       "fieldName":  "id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "isPrimary":  true,
+                                           "autoIncrement":  true
+                                       }
+                   },
+                   {
+                       "fieldName":  "code",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  40
+                                       }
+                   },
+                   {
+                       "fieldName":  "name",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  160,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "description",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  2000,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "symbol",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  12
+                                       }
+                   },
+                   {
+                       "fieldName":  "precision",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "timezone",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  80
+                                       }
+                   },
+                   {
+                       "fieldName":  "allow_negative_balance",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "spending_policy",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  80
+                                       }
+                   },
+                   {
+                       "fieldName":  "purchase_available",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "reward_available",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "coupon_available",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "purchased_credits_expire",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "default_reward_expiry_days",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "status",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  20,
+                                           "default":  "ACTIVE"
+                                       }
+                   }
+               ]
+}

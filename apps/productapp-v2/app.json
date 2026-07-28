@@ -165,9 +165,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools"
         ],
         "schemas": [
+            "currency_configuration",
             "d_all_summery",
             "d_cms_artical_v1",
             "grndetails",

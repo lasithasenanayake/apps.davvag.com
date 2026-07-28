@@ -12,7 +12,7 @@
     "description": {
         "title": "Currency Configuration",
         "author": "Davvag",
-        "version": "0.1",
+        "version": "0.4",
         "icon": "currency-configuration-icon.png"
     },
     "tags": [
@@ -33,7 +33,7 @@
     },
     "dependencies": {
         "apps": [],
-        "schemas": [],
+        "schemas": ["currency_configuration"],
         "workflows": [],
         "plugins": [
             "phpcache",

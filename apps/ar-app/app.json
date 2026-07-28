@@ -59,6 +59,7 @@
     ],
     "dependencies": {
         "apps": [
+
             "i18n"
         ],
         "schemas": [],

@@ -33,6 +33,7 @@
     },
     "dependencies": {
         "apps": [
+
             "ai-agent-creator"
         ],
         "schemas": [],

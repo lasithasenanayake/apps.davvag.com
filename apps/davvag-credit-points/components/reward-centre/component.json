@@ -1,0 +1,1 @@
+{"name":"reward-centre","description":"Claim configured credit rewards","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

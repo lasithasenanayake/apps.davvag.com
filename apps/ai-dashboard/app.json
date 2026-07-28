@@ -33,9 +33,11 @@
     },
     "dependencies": {
         "apps": [
+
             "ai-agent-creator"
         ],
         "schemas": [
+
             "ai_agent_billing_usage",
             "ai_agent_error_log",
             "ai_agent_billing_usage_daily_report",

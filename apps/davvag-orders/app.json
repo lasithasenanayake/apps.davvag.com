@@ -71,6 +71,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "attr_bi",
             "order_bid_approval_pending",
             "orderdetails_accepted",

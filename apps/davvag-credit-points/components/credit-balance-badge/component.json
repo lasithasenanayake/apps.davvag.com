@@ -1,0 +1,1 @@
+{"name":"credit-balance-badge","description":"Reusable signed-in credit balance badge","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

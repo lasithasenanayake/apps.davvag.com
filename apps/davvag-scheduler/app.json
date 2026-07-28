@@ -53,6 +53,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "schedule_pending"
         ],
         "workflows": [],

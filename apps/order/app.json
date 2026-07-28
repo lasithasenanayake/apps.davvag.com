@@ -41,6 +41,7 @@
     },
     "dependencies": {
         "apps": [
+
             "inventory",
             "riders"
         ],

@@ -99,8 +99,9 @@
         ]
     },
     "dependencies": {
-        "apps": [],
+        "apps": ["currency-configuration"],
         "schemas": [
+            "currency_configuration",
             "lbc_rpt_all_invoice_reciept",
             "lbc_rpt_all_invoice_reciept_all_status",
             "lbc_rpt_outstanding",

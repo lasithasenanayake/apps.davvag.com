@@ -42,9 +42,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "i18n"
         ],
         "schemas": [
+            "currency_configuration",
             "profile"
         ],
         "workflows": [],

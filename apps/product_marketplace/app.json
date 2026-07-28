@@ -41,9 +41,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "uom"
         ],
         "schemas": [
+            "currency_configuration",
             "d_all_summery",
             "d_cms_artical_v1",
             "products",

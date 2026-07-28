@@ -43,9 +43,11 @@
     },
     "dependencies": {
         "apps": [
+
             "stelup_shop"
         ],
         "schemas": [
+
             "attr_lasitha_form",
             "profile"
         ],

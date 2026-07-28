@@ -51,11 +51,13 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-sample-app-1",
             "davvag-tools",
             "stelup_shop"
         ],
         "schemas": [
+
             "attr_lasitha_form",
             "profile"
         ],

@@ -87,6 +87,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "davvag_launchers",
             "davvag_launchers_perm",
             "domain_permision",

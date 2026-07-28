@@ -2,8 +2,13 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once(PLUGIN_PATH_LOCAL . "/stripe/init.php");
+require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 
 class Stripe_IPG {
+    private function currencyCode($code){
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return strtolower($currency->resolveCurrencyCode($code));
+    }
 
     function __construct(){
         
@@ -39,7 +44,7 @@ class Stripe_IPG {
             $cardDetailsAry = array(
                 'customer' => $customerResult->id,
                 'amount' => $cardDetails['amount']*100 ,
-                'currency' => $cardDetails['currency_code'],
+                'currency' => $this->currencyCode(isset($cardDetails['currency_code']) ? $cardDetails['currency_code'] : null),
                 'description' => $cardDetails['item_name'],
                 'metadata' => array(
                     'order_id' => $cardDetails['item_number']

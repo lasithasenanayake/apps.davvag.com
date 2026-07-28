@@ -2,8 +2,13 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once(PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 
 class PayPal_IPG {
+    private function currencyCode($code){
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return $currency->resolveCurrencyCode($code);
+    }
 
     public function getOrder($req, $res){
         $handler = new Davvag_Order();
@@ -25,7 +30,7 @@ class PayPal_IPG {
         $payload->email = isset($order->email) ? $order->email : "";
         $payload->name = isset($order->name) ? $order->name : "";
         $payload->balance = (float)$order->balance;
-        $payload->currencycode = isset($order->currencycode) ? $order->currencycode : (isset($settings->currencycode) ? $settings->currencycode : "USD");
+        $payload->currencycode = $this->currencyCode(isset($order->currencycode) ? $order->currencycode : (isset($settings->currencycode) ? $settings->currencycode : null));
         $payload->clientId = $settings->clientId;
         $payload->mode = isset($settings->mode) ? $settings->mode : "sandbox";
         $payload->brandName = isset($settings->brandName) ? $settings->brandName : "Davvag Store";
@@ -46,7 +51,7 @@ class PayPal_IPG {
         $payload = new stdClass();
         $payload->clientId = $settings->clientId;
         $payload->mode = isset($settings->mode) ? $settings->mode : "sandbox";
-        $payload->currencycode = isset($settings->currencycode) ? $settings->currencycode : "USD";
+        $payload->currencycode = $this->currencyCode(isset($settings->currencycode) ? $settings->currencycode : null);
         $payload->brandName = isset($settings->brandName) ? $settings->brandName : "Davvag Store";
         return $payload;
     }
@@ -75,7 +80,7 @@ class PayPal_IPG {
                     "invoice_id" => (string)$order->invoiceNo,
                     "description" => "Order No: " . $order->invoiceNo,
                     "amount" => array(
-                        "currency_code" => isset($order->currencycode) ? $order->currencycode : (isset($settings->currencycode) ? $settings->currencycode : "USD"),
+                        "currency_code" => $this->currencyCode(isset($order->currencycode) ? $order->currencycode : (isset($settings->currencycode) ? $settings->currencycode : null)),
                         "value" => number_format((float)$order->balance, 2, ".", "")
                     )
                 )

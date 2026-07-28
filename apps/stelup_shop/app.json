@@ -155,9 +155,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools"
         ],
         "schemas": [
+            "currency_configuration",
             "attr_stelup_dispatch",
             "d_cms_artical_v1",
             "ledger",

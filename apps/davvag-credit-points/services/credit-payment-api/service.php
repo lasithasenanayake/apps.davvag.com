@@ -1,0 +1,10 @@
+<?php
+namespace davvag_credit_points;
+require_once dirname(__DIR__,2)."/lib/CreditServiceSupport.php";
+require_once dirname(__DIR__,2)."/lib/CreditPaymentService.php";
+class CreditPaymentApiService {
+    private function call($res,$fn){try{return$fn();}catch(\Throwable$e){return CreditServiceSupport::fail($res,$e);}}
+    public function postComplete($req,$res){return$this->call($res,function()use($req){$b=CreditServiceSupport::body($req);$secret=trim(strval(getenv("DAVVAG_CREDIT_PAYMENT_WEBHOOK_SECRET")));if(strlen($secret)<32)throw new CreditException("Payment callback verification is not configured.");$provider=CreditRules::code(CreditServiceSupport::value($b,"provider",""),30);$event=CreditRules::text(CreditServiceSupport::value($b,"event_id",""),"event_id",190);$order=CreditRules::text(CreditServiceSupport::value($b,"order_reference",""),"order_reference",190);$reference=CreditRules::text(CreditServiceSupport::value($b,"provider_reference",""),"provider_reference",190);$timestamp=intval(CreditServiceSupport::value($b,"event_timestamp",0));if(abs(time()-$timestamp)>300)throw new CreditException("Payment callback timestamp is outside the accepted window.");$signed=$provider."|".$event."|".$order."|".$reference."|".$timestamp;$expected=hash_hmac("sha256",$signed,$secret);$provided=strtolower(trim(strval(CreditServiceSupport::value($b,"signature",""))));if(!preg_match('/^[a-f0-9]{64}$/',$provided)||!hash_equals($expected,$provided))throw new CreditException("Payment callback signature is invalid.");return(new CreditPaymentService())->completeVerified($provider,$event,$order,$reference,hash("sha256",json_encode($b)));});}
+    public function postStatus($req,$res){return$this->call($res,function()use($req){$p=CreditServiceSupport::profile();$b=CreditServiceSupport::body($req);$order=(new CreditPaymentService())->orderForProfile(CreditServiceSupport::value($b,"order_id",0),$p->id);if(!$order)throw new CreditException("Purchase order was not found.");return$order;});}
+}
+?>

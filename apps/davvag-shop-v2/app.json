@@ -69,10 +69,12 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools",
             "uom"
         ],
         "schemas": [
+            "currency_configuration",
             "attr_",
             "attr_bi",
             "d_cms_artical_v1",

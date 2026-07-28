@@ -2,7 +2,7 @@
     "name": "currency-configuration-handler",
     "description": "Currency configuration service",
     "author": "Davvag",
-    "version": "0.1",
+    "version": "0.4",
     "resources": {
         "files": [
             {

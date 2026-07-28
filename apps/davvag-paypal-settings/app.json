@@ -32,8 +32,9 @@
         }
     },
     "dependencies": {
-        "apps": [],
+        "apps": ["currency-configuration"],
         "schemas": [
+            "currency_configuration",
             "davvag_paypal",
             "davvag_ipgs"
         ],

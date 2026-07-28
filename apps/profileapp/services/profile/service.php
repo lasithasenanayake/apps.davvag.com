@@ -4,7 +4,12 @@ require_once(PLUGIN_PATH . "/phpcache/cache.php");
 require_once(PLUGIN_PATH . "/auth/auth.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once (PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once (TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 class ProfileService{
+    private function getCurrencyCode(){
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return $currency->defaultCurrency()->code;
+    }
     //public var $appname="profileapp";
     private function updateLedger($ledgertran){
         $Transaction=$ledgertran;
@@ -16,9 +21,7 @@ class ProfileService{
         if(count($result->result)!=0){
             $status= $result->result[0];
             $status->outstanding+=$Transaction->amount;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
-            }
+            $status->currencycode=$this->getCurrencyCode();
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
@@ -42,9 +45,7 @@ class ProfileService{
             $status->totalPaidAmount=0;
             $status->totalGRNAmount=0;
             $status->totalPaymentAmount=0;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
-            }
+            $status->currencycode=$this->getCurrencyCode();
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
@@ -74,9 +75,7 @@ class ProfileService{
         if(count($result->result)!=0){
             $status= $result->result[0];
             $status->outstanding+=$Transaction->amount;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
-            }
+            $status->currencycode=$this->getCurrencyCode();
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
@@ -100,9 +99,7 @@ class ProfileService{
             $status->totalPaidAmount=0;
             $status->totalGRNAmount=0;
             $status->totalPaymentAmount=0;
-            if(defined("CURRENCY_CODE")){
-                $status->currencycode=CURRENCY_CODE;
-            }
+            $status->currencycode=$this->getCurrencyCode();
             switch(strtolower($ledgertran->trantype)){
                 case "invoice":
                     $status->totalInvoicedAmount+=$Transaction->amount;
@@ -190,9 +187,7 @@ class ProfileService{
             $Transaction->preparedBy=$user->email;
             $Transaction->PaymentComplete="N";
             $Transaction->balance=$Transaction->total;
-            if(defined("CURRENCY_CODE")){
-                $Transaction->currencycode=CURRENCY_CODE;
-            }
+            $Transaction->currencycode=$this->getCurrencyCode();
             try {
                 $handler =new Davvag_Order();
                 return $handler->DipostSave($Transaction);
@@ -256,9 +251,7 @@ class ProfileService{
             $Transaction->preparedBy=$user->email;
             $Transaction->PaymentComplete="N";
             $Transaction->balance=$Transaction->total;
-            if(defined("CURRENCY_CODE")){
-                $Transaction->currencycode=CURRENCY_CODE;
-            }
+            $Transaction->currencycode=$this->getCurrencyCode();
             $result = SOSSData::Insert ("orderheader", $Transaction,$tenantId = null);
             CacheData::clearObjects("orderheader");
             if($result->success){
@@ -270,9 +263,7 @@ class ProfileService{
                 $ledgertran->tranDate=$Transaction->invoiceDate;
                 $ledgertran->description='Invoice No Has been generated';
                 $ledgertran->amount=$Transaction->total;
-                if(defined("CURRENCY_CODE")){
-                    $ledgertran->currencycode=CURRENCY_CODE;
-                }
+                $ledgertran->currencycode=$this->getCurrencyCode();
                 $this->updateLedger($ledgertran);   
                 
                 //return $Transaction;

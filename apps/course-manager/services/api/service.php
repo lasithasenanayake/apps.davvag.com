@@ -12,6 +12,9 @@ if (defined("PLUGIN_PATH")) {
         require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
     }
 }
+if (defined("TENANT_RESOURCE_LOCATION")) {
+    require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
+}
 
 class CourseManagerRules {
     public static function timeRangesOverlap($leftStart, $leftEnd, $rightStart, $rightEnd) {
@@ -224,6 +227,15 @@ class ApiService {
         $subject->product_title = isset($subject->product_title) ? trim($subject->product_title) : "";
         $subject->product_price = isset($subject->product_price) && $subject->product_price !== "" ? floatval($subject->product_price) : 0;
         $subject->product_currency_code = isset($subject->product_currency_code) ? trim($subject->product_currency_code) : "";
+        if ($subject->product_id > 0 || $subject->product_price > 0) {
+            try {
+                $currency = new \currency_configuration\CurrencyConfigurationService();
+                $subject->product_currency_code = $currency->resolveCurrencyCode($subject->product_currency_code);
+            } catch (\Exception $error) {
+                $res->SetError($error->getMessage());
+                return null;
+            }
+        }
         return $this->persistObject($this->subjectNamespace, "id", $subject, $res);
     }
 

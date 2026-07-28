@@ -141,9 +141,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools"
         ],
         "schemas": [
+            "currency_configuration",
             "davvag_launchers_query",
             "davvag_launchers_subquery",
             "profile",

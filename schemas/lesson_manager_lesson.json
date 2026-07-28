@@ -6,6 +6,8 @@
  {"fieldName":"lesson_order","dataType":"int"},{"fieldName":"passing_mark","dataType":"decimal","annotations":{"decimalPoints":"5,2"}},
  {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"draft"}},
  {"fieldName":"available_at","dataType":"java.util.Date"},{"fieldName":"progression_enabled","dataType":"boolean"},
+ {"fieldName":"is_free","dataType":"boolean","annotations":{"default":"true"}},
+ {"fieldName":"required_credit_points","dataType":"int","annotations":{"default":"0"}},
  {"fieldName":"require_reading","dataType":"boolean"},{"fieldName":"require_video","dataType":"boolean"},
  {"fieldName":"require_quiz","dataType":"boolean"},{"fieldName":"require_assignment","dataType":"boolean"},
  {"fieldName":"require_teacher_approval","dataType":"boolean"},{"fieldName":"created_by","dataType":"int"},

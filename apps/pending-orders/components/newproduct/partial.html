@@ -67,10 +67,9 @@
                     <div class="form-group">
                         <label  class="col-sm-3 control-label">Currency </label>
                         <div class="col-sm-6">
-                        <select class="form-control" id="textProductCategory" v-model="product.currencycode">
-                          <option>Rs.</option>
-                          <option>USD</option>
-                          <option>CHF</option>
+<select class="form-control" id="textProductCategory" v-model="product.currencycode">
+                          <option value="">Select configured currency</option>
+                          <option v-for="currency in currencies" v-bind:value="currency.code">{{ currency.code }} — {{ currency.name }}</option>
                         </select>
                         </div>
                       </div>

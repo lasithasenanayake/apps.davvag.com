@@ -8,7 +8,7 @@ class CurrencyConfigurationService {
     private $store = "currency_configuration";
 
     private function seed(){
-        $result = \SOSSData::Query($this->store, "");
+        $result = \SOSSData::Query($this->store, "", null, "asc", 1000, 0, null, false);
         if(isset($result->success) && $result->success && isset($result->result) && count($result->result) > 0){
             return;
         }
@@ -63,34 +63,96 @@ class CurrencyConfigurationService {
         return $items;
     }
 
-    public function getList($req, $res){
+    /**
+     * Shared application contract. Monetary applications should call these
+     * methods instead of defining their own USD/LKR defaults or code lists.
+     */
+    public function listCurrencies(){
         $this->seed();
-        $result = \SOSSData::Query($this->store, "");
-        if(!$result->success){
-            $res->SetError("Unable to load currencies.");
-            return null;
+        $result = \SOSSData::Query($this->store, "", null, "asc", 1000, 0, null, false);
+        if(!isset($result->success) || !$result->success){
+            throw new \RuntimeException("Unable to load currencies from Currency Configuration.");
         }
-        return $this->sortItems($result->result);
+        return $this->sortItems(isset($result->result) ? $result->result : array());
     }
 
-    public function getActive($req, $res){
-        $items = $this->getList($req, $res);
-        if(!is_array($items)){
-            return array();
-        }
-        return array_values(array_filter($items, function($item){
+    public function activeCurrencies(){
+        return array_values(array_filter($this->listCurrencies(), function($item){
             return !isset($item->status) || strtolower($item->status) === "active";
         }));
     }
 
-    public function getDefault($req, $res){
-        $items = $this->getActive($req, $res);
+    public function defaultCurrency(){
+        $items = $this->activeCurrencies();
         foreach($items as $item){
             if(isset($item->isBase) && strtoupper($item->isBase) === "Y"){
                 return $item;
             }
         }
-        return count($items) > 0 ? $items[0] : null;
+        if(count($items) === 0){
+            throw new \RuntimeException("No active currency is configured.");
+        }
+        return $items[0];
+    }
+
+    public function requireActiveCurrency($code){
+        $code = strtoupper(trim(strval($code)));
+        if(!preg_match("/^[A-Z]{3}$/", $code)){
+            throw new \InvalidArgumentException("Select a valid configured currency.");
+        }
+        foreach($this->activeCurrencies() as $item){
+            if(isset($item->code) && strtoupper($item->code) === $code){
+                return $item;
+            }
+        }
+        throw new \InvalidArgumentException("The selected currency is not active in Currency Configuration.");
+    }
+
+    public function resolveCurrencyCode($code = null){
+        if($code === null || trim(strval($code)) === ""){
+            return $this->defaultCurrency()->code;
+        }
+        return $this->requireActiveCurrency($code)->code;
+    }
+
+    public function formatAmount($amount, $code = null){
+        $currency = ($code === null || trim(strval($code)) === "")
+            ? $this->defaultCurrency()
+            : $this->requireActiveCurrency($code);
+        $places = isset($currency->decimalPlaces) ? intval($currency->decimalPlaces) : 2;
+        $prefix = isset($currency->symbol) && trim($currency->symbol) !== "" ? $currency->symbol : $currency->code;
+        return $prefix . " " . number_format(floatval($amount), $places, ".", ",");
+    }
+
+    public function getList($req, $res){
+        try{
+            return $this->listCurrencies();
+        }catch(\Exception $error){
+            $res->SetError("Unable to load currencies.");
+            return null;
+        }
+    }
+
+    public function getActive($req, $res){
+        try{
+            return $this->activeCurrencies();
+        }catch(\Exception $error){
+            if($res){
+                $res->SetError($error->getMessage());
+            }
+            return array();
+        }
+    }
+
+    public function getDefault($req, $res){
+        try{
+            return $this->defaultCurrency();
+        }catch(\Exception $error){
+            if($res){
+                $res->SetError($error->getMessage());
+            }
+            return null;
+        }
     }
 
     public function postSave($req, $res){

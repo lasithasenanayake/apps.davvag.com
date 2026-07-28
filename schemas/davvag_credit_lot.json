@@ -1,0 +1,99 @@
+{
+    "fields":  [
+                   {
+                       "fieldName":  "id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "isPrimary":  true,
+                                           "autoIncrement":  true
+                                       }
+                   },
+                   {
+                       "fieldName":  "wallet_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "program_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "origin_transaction_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "source_type",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  30
+                                       }
+                   },
+                   {
+                       "fieldName":  "original_amount",
+                       "dataType":  "long",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "remaining_amount",
+                       "dataType":  "long",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "expires_at",
+                       "dataType":  "java.util.Date",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "refundable",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "status",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  20,
+                                           "default":  "ACTIVE"
+                                       }
+                   }
+               ],
+    "relations":  [
+                      {
+                          "relationName":  "credit_lot_wallet",
+                          "relationType":  "many-to-one",
+                          "targetEntity":  "davvag_credit_wallet",
+                          "joinColumns":  [
+                                              {
+                                                  "sourceColumn":  "wallet_id",
+                                                  "targetColumn":  "id"
+                                              }
+                                          ]
+                      },
+                      {
+                          "relationName":  "credit_lot_origin",
+                          "relationType":  "many-to-one",
+                          "targetEntity":  "davvag_credit_transaction",
+                          "joinColumns":  [
+                                              {
+                                                  "sourceColumn":  "origin_transaction_id",
+                                                  "targetColumn":  "id"
+                                              }
+                                          ]
+                      }
+                  ]
+}

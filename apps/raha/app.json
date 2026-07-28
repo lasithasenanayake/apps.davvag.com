@@ -178,9 +178,11 @@
     },
     "dependencies": {
         "apps": [
+
             "profileapp"
         ],
         "schemas": [
+
             "nearproducts",
             "orderdetails_accepted",
             "orderdetails_pending",

@@ -69,9 +69,11 @@
     },
     "dependencies": {
         "apps": [
+
             "ai-agent-creator"
         ],
         "schemas": [
+
             "chat_agent_session",
             "chat_agent_message",
             "profile",

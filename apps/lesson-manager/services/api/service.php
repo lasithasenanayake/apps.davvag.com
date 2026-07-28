@@ -7,6 +7,7 @@ if (defined("PLUGIN_PATH")) {
     if (defined("PLUGIN_PATH_LOCAL") && file_exists(PLUGIN_PATH_LOCAL . "/profile/profile.php")) require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
     if (file_exists(PLUGIN_PATH . "/davvag-flow/flow.php")) require_once(PLUGIN_PATH . "/davvag-flow/flow.php");
 }
+if (defined("TENANT_RESOURCE_LOCATION") && file_exists(TENANT_RESOURCE_LOCATION . "/apps/davvag-credit-points/lib/CreditLedgerService.php")) require_once(TENANT_RESOURCE_LOCATION . "/apps/davvag-credit-points/lib/CreditLedgerService.php");
 
 class LessonRules {
     public static function truthy($value) {
@@ -50,6 +51,12 @@ class LessonRules {
 
     public static function completionPercent($completed, $total) {
         return $total > 0 ? round(($completed / $total) * 100, 1) : 0;
+    }
+
+    public static function validCreditRequirement($isFree, $points) {
+        if (self::truthy($isFree)) return true;
+        $value = trim(strval($points));
+        return preg_match('/^\d+$/', $value) === 1 && intval($value) >= 1 && intval($value) <= 1000000000;
     }
 }
 
@@ -116,6 +123,11 @@ class ApiService {
         if (!isset($item->lesson_order) || intval($item->lesson_order) < 1) $item->lesson_order = count($this->rows($this->lessonNs, "subject_id:" . intval($item->subject_id), "asc")) + 1;
         if (empty($item->status)) $item->status = "draft";
         if (!isset($item->passing_mark)) $item->passing_mark = 70;
+        $isFree = !isset($item->is_free) || LessonRules::truthy($item->is_free);
+        $creditPoints = isset($item->required_credit_points) ? $item->required_credit_points : 0;
+        if (!LessonRules::validCreditRequirement($isFree, $creditPoints)) return $this->error($res, "A non-free lesson requires a whole credit-point value of at least 1.");
+        $item->is_free = $isFree ? "true" : "false";
+        $item->required_credit_points = $isFree ? 0 : intval($creditPoints);
         $item->updated_at = date("Y-m-d H:i:s");
         if (empty($item->id)) { $profile = $this->currentProfile(); $item->created_by = $profile->id; $item->created_at = $item->updated_at; }
         elseif ($existing) { $item->created_by = isset($existing->created_by)?$existing->created_by:0; $item->created_at = isset($existing->created_at)?$existing->created_at:$item->updated_at; }
@@ -349,9 +361,9 @@ class ApiService {
             if (empty($lesson->subject_id)) continue;
             if ($activeSubjectId === null || strval($activeSubjectId) !== strval($lesson->subject_id)) { $activeSubjectId = $lesson->subject_id; $previousMet = true; }
             $p = isset($progressMap[strval($lesson->id)]) ? $progressMap[strval($lesson->id)] : null;
-            $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time(); $unlocked = $this->isTeacher() || ($previousMet && $available);
-            $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$previousMet) $reason = "Complete the previous lesson requirements.";
-            $entry = clone $lesson; $entry->subject = isset($subjects[strval($lesson->subject_id)]) ? $subjects[strval($lesson->subject_id)] : null; $entry->progress = $p; $entry->unlocked = $unlocked; $entry->lock_reason = $reason;
+            $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time();$progressionUnlocked=$previousMet&&$available;$paidUnlocked=$this->hasPaidLessonAccess($lesson,$student->id); $unlocked = $this->isTeacher() || ($progressionUnlocked && $paidUnlocked);
+            $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$previousMet) $reason = "Complete the previous lesson requirements.";elseif(!$paidUnlocked)$reason="Unlock for ".intval($lesson->required_credit_points)." credits.";
+            $entry = clone $lesson; $entry->subject = isset($subjects[strval($lesson->subject_id)]) ? $subjects[strval($lesson->subject_id)] : null; $entry->progress = $p; $entry->unlocked = $unlocked; $entry->progression_unlocked=$progressionUnlocked;$entry->credit_locked=!$this->isTeacher()&&$progressionUnlocked&&!$paidUnlocked;$entry->lock_reason = $reason;
             $entry->content = $unlocked ? $this->safeContentRows($this->publishedRows($this->contentNs, "lesson_id:" . intval($lesson->id))) : array();
             $entry->videos = $unlocked ? $this->safeVideoRows($this->publishedRows($this->videoNs, "lesson_id:" . intval($lesson->id))) : array();
             $entry->quizzes = $unlocked ? $this->studentQuizRows($lesson->id,$student->id) : array();
@@ -361,7 +373,13 @@ class ApiService {
         return array("course" => $course, "student" => $student, "lessons" => $out);
     }
 
-    public function postStartLesson($req, $res) { $body = $this->body($req); return $this->touchProgress($body, "viewed", $res); }
+    public function postStartLesson($req, $res) {
+        $body=$this->body($req);$lesson=!empty($body->lesson_id)?$this->byId($this->lessonNs,$body->lesson_id):null;$student=$this->requestedStudent($body);
+        if(!$lesson||!$this->validProfile($student))return$this->error($res,"A valid lesson and learner profile are required.");
+        if(!$this->canAccessCourse($lesson->course_id,$student->id)||!$this->progressionUnlockedFor($lesson,$student->id))return$this->error($res,"Complete the previous lesson requirements before opening this lesson.");
+        if(!$this->isTeacher()&&!$this->hasPaidLessonAccess($lesson,$student->id)){try{$this->creditLedger()->unlockLesson($student->id,$lesson->id,intval($lesson->required_credit_points),array("description"=>"Unlock lesson: ".strval($lesson->title)));}catch(\Throwable$e){return$this->error($res,$e->getMessage());}}
+        return $this->touchProgress($body,"viewed",$res);
+    }
     public function postCompleteActivity($req, $res) {
         $body = $this->body($req); if (empty($body->lesson_id) || empty($body->activity)) return $this->error($res, "lesson_id and activity are required.");
         $allowed = array("reading"=>"reading_completed", "video"=>"video_completed"); if (!isset($allowed[$body->activity])) return $this->error($res, "Unsupported activity.");
@@ -468,7 +486,7 @@ class ApiService {
         if (!$this->requireTeacher($res)) return null; $courses = array();foreach($this->rows($this->courseNs,"","asc") as $candidate)if($this->canManageCourse($candidate->id))$courses[]=$candidate; if (count($courses) === 0) return $this->error($res, "Create a course in Course Manager first."); $course = $courses[0];
         $subjects = array();foreach($this->rows($this->subjectNs,"course_id:".intval($course->id),"asc") as $candidate)if($this->canManageSubject($candidate))$subjects[]=$candidate; if (count($subjects) === 0) return $this->error($res, "Create a subject under the course in Course Manager first."); $subject = $subjects[0];
         if ($this->findOne($this->lessonNs, "subject_id:" . intval($subject->id) . ",title:Welcome to the subject")) return $this->postDashboard($req, $res);
-        $lesson = new \stdClass(); $lesson->course_id = $course->id; $lesson->subject_id = $subject->id; $lesson->title = "Welcome to the subject"; $lesson->description = "Understand the subject learning goals, lesson structure, and how to complete each activity."; $lesson->lesson_order = 1; $lesson->passing_mark = 70; $lesson->status = "published"; $lesson->progression_enabled = "true"; $lesson->require_reading = "true"; $lesson->require_video = "false"; $lesson->require_quiz = "false"; $lesson->require_assignment = "false"; $lesson->require_teacher_approval = "false"; $lesson->created_at = date("Y-m-d H:i:s"); $lesson->updated_at = $lesson->created_at; $lesson = $this->persist($this->lessonNs, $lesson, $res);
+        $lesson = new \stdClass(); $lesson->course_id = $course->id; $lesson->subject_id = $subject->id; $lesson->title = "Welcome to the subject"; $lesson->description = "Understand the subject learning goals, lesson structure, and how to complete each activity."; $lesson->lesson_order = 1; $lesson->passing_mark = 70; $lesson->status = "published"; $lesson->progression_enabled = "true"; $lesson->is_free = "true"; $lesson->required_credit_points = 0; $lesson->require_reading = "true"; $lesson->require_video = "false"; $lesson->require_quiz = "false"; $lesson->require_assignment = "false"; $lesson->require_teacher_approval = "false"; $lesson->created_at = date("Y-m-d H:i:s"); $lesson->updated_at = $lesson->created_at; $lesson = $this->persist($this->lessonNs, $lesson, $res);
         $content = new \stdClass(); $content->lesson_id = $lesson->id; $content->content_type = "article"; $content->title = "Getting started"; $content->body = "Welcome. Read this introduction, explore the resources, and mark the lesson as read when you are ready to continue."; $content->sort_order = 1; $content->is_required = "true"; $content->status = "published"; $this->persist($this->contentNs, $content, $res); return $this->postDashboard($req, $res);
     }
 
@@ -654,7 +672,10 @@ class ApiService {
     private function isActiveEnrollment($enrollment){return !isset($enrollment->status)||strtolower($enrollment->status)==="active";}
     private function courseIdForEnrollment($enrollment){if(isset($enrollment->course_id)&&intval($enrollment->course_id)>0)return intval($enrollment->course_id);if(!empty($enrollment->class_grade_id)){ $classGrade=$this->byId($this->classNs,$enrollment->class_grade_id); if($classGrade&&isset($classGrade->course_id))return intval($classGrade->course_id);}return 0;}
     private function canAccessCourse($courseId,$studentId){if($this->isTeacher())return true;if(intval($studentId)<1)return false;$rows=$this->rows($this->enrollmentNs,"student_id:".intval($studentId),"desc");foreach($rows as $r)if($this->isActiveEnrollment($r)&&intval($this->courseIdForEnrollment($r))===intval($courseId))return true;return false;}
-    private function lessonUnlockedFor($target,$studentId){if($this->isTeacher())return true;if(!$target||empty($target->subject_id))return false;if(isset($target->status)&&strtolower($target->status)!=="published")return false;$lessons=$this->rows($this->lessonNs,"subject_id:".intval($target->subject_id),"asc");usort($lessons,array($this,"sortLessons"));$previousMet=true;foreach($lessons as $lesson){if(isset($lesson->status)&&strtolower($lesson->status)!=="published")continue;$available=empty($lesson->available_at)||strtotime($lesson->available_at)<=time();if(strval($lesson->id)===strval($target->id))return $previousMet&&$available;$progress=$this->findOne($this->progressNs,"lesson_id:".intval($lesson->id).",student_id:".intval($studentId));$previousMet=!LessonRules::truthy(isset($lesson->progression_enabled)?$lesson->progression_enabled:true)||LessonRules::requirementsMet($lesson,$progress);}return false;}
+    private function lessonUnlockedFor($target,$studentId){return$this->isTeacher()||($this->progressionUnlockedFor($target,$studentId)&&$this->hasPaidLessonAccess($target,$studentId));}
+    private function progressionUnlockedFor($target,$studentId){if($this->isTeacher())return true;if(!$target||empty($target->subject_id))return false;if(isset($target->status)&&strtolower($target->status)!=="published")return false;$lessons=$this->rows($this->lessonNs,"subject_id:".intval($target->subject_id),"asc");usort($lessons,array($this,"sortLessons"));$previousMet=true;foreach($lessons as$lesson){if(isset($lesson->status)&&strtolower($lesson->status)!=="published")continue;$available=empty($lesson->available_at)||strtotime($lesson->available_at)<=time();if(strval($lesson->id)===strval($target->id))return$previousMet&&$available;$progress=$this->findOne($this->progressNs,"lesson_id:".intval($lesson->id).",student_id:".intval($studentId));$previousMet=!LessonRules::truthy(isset($lesson->progression_enabled)?$lesson->progression_enabled:true)||LessonRules::requirementsMet($lesson,$progress);}return false;}
+    private function hasPaidLessonAccess($lesson,$studentId){if($this->isTeacher()||!$lesson||!isset($lesson->is_free)||LessonRules::truthy($lesson->is_free)||intval(isset($lesson->required_credit_points)?$lesson->required_credit_points:0)<1)return true;try{return$this->creditLedger()->hasLessonUnlock($studentId,$lesson->id)!==null;}catch(\Throwable$e){return false;}}
+    private function creditLedger(){if(!class_exists("\\davvag_credit_points\\CreditLedgerService"))throw new \Exception("Credit Points is unavailable. Ask an administrator to install and configure it.");return new \davvag_credit_points\CreditLedgerService();}
     private function requestedStudent($body){if($this->isTeacher()&&isset($body->student_id)&&intval($body->student_id)>0)return $this->profile($body->student_id);return $this->currentProfile();}
     private function profile($id){$row=$this->byId("profile",$id);$out=new \stdClass();$out->id=intval($id);$out->name=$row&&isset($row->name)?$row->name:"Student #".$id;if($row&&isset($row->email))$out->email=$row->email;return $out;}
     private function currentProfile(){ $out=new \stdClass();$out->id=0;$out->name="Current user";if(class_exists("\\Profile")){$stored=\Profile::getUserProfile();$profile=is_object($stored)&&isset($stored->profile)?$stored->profile:$stored;if(is_object($profile)&&isset($profile->id)&&intval($profile->id)>0)return $profile;}return $out; }

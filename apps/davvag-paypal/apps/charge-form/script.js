@@ -72,7 +72,12 @@ WEBDOCK.component().register(function(exports){
             return;
         }
 
-        var currency = bindData.order.currencycode || "USD";
+        var currency = bindData.order.currencycode;
+        if(!currency){
+            bindData.submitErrors.push("No active checkout currency is configured.");
+            bindData.isBusy = false;
+            return;
+        }
         var src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(bindData.order.clientId) +
             "&currency=" + encodeURIComponent(currency) +
             "&intent=capture&components=buttons&enable-funding=card";

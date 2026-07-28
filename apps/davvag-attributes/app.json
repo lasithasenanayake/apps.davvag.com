@@ -37,6 +37,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "d_attributes"
         ],
         "workflows": [],

@@ -2,6 +2,7 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once(PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 
 class PayPal_Settings_IPG {
 
@@ -14,8 +15,12 @@ class PayPal_Settings_IPG {
         if (!isset($data->mode) || $data->mode === ""){
             $data->mode = "sandbox";
         }
-        if (!isset($data->currencycode) || $data->currencycode === ""){
-            $data->currencycode = "USD";
+        try{
+            $currency = new \currency_configuration\CurrencyConfigurationService();
+            $data->currencycode = $currency->resolveCurrencyCode(isset($data->currencycode) ? $data->currencycode : null);
+        }catch(Exception $error){
+            $res->SetError($error->getMessage());
+            return null;
         }
         if (!isset($data->brandName) || $data->brandName === ""){
             $data->brandName = "Davvag Store";

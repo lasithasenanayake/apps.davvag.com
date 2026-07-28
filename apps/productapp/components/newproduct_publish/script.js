@@ -14,6 +14,7 @@ WEBDOCK.component().register(function(exports){
         p_image:[],
         categories:[],
         uoms: [],
+        currencies: [],
         submitErrors: undefined,
         timeOptions:["7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","9:00 PM","10:00 PM","11:00 PM","12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM"]
     };
@@ -56,11 +57,25 @@ WEBDOCK.component().register(function(exports){
     exports.onReady = function(element){
     }
     
+    function loadCurrencies(){
+        exports.getAppComponent("currency-configuration", "currency-configuration-handler", function(handler){
+            handler.loadActive(function(items){
+                bindData.currencies = items;
+                if(!bindData.product.currencycode){
+                    handler.loadDefault(function(currency){
+                        if(currency){ bindData.product.currencycode = currency.code; }
+                    });
+                }
+            });
+        });
+    }
+
     function initializeComponent(){
         pInstance = exports.getShellComponent("soss-routes");
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
+        loadCurrencies();
         uploaderInstance = exports.getShellComponent("soss-uploader");
         
         loadValidator();

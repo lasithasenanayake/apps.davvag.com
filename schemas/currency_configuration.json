@@ -1,70 +1,14 @@
 {
-    "fields": [
-        {
-            "fieldName": "id",
-            "dataType": "int",
-            "annotations": {
-                "isPrimary": true,
-                "autoIncrement": true
-            }
-        },
-        {
-            "fieldName": "code",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 3
-            }
-        },
-        {
-            "fieldName": "numericCode",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 3
-            }
-        },
-        {
-            "fieldName": "name",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 200,
-                "encoding": "utf8"
-            }
-        },
-        {
-            "fieldName": "symbol",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 20,
-                "encoding": "utf8"
-            }
-        },
-        {
-            "fieldName": "decimalPlaces",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "exchangeRate",
-            "dataType": "float"
-        },
-        {
-            "fieldName": "isBase",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 1,
-                "default": "N"
-            }
-        },
-        {
-            "fieldName": "status",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 20,
-                "default": "active"
-            }
-        },
-        {
-            "fieldName": "sortOrder",
-            "dataType": "int"
-        }
-    ]
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"code","dataType":"java.lang.String","annotations":{"maxLen":3}},
+    {"fieldName":"numericCode","dataType":"java.lang.String","annotations":{"maxLen":3}},
+    {"fieldName":"name","dataType":"java.lang.String","annotations":{"maxLen":160}},
+    {"fieldName":"symbol","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"decimalPlaces","dataType":"int","annotations":{}},
+    {"fieldName":"exchangeRate","dataType":"double","annotations":{}},
+    {"fieldName":"isBase","dataType":"java.lang.String","annotations":{"maxLen":1}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"sortOrder","dataType":"int","annotations":{}}
+  ]
 }

@@ -89,10 +89,12 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-sample-app-1",
             "stelup_shop"
         ],
         "schemas": [
+            "currency_configuration",
             "attr_course_creation",
             "attr_lasitha_form",
             "attr_lbc_entrollments",

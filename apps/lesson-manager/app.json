@@ -13,7 +13,7 @@
   "description": {
     "title": "Lesson Manager",
     "author": "DAVVAG",
-    "version": "1.5",
+    "version": "1.7",
     "icon": "appicon.svg"
   },
   "tags": ["showincms", "showindock"],
@@ -43,8 +43,9 @@
     ]}
   },
   "dependencies": {
-    "apps": ["course-manager", "ai-agent-creator", "davvag-tools"],
+    "apps": ["currency-configuration", "course-manager", "ai-agent-creator", "davvag-tools", "davvag-credit-points"],
     "schemas": [
+        "currency_configuration",
       "lesson_manager_lesson", "lesson_manager_content", "lesson_manager_video",
       "lesson_manager_quiz", "lesson_manager_question", "lesson_manager_attempt",
       "lesson_manager_progress", "lesson_manager_assignment_rule",
@@ -52,7 +53,7 @@
       "course_manager_course", "course_manager_subject", "course_manager_classgrade",
       "course_manager_enrollment", "course_manager_assignment", "course_manager_submission",
       "course_manager_assessment", "course_manager_mark", "course_manager_grading_scale",
-      "course_manager_notification", "profile"
+      "course_manager_notification", "profile", "davvag_credit_lesson_unlock"
     ],
     "workflows": ["lesson-manager/generate-quiz"],
     "plugins": ["auth", "sossdata", "profile", "davvag-flow"],

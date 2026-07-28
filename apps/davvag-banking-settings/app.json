@@ -68,9 +68,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools"
         ],
         "schemas": [
+            "currency_configuration",
             "davvag_bank_disposits",
             "davvag_bank_disposits_h",
             "davvag_banking",

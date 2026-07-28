@@ -48,11 +48,9 @@
                     </div>
                     <div class="productapp-field">
                         <label>Currency</label>
-                        <select v-model="product.currencycode">
-                            <option value="">Select currency</option>
-                            <option>Rs.</option>
-                            <option>USD</option>
-                            <option>CHF</option>
+<select v-model="product.currencycode">
+                          <option value="">Select configured currency</option>
+                          <option v-for="currency in currencies" v-bind:value="currency.code">{{ currency.code }} — {{ currency.name }}</option>
                         </select>
                     </div>
                     <div class="productapp-field">

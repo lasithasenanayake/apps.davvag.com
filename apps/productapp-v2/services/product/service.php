@@ -2,10 +2,22 @@
 require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once (PLUGIN_PATH . "/phpcache/cache.php");
 require_once (PLUGIN_PATH . "/auth/auth.php");
+require_once (TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 require_once (PLUGIN_PATH_LOCAL . "/davvag-attributes/davvag-attributes.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 
 class ProductService {
+    private function applyConfiguredCurrency($product, $res){
+        try{
+            $currency = new \currency_configuration\CurrencyConfigurationService();
+            $code = isset($product->currencycode) ? $product->currencycode : null;
+            $product->currencycode = $currency->resolveCurrencyCode($code);
+            return true;
+        }catch(\Exception $error){
+            $res->SetError($error->getMessage());
+            return false;
+        }
+    }
     
     private function saveAttributes($product){
         if(isset($product->attributes)){
@@ -180,6 +192,9 @@ class ProductService {
     public function postSave($req,$res){
         
         $product=$req->Body(true);
+        if(!$this->applyConfiguredCurrency($product, $res)){
+            return null;
+        }
         //return $product;
         //return $product;
         //$user= Auth::Autendicate("product","save",$res);

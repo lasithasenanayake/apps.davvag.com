@@ -46,9 +46,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "uom"
         ],
         "schemas": [
+            "currency_configuration",
             "ledger",
             "orderdetails",
             "orderheader",

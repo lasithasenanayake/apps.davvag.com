@@ -128,9 +128,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "productapp-v2"
         ],
         "schemas": [
+            "currency_configuration",
             "course_manager_course",
             "course_manager_subject",
             "course_manager_product",

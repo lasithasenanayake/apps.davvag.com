@@ -3,12 +3,17 @@ require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once(PLUGIN_PATH_LOCAL . "/stripe/init.php");
 require_once(PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 use \Stripe\Stripe;
 use \Stripe\Customer;
 use \Stripe\ApiOperations\Create;
 use \Stripe\Charge;
 
 class Stripe_IPG {
+    private function currencyCode($code){
+        $currency = new \currency_configuration\CurrencyConfigurationService();
+        return strtolower($currency->resolveCurrencyCode($code));
+    }
 
     function __construct(){
         
@@ -96,7 +101,7 @@ class Stripe_IPG {
             $cardDetailsAry = array(
                 'customer' => $customerResult->id,
                 'amount' => $order->balance*100 ,
-                'currency' => $order->currencycode,
+                'currency' => $this->currencyCode(isset($order->currencycode) ? $order->currencycode : null),
                 'description' => "Order No: ".$order->invoiceNo." Charged from Stelup.",
                 'metadata' => array(
                     'order_id' => $order->invoiceNo
@@ -165,7 +170,7 @@ class Stripe_IPG {
             $cardDetailsAry = array(
                 'customer' => $customerResult->id,
                 'amount' => $cardDetails->amount*100 ,
-                'currency' => $cardDetails->courncycode,
+                'currency' => $this->currencyCode(isset($cardDetails->courncycode) ? $cardDetails->courncycode : null),
                 'description' => "Mapping Varification Charge.",
                 'metadata' => array(
                     'order_id' => "0"

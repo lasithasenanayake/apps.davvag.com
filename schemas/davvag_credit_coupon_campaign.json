@@ -1,0 +1,119 @@
+{
+    "fields":  [
+                   {
+                       "fieldName":  "id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "isPrimary":  true,
+                                           "autoIncrement":  true
+                                       }
+                   },
+                   {
+                       "fieldName":  "program_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "campaign_code",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  60
+                                       }
+                   },
+                   {
+                       "fieldName":  "coupon_type",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  30
+                                       }
+                   },
+                   {
+                       "fieldName":  "name",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  180,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "description",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  2000,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "credit_amount",
+                       "dataType":  "long",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "total_redemption_limit",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "per_profile_limit",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "1"
+                                       }
+                   },
+                   {
+                       "fieldName":  "first_time_only",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "minimum_account_age_days",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "eligible_group_ids_json",
+                       "dataType":  "object",
+                       "annotations":  {
+                                           "maxLen":  2000
+                                       }
+                   },
+                   {
+                       "fieldName":  "active_from",
+                       "dataType":  "java.util.Date",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "active_until",
+                       "dataType":  "java.util.Date",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "credit_expiry_days",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "status",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  20,
+                                           "default":  "ACTIVE"
+                                       }
+                   }
+               ]
+}

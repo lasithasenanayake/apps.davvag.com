@@ -34,9 +34,11 @@
    },
    "dependencies":{
       "apps":[
+
          
       ],
       "schemas":[
+
          "davvag_mesh_networks",
          "davvag_mesh_network_members",
          "profile"

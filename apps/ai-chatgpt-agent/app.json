@@ -33,9 +33,11 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-tools"
         ],
         "schemas": [
+
             "profile"
         ],
         "workflows": [],

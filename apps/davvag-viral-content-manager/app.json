@@ -73,9 +73,11 @@
     },
     "dependencies": {
         "apps": [
+
             "ai-agent-creator"
         ],
         "schemas": [
+
             "social_accounts",
             "content_items",
             "content_analysis",

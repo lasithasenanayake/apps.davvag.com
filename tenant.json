@@ -1,5 +1,6 @@
 {
     "apps":{
+        "davvag-credit-points":{"version":"latest"},
         "travel-destinations":{"version":"latest"},
         "davvag-mesh":{"version":"latest"},
         "davvag-mesh-networks":{"version":"latest"},

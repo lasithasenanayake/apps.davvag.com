@@ -80,10 +80,12 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "davvag-tools",
             "i18n"
         ],
         "schemas": [
+            "currency_configuration",
             "ledger",
             "orderheader_accepted",
             "orderheader_pending",

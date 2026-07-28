@@ -12,6 +12,7 @@ WEBDOCK.component().register(function(exports){
         p_image:[],
         categories:[],
         uoms: [],
+        currencies: [],
         submitErrors: undefined
     };
 
@@ -58,11 +59,25 @@ WEBDOCK.component().register(function(exports){
     exports.onReady = function(element){
     }
     
+    function loadCurrencies(){
+        exports.getAppComponent("currency-configuration", "currency-configuration-handler", function(handler){
+            handler.loadActive(function(items){
+                bindData.currencies = items;
+                if(!bindData.product.currencycode){
+                    handler.loadDefault(function(currency){
+                        if(currency){ bindData.product.currencycode = currency.code; }
+                    });
+                }
+            });
+        });
+    }
+
     function initializeComponent(){
         pInstance = exports.getShellComponent("soss-routes");
         routeData = pInstance.getInputData();
         validatorInstance = exports.getShellComponent("soss-validator");
         producthandler = exports.getComponent("product");
+        loadCurrencies();
         uomhandler = exports.getComponent("uom-handler");
         uploaderInstance = exports.getShellComponent("soss-uploader");
         

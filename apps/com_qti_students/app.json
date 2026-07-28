@@ -66,9 +66,11 @@
     },
     "dependencies": {
         "apps": [
+            "currency-configuration",
             "uom"
         ],
         "schemas": [
+            "currency_configuration",
             "payment_ext_request",
             "profile",
             "profiles_search",

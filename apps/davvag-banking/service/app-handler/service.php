@@ -2,9 +2,14 @@
 require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
 require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
 require_once(PLUGIN_PATH_LOCAL . "/davvag-order/davvag-order.php");
+require_once(TENANT_RESOURCE_LOCATION . "/apps/currency-configuration/services/currency-configuration-handler/service.php");
 require_once (PLUGIN_PATH_LOCAL . "/profile/profile.php");
 
 class DirectPay_IPG {
+    private function currencyCode($code){
+      $currency = new \currency_configuration\CurrencyConfigurationService();
+      return $currency->resolveCurrencyCode($code);
+    }
 
     function __construct(){
         
@@ -65,7 +70,7 @@ class DirectPay_IPG {
           $rForm->rProfileId=$request->donorId;
           $rForm->amount=$request->paymentAmount;
           $rForm->dipositAmount=$request->paymentAmount;
-          $rForm->currencycode=isset($request->currencycode)!=true?"USD":$request->currencycode;
+          $rForm->currencycode=$this->currencyCode(isset($request->currencycode)?$request->currencycode:null);
           $rForm->refId=$request->id;
           $rForm->name=$request->name;
           $rForm->ExtReq=$request;
@@ -148,7 +153,7 @@ class DirectPay_IPG {
           $rForm->rProfileId=$order->profileId;
           $rForm->amount=$order->balance;
           $rForm->dipositAmount=$order->balance;
-          $rForm->currencycode=isset($order->currencycode)!=true?"USD":$order->currencycode;
+          $rForm->currencycode=$this->currencyCode(isset($order->currencycode)?$order->currencycode:null);
           $rForm->refId=$order->invoiceNo;
           $rForm->name=$order->name;
           $rForm->ExtType='order';

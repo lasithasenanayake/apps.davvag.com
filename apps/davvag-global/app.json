@@ -35,6 +35,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "domain_registrar",
             "domains_keytokens"
         ],

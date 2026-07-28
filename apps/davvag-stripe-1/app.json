@@ -1,0 +1,35 @@
+{
+    "components": {
+        "charge-form": {
+            "type": "component",
+            "location": "apps"
+        },
+        "stripe-ipg-handler": {
+            "type": "service",
+            "location": "services"
+        }
+    },
+    "description": {
+        "title": "Davvag Stripe IGP",
+        "author": "Lasitha Senanayake",
+        "version": "0.9",
+        "icon": "appicon.png"
+    },
+    "tags": ["showincms"],
+    "configuration": {
+        "webdock": {
+            "startupComponent": "charge-form",
+            "onLoad": ["stripe-ipg-handler"],
+            "routes": {
+                "partials": {}
+            }
+        }
+    },
+    "dependencies": {
+        "apps": ["currency-configuration"],
+        "schemas": ["currency_configuration"],
+        "workflows": [],
+        "plugins": ["profile", "sossdata", "stripe"],
+        "php-extensions": []
+    }
+}

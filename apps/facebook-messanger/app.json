@@ -35,6 +35,7 @@
     "dependencies": {
         "apps": [],
         "schemas": [
+
             "fb_keywords_detail_pod_flow",
             "fb_messages",
             "fb_profiles",

@@ -4,9 +4,10 @@ WEBDOCK.component().register(function(exports){
     var bindData = {
         submitErrors: [],
         submitInfo: [],
+        currencies: [],
         data: {
             mode: "sandbox",
-            currencycode: "USD",
+            currencycode: "",
             brandName: "Davvag Store"
         }
     };
@@ -30,6 +31,18 @@ WEBDOCK.component().register(function(exports){
         }
 
         lockForm();
+        exports.getAppComponent("currency-configuration", "currency-configuration-handler", function(currencyHandler){
+            currencyHandler.loadActive(function(items){
+                bindData.currencies = items;
+                if(!bindData.data.currencycode){
+                    currencyHandler.loadDefault(function(currency){
+                        if(currency){ bindData.data.currencycode = currency.code; }
+                    });
+                }
+            }, function(){
+                bindData.submitErrors.push("Unable to load configured currencies.");
+            });
+        });
         service_handler.services.PublicToken({ "id": "0" }).then(function(result){
             if (result.success && result.result != null){
                 bindData.data = result.result;

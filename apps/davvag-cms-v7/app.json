@@ -129,9 +129,11 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-tools"
         ],
         "schemas": [
+
             "davvag_launchers_query",
             "davvag_launchers_subquery",
             "profile_notify_u"

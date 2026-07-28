@@ -1,0 +1,125 @@
+{
+    "fields":  [
+                   {
+                       "fieldName":  "id",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "isPrimary":  true,
+                                           "autoIncrement":  true
+                                       }
+                   },
+                   {
+                       "fieldName":  "program_id",
+                       "dataType":  "int",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "package_code",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  60
+                                       }
+                   },
+                   {
+                       "fieldName":  "title",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  180,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "description",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  2000,
+                                           "encoding":  "utf8"
+                                       }
+                   },
+                   {
+                       "fieldName":  "credit_amount",
+                       "dataType":  "long",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "bonus_credit_amount",
+                       "dataType":  "long",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "price_minor",
+                       "dataType":  "long",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "currency",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  3
+                                       }
+                   },
+                   {
+                       "fieldName":  "payment_channel",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  30
+                                       }
+                   },
+                   {
+                       "fieldName":  "provider_product_id",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  190
+                                       }
+                   },
+                   {
+                       "fieldName":  "purchase_limit_per_profile",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "0"
+                                       }
+                   },
+                   {
+                       "fieldName":  "first_purchase_only",
+                       "dataType":  "boolean",
+                       "annotations":  {
+                                       }
+                   },
+                   {
+                       "fieldName":  "active_from",
+                       "dataType":  "java.util.Date",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "active_until",
+                       "dataType":  "java.util.Date",
+                       "annotations":  {
+
+                                       }
+                   },
+                   {
+                       "fieldName":  "sort_order",
+                       "dataType":  "int",
+                       "annotations":  {
+                                           "default":  "1"
+                                       }
+                   },
+                   {
+                       "fieldName":  "status",
+                       "dataType":  "java.lang.String",
+                       "annotations":  {
+                                           "maxLen":  20,
+                                           "default":  "ACTIVE"
+                                       }
+                   }
+               ]
+}

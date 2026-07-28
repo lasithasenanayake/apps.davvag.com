@@ -1,0 +1,38 @@
+{
+  "components": {
+    "wallet-home": {"type":"component","location":"components"},
+    "package-store": {"type":"component","location":"components"},
+    "reward-centre": {"type":"component","location":"components"},
+    "coupon-redeem": {"type":"component","location":"components"},
+    "transaction-history": {"type":"component","location":"components"},
+    "purchase-status": {"type":"component","location":"components"},
+    "credit-balance-badge": {"type":"component","location":"components"},
+    "admin-console": {"type":"component","location":"components"},
+    "credit-style": {"type":"component","location":"components"},
+    "credit-api": {"type":"service","location":"services"},
+    "credit-ledger-api": {"type":"service","location":"services"},
+    "credit-admin-api": {"type":"service","location":"services"},
+    "credit-payment-api": {"type":"service","location":"services"}
+  },
+  "description": {"title":"Credit Points","author":"DAVVAG","version":"1.2","icon":"appicon.svg"},
+  "tags": ["showincms","showindock"],
+  "configuration": {
+    "webdock": {
+      "startupComponent":"wallet-home",
+      "onLoad":["credit-style","credit-api","credit-admin-api","credit-payment-api"],
+      "routes":{"partials":{
+        "/":"wallet-home","/buy":"package-store","/rewards":"reward-centre","/redeem":"coupon-redeem","/history":"transaction-history","/purchase-status":"purchase-status","/admin":"admin-console"
+      }}
+    },
+    "dock":{"subapps":[
+      {"name":"Wallet","path":""},{"name":"Buy credits","path":"buy"},{"name":"Rewards","path":"rewards"},{"name":"Redeem coupon","path":"redeem"},{"name":"History","path":"history"},{"name":"Administration","path":"admin"}
+    ]}
+  },
+  "dependencies": {
+    "apps":["davvag-paypal","lesson-manager","davvag-scheduler","currency-configuration"],
+    "schemas":["currency_configuration","davvag_credit_program","davvag_credit_wallet","davvag_credit_transaction","davvag_credit_entry","davvag_credit_lot","davvag_credit_reservation","davvag_credit_package","davvag_credit_purchase_order","davvag_credit_payment_event","davvag_credit_reward_rule","davvag_credit_reward_claim","davvag_credit_coupon_campaign","davvag_credit_coupon_code","davvag_credit_coupon_redemption","davvag_credit_idempotency","davvag_credit_lesson_unlock","profile","lesson_manager_lesson"],
+    "workflows":[],
+    "plugins":["auth","sossdata","profile","notify"],
+    "php-extensions":["mysqli","openssl","curl"]
+  }
+}

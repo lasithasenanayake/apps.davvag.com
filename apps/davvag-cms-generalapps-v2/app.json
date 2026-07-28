@@ -156,9 +156,11 @@
     },
     "dependencies": {
         "apps": [
+
             "davvag-tools"
         ],
         "schemas": [
+
             "d_cms_album_imagev1",
             "d_cms_album_v1",
             "d_cms_artical_imagev1",
