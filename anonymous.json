@@ -1,1 +1,1 @@
-{"apps":{"chat-agent":{"version":"latest"},"davvag-cms-v7":{"version":"latest"},"qib-reg-app":{"version":"latest"},"userapp":{"version":"latest"},"profileapp.v1":{"version":"latest"},"ephraim":{"version":"latest"},"travel-destinations":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}
+{"apps":{"travel-destinations":{"version":"latest"},"userapp":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}
