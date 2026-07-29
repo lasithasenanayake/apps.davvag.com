@@ -47,6 +47,31 @@ checkTravel(is_object($app), "app.json did not parse.");
 checkTravel(isset($app->configuration->webdock->startupComponent), "Startup component is missing.");
 checkTravel(isset($app->components->{$app->configuration->webdock->startupComponent}), "Startup component is not declared.");
 
+$destinationSchema = json_decode(file_get_contents($tenantRoot . "/schemas/travel_destination.json"));
+$coordinateFields = array();
+foreach ($destinationSchema->fields as $field) {
+    $coordinateFields[$field->fieldName] = $field;
+}
+checkTravel(isset($coordinateFields["latitude"]) && $coordinateFields["latitude"]->dataType === "decimal" && $coordinateFields["latitude"]->annotations->decimalPoints === "9,7", "Latitude must use DECIMAL(9,7).");
+checkTravel(isset($coordinateFields["longitude"]) && $coordinateFields["longitude"]->dataType === "decimal" && $coordinateFields["longitude"]->annotations->decimalPoints === "10,7", "Longitude must use DECIMAL(10,7).");
+
+$frameworkRoot = getcwd();
+$connectorPath = $frameworkRoot . "/plugins/sossdata/phpmysql/mysqlConnector.php";
+checkTravel(file_exists($connectorPath), "The phpmysql connector was not found from the framework root.");
+require_once($connectorPath);
+$connectorReflection = new ReflectionClass("mysqlConnector");
+$connector = $connectorReflection->newInstanceWithoutConstructor();
+$decimalField = (object)array("dataType" => "decimal");
+$dateField = (object)array("dataType" => "java.util.Date");
+$readValue = $connectorReflection->getMethod("getValueToObject");
+$readValue->setAccessible(true);
+$writeValue = $connectorReflection->getMethod("getValue");
+$writeValue->setAccessible(true);
+checkTravel(abs($readValue->invoke($connector, $decimalField, "80.6337456") - 80.6337456) < 0.0000001, "SOSSData decimal reads are being converted as dates.");
+checkTravel(abs($writeValue->invoke($connector, $decimalField, "80.6337456") - 80.6337456) < 0.0000001, "SOSSData decimal writes are being converted as dates.");
+checkTravel($readValue->invoke($connector, $decimalField, null) === null && $writeValue->invoke($connector, $decimalField, null) === "NULL", "SOSSData decimal null handling is invalid.");
+checkTravel($readValue->invoke($connector, $dateField, "2026-07-29 08:40:00") === "07-29-2026 08:40:00", "SOSSData date formatting changed while fixing decimals.");
+
 foreach ($app->components as $name => $component) {
     $descriptorPath = $appRoot . "/" . $component->location . "/" . $name . "/component.json";
     checkTravel(file_exists($descriptorPath), "Missing descriptor for " . $name . ".");
