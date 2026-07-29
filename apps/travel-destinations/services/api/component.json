@@ -2,7 +2,7 @@
     "name": "api",
     "description": "Validated travel destination application services",
     "author": "DAVVAG",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "resources": {
         "files": [
             {

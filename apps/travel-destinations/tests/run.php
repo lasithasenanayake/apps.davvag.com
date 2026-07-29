@@ -98,6 +98,7 @@ checkTravel(strpos($detailScript, "isTableSeparator") !== false && strpos($detai
 checkTravel(strpos($detailView, "td-markdown") !== false, "Destination Markdown content has no dedicated formatting class.");
 checkTravel(strpos($detailScript, "function externalHttpUrl") !== false && strpos($detailScript, 'target="_blank" rel="noopener noreferrer external"') !== false, "Destination Markdown links are not rendered as safe new-tab links.");
 checkTravel(strpos($detailScript, "td-markdown-link") !== false && strpos($detailStyles, ".td-markdown-link") !== false, "Destination Markdown links have no visible link treatment.");
+checkTravel(strpos($detailScript, "safeMediaReference") !== false && strpos($detailView, "td-detail-cover") !== false && strpos($detailStyles, ".td-detail-cover") !== false, "Approved destination media is not rendered as the detail cover.");
 checkTravel(strpos($detailScript, 'openForm: ""') !== false && substr_count($detailView, 'v-show="openForm ===') >= 6, "Destination contribution forms are not collapsed behind explicit triggers.");
 checkTravel(substr_count($detailView, 'aria-expanded="openForm ===') >= 6 && strpos($detailView, "td-collapsible-form") !== false, "Expandable destination forms are missing accessible state controls.");
 checkTravel(strpos($detailStyles, "@media (max-width: 620px)") !== false && strpos($detailStyles, "overflow-x: hidden") !== false && strpos($detailStyles, ".td-detail-hero h1") !== false, "Destination detail has no narrow-screen overflow and typography treatment.");
@@ -130,6 +131,8 @@ checkTravel(strpos($explorerView, "td-load-more-map") !== false, "Map view does 
 checkTravel(strpos($explorerView, 'v-for="item in items"') !== false, "Map view hides matching destinations that lack public coordinates.");
 checkTravel(strpos($explorerView, "Public map location unavailable") !== false, "Map view does not explain why a matching destination has no marker.");
 checkTravel(strpos($formScript, "ResolveMapLocationUrl") !== false && strpos($formScript, "coordinatesFromMapUrl") !== false, "Destination form does not extract coordinates from Google Maps URLs.");
+checkTravel(strpos($formScript, "prepareUploadNames") !== false && strpos($formScript, "file.uploadName") !== false && strpos($formScript, "file.status === true") !== false, "Destination photos do not follow the DAVVAG uploader result contract.");
+checkTravel(strpos($formScript, "associateUploadedPhoto") !== false && strpos($formScript, "response && response.success && response.result") !== false, "Destination photo associations can report success after a failed service response.");
 checkTravel(strpos($travelStyles, ".td-prose-table") !== false && strpos($travelStyles, "overflow-x:auto") !== false, "Markdown tables do not have responsive table styles.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetMapConfiguration), "Public map configuration service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminMapSettings), "Admin map settings read service is not declared.");
@@ -144,9 +147,11 @@ checkTravel(in_array("travel_destination_weather_settings", $app->dependencies->
 checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
+checkTravel(strpos($formScript, "savedMedia") !== false && strpos($formView, "td-photo-preview") !== false, "The destination form does not show media attached to the current destination.");
 $apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
 checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
+checkTravel(strpos($apiServiceSource, '$uploadPrefix = "components/dock/soss-uploader/service/get/travel_destination_media/"') !== false && strpos($apiServiceSource, "destinationMedia") !== false, "Destination media associations are not restricted and returned to their owner or administrator.");
 $weatherSettingsView = file_get_contents($appRoot . "/components/admin-weather-settings/partial.html");
 checkTravel(strpos($weatherSettingsView, "CC BY 4.0") !== false && strpos($weatherSettingsView, "non-commercial") !== false, "Weather settings do not disclose provider licence constraints.");
 checkTravel(strpos($detailScript, "GetDestinationWeather") !== false && strpos($detailView, "weather.provider.attributionUrl") !== false, "Destination details do not load and attribute optional weather data.");
@@ -155,6 +160,7 @@ checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, t
 checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");
 checkTravel(in_array("GetDestinationWeather", $permissionManifest->anonymous, true), "Anonymous users cannot access public destination weather.");
 checkTravel(in_array("GetAdminWeatherSettings", $permissionManifest->sysadmin, true) && in_array("SaveWeatherSettings", $permissionManifest->sysadmin, true), "Weather settings are not restricted to the administrator permission manifest.");
+checkTravel(in_array("AssociateDestinationMedia", $permissionManifest->sysadmin, true), "Administrators cannot attach uploaded photos to destinations.");
 
 putenv("DAVVAG_PROVIDER_SECRET=travel-destination-test-secret");
 $apiService = new \travel_destinations\ApiService();

@@ -354,7 +354,8 @@ class ApiService {
         }
         $destination->categories = $this->linkedReferenceRows($destination->id, $this->categoryLinkNamespace, "category_id", $this->categoryNamespace);
         $destination->amenities = $this->linkedReferenceRows($destination->id, $this->amenityLinkNamespace, "amenity_id", $this->amenityNamespace);
-        $destination->media = $this->approvedMedia($destination->id);
+        $canManageMedia = $this->isAdmin() || $this->ownsDestination($destination, $this->currentProfileId());
+        $destination->media = $this->destinationMedia($destination->id, $canManageMedia);
         $destination->description_markdown = $this->fullDestinationDescription($destination);
         $destination->available_languages = array($destination->primary_language);
         foreach ($this->rows($this->translationNamespace, "destination_id:" . intval($destination->id) . ",moderation_status:Approved", "asc", 50, 0) as $translation) {
@@ -535,11 +536,19 @@ class ApiService {
         $reference = isset($body->media_reference) ? trim(strval($body->media_reference)) : "";
         $size = isset($body->file_size) ? intval($body->file_size) : 0;
         $extension = strtolower(pathinfo(parse_url($reference, PHP_URL_PATH), PATHINFO_EXTENSION));
-        if ($reference === "" || preg_match('/(^|[\\\\\\/])\\.\\.([\\\\\\/]|$)/', $reference) || !in_array($extension, array("jpg", "jpeg", "png", "webp"), true)) {
+        $uploadPrefix = "components/dock/soss-uploader/service/get/travel_destination_media/";
+        $uploadName = strpos($reference, $uploadPrefix) === 0 ? substr($reference, strlen($uploadPrefix)) : "";
+        if ($reference === "" || preg_match('/(^|[\\\\\\/])\\.\\.([\\\\\\/]|$)/', $reference)
+            || !in_array($extension, array("jpg", "jpeg", "png", "webp"), true)
+            || !preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:jpe?g|png|webp)$/i', $uploadName)) {
             return $this->fail($res, "Only valid JPG, PNG or WebP upload references are accepted.");
         }
         if ($size < 0 || $size > 10485760) {
             return $this->fail($res, "Images must not exceed 10 MB.");
+        }
+        $existing = $this->findOne($this->mediaNamespace, "destination_id:" . $destinationId . ",media_reference:" . $reference);
+        if ($existing !== null) {
+            return $existing;
         }
         $media = new \stdClass();
         $media->destination_id = $destinationId;
@@ -1792,7 +1801,15 @@ class ApiService {
     }
 
     private function approvedMedia($destinationId) {
-        $rows = $this->rows($this->mediaNamespace, "destination_id:" . intval($destinationId) . ",moderation_status:Approved", "asc", 100, 0);
+        return $this->destinationMedia($destinationId, false);
+    }
+
+    private function destinationMedia($destinationId, $includePending) {
+        $query = "destination_id:" . intval($destinationId);
+        if (!$includePending) {
+            $query .= ",moderation_status:Approved";
+        }
+        $rows = $this->rows($this->mediaNamespace, $query, "asc", 100, 0);
         foreach ($rows as $item) {
             $reference = isset($item->media_reference) ? $item->media_reference : "";
             if (preg_match('/(^|[\\\\\\/])\\.\\.([\\\\\\/]|$)/', $reference)) {

@@ -66,6 +66,12 @@
                 <input class="td-input" type="file" accept="image/jpeg,image/png,image/webp" multiple @change="chooseFiles">
                 <div class="td-actions" style="margin-top:12px"><button type="button" class="td-button secondary" :disabled="uploading || !form.id || !files.length" @click="uploadPhotos">{{ uploading ? "Uploading…" : "Upload selected photos" }}</button></div>
                 <div v-for="file in files" :key="file.name" style="padding:8px 0">{{ file.name }} · {{ Math.round(file.size/1024) }} KB</div>
+                <div v-if="savedMedia.length" class="td-photo-grid" aria-live="polite">
+                    <figure v-for="media in savedMedia" :key="media.id || media.media_reference" class="td-photo-preview">
+                        <img :src="media.media_reference" :alt="media.alternative_text || form.name + ' photo'">
+                        <figcaption><span>{{ media.moderation_status || 'Pending' }}</span><small>{{ media.is_cover ? 'Cover photo' : 'Destination photo' }}</small></figcaption>
+                    </figure>
+                </div>
             </section>
             <section v-show="step===6">
                 <h2>6. Review &amp; submit</h2>

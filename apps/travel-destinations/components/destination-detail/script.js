@@ -14,6 +14,11 @@ WEBDOCK.component().register(function (exports) {
         methods: {back: back, share: share, saveFavorite: saveFavorite, saveOffline:saveOffline, toggleForm:toggleForm, closeForm:closeForm, submitVisit:submitVisit, submitRoute:submitRoute, selectRouteFile:selectRouteFile, addToList:addToList, addToTrip:addToTrip, changeLanguage:changeLanguage, submitReview: submitReview, submitComment: submitComment, submitCondition: submitCondition, markHelpful: markHelpful, reportDestination: reportDestination, number: number},
         computed: {
             descriptionHtml: function () { return safeMarkdown(viewState.destination.description_markdown); },
+            coverImageUrl: function () {
+                var media = Array.isArray(viewState.destination.media) ? viewState.destination.media : [];
+                var cover = media.filter(function (item) { return item && item.is_cover; })[0] || media[0];
+                return cover ? safeMediaReference(cover.media_reference) : "";
+            },
             locationLabel: function () {
                 return [viewState.destination.village, viewState.destination.nearest_town, viewState.destination.district, viewState.destination.province].filter(Boolean).join(", ");
             },
@@ -48,7 +53,12 @@ WEBDOCK.component().register(function (exports) {
         var normalized = Object.assign(emptyDestination(), destination || {});
         normalized.categories = Array.isArray(normalized.categories) ? normalized.categories : [];
         normalized.amenities = Array.isArray(normalized.amenities) ? normalized.amenities : [];
+        normalized.media = Array.isArray(normalized.media) ? normalized.media : [];
         return normalized;
+    }
+    function safeMediaReference(value) {
+        var reference = String(value || "").trim();
+        return /^\/?components\/dock\/soss-uploader\/service\/get\/travel_destination_media\/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:jpe?g|png|webp)$/i.test(reference) ? reference : "";
     }
     function loadCommunity() {
         if (!viewState.hasDestination || !viewState.destination.id) { return; }

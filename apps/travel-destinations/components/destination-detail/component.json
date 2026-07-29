@@ -2,7 +2,7 @@
     "name": "destination-detail",
     "description": "Destination detail with offline bundles, routes, visits, guides, availability, translations and community content",
     "author": "DAVVAG",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

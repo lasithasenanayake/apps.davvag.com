@@ -8,7 +8,8 @@
         <div v-if="!loading && error" class="td-alert error">{{ error }}</div>
         <div v-if="!loading && actionMessage" class="td-alert">{{ actionMessage }}</div>
         <template v-if="!loading && !error && hasDestination">
-            <header class="td-detail-hero">
+            <header class="td-detail-hero" :class="{'has-cover':coverImageUrl}">
+                <img v-if="coverImageUrl" class="td-detail-cover" :src="coverImageUrl" :alt="destination.name + ' cover photo'">
                 <div>
                     <div class="td-actions"><span class="td-badge">{{ destination.verification_status || "Unverified" }}</span><span class="td-badge" v-for="category in destination.categories" :key="category.id">{{ category.name }}</span></div>
                     <h1>{{ destination.name }}</h1>

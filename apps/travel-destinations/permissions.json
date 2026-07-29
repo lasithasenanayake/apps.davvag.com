@@ -80,6 +80,7 @@
         "GetMyTrips"
     ],
     "sysadmin": [
+        "AssociateDestinationMedia",
         "GetAdminMapSettings",
         "SaveMapSettings",
         "GetAdminWeatherSettings",

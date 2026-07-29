@@ -1,7 +1,7 @@
 WEBDOCK.component().register(function (exports) {
     var api, maps, router, selectedFiles = [], rootElement, mapHandle;
     var state = {
-        step: 1, categories: [], amenities: [], capabilities: {}, files: [],
+        step: 1, categories: [], amenities: [], capabilities: {}, files: [], savedMedia: [],
         saving: false, submitting: false, uploading: false, locating: false, searchingLocation:false, resolvingMapUrl:false, error: "", notice: "", mapError:"",
         mapConfig:{enabled:false}, addressQuery:"", locationUrl:"",
         staySubtypes: ["Hotel","Cabana","Guesthouse","Homestay","Campsite","Eco Lodge","Bungalow","Hostel"],
@@ -35,6 +35,7 @@ WEBDOCK.component().register(function (exports) {
             var destination = response.result || {};
             destination.category_ids = (destination.categories || []).map(function (item) { return item.id; });
             destination.amenity_ids = (destination.amenities || []).map(function (item) { return item.id; });
+            replaceItems(viewState.savedMedia,Array.isArray(destination.media) ? destination.media : []);
             viewState.form = Object.assign(emptyForm(),destination);
             if(viewState.step===3){scheduleMap();}
         }).error(function () { viewState.error = "Submission could not be loaded."; });
@@ -81,21 +82,80 @@ WEBDOCK.component().register(function (exports) {
     function uploadPhotos() {
         if (viewState.uploading || !viewState.form.id || !selectedFiles.length) { return; }
         viewState.uploading = true; viewState.error = "";
+        var filesToUpload = selectedFiles.slice();
+        prepareUploadNames(filesToUpload);
         exports.getAppComponent("davvag-tools","davvag-file-uploader",function (uploader) {
             uploader.initialize();
-            uploader.upload(selectedFiles,"travel_destination_media",viewState.form.id,function () {
-                var pending = selectedFiles.map(function (file,index) {
-                    return api.services.AssociateDestinationMedia({destination_id:viewState.form.id,media_reference:"components/dock/soss-uploader/service/get/travel_destination_media/"+viewState.form.id+"-"+file.name,file_size:file.size,alternative_text:viewState.form.name+" photo",display_order:index});
+            uploader.upload(filesToUpload,"travel_destination_media",viewState.form.id,function (completedFiles) {
+                var completed = Array.prototype.slice.call(completedFiles || filesToUpload);
+                var uploaded = completed.filter(function (file) { return file.status === true; });
+                var uploadFailures = completed.filter(function (file) { return file.status !== true; });
+                if (!uploaded.length) {
+                    finishPhotoUpload(uploadFailures,"No photos were attached because every upload failed.");
+                    return;
+                }
+                var pending = uploaded.map(function (file,index) {
+                    return associateUploadedPhoto(file,index).then(function (media) {
+                        return {success:true,file:file,media:media};
+                    },function (error) {
+                        return {success:false,file:file,error:error};
+                    });
                 });
-                Promise.all(pending).then(function () { viewState.uploading = false; selectedFiles = []; replaceItems(viewState.files,[]); viewState.notice = "Photos uploaded and sent for moderation."; },function () { viewState.uploading = false; viewState.error = "Photos uploaded, but one or more relationships could not be saved."; });
+                Promise.all(pending).then(function (results) {
+                    var attached = results.filter(function (item) { return item.success; });
+                    var associationFailures = results.filter(function (item) { return !item.success; }).map(function (item) { return item.file; });
+                    attached.forEach(function (item) { appendSavedMedia(item.media); });
+                    var retryFiles = uploadFailures.concat(associationFailures);
+                    if (retryFiles.length) {
+                        finishPhotoUpload(retryFiles,attached.length + " photo(s) attached; " + retryFiles.length + " failed. Select Upload again to retry the failed files.");
+                    } else {
+                        finishPhotoUpload([],attached.length + " photo(s) uploaded and attached to this destination.");
+                    }
+                });
             });
         });
+    }
+    function prepareUploadNames(files) {
+        var token = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8);
+        files.forEach(function (file,index) {
+            if (!file.uploadName) {
+                file.uploadName = String(viewState.form.id) + "-" + token + "-" + index + "-" + safeFileName(file.name);
+            }
+        });
+    }
+    function safeFileName(value) {
+        var name = String(value || "photo.jpg").replace(/[^A-Za-z0-9._-]/g,"_");
+        return name.replace(/^\.+/,"") || "photo.jpg";
+    }
+    function mediaReference(file) {
+        return "components/dock/soss-uploader/service/get/travel_destination_media/" + file.uploadName;
+    }
+    function associateUploadedPhoto(file,index) {
+        return new Promise(function (resolve,reject) {
+            var request = api.services.AssociateDestinationMedia({destination_id:viewState.form.id,media_reference:mediaReference(file),file_size:file.size,alternative_text:viewState.form.name+" photo",display_order:viewState.savedMedia.length+index});
+            request.then(function (response) {
+                if (response && response.success && response.result) { resolve(response.result); }
+                else { reject(new Error(message(response,"The uploaded photo could not be attached to the destination."))); }
+            }).error(function (response) { reject(new Error(message(response,"The uploaded photo could not be attached to the destination."))); });
+        });
+    }
+    function appendSavedMedia(media) {
+        if (!media || !media.media_reference) { return; }
+        var exists = viewState.savedMedia.some(function (item) { return item.media_reference === media.media_reference; });
+        if (!exists) { viewState.savedMedia.push(media); }
+    }
+    function finishPhotoUpload(retryFiles,feedback) {
+        viewState.uploading = false;
+        selectedFiles = retryFiles;
+        replaceItems(viewState.files,retryFiles.map(function (file) { return {name:file.name,size:file.size,type:file.type}; }));
+        if (retryFiles.length) { viewState.error = feedback; }
+        else { viewState.notice = feedback; }
     }
     function replaceItems(target,items) { target.splice.apply(target,[0,target.length].concat(Array.isArray(items) ? items : [])); }
     function copyForm() { return JSON.parse(JSON.stringify(viewState.form)); }
     function navigate(path) { if (router && router.appNavigate) { router.appNavigate(path); } else { window.location.hash = "#/app/travel-destinations"+path; } }
     function queryValue(name) { var match = new RegExp("[?&]"+name+"=([^&]+)").exec(window.location.hash); return match ? decodeURIComponent(match[1]) : ""; }
-    function message(response,fallback) { return response && response.result && response.result.message ? response.result.message : fallback; }
+    function message(response,fallback) { if(!response){return fallback;}if(typeof response.result==="string"&&response.result){return response.result;}if(response.result&&response.result.message){return response.result.message;}if(response.responseJSON){return message(response.responseJSON,fallback);}return fallback; }
     function searchAddress(){
         var query=String(viewState.addressQuery||"").trim();
         if(viewState.searchingLocation||!query){return;}
