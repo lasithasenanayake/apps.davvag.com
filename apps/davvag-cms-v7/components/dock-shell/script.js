@@ -372,14 +372,14 @@ WEBDOCK.component().register(function(exports){
     }
 
     function resolveAppVersion(appObj, descriptor){
+        if(descriptor && descriptor.description && descriptor.description.version){
+            return descriptor.description.version;
+        }
         if(appObj && appObj.version){
             return appObj.version;
         }
         if(appObj && appObj.description && appObj.description.version){
             return appObj.description.version;
-        }
-        if(descriptor && descriptor.description && descriptor.description.version){
-            return descriptor.description.version;
         }
         return undefined;
     }
