@@ -3,7 +3,7 @@ WEBDOCK.component().register(function (exports) {
     var mapRenderAttempts = 0, mapRenderStarted = false;
     var state = {
         destination: emptyDestination(), hasDestination: false, reviews: [], comments: [], conditions: [], routes:[], availability:[], guides:[], translations:[], lists:[], trips:[], visitSummary:{verifiedVisits:0}, capabilities: {}, mapConfig:{enabled:false}, mapError:"", weather:{available:false,loading:false,forecast:[]}, language:"",
-        loading: true, error: "", actionMessage: "", savingFavorite: false, actionLocks: {review:false,comment:false,condition:false,report:false},
+        loading: true, error: "", actionMessage: "", savingFavorite: false, openForm: "", actionLocks: {review:false,comment:false,condition:false,report:false},
         reviewForm: {overall_rating: 5, review_title: "", review_markdown: "", visit_date: ""},
         commentForm: {comment_markdown: ""},
         conditionForm: {report_type: "general_update", description: ""}, visitForm:{visit_date:"",verification_method:"manual",notes:""}, routeForm:{name:"",format:"geojson",route_type:"out_and_back",geojson:"",distance_km:"",elevation_gain_m:"",estimated_minutes:"",gpx_media_reference:""}, selectedListId:"",selectedTripId:"",routeFileName:"",offlineSaved:false
@@ -11,7 +11,7 @@ WEBDOCK.component().register(function (exports) {
     var viewState = state;
     exports.vue = {
         data: state,
-        methods: {back: back, share: share, saveFavorite: saveFavorite, saveOffline:saveOffline, submitVisit:submitVisit, submitRoute:submitRoute, selectRouteFile:selectRouteFile, addToList:addToList, addToTrip:addToTrip, changeLanguage:changeLanguage, submitReview: submitReview, submitComment: submitComment, submitCondition: submitCondition, markHelpful: markHelpful, reportDestination: reportDestination, number: number},
+        methods: {back: back, share: share, saveFavorite: saveFavorite, saveOffline:saveOffline, toggleForm:toggleForm, closeForm:closeForm, submitVisit:submitVisit, submitRoute:submitRoute, selectRouteFile:selectRouteFile, addToList:addToList, addToTrip:addToTrip, changeLanguage:changeLanguage, submitReview: submitReview, submitComment: submitComment, submitCondition: submitCondition, markHelpful: markHelpful, reportDestination: reportDestination, number: number},
         computed: {
             descriptionHtml: function () { return safeMarkdown(viewState.destination.description_markdown); },
             locationLabel: function () {
@@ -67,10 +67,12 @@ WEBDOCK.component().register(function (exports) {
     }
     function loadEnhancements(){var id=viewState.destination.id;Promise.all([call("GetDestinationRoutes",{destinationId:id}),call("GetDestinationAvailability",{destinationId:id}),call("GetDestinationGuides",{destinationId:id}),call("GetDestinationVisitSummary",{destinationId:id}),call("GetDestinationTranslations",{destinationId:id})]).then(function(rows){replaceItems(viewState.routes,value(rows[0],[]));replaceItems(viewState.availability,value(rows[1],[]));replaceItems(viewState.guides,value(rows[2],[]));viewState.visitSummary=value(rows[3],{verifiedVisits:0});replaceItems(viewState.translations,value(rows[4],[]));scheduleMap();});Promise.all([call("GetMyTravelLists",{}),call("GetMyTrips",{})]).then(function(rows){replaceItems(viewState.lists,value(rows[0],[]));replaceItems(viewState.trips,value(rows[1],[]));}).catch(function(){});}
     function saveOffline(){call("GetOfflineDestinationBundle",{destinationId:viewState.destination.id}).then(function(r){if(!r.success){viewState.error=message(r,"Offline copy could not be saved.");return;}try{var key="travel-destinations-offline-v1",stored=JSON.parse(localStorage.getItem(key)||"{}");stored[String(viewState.destination.id)]=r.result;localStorage.setItem(key,JSON.stringify(stored));viewState.offlineSaved=true;viewState.actionMessage="Destination information saved on this device. Offline maps and live weather are not included.";}catch(ignore){viewState.error="This browser could not store the offline copy.";}});}
-    function submitVisit(){var payload=JSON.parse(JSON.stringify(viewState.visitForm));payload.destination_id=viewState.destination.id;locked("visit",function(){return api.services.SubmitVerifiedVisit(payload);},function(r){if(r&&r.success){viewState.actionMessage="Visit submitted for verification.";viewState.visitForm={visit_date:"",verification_method:"manual",notes:""};}else{viewState.error=message(r,"Visit could not be submitted.");}},"Visit could not be submitted.");}
+    function toggleForm(name){viewState.error="";viewState.openForm=viewState.openForm===name?"":name;}
+    function closeForm(){viewState.openForm="";}
+    function submitVisit(){var payload=JSON.parse(JSON.stringify(viewState.visitForm));payload.destination_id=viewState.destination.id;locked("visit",function(){return api.services.SubmitVerifiedVisit(payload);},function(r){if(r&&r.success){viewState.actionMessage="Visit submitted for verification.";viewState.visitForm={visit_date:"",verification_method:"manual",notes:""};closeForm();}else{viewState.error=message(r,"Visit could not be submitted.");}},"Visit could not be submitted.");}
     var selectedRouteFile=null;function selectRouteFile(event){selectedRouteFile=event.target.files&&event.target.files[0]?event.target.files[0]:null;viewState.routeFileName=selectedRouteFile?selectedRouteFile.name:"";if(selectedRouteFile&&(!/^[A-Za-z0-9._-]+\.gpx$/i.test(selectedRouteFile.name)||selectedRouteFile.size>5242880)){selectedRouteFile=null;viewState.routeFileName="";viewState.error="Choose a GPX file no larger than 5 MB with a filename containing only letters, numbers, dots, dashes or underscores.";}}
     function submitRoute(){if(viewState.routeForm.format==="gpx"&&selectedRouteFile){exports.getAppComponent("davvag-tools","davvag-file-uploader",function(uploader){uploader.initialize();uploader.upload([selectedRouteFile],"travel_destination_route",viewState.destination.id,function(){viewState.routeForm.gpx_media_reference="components/dock/soss-uploader/service/get/travel_destination_route/"+viewState.destination.id+"-"+selectedRouteFile.name;saveRoute();});});return;}saveRoute();}
-    function saveRoute(){var payload=JSON.parse(JSON.stringify(viewState.routeForm));payload.destination_id=viewState.destination.id;locked("route",function(){return api.services.SaveDestinationRoute(payload);},function(r){if(r&&r.success){viewState.actionMessage="Route submitted for moderation.";viewState.routeForm={name:"",format:"geojson",route_type:"out_and_back",geojson:"",distance_km:"",elevation_gain_m:"",estimated_minutes:"",gpx_media_reference:""};selectedRouteFile=null;viewState.routeFileName="";}else{viewState.error=message(r,"Route could not be submitted.");}},"Route could not be submitted.");}
+    function saveRoute(){var payload=JSON.parse(JSON.stringify(viewState.routeForm));payload.destination_id=viewState.destination.id;locked("route",function(){return api.services.SaveDestinationRoute(payload);},function(r){if(r&&r.success){viewState.actionMessage="Route submitted for moderation.";viewState.routeForm={name:"",format:"geojson",route_type:"out_and_back",geojson:"",distance_km:"",elevation_gain_m:"",estimated_minutes:"",gpx_media_reference:""};selectedRouteFile=null;viewState.routeFileName="";closeForm();}else{viewState.error=message(r,"Route could not be submitted.");}},"Route could not be submitted.");}
     function addToList(){if(!viewState.selectedListId){return;}locked("list",function(){return api.services.AddDestinationToList({list_id:Number(viewState.selectedListId),destination_id:viewState.destination.id});},function(r){viewState.actionMessage=r&&r.success?"Added to your list.":message(r,"Place could not be added.");},"Place could not be added.");}function addToTrip(){if(!viewState.selectedTripId){return;}locked("trip",function(){return api.services.AddTripDestination({trip_id:Number(viewState.selectedTripId),destination_id:viewState.destination.id});},function(r){viewState.actionMessage=r&&r.success?"Added to your trip.":message(r,"Place could not be added.");},"Place could not be added.");}
     function changeLanguage(){call("GetDestination",{id:viewState.destination.id,language:viewState.language}).then(function(r){if(r&&r.success){viewState.destination=normalizeDestination(r.result);scheduleMap();}});}
     function call(name,payload){return new Promise(function(resolve,reject){if(!api.services[name]){resolve({success:false,result:null});return;}api.services[name](payload||{}).then(resolve).error(reject);});}function value(response,fallback){return response&&response.success&&response.result!==undefined?response.result:fallback;}
@@ -90,6 +92,7 @@ WEBDOCK.component().register(function (exports) {
             if (r && r.success) {
                 viewState.reviewForm = {overall_rating:5,review_title:"",review_markdown:"",visit_date:""};
                 viewState.actionMessage = "Your review was submitted and is awaiting moderation.";
+                closeForm();
             } else {
                 viewState.error = message(r, "Review could not be submitted.");
             }
@@ -107,6 +110,7 @@ WEBDOCK.component().register(function (exports) {
             if (r && r.success) {
                 viewState.commentForm.comment_markdown = "";
                 viewState.actionMessage = "Your comment was submitted and is awaiting moderation.";
+                closeForm();
             } else {
                 viewState.error = message(r, "Comment could not be submitted.");
             }
@@ -120,6 +124,7 @@ WEBDOCK.component().register(function (exports) {
             if (r && r.success) {
                 viewState.conditionForm.description = "";
                 viewState.actionMessage = "Your condition report was submitted and is awaiting moderation.";
+                closeForm();
             } else {
                 viewState.error = message(r, "Condition could not be submitted.");
             }
@@ -227,13 +232,26 @@ WEBDOCK.component().register(function (exports) {
         return String(value || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
     function inlineMarkdown(value) {
-        var escaped = escapeHtml(value);
+        var links = [];
+        var tokenized = String(value || "").replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/gi,function (match,label,url) {
+            var safeUrl = externalHttpUrl(url);
+            if (!safeUrl) { return match; }
+            var token = "\u0000TDLINK" + links.length + "\u0000";
+            links.push('<a class="td-markdown-link" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer external">' + escapeHtml(label) + '</a>');
+            return token;
+        });
+        var escaped = escapeHtml(tokenized);
         return escaped
             .replace(/`([^`]+)`/g,"<code>$1</code>")
             .replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>")
             .replace(/__([^_]+)__/g,"<strong>$1</strong>")
             .replace(/\*([^*]+)\*/g,"<em>$1</em>")
-            .replace(/_([^_]+)_/g,"<em>$1</em>");
+            .replace(/_([^_]+)_/g,"<em>$1</em>")
+            .replace(/\u0000TDLINK(\d+)\u0000/g,function (match,index) { return links[Number(index)] || ""; });
+    }
+    function externalHttpUrl(value) {
+        var url = String(value || "").trim();
+        return /^https?:\/\/[^\s]+$/i.test(url) ? url : "";
     }
     function tableCells(line) {
         var protectedPipes = String(line || "").replace(/\\\|/g,"\u0000");

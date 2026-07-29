@@ -90,11 +90,18 @@ foreach ($app->components as $name => $component) {
 
 $detailScript = file_get_contents($appRoot . "/components/destination-detail/script.js");
 $detailView = file_get_contents($appRoot . "/components/destination-detail/partial.html");
+$detailStyles = file_get_contents($appRoot . "/components/destination-detail/destination-detail.css");
 checkTravel(strpos($detailScript, "function locked(key, factory, handleResponse, failureMessage)") !== false, "Detail actions do not use the single-callback DAVVAG request lock.");
 checkTravel(!preg_match('/return\s+api\.services\.[A-Za-z0-9_]+\([^;]*\)\.then\(/', $detailScript), "A detail action attaches a response handler before the request lock and may be overwritten.");
 checkTravel(strpos($detailView, "actionMessage") !== false, "Review and comment moderation feedback is not rendered.");
 checkTravel(strpos($detailScript, "isTableSeparator") !== false && strpos($detailScript, "renderTable") !== false, "Destination Markdown tables are not rendered.");
 checkTravel(strpos($detailView, "td-markdown") !== false, "Destination Markdown content has no dedicated formatting class.");
+checkTravel(strpos($detailScript, "function externalHttpUrl") !== false && strpos($detailScript, 'target="_blank" rel="noopener noreferrer external"') !== false, "Destination Markdown links are not rendered as safe new-tab links.");
+checkTravel(strpos($detailScript, "td-markdown-link") !== false && strpos($detailStyles, ".td-markdown-link") !== false, "Destination Markdown links have no visible link treatment.");
+checkTravel(strpos($detailScript, 'openForm: ""') !== false && substr_count($detailView, 'v-show="openForm ===') >= 6, "Destination contribution forms are not collapsed behind explicit triggers.");
+checkTravel(substr_count($detailView, 'aria-expanded="openForm ===') >= 6 && strpos($detailView, "td-collapsible-form") !== false, "Expandable destination forms are missing accessible state controls.");
+checkTravel(strpos($detailStyles, "@media (max-width: 620px)") !== false && strpos($detailStyles, "overflow-x: hidden") !== false && strpos($detailStyles, ".td-detail-hero h1") !== false, "Destination detail has no narrow-screen overflow and typography treatment.");
+checkTravel(strpos($detailStyles, ".td-collapsible-form.td-form-grid") !== false && strpos($detailStyles, ".td-inline-control") !== false, "Destination forms do not collapse to a single mobile column.");
 checkTravel(strpos($detailScript, "Vue.nextTick") !== false && strpos($detailScript, "queueMapRender") !== false, "Destination detail does not wait for its map container.");
 
 $mapRuntime = file_get_contents($appRoot . "/components/google-map-runtime/script.js");
