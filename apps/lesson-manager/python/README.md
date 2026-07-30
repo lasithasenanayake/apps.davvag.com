@@ -96,7 +96,9 @@ deleting the state file. Verified uploads are reused. A server error containing
   `Bootstrap`; zero or multiple matches stop the import.
 - Validates the conversion and image reports before contacting write APIs.
 - Creates one lesson per numbered lesson Markdown file.
-- Attaches each chapter introduction to that chapter's first lesson.
+- Attaches a chapter introduction to that chapter's first lesson when the
+  optional `000-chapter-introduction.md` file is present.
+- Accepts chapter-only conversions where `000-chapter.md` is the lesson.
 - Creates or validates draft lesson records before beginning media uploads.
 - Uploads all supported files in `media` to `lesson_content_image`.
 - Uploads source Markdown to `lesson_content_resource`.

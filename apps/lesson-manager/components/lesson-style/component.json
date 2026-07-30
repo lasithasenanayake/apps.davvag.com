@@ -1,1 +1,1 @@
-{"name":"lesson-style","description":"Lesson Manager styles","author":"DAVVAG","version":"1.2","resources":{"files":[{"type":"mainScript","location":"script.js"}],"css":[{"type":"css","location":"lesson-manager.css"}]}}
+{"name":"lesson-style","description":"Lesson Manager styles","author":"DAVVAG","version":"1.4","resources":{"files":[{"type":"mainScript","location":"script.js"}],"css":[{"type":"css","location":"lesson-manager.css"}]}}

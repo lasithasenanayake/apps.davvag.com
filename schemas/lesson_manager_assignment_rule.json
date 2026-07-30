@@ -6,7 +6,8 @@
  {"fieldName":"allowed_formats","dataType":"java.lang.String","annotations":{"maxLen":500}},
  {"fieldName":"max_file_size_mb","dataType":"int"},{"fieldName":"max_submissions","dataType":"int"},
  {"fieldName":"allow_resubmission","dataType":"boolean"},{"fieldName":"allow_late","dataType":"boolean"},
- {"fieldName":"requires_approval","dataType":"boolean"},{"fieldName":"supporting_files","dataType":"object"}
+ {"fieldName":"requires_approval","dataType":"boolean"},{"fieldName":"supporting_files","dataType":"object"},
+ {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"active"}}
 ],"relations":[
  {"relationName":"rule_lesson","relationType":"many-to-one","targetEntity":"lesson_manager_lesson","joinColumns":[{"sourceColumn":"lesson_id","targetColumn":"id"}]},
  {"relationName":"rule_assignment","relationType":"many-to-one","targetEntity":"course_manager_assignment","joinColumns":[{"sourceColumn":"assignment_id","targetColumn":"id"}]}

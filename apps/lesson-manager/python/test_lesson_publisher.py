@@ -98,6 +98,34 @@ class PlanAndRenderingTests(unittest.TestCase):
         self.assertEqual(first.kind, "front_matter")
         self.assertFalse(first.required)
 
+    def test_chapter_introduction_is_optional(self):
+        introduction = (
+            self.root / "001-chapter" / "000-chapter-introduction.md"
+        )
+        introduction.unlink()
+
+        plan = publisher.build_import_plan(self.root, include_front_matter=False)
+
+        self.assertEqual(len(plan.lessons), 2)
+        self.assertEqual(plan.content_count, 2)
+        self.assertEqual(
+            [content.kind for content in plan.lessons[0].contents], ["lesson"]
+        )
+
+    def test_chapter_markdown_can_be_the_lesson(self):
+        chapter = self.root / "001-chapter"
+        (chapter / "000-chapter-introduction.md").unlink()
+        (chapter / "002-second.md").unlink()
+        (chapter / "001-first.md").rename(chapter / "000-chapter.md")
+
+        plan = publisher.build_import_plan(self.root, include_front_matter=False)
+
+        self.assertEqual(len(plan.lessons), 1)
+        self.assertEqual(plan.lessons[0].source_path.name, "000-chapter.md")
+        self.assertEqual(
+            [content.kind for content in plan.lessons[0].contents], ["lesson"]
+        )
+
     def test_render_rewrites_images_headings_and_tables(self):
         plan = publisher.build_import_plan(self.root, include_front_matter=False)
         lesson_path = plan.lessons[0].source_path

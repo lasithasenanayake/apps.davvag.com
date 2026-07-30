@@ -571,3 +571,27 @@ The remaining code-level requirements were implemented on 2026-07-27:
 * Lifecycle notifications are queued through the existing Course Manager notification schema.
 
 Static PHP, JSON, JavaScript, descriptor-handler, and business-rule verification passes. Real dock navigation, deployed schema installation, live upload storage, OAuth providers, and a configured saved AI agent remain release-environment verification gates and must pass before production certification.
+
+## Implementation Status — Lesson Manager 2.0
+
+Lesson Manager uses recoverable soft deletion for lessons, materials, videos,
+quizzes, questions, and lesson assignment links:
+
+* Delete actions show a warning before changing a record's status to `deleted`.
+* Normal Studio and learner lists hide deleted authoring records; historical
+  attempts, submissions, progress, and marks remain available for audit.
+* Studio and Quiz Studio provide a **Show deleted** recovery view and explicit
+  restore actions.
+* Restored lessons and quizzes return as drafts; restored materials and videos
+  return as published; restored questions and assignment links return as active.
+* Delete operations never remove Lesson Manager records from storage. Child
+  records, attempts, submissions, and uploaded media references remain intact.
+
+## Implementation Status — Lesson Manager 2.1
+
+Lesson materials support safe Google Drive embeds. Teachers can select
+**Google Drive embed** and paste either a sharing URL or Google's iframe HTML.
+The API accepts only HTTPS links from `drive.google.com` or `docs.google.com`,
+normalizes them to preview/embed URLs, and rejects arbitrary iframe sources.
+Learners see the material in a responsive sandboxed iframe; Drive sharing
+permissions still control who can open it.

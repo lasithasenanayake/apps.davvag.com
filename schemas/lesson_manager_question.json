@@ -7,5 +7,6 @@
  {"fieldName":"difficulty","dataType":"java.lang.String","annotations":{"maxLen":30}},
  {"fieldName":"marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
  {"fieldName":"negative_marks","dataType":"decimal","annotations":{"decimalPoints":"8,2"}},
- {"fieldName":"sort_order","dataType":"int"},{"fieldName":"requires_manual_marking","dataType":"boolean"}
+ {"fieldName":"sort_order","dataType":"int"},{"fieldName":"requires_manual_marking","dataType":"boolean"},
+ {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":50,"default":"active"}}
 ],"relations":[{"relationName":"question_quiz","relationType":"many-to-one","targetEntity":"lesson_manager_quiz","joinColumns":[{"sourceColumn":"quiz_id","targetColumn":"id"}]}]}

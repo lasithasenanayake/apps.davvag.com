@@ -516,9 +516,10 @@ def build_import_plan(source: Path, include_front_matter: bool) -> ImportPlan:
     lesson_order = 1
     for chapter in chapter_dirs:
         introduction = chapter / "000-chapter-introduction.md"
-        if not introduction.is_file():
-            raise PublisherError(f"Chapter introduction is missing: {introduction}")
-        intro_title, _ = title_and_description(introduction)
+        has_introduction = introduction.is_file()
+        intro_title = ""
+        if has_introduction:
+            intro_title, _ = title_and_description(introduction)
         lesson_files = sorted(
             (
                 path
@@ -538,7 +539,7 @@ def build_import_plan(source: Path, include_front_matter: bool) -> ImportPlan:
                 content_sources.append(
                     (front_matter, "front_matter", front_title, False)
                 )
-            if chapter_index == 0:
+            if chapter_index == 0 and has_introduction:
                 content_sources.append(
                     (introduction, "chapter_introduction", intro_title, True)
                 )

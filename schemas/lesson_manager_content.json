@@ -3,6 +3,7 @@
  {"fieldName":"lesson_id","dataType":"int"},{"fieldName":"content_type","dataType":"java.lang.String","annotations":{"maxLen":50}},
  {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
  {"fieldName":"body","dataType":"object"},{"fieldName":"url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+ {"fieldName":"embed_url","dataType":"java.lang.String","annotations":{"maxLen":2048}},
  {"fieldName":"file_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
  {"fieldName":"mime_type","dataType":"java.lang.String","annotations":{"maxLen":120}},
  {"fieldName":"sort_order","dataType":"int"},{"fieldName":"is_required","dataType":"boolean"},
