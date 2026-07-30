@@ -13,7 +13,7 @@
   "description": {
     "title": "Lesson Manager",
     "author": "DAVVAG",
-    "version": "1.8",
+    "version": "1.9",
     "icon": "appicon.svg"
   },
   "tags": ["showincms", "showindock"],
