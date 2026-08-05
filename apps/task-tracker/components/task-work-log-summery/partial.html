@@ -1,0 +1,127 @@
+<section class="tm-page tm-work-report">
+  <div class="tm-toolbar">
+    <div>
+      <h3>Work Log Summary</h3>
+      <span class="text-muted">Project-wise and date-wise task hours</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+      <button class="btn btn-default" v-on:click="openDetailed"><span class="glyphicon glyphicon-list"></span> Detailed Report</button>
+      <button class="btn btn-default" v-on:click="openProjects"><span class="glyphicon glyphicon-folder-open"></span> Projects</button>
+    </div>
+  </div>
+
+  <div class="tm-report-filter tm-panel">
+    <div class="tm-report-field">
+      <label>Period</label>
+      <select class="form-control" v-model="filters.period" v-on:change="periodChanged" v-bind:disabled="loading">
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="specific">Specific Date Range</option>
+      </select>
+    </div>
+    <div class="tm-report-field">
+      <label>{{ filters.period == 'specific' ? 'From' : 'Date in period' }}</label>
+      <input class="form-control" type="date" v-model="filters.startDate" v-on:change="filterChanged" v-bind:disabled="loading">
+    </div>
+    <div class="tm-report-field" v-if="filters.period == 'specific'">
+      <label>To</label>
+      <input class="form-control" type="date" v-model="filters.endDate" v-on:change="filterChanged" v-bind:disabled="loading">
+    </div>
+    <div class="tm-report-field tm-report-project-filter">
+      <label>Project</label>
+      <select class="form-control" v-model="filters.projectId" v-on:change="filterChanged" v-bind:disabled="loadingProjects || loading">
+        <option value="">All Projects</option>
+        <option v-for="project in projectOptions" v-bind:value="project.projectId">{{ project.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+
+  <div class="tm-report-period" v-if="report.filters">
+    <span class="glyphicon glyphicon-time"></span>
+    {{ displayDate(report.filters.startDate) }} to {{ displayDate(report.filters.endDate) }}
+  </div>
+
+  <div class="tm-report-metrics">
+    <div class="tm-report-metric">
+      <span>Total time</span>
+      <strong>{{ report.totalHHMM || '00:00' }}</strong>
+      <small>hours : minutes</small>
+    </div>
+    <div class="tm-report-metric">
+      <span>Decimal hours</span>
+      <strong>{{ decimalHours(report.totalHours) }}</strong>
+      <small>{{ report.totalMinutes || 0 }} exact minutes</small>
+    </div>
+    <div class="tm-report-metric">
+      <span>Projects</span>
+      <strong>{{ report.projects.length }}</strong>
+      <small>with logged work</small>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs tm-report-tabs">
+    <li v-bind:class="{active:viewMode == 'project'}"><a v-on:click="setViewMode('project')">Project-wise</a></li>
+    <li v-bind:class="{active:viewMode == 'date'}"><a v-on:click="setViewMode('date')">Date-wise</a></li>
+  </ul>
+
+  <div class="tm-panel tm-report-results">
+    <div class="tm-empty" v-if="loading">Loading work log summary...</div>
+    <div class="tm-empty" v-if="!loading && report.projects.length == 0">No work logs were found for the selected period and project.</div>
+
+    <div v-if="!loading && viewMode == 'project'">
+      <article class="tm-report-group" v-for="project in report.projects">
+        <header class="tm-report-group-header">
+          <div>
+            <span class="tm-report-swatch" v-if="project.projectColor" v-bind:style="projectColorStyle(project.projectColor)"></span>
+            <strong>{{ project.projectName }}</strong>
+          </div>
+          <div class="tm-report-duration"><strong>{{ project.totalHHMM }}</strong><span>{{ decimalHours(project.totalHours) }} hours</span></div>
+        </header>
+        <div class="table-responsive">
+          <table class="table tm-report-table">
+            <thead><tr><th>Task</th><th>Status</th><th class="text-right">Minutes</th><th class="text-right">HH:MM</th><th class="text-right">Hours</th></tr></thead>
+            <tbody>
+              <tr v-for="task in project.tasks">
+                <td><span class="tm-report-id">#{{ task.taskId }}</span> {{ task.taskSubject }}</td>
+                <td><span class="label label-default">{{ task.taskStatus || 'Unknown' }}</span></td>
+                <td class="text-right">{{ task.totalMinutes }}</td>
+                <td class="text-right"><strong>{{ task.totalHHMM }}</strong></td>
+                <td class="text-right">{{ decimalHours(task.totalHours) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <div v-if="!loading && viewMode == 'date'">
+      <article class="tm-report-group" v-for="day in report.dates">
+        <header class="tm-report-group-header">
+          <div><strong>{{ displayDate(day.workDate) }}</strong></div>
+          <div class="tm-report-duration"><strong>{{ day.totalHHMM }}</strong><span>{{ decimalHours(day.totalHours) }} hours</span></div>
+        </header>
+        <div class="tm-report-day-project" v-for="project in day.projects">
+          <div class="tm-report-day-project-header">
+            <span><span class="tm-report-swatch" v-if="project.projectColor" v-bind:style="projectColorStyle(project.projectColor)"></span>{{ project.projectName }}</span>
+            <strong>{{ project.totalHHMM }}</strong>
+          </div>
+          <div class="table-responsive">
+            <table class="table tm-report-table tm-report-day-table">
+              <tbody>
+                <tr v-for="task in project.tasks">
+                  <td><span class="tm-report-id">#{{ task.taskId }}</span> {{ task.taskSubject }}</td>
+                  <td class="text-right">{{ task.totalMinutes }} min</td>
+                  <td class="text-right"><strong>{{ task.totalHHMM }}</strong></td>
+                  <td class="text-right">{{ decimalHours(task.totalHours) }} hours</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

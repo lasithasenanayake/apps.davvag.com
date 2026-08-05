@@ -52,6 +52,16 @@ apps/task-tracker/
       partial.html
       script.js
       task-dashboard.css
+    task-work-log-summery/
+      component.json
+      partial.html
+      script.js
+      task-work-log-summery.css
+    task-work-log-detailed/
+      component.json
+      partial.html
+      script.js
+      task-work-log-detailed.css
   services/
     taskapi/
       component.json
@@ -70,6 +80,8 @@ apps/task-tracker/
 /projects -> projects
 /tasks    -> tasks
 /task     -> task-view
+/task-work-log-summery  -> task-work-log-summery
+/task-work-log-detailed -> task-work-log-detailed
 ```
 
 Navigation should use the DAVVAG shell route component when available:
@@ -154,6 +166,19 @@ Each split component has a hash fallback for direct testing, but shell navigatio
 - Logs work inside the Progress Timeline section with manual work date, time-only start/end fields, automatic duration, status, and progress.
 - Provides threaded task discussion inside the Discussion section with comments, replies, and comment attachments.
 
+`components/task-work-log-summery`:
+
+- Shows exact work-log totals for weekly, monthly, or specific inclusive date ranges.
+- Filters to all accessible projects or one selected accessible project.
+- Switches between Project-wise task totals and Date-wise project/task totals.
+- Preserves the requested `summery` spelling in the component and route identifier; the visible title is Work Log Summary.
+
+`components/task-work-log-detailed`:
+
+- Shows one row per matching work log with project, task, profile, comments, times, status, progress, minutes, `HH:MM`, and decimal hours.
+- Uses the same filters and backend inclusion rules as the Summary report.
+- Preserves filters when navigating between the Summary and Detailed reports.
+
 `components/task-style`:
 
 - Loads shared Task Manager compatibility CSS for both DAVVAG docks.
@@ -193,6 +218,8 @@ POST SaveTask
 POST DeleteTask
 POST TaskDetails
 POST SaveWorkLog
+POST WorkLogSummary
+POST WorkLogDetailed
 POST SaveComment
 POST NotifyTaskAssignees
 ```
@@ -354,6 +381,25 @@ $name = $user->profile->name;
 The saved fields are `profileId` and `profileName`, and Task View displays `profileName` for each progress entry.
 
 The Task View UI stores `logDate`, `startTime`, and `endTime` while the user edits. When work date changes, the selected date is applied to both start and end. When start/end time changes, minutes are recalculated automatically. Before saving, `components/task-view/script.js` combines the date and times into full `startDate` and `endDate` values for the service. If duration is zero and both full dates are provided, the service also calculates minutes. Saving a work log updates the parent task status and progress.
+
+## Work Log Reports
+
+Work Log Summary and Work Log Detailed are read-only reports over the existing work-log namespace. They do not create reporting tables. `schemas/task_manager_work_log_report.json` defines the `SOSSData::ExecuteRaw()` join used by both endpoints. SQL applies the inclusive `logDate` range, optional project filter, and project-profile access condition before rows reach PHP. PHP then shapes the already-filtered rows and aggregates exact `durationInMinutes` values.
+
+Raw queries bypass `sysviewobject`, so the report SQL must retain its `task_manager_project_access` `EXISTS` condition for non-sysadmin profiles. Dates remain strictly validated as `YYYY-MM-DD`, and project/profile/admin parameters remain server-derived or cast integers; never accept browser-provided SQL fragments.
+
+`WorkLogSummary` returns:
+
+```text
+filters
+totalMinutes
+totalHHMM
+totalHours
+projects -> tasks
+dates -> projects -> tasks
+```
+
+`WorkLogDetailed` returns the same filters and totals plus ordered `rows`. Weekly ranges run Monday through Sunday. Monthly ranges use the complete calendar month containing `startDate`. Specific ranges require valid start and end dates. Summary and Detailed totals must match for identical effective filters and permissions.
 
 ## Discussion Comments
 

@@ -1,0 +1,44 @@
+.tm-work-detail-report { color: #20242a; padding: 12px; }
+.tm-work-detail-report .tm-toolbar { align-items: center; border-bottom: 1px solid #d8dde4; display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 10px; }
+.tm-work-detail-report .tm-toolbar h3 { margin: 0; }
+
+.tm-detail-filter {
+    align-items: end;
+    background: #fff;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    margin-bottom: 12px;
+    padding: 12px;
+}
+
+.tm-detail-field label { color: #59636f; display: block; font-size: 12px; margin-bottom: 5px; }
+.tm-detail-summary { display: grid; gap: 12px; grid-template-columns: 1.4fr .6fr 1fr; margin-bottom: 12px; }
+.tm-detail-summary > div { background: linear-gradient(135deg, #fff, #f5f8fc); border: 1px solid #d8dde4; border-radius: 8px; padding: 13px; }
+.tm-detail-summary span,
+.tm-detail-summary small { color: #68717d; display: block; }
+.tm-detail-summary strong { display: block; font-size: 18px; }
+.tm-detail-results { border: 1px solid #d8dde4; border-radius: 6px; overflow: hidden; }
+.tm-detail-results .tm-empty { color: #68717d; padding: 22px; text-align: center; }
+.tm-detail-table { margin-bottom: 0; min-width: 1180px; }
+.tm-detail-table th { background: #f6f8fb; color: #59636f; font-size: 12px; vertical-align: middle !important; }
+.tm-detail-table td { vertical-align: top !important; }
+.tm-detail-table tfoot th { background: #eef3f8; border-top: 2px solid #cbd4de; font-size: 13px; }
+.tm-detail-task { color: #68717d; display: block; font-size: 12px; margin-top: 3px; }
+.tm-detail-comments { max-width: 340px; min-width: 220px; overflow-wrap: anywhere; white-space: normal !important; }
+.tm-detail-nowrap { white-space: nowrap; }
+.tm-detail-progress { color: #68717d; display: block; font-size: 12px; margin-top: 5px; }
+.tm-detail-swatch { border-radius: 50%; display: inline-block; height: 10px; margin-right: 6px; width: 10px; }
+
+@media (max-width: 991px) {
+    .tm-detail-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 767px) {
+    .tm-work-detail-report .tm-toolbar { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .tm-work-detail-report .tm-toolbar .btn-group { display: flex; flex-wrap: wrap; }
+    .tm-detail-filter,
+    .tm-detail-summary { grid-template-columns: 1fr; }
+}

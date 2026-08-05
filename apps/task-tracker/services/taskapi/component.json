@@ -2,7 +2,7 @@
     "name": "taskapi",
     "description": "Task Manager service handlers",
     "author": "DAVVAG",
-    "version": "0.2",
+    "version": "0.4",
     "resources": {
         "files": [
             {
@@ -25,6 +25,8 @@
             "ListMyTasks": {"method": "POST"},
             "TaskDetails": {"method": "POST"},
             "SaveWorkLog": {"method": "POST"},
+            "WorkLogSummary": {"method": "POST"},
+            "WorkLogDetailed": {"method": "POST"},
             "SaveComment": {"method": "POST"},
             "ListProfiles": {"method": "POST"},
             "SearchProfileByEmail": {"method": "POST"},

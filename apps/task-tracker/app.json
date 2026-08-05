@@ -16,6 +16,14 @@
             "type": "component",
             "location": "components"
         },
+        "task-work-log-summery": {
+            "type": "component",
+            "location": "components"
+        },
+        "task-work-log-detailed": {
+            "type": "component",
+            "location": "components"
+        },
         "password-vault": {
             "type": "component",
             "location": "components"
@@ -48,7 +56,7 @@
     "description": {
         "title": "Task Manager",
         "author": "DAVVAG",
-        "version": "2.5",
+        "version": "2.7",
         "icon": "appicon.png"
     },
     "tags": [
@@ -70,6 +78,8 @@
                     "/tasks": "tasks",
                     "/my-tasks": "my-tasks",
                     "/time-tracker": "time-tracker",
+                    "/task-work-log-summery": "task-work-log-summery",
+                    "/task-work-log-detailed": "task-work-log-detailed",
                     "/password-vault": "password-vault",
                     "/task": "task-view",
                     "/task-view": "task-view"
@@ -89,6 +99,14 @@
                 {
                     "name": "Time Tracker",
                     "path": "time-tracker"
+                },
+                {
+                    "name": "Work Log Summary",
+                    "path": "task-work-log-summery"
+                },
+                {
+                    "name": "Work Log Detailed",
+                    "path": "task-work-log-detailed"
                 }
             ]
         }
@@ -99,8 +117,8 @@
             "davvag-tools"
         ],
         "schemas": [
-
-            "profile"
+            "profile",
+            "task_manager_work_log_report"
         ],
         "workflows": [],
         "plugins": [

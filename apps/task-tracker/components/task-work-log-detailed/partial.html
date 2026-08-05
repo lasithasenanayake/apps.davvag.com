@@ -1,0 +1,108 @@
+<section class="tm-page tm-work-detail-report">
+  <div class="tm-toolbar">
+    <div>
+      <h3>Work Log Detailed</h3>
+      <span class="text-muted">Every task work entry for the selected period</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" v-on:click="refresh" v-bind:disabled="loading"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+      <button class="btn btn-default" v-on:click="openSummary"><span class="glyphicon glyphicon-tasks"></span> Summary Report</button>
+      <button class="btn btn-default" v-on:click="openProjects"><span class="glyphicon glyphicon-folder-open"></span> Projects</button>
+    </div>
+  </div>
+
+  <div class="tm-detail-filter tm-panel">
+    <div class="tm-detail-field">
+      <label>Period</label>
+      <select class="form-control" v-model="filters.period" v-on:change="periodChanged" v-bind:disabled="loading">
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="specific">Specific Date Range</option>
+      </select>
+    </div>
+    <div class="tm-detail-field">
+      <label>{{ filters.period == 'specific' ? 'From' : 'Date in period' }}</label>
+      <input class="form-control" type="date" v-model="filters.startDate" v-on:change="filterChanged" v-bind:disabled="loading">
+    </div>
+    <div class="tm-detail-field" v-if="filters.period == 'specific'">
+      <label>To</label>
+      <input class="form-control" type="date" v-model="filters.endDate" v-on:change="filterChanged" v-bind:disabled="loading">
+    </div>
+    <div class="tm-detail-field">
+      <label>Project</label>
+      <select class="form-control" v-model="filters.projectId" v-on:change="filterChanged" v-bind:disabled="loadingProjects || loading">
+        <option value="">All Projects</option>
+        <option v-for="project in projectOptions" v-bind:value="project.projectId">{{ project.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
+
+  <div class="tm-detail-summary" v-if="report.filters">
+    <div>
+      <span>Active period</span>
+      <strong>{{ displayDate(report.filters.startDate) }} to {{ displayDate(report.filters.endDate) }}</strong>
+    </div>
+    <div>
+      <span>Entries</span>
+      <strong>{{ report.rows.length }}</strong>
+    </div>
+    <div>
+      <span>Total time</span>
+      <strong>{{ report.totalHHMM || '00:00' }}</strong>
+      <small>{{ decimalHours(report.totalHours) }} hours / {{ report.totalMinutes || 0 }} minutes</small>
+    </div>
+  </div>
+
+  <div class="tm-panel tm-detail-results">
+    <div class="tm-empty" v-if="loading">Loading detailed work logs...</div>
+    <div class="tm-empty" v-if="!loading && report.rows.length == 0">No work logs were found for the selected period and project.</div>
+    <div class="table-responsive" v-if="!loading && report.rows.length > 0">
+      <table class="table table-striped tm-detail-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Project / Task</th>
+            <th>Person</th>
+            <th>Work description</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status / Progress</th>
+            <th class="text-right">Minutes</th>
+            <th class="text-right">HH:MM</th>
+            <th class="text-right">Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in report.rows">
+            <td class="tm-detail-nowrap">{{ displayDate(row.workDate) }}</td>
+            <td>
+              <strong><span class="tm-detail-swatch" v-if="row.projectColor" v-bind:style="projectColorStyle(row.projectColor)"></span>{{ row.projectName }}</strong>
+              <span class="tm-detail-task">#{{ row.taskId }} {{ row.taskSubject }}</span>
+            </td>
+            <td>{{ row.profileName || '-' }}</td>
+            <td class="tm-detail-comments">{{ row.comments || '-' }}</td>
+            <td class="tm-detail-nowrap">{{ row.startTime || '-' }}</td>
+            <td class="tm-detail-nowrap">{{ row.endTime || '-' }}</td>
+            <td>
+              <span class="label label-default">{{ row.status || 'Unknown' }}</span>
+              <span class="tm-detail-progress">{{ row.progress || 0 }}%</span>
+            </td>
+            <td class="text-right">{{ row.durationInMinutes }}</td>
+            <td class="text-right"><strong>{{ row.durationHHMM }}</strong></td>
+            <td class="text-right">{{ decimalHours(row.durationHours) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="7">Filtered total</th>
+            <th class="text-right">{{ report.totalMinutes }}</th>
+            <th class="text-right">{{ report.totalHHMM }}</th>
+            <th class="text-right">{{ decimalHours(report.totalHours) }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</section>

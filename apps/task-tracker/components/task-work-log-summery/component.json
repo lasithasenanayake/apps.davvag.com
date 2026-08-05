@@ -1,0 +1,15 @@
+{
+    "name": "task-work-log-summery",
+    "description": "Project-wise and date-wise task work log summary",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ],
+        "css": [
+            {"type": "css", "location": "task-work-log-summery.css"}
+        ]
+    }
+}

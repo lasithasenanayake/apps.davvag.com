@@ -1,0 +1,25 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["startdate", "enddate", "projectid", "profileid", "issysadmin"],
+        "query": "SELECT wl.logId AS logId, DATE_FORMAT(wl.logDate, '%Y-%m-%d') AS workDate, p.projectId AS projectId, p.name AS projectName, p.projectColor AS projectColor, t.taskId AS taskId, t.subject AS taskSubject, t.status AS taskStatus, wl.profileId AS profileId, wl.profileName AS profileName, wl.comments AS comments, wl.startDate AS startDate, wl.endDate AS endDate, wl.durationInMinutes AS durationInMinutes, wl.progress AS progress, wl.status AS status FROM task_manager_work_logs wl INNER JOIN task_manager_tasks t ON t.taskId = wl.taskId INNER JOIN task_manager_projects p ON p.projectId = t.projectId WHERE wl.logDate >= '$startdate 00:00:00' AND wl.logDate < DATE_ADD('$enddate 00:00:00', INTERVAL 1 DAY) AND ($projectid = 0 OR p.projectId = $projectid) AND ($issysadmin = 1 OR EXISTS (SELECT 1 FROM task_manager_project_access pa WHERE pa.projectId = p.projectId AND pa.profileId = $profileid)) ORDER BY wl.logDate DESC, wl.startDate DESC, wl.logId DESC"
+    },
+    "fields": [
+        {"fieldName": "logId", "dataType": "int"},
+        {"fieldName": "workDate", "dataType": "java.lang.String"},
+        {"fieldName": "projectId", "dataType": "int"},
+        {"fieldName": "projectName", "dataType": "java.lang.String"},
+        {"fieldName": "projectColor", "dataType": "java.lang.String"},
+        {"fieldName": "taskId", "dataType": "int"},
+        {"fieldName": "taskSubject", "dataType": "java.lang.String"},
+        {"fieldName": "taskStatus", "dataType": "java.lang.String"},
+        {"fieldName": "profileId", "dataType": "int"},
+        {"fieldName": "profileName", "dataType": "java.lang.String"},
+        {"fieldName": "comments", "dataType": "java.lang.String"},
+        {"fieldName": "startDate", "dataType": "java.util.Date"},
+        {"fieldName": "endDate", "dataType": "java.util.Date"},
+        {"fieldName": "durationInMinutes", "dataType": "int"},
+        {"fieldName": "progress", "dataType": "int"},
+        {"fieldName": "status", "dataType": "java.lang.String"}
+    ]
+}

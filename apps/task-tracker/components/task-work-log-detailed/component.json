@@ -1,0 +1,15 @@
+{
+    "name": "task-work-log-detailed",
+    "description": "Detailed task work log report",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ],
+        "css": [
+            {"type": "css", "location": "task-work-log-detailed.css"}
+        ]
+    }
+}

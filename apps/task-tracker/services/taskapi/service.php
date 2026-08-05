@@ -13,6 +13,7 @@ class TaskManagerService {
     private $assigneeNamespace = "task_manager_task_assignees";
     private $attachmentNamespace = "task_manager_task_attachments";
     private $workLogNamespace = "task_manager_work_logs";
+    private $workLogReportNamespace = "task_manager_work_log_report";
     private $commentNamespace = "task_manager_task_comments";
     private $commentAttachmentNamespace = "task_manager_comment_attachments";
     private $notificationNamespace = "task_manager_notifications";
@@ -53,7 +54,7 @@ class TaskManagerService {
         if (isset($body->status) && $body->status !== "") {
             $query = "status:" . $body->status;
         }
-        $result = SOSSData::Query($this->projectNamespace, $query, null, "asc", 100, 0);
+        $result = SOSSData::Query($this->projectNamespace, $query, null, "asc", 5000, 0);
         return $result->success ? $this->filterProjectsForCurrentProfile($result->result) : array();
     }
 
@@ -359,8 +360,8 @@ class TaskManagerService {
         $log->logDate = isset($log->logDate) && $log->logDate !== "" ? $log->logDate : date("Y-m-d H:i:s");
         $log->startDate = isset($log->startDate) && $log->startDate !== "" ? $log->startDate : null;
         $log->endDate = isset($log->endDate) && $log->endDate !== "" ? $log->endDate : null;
-        $log->durationInMinutes = isset($log->durationInMinutes) ? intval($log->durationInMinutes) : 0;
-        if ($log->startDate !== null && $log->endDate !== null) {
+        $log->durationInMinutes = isset($log->durationInMinutes) ? max(0, intval($log->durationInMinutes)) : 0;
+        if ($log->durationInMinutes === 0 && $log->startDate !== null && $log->endDate !== null) {
             $duration = strtotime($log->endDate) - strtotime($log->startDate);
             if ($duration > 0) {
                 $log->durationInMinutes = intval(round($duration / 60));
@@ -388,6 +389,43 @@ class TaskManagerService {
         CacheData::clearObjects($this->workLogNamespace);
         CacheData::clearObjects($this->taskNamespace);
         return $log;
+    }
+
+    public function postWorkLogSummary($req, $res) {
+        $report = $this->prepareWorkLogReport($req, $res);
+        if ($report === null) {
+            return null;
+        }
+
+        $result = new stdClass();
+        $result->filters = $report->filters;
+        $result->projects = $this->summarizeWorkLogsByProject($report->rows);
+        $result->dates = $this->summarizeWorkLogsByDate($report->rows);
+        $this->applyReportDuration($result, $report->totalMinutes);
+        return $result;
+    }
+
+    public function postWorkLogDetailed($req, $res) {
+        $report = $this->prepareWorkLogReport($req, $res);
+        if ($report === null) {
+            return null;
+        }
+
+        usort($report->rows, function ($left, $right) {
+            $leftOrder = $left->workDate . " " . $left->startTime;
+            $rightOrder = $right->workDate . " " . $right->startTime;
+            $dateComparison = strcmp($rightOrder, $leftOrder);
+            if ($dateComparison !== 0) {
+                return $dateComparison;
+            }
+            return intval($right->logId) - intval($left->logId);
+        });
+
+        $result = new stdClass();
+        $result->filters = $report->filters;
+        $result->rows = $report->rows;
+        $this->applyReportDuration($result, $report->totalMinutes);
+        return $result;
     }
 
     public function postSaveComment($req, $res) {
@@ -624,6 +662,287 @@ class TaskManagerService {
             }
         }
         return implode(",", $out);
+    }
+
+    private function prepareWorkLogReport($req, $res) {
+        $body = $this->body($req);
+        $filters = $this->normalizeWorkLogReportFilters($body, $res);
+        if ($filters === null) {
+            return null;
+        }
+
+        if ($filters->projectId !== "" && !$this->canAccessProject($filters->projectId)) {
+            $res->SetError("You do not have access to the selected project.");
+            return null;
+        }
+
+        $params = new stdClass();
+        $params->parameters = new stdClass();
+        $currentProfileId = $this->isSysAdmin() ? null : $this->currentProfileId();
+        $params->parameters->startdate = $filters->startDate;
+        $params->parameters->enddate = $filters->endDate;
+        $params->parameters->projectid = $filters->projectId === "" ? 0 : intval($filters->projectId);
+        $params->parameters->profileid = $this->isSysAdmin() ? 0 : intval($currentProfileId === null ? -1 : $currentProfileId);
+        $params->parameters->issysadmin = $this->isSysAdmin() ? 1 : 0;
+
+        $rawResult = SOSSData::ExecuteRaw($this->workLogReportNamespace, $params);
+        if (!isset($rawResult->success) || !$rawResult->success) {
+            $res->SetError("Could not load work logs for the report.");
+            return null;
+        }
+
+        $rows = array();
+        $totalMinutes = 0;
+        $rawRows = isset($rawResult->result) && is_array($rawResult->result) ? $rawResult->result : array();
+        foreach ($rawRows as $rawRow) {
+            $minutes = isset($rawRow->durationInMinutes) ? max(0, intval($rawRow->durationInMinutes)) : 0;
+
+            $row = new stdClass();
+            $row->logId = isset($rawRow->logId) ? intval($rawRow->logId) : 0;
+            $row->workDate = isset($rawRow->workDate) ? $rawRow->workDate : "";
+            $row->projectId = isset($rawRow->projectId) ? intval($rawRow->projectId) : 0;
+            $row->projectName = isset($rawRow->projectName) ? $rawRow->projectName : "Project " . $row->projectId;
+            $row->projectColor = isset($rawRow->projectColor) ? $rawRow->projectColor : "";
+            $row->taskId = isset($rawRow->taskId) ? intval($rawRow->taskId) : 0;
+            $row->taskSubject = isset($rawRow->taskSubject) ? $rawRow->taskSubject : "Task " . $row->taskId;
+            $row->taskStatus = isset($rawRow->taskStatus) ? $rawRow->taskStatus : "";
+            $row->profileId = isset($rawRow->profileId) ? intval($rawRow->profileId) : 0;
+            $row->profileName = isset($rawRow->profileName) ? $rawRow->profileName : "";
+            $row->comments = isset($rawRow->comments) ? $rawRow->comments : "";
+            $row->startDate = isset($rawRow->startDate) ? $rawRow->startDate : null;
+            $row->endDate = isset($rawRow->endDate) ? $rawRow->endDate : null;
+            $row->startTime = $this->workLogTime($row->startDate);
+            $row->endTime = $this->workLogTime($row->endDate);
+            $row->durationInMinutes = $minutes;
+            $row->durationHHMM = $this->formatReportMinutes($minutes);
+            $row->durationHours = round($minutes / 60, 2);
+            $row->progress = isset($rawRow->progress) ? intval($rawRow->progress) : 0;
+            $row->status = isset($rawRow->status) ? $rawRow->status : "";
+            array_push($rows, $row);
+            $totalMinutes += $minutes;
+        }
+
+        $report = new stdClass();
+        $report->filters = $filters;
+        $report->rows = $rows;
+        $report->totalMinutes = $totalMinutes;
+        return $report;
+    }
+
+    private function normalizeWorkLogReportFilters($body, $res) {
+        $period = isset($body->period) ? strtolower(trim((string)$body->period)) : "weekly";
+        if ($period === "custom" || $period === "specific date range" || $period === "specific-date-range") {
+            $period = "specific";
+        }
+        if (!in_array($period, array("weekly", "monthly", "specific"), true)) {
+            $res->SetError("Report period must be Weekly, Monthly, or Specific Date Range.");
+            return null;
+        }
+
+        $startText = isset($body->startDate) ? trim((string)$body->startDate) : "";
+        $endText = isset($body->endDate) ? trim((string)$body->endDate) : "";
+        $today = new DateTime("today");
+
+        if ($period === "specific") {
+            $start = $this->parseReportDate($startText);
+            $end = $this->parseReportDate($endText);
+            if ($start === null || $end === null) {
+                $res->SetError("A valid start date and end date are required.");
+                return null;
+            }
+            if ($start > $end) {
+                $res->SetError("Start date cannot be after end date.");
+                return null;
+            }
+        } else {
+            $anchor = $startText === "" ? clone $today : $this->parseReportDate($startText);
+            if ($anchor === null) {
+                $res->SetError("A valid report date is required.");
+                return null;
+            }
+            $start = clone $anchor;
+            $end = clone $anchor;
+            if ($period === "weekly") {
+                $start->modify("monday this week");
+                $end->modify("sunday this week");
+            } else {
+                $start->modify("first day of this month");
+                $end->modify("last day of this month");
+            }
+        }
+
+        $projectId = "";
+        if (isset($body->projectId) && trim((string)$body->projectId) !== "") {
+            $projectId = intval($body->projectId);
+            if ($projectId <= 0) {
+                $res->SetError("A valid project is required.");
+                return null;
+            }
+        }
+
+        $filters = new stdClass();
+        $filters->period = $period;
+        $filters->startDate = $start->format("Y-m-d");
+        $filters->endDate = $end->format("Y-m-d");
+        $filters->projectId = $projectId;
+        return $filters;
+    }
+
+    private function parseReportDate($value) {
+        if ($value === "") {
+            return null;
+        }
+        $date = DateTime::createFromFormat("!Y-m-d", $value);
+        $errors = DateTime::getLastErrors();
+        if ($date === false || ($errors !== false && ($errors["warning_count"] > 0 || $errors["error_count"] > 0)) || $date->format("Y-m-d") !== $value) {
+            return null;
+        }
+        return $date;
+    }
+
+    private function workLogCalendarDate($value) {
+        if ($value === null || trim((string)$value) === "") {
+            return null;
+        }
+        $timestamp = strtotime((string)$value);
+        return $timestamp === false ? null : date("Y-m-d", $timestamp);
+    }
+
+    private function workLogTime($value) {
+        if ($value === null || trim((string)$value) === "") {
+            return "";
+        }
+        $timestamp = strtotime((string)$value);
+        return $timestamp === false ? "" : date("H:i", $timestamp);
+    }
+
+    private function summarizeWorkLogsByProject($rows) {
+        $projects = array();
+        $tasks = array();
+
+        foreach ($rows as $row) {
+            $projectKey = (string)$row->projectId;
+            $taskKey = (string)$row->taskId;
+            if (!isset($projects[$projectKey])) {
+                $project = new stdClass();
+                $project->projectId = $row->projectId;
+                $project->projectName = $row->projectName;
+                $project->projectColor = $row->projectColor;
+                $project->totalMinutes = 0;
+                $project->tasks = array();
+                $projects[$projectKey] = $project;
+                $tasks[$projectKey] = array();
+            }
+            if (!isset($tasks[$projectKey][$taskKey])) {
+                $task = new stdClass();
+                $task->taskId = $row->taskId;
+                $task->taskSubject = $row->taskSubject;
+                $task->taskStatus = $row->taskStatus;
+                $task->totalMinutes = 0;
+                $tasks[$projectKey][$taskKey] = $task;
+            }
+            $projects[$projectKey]->totalMinutes += $row->durationInMinutes;
+            $tasks[$projectKey][$taskKey]->totalMinutes += $row->durationInMinutes;
+        }
+
+        foreach ($projects as $projectKey => $project) {
+            $project->tasks = array_values($tasks[$projectKey]);
+            usort($project->tasks, function ($left, $right) {
+                $nameComparison = strcasecmp($left->taskSubject, $right->taskSubject);
+                return $nameComparison !== 0 ? $nameComparison : intval($left->taskId) - intval($right->taskId);
+            });
+            foreach ($project->tasks as $task) {
+                $this->applyReportDuration($task, $task->totalMinutes);
+            }
+            $this->applyReportDuration($project, $project->totalMinutes);
+        }
+
+        $result = array_values($projects);
+        usort($result, function ($left, $right) {
+            $nameComparison = strcasecmp($left->projectName, $right->projectName);
+            return $nameComparison !== 0 ? $nameComparison : intval($left->projectId) - intval($right->projectId);
+        });
+        return $result;
+    }
+
+    private function summarizeWorkLogsByDate($rows) {
+        $dates = array();
+        $projects = array();
+        $tasks = array();
+
+        foreach ($rows as $row) {
+            $dateKey = $row->workDate;
+            $projectKey = (string)$row->projectId;
+            $taskKey = (string)$row->taskId;
+            if (!isset($dates[$dateKey])) {
+                $date = new stdClass();
+                $date->workDate = $dateKey;
+                $date->totalMinutes = 0;
+                $date->projects = array();
+                $dates[$dateKey] = $date;
+                $projects[$dateKey] = array();
+                $tasks[$dateKey] = array();
+            }
+            if (!isset($projects[$dateKey][$projectKey])) {
+                $project = new stdClass();
+                $project->projectId = $row->projectId;
+                $project->projectName = $row->projectName;
+                $project->projectColor = $row->projectColor;
+                $project->totalMinutes = 0;
+                $project->tasks = array();
+                $projects[$dateKey][$projectKey] = $project;
+                $tasks[$dateKey][$projectKey] = array();
+            }
+            if (!isset($tasks[$dateKey][$projectKey][$taskKey])) {
+                $task = new stdClass();
+                $task->taskId = $row->taskId;
+                $task->taskSubject = $row->taskSubject;
+                $task->taskStatus = $row->taskStatus;
+                $task->totalMinutes = 0;
+                $tasks[$dateKey][$projectKey][$taskKey] = $task;
+            }
+            $dates[$dateKey]->totalMinutes += $row->durationInMinutes;
+            $projects[$dateKey][$projectKey]->totalMinutes += $row->durationInMinutes;
+            $tasks[$dateKey][$projectKey][$taskKey]->totalMinutes += $row->durationInMinutes;
+        }
+
+        foreach ($dates as $dateKey => $date) {
+            foreach ($projects[$dateKey] as $projectKey => $project) {
+                $project->tasks = array_values($tasks[$dateKey][$projectKey]);
+                usort($project->tasks, function ($left, $right) {
+                    $nameComparison = strcasecmp($left->taskSubject, $right->taskSubject);
+                    return $nameComparison !== 0 ? $nameComparison : intval($left->taskId) - intval($right->taskId);
+                });
+                foreach ($project->tasks as $task) {
+                    $this->applyReportDuration($task, $task->totalMinutes);
+                }
+                $this->applyReportDuration($project, $project->totalMinutes);
+            }
+            $date->projects = array_values($projects[$dateKey]);
+            usort($date->projects, function ($left, $right) {
+                $nameComparison = strcasecmp($left->projectName, $right->projectName);
+                return $nameComparison !== 0 ? $nameComparison : intval($left->projectId) - intval($right->projectId);
+            });
+            $this->applyReportDuration($date, $date->totalMinutes);
+        }
+
+        $result = array_values($dates);
+        usort($result, function ($left, $right) {
+            return strcmp($right->workDate, $left->workDate);
+        });
+        return $result;
+    }
+
+    private function applyReportDuration($target, $minutes) {
+        $minutes = max(0, intval($minutes));
+        $target->totalMinutes = $minutes;
+        $target->totalHHMM = $this->formatReportMinutes($minutes);
+        $target->totalHours = round($minutes / 60, 2);
+    }
+
+    private function formatReportMinutes($minutes) {
+        $minutes = max(0, intval($minutes));
+        return sprintf("%02d:%02d", intval(floor($minutes / 60)), $minutes % 60);
     }
 
     private function filterProjectsForCurrentProfile($projects) {
