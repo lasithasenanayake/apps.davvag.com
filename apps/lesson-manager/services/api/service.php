@@ -63,6 +63,7 @@ class LessonRules {
 class ApiService {
     private $lessonNs = "lesson_manager_lesson";
     private $contentNs = "lesson_manager_content";
+    private $assetNs = "lesson_manager_asset";
     private $videoNs = "lesson_manager_video";
     private $quizNs = "lesson_manager_quiz";
     private $questionNs = "lesson_manager_question";
@@ -162,12 +163,39 @@ class ApiService {
         if (empty($item->lesson_id) || empty($item->title)) return $this->error($res, "Lesson and content title are required.");
         $lesson=$this->byId($this->lessonNs,$item->lesson_id);if(!$lesson||$this->isDeleted($lesson)||!$this->canManageLesson($lesson))return $this->error($res,"An active manageable lesson is required.");$existing=!empty($item->id)?$this->byId($this->contentNs,$item->id):null;if(($existing&&$this->isDeleted($existing))||(isset($item->status)&&strtolower($item->status)==="deleted"))return $this->error($res,"Restore deleted material before editing it.");
         if(isset($item->url)&&trim(strval($item->url))!==""&&!$this->safeResourceReference($item->url))return $this->error($res,"Only HTTPS or approved uploaded resource references are accepted.");
-        if(isset($item->content_type)&&strtolower(strval($item->content_type))==="google_drive"){$embed=$this->googleDriveEmbedUrl(isset($item->embed_url)?$item->embed_url:"");if($embed==="")return $this->error($res,"Paste a valid Google Drive, Docs, Sheets, or Slides sharing link or iframe code.");$item->embed_url=$embed;}else $item->embed_url="";
+        $contentType=strtolower(isset($item->content_type)?strval($item->content_type):"");
+        if($contentType==="google_drive"){$embed=$this->googleDriveEmbedUrl(isset($item->embed_url)?$item->embed_url:"");if($embed==="")return $this->error($res,"Paste a valid Google Drive, Docs, Sheets, or Slides sharing link or iframe code.");$item->embed_url=$embed;}
+        elseif($contentType==="pdf_embed"){$embed=$this->internalPdfEmbedUrl(isset($item->embed_url)?$item->embed_url:(isset($item->url)?$item->url:""));if($embed==="")return $this->error($res,"Select a verified PDF from the Lesson Manager reusable assets area.");$item->embed_url=$embed;$item->url=$embed;$item->mime_type="application/pdf";}
+        else $item->embed_url="";
         $item->body = $this->sanitizeRichText(isset($item->body) ? $item->body : "");
         return $this->persist($this->contentNs, $item, $res);
     }
     public function postDeleteContent($req, $res) { return $this->softDeleteManagedChild($this->contentNs,$this->body($req),$res,"lesson_id"); }
     public function postRestoreContent($req, $res) { return $this->restoreManagedChild($this->contentNs,$this->body($req),$res,"lesson_id","published"); }
+
+    public function postListReusableAssets($req,$res) {
+        if(!$this->requireTeacher($res))return null;$body=$this->body($req);
+        return $this->visibleRows($this->listObject($body,$this->assetNs,array("id","asset_kind","sha256","status"),array("file_name","font_family","source_name"),"desc"),$body);
+    }
+    public function postRegisterReusableAsset($req,$res) {
+        if(!$this->requireTeacher($res))return null;$body=$this->body($req);
+        $reference=trim(isset($body->media_reference)?strval($body->media_reference):"");
+        if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_manager_assets/([A-Za-z0-9._-]+)$#',$reference,$match))return $this->error($res,"A staged Lesson Manager asset reference is required.");
+        $path=$this->uploadedMediaPath("lesson_manager_assets",$match[2]);if(!$path||!is_file($path))return $this->error($res,"The staged reusable asset could not be verified.");
+        $kind=strtolower(trim(isset($body->asset_kind)?strval($body->asset_kind):"resource"));if(!in_array($kind,array("pdf","font","image","resource"),true))return $this->error($res,"Reusable asset kind is invalid.");
+        $fileName=basename(trim(isset($body->file_name)?strval($body->file_name):$match[2]));$extension=strtolower(pathinfo($fileName,PATHINFO_EXTENSION));
+        $allowed=array("pdf"=>array("pdf"),"font"=>array("ttf","otf","woff","woff2","cff"),"image"=>array("png","jpg","jpeg","gif","webp","svg"),"resource"=>array("pdf","png","jpg","jpeg","gif","webp","svg","ttf","otf","woff","woff2","cff"));
+        if(!in_array($extension,$allowed[$kind],true))return $this->error($res,"The reusable asset extension does not match its asset kind.");
+        $size=filesize($path);$limit=$kind==="font"?15728640:($kind==="image"?52428800:209715200);if($size<1||$size>$limit)return $this->error($res,"The reusable asset is empty or exceeds its size limit.");
+        if($kind==="pdf"&&file_get_contents($path,false,null,0,5)!=="%PDF-")return $this->error($res,"The reusable PDF signature is invalid.");
+        $digest=hash_file("sha256",$path);$expected=strtolower(trim(isset($body->sha256)?strval($body->sha256):""));if($expected!==""&&(!preg_match('/^[a-f0-9]{64}$/',$expected)||!hash_equals($expected,$digest)))return $this->error($res,"Reusable asset SHA-256 verification failed.");
+        $existing=$this->findOne($this->assetNs,"sha256:".$digest.",status:active");if($existing)return $existing;
+        $item=new \stdClass();$item->asset_kind=$kind;$item->file_name=substr($fileName,0,255);$item->mime_type=function_exists("mime_content_type")?mime_content_type($path):"application/octet-stream";$item->media_reference=$reference;$item->sha256=$digest;$item->size_bytes=$size;
+        $item->font_family=$kind==="font"?substr(trim(isset($body->font_family)?strval($body->font_family):""),0,255):"";$item->font_style=$kind==="font"?substr(trim(isset($body->font_style)?strval($body->font_style):"normal"),0,40):"";$item->font_weight=$kind==="font"?max(1,min(1000,intval(isset($body->font_weight)?$body->font_weight:400))):0;
+        $sourceSha=strtolower(trim(isset($body->source_sha256)?strval($body->source_sha256):""));if($sourceSha!==""&&!preg_match('/^[a-f0-9]{64}$/',$sourceSha))return $this->error($res,"Source PDF SHA-256 is invalid.");
+        $item->source_name=substr(basename(trim(isset($body->source_name)?strval($body->source_name):"")),0,255);$item->source_sha256=$sourceSha;$item->status="active";$profile=$this->currentProfile();$item->created_by=$profile->id;$item->created_at=date("Y-m-d H:i:s");$item->updated_at=$item->created_at;
+        return $this->persist($this->assetNs,$item,$res);
+    }
     public function postListVideos($req, $res) { if(!$this->requireTeacher($res))return null;$body=$this->body($req);return $this->filterManagedChildren($this->visibleRows($this->listObject($body,$this->videoNs,array("id","lesson_id","provider","status"),array("title","video_url","transcript"),"asc"),$body),"lesson_id"); }
     public function postSaveVideo($req, $res) {
         if (!$this->requireTeacher($res)) return null; $item = $this->body($req);
@@ -577,7 +605,7 @@ class ApiService {
         }, $html);
         return trim($html);
     }
-    private function safeContentRows($rows) { foreach($rows as $row){if(isset($row->body))$row->body=$this->sanitizeRichText($row->body);if(isset($row->embed_url)){$embed=$this->googleDriveEmbedUrl($row->embed_url);if($embed!=="")$row->embed_url=$embed;else unset($row->embed_url);}}return $rows; }
+    private function safeContentRows($rows) { foreach($rows as $row){if(isset($row->body))$row->body=$this->sanitizeRichText($row->body);if(isset($row->embed_url)){$type=strtolower(isset($row->content_type)?strval($row->content_type):"");$embed=$type==="google_drive"?$this->googleDriveEmbedUrl($row->embed_url):($type==="pdf_embed"?$this->internalPdfEmbedUrl($row->embed_url):"");if($embed!=="")$row->embed_url=$embed;else unset($row->embed_url);}}return $rows; }
     private function safeVideoRows($rows){$out=array();foreach($rows as $row)if($this->validVideoReference($row))$out[]=$row;return $out;}
 
     private function safeResourceReference($value){$value=trim(strval($value));return $this->safeHttpUrl($value)||preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/[A-Za-z0-9_-]+/[A-Za-z0-9._-]+$#',$value);}
@@ -597,6 +625,7 @@ class ApiService {
         if($host==="docs.google.com"&&preg_match('#^/forms/d/e/([A-Za-z0-9_-]{10,})/viewform#',$path,$match))return "https://docs.google.com/forms/d/e/".$match[1]."/viewform?embedded=true";
         return "";
     }
+    private function internalPdfEmbedUrl($value){$value=trim(strval($value));if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_manager_assets/([A-Za-z0-9._-]+\.pdf)$#i',$value,$match))return "";$path=$this->uploadedMediaPath("lesson_manager_assets",$match[2]);if(!$path||!is_file($path)||file_get_contents($path,false,null,0,5)!=="%PDF-")return "";return $value;}
     private function validVideoReference($item){$provider=strtolower(isset($item->provider)?$item->provider:"");$url=trim(isset($item->video_url)?strval($item->video_url):"");$media=trim(isset($item->media_reference)?strval($item->media_reference):"");if($provider==="youtube")return $this->youtubeVideoId($url)!=="";if($provider==="facebook")return $this->facebookVideoId($url)!=="";if($provider==="cloudflare"){$p=parse_url($url);return $this->safeHttpUrl($url)&&isset($p["host"])&&preg_match('/(^|\.)(cloudflarestream\.com|videodelivery\.net)$/i',$p["host"]);}if($provider==="local")return $media!==""&&$this->safeResourceReference($media);return $provider==="direct"&&$this->safeHttpUrl($url);}
 
     private function filterManagedLessons($rows){$out=array();foreach($rows as $row)if($this->canManageLesson($row))$out[]=$row;return $out;}

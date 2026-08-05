@@ -1,0 +1,448 @@
+{
+  "format_version": 1,
+  "source_file": "Christianity G10 Sinhala new.pdf",
+  "source_sha256": "b63a88073268e844e4b4c2dc787474d7f451fee0b5920f8fed4d8a0ff6ba8cc7",
+  "page_count": 142,
+  "approved": false,
+  "detection": {
+    "confidence": "high",
+    "method": "numbered-heading",
+    "warnings": [
+      "Pages 1-10 are treated as front matter and are not published as a lesson.",
+      "Page 11: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 14: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 18: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 21: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 26: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 31: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 36: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 40: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 45: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 50: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 57: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 62: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 67: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 70: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 75: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 81: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 86: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 89: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 92: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 95: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 100: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 106: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 113: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 118: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 127: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 133: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval.",
+      "Page 137: The extracted title uses a legacy font encoding; replace this fallback title in the manifest before approval."
+    ]
+  },
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Lesson 01 (PDF pages 11-13)",
+      "page_start": 11,
+      "page_end": 13,
+      "lessons": [
+        {
+          "order": 1,
+          "title": "Lesson 01 (PDF pages 11-13)",
+          "detected_title": "osjeia jels yd ls;= Wm;",
+          "page_start": 11,
+          "page_end": 13
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Lesson 02 (PDF pages 14-17)",
+      "page_start": 14,
+      "page_end": 17,
+      "lessons": [
+        {
+          "order": 2,
+          "title": "Lesson 02 (PDF pages 14-17)",
+          "detected_title": "úYsIag jQ fiajl;ajh",
+          "page_start": 14,
+          "page_end": 17
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Lesson 03 (PDF pages 18-20)",
+      "page_start": 18,
+      "page_end": 20,
+      "lessons": [
+        {
+          "order": 3,
+          "title": "Lesson 03 (PDF pages 18-20)",
+          "detected_title": "foaj ie,eiaug wjk; jQfjda",
+          "page_start": 18,
+          "page_end": 20
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Lesson 04 (PDF pages 21-25)",
+      "page_start": 21,
+      "page_end": 25,
+      "lessons": [
+        {
+          "order": 4,
+          "title": "Lesson 04 (PDF pages 21-25)",
+          "detected_title": "w;s úfYaI Wm;a",
+          "page_start": 21,
+          "page_end": 25
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Lesson 05 (PDF pages 26-30)",
+      "page_start": 26,
+      "page_end": 30,
+      "lessons": [
+        {
+          "order": 5,
+          "title": "Lesson 05 (PDF pages 26-30)",
+          "detected_title": "fÊiqia jykafia yd cqfoõ pdß;%",
+          "page_start": 26,
+          "page_end": 30
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Lesson 06 (PDF pages 31-35)",
+      "page_start": 31,
+      "page_end": 35,
+      "lessons": [
+        {
+          "order": 6,
+          "title": "Lesson 06 (PDF pages 31-35)",
+          "detected_title": "fmru. ¥; fiajh",
+          "page_start": 31,
+          "page_end": 35
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Lesson 07 (PDF pages 36-39)",
+      "page_start": 36,
+      "page_end": 39,
+      "lessons": [
+        {
+          "order": 7,
+          "title": "Lesson 07 (PDF pages 36-39)",
+          "detected_title": "kdifr;ays oyï foiqu",
+          "page_start": 36,
+          "page_end": 39
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Lesson 08 (PDF pages 40-44)",
+      "page_start": 40,
+      "page_end": 44,
+      "lessons": [
+        {
+          "order": 8,
+          "title": "Lesson 08 (PDF pages 40-44)",
+          "detected_title": "foaj le",
+          "page_start": 40,
+          "page_end": 44
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Lesson 09 (PDF pages 45-49)",
+      "page_start": 45,
+      "page_end": 49,
+      "lessons": [
+        {
+          "order": 9,
+          "title": "Lesson 09 (PDF pages 45-49)",
+          "detected_title": "iudchg kj wre;la",
+          "page_start": 45,
+          "page_end": 49
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Lesson 10 (PDF pages 50-56)",
+      "page_start": 50,
+      "page_end": 56,
+      "lessons": [
+        {
+          "order": 10,
+          "title": "Lesson 10 (PDF pages 50-56)",
+          "detected_title": "jHjia:dfõ yrh fm%auh hs",
+          "page_start": 50,
+          "page_end": 56
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "title": "Lesson 11 (PDF pages 57-61)",
+      "page_start": 57,
+      "page_end": 61,
+      "lessons": [
+        {
+          "order": 11,
+          "title": "Lesson 11 (PDF pages 57-61)",
+          "detected_title": "wNsfhda. ueo fiajh",
+          "page_start": 57,
+          "page_end": 61
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "title": "Lesson 12 (PDF pages 62-66)",
+      "page_start": 62,
+      "page_end": 66,
+      "lessons": [
+        {
+          "order": 12,
+          "title": "Lesson 12 (PDF pages 62-66)",
+          "detected_title": "wNsfhda. ueo iduh",
+          "page_start": 62,
+          "page_end": 66
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "title": "Lesson 13 (PDF pages 67-69)",
+      "page_start": 67,
+      "page_end": 69,
+      "lessons": [
+        {
+          "order": 13,
+          "title": "Lesson 13 (PDF pages 67-69)",
+          "detected_title": "f.;afiuk hdÉ[dfjka iúh",
+          "page_start": 67,
+          "page_end": 69
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "title": "Lesson 14 (PDF pages 70-74)",
+      "page_start": 70,
+      "page_end": 74,
+      "lessons": [
+        {
+          "order": 14,
+          "title": "Lesson 14 (PDF pages 70-74)",
+          "detected_title": "úksYaph yd l=reism;aùu",
+          "page_start": 70,
+          "page_end": 74
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "title": "Lesson 15 (PDF pages 75-80)",
+      "page_start": 75,
+      "page_end": 80,
+      "lessons": [
+        {
+          "order": 15,
+          "title": "Lesson 15 (PDF pages 75-80)",
+          "detected_title": "ÿla m%dma;shg m%;spdr",
+          "page_start": 75,
+          "page_end": 80
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "title": "Lesson 16 (PDF pages 81-85)",
+      "page_start": 81,
+      "page_end": 85,
+      "lessons": [
+        {
+          "order": 16,
+          "title": "Lesson 16 (PDF pages 81-85)",
+          "detected_title": "kj n,dfmdfrd;a;=j",
+          "page_start": 81,
+          "page_end": 85
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "title": "Lesson 17 (PDF pages 86-88)",
+      "page_start": 86,
+      "page_end": 88,
+      "lessons": [
+        {
+          "order": 17,
+          "title": "Lesson 17 (PDF pages 86-88)",
+          "detected_title": "Y=oaOd;au wkqyig újD; fjuq",
+          "page_start": 86,
+          "page_end": 88
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "title": "Lesson 18 (PDF pages 89-91)",
+      "page_start": 89,
+      "page_end": 91,
+      "lessons": [
+        {
+          "order": 18,
+          "title": "Lesson 18 (PDF pages 89-91)",
+          "detected_title": "mÍlaIdjka ch .ksuq",
+          "page_start": 89,
+          "page_end": 91
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "title": "Lesson 19 (PDF pages 92-94)",
+      "page_start": 92,
+      "page_end": 94,
+      "lessons": [
+        {
+          "order": 19,
+          "title": "Lesson 19 (PDF pages 92-94)",
+          "detected_title": "ksjerÈ oelau ;=<ska Ôú; kfjdaoh",
+          "page_start": 92,
+          "page_end": 94
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "title": "Lesson 20 (PDF pages 95-99)",
+      "page_start": 95,
+      "page_end": 99,
+      "lessons": [
+        {
+          "order": 20,
+          "title": "Lesson 20 (PDF pages 95-99)",
+          "detected_title": "foaj rdcHfha j¾Okh",
+          "page_start": 95,
+          "page_end": 99
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "title": "Lesson 21 (PDF pages 100-105)",
+      "page_start": 100,
+      "page_end": 105,
+      "lessons": [
+        {
+          "order": 21,
+          "title": "Lesson 21 (PDF pages 100-105)",
+          "detected_title": "foaj rdcHfha ,l=Kq yd m%d;syd¾hh",
+          "page_start": 100,
+          "page_end": 105
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "title": "Lesson 22 (PDF pages 106-112)",
+      "page_start": 106,
+      "page_end": 112,
+      "lessons": [
+        {
+          "order": 22,
+          "title": "Lesson 22 (PDF pages 106-112)",
+          "detected_title": "foaj rdcHfha m%;sm;a;",
+          "page_start": 106,
+          "page_end": 112
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "title": "Lesson 23 (PDF pages 113-117)",
+      "page_start": 113,
+      "page_end": 117,
+      "lessons": [
+        {
+          "order": 23,
+          "title": "Lesson 23 (PDF pages 113-117)",
+          "detected_title": "foaj rdcHfha mqrjeishka",
+          "page_start": 113,
+          "page_end": 117
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "title": "Lesson 24 (PDF pages 118-126)",
+      "page_start": 118,
+      "page_end": 126,
+      "lessons": [
+        {
+          "order": 24,
+          "title": "Lesson 24 (PDF pages 118-126)",
+          "detected_title": "foaj rdcHfha wNsfhda.",
+          "page_start": 118,
+          "page_end": 126
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "title": "Lesson 25 (PDF pages 127-132)",
+      "page_start": 127,
+      "page_end": 132,
+      "lessons": [
+        {
+          "order": 25,
+          "title": "Lesson 25 (PDF pages 127-132)",
+          "detected_title": "foaj rdcHh Wfoid lemùu",
+          "page_start": 127,
+          "page_end": 132
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "title": "Lesson 26 (PDF pages 133-136)",
+      "page_start": 133,
+      "page_end": 136,
+      "lessons": [
+        {
+          "order": 26,
+          "title": "Lesson 26 (PDF pages 133-136)",
+          "detected_title": "foõ jokska wdf,dalhla",
+          "page_start": 133,
+          "page_end": 136
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "title": "Lesson 27 (PDF pages 137-142)",
+      "page_start": 137,
+      "page_end": 142,
+      "lessons": [
+        {
+          "order": 27,
+          "title": "Lesson 27 (PDF pages 137-142)",
+          "detected_title": "ffoksl Ôú;hg u. fmkaùula",
+          "page_start": 137,
+          "page_end": 142
+        }
+      ]
+    }
+  ]
+}

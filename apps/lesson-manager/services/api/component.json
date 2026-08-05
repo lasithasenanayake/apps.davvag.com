@@ -2,7 +2,7 @@
   "name": "api",
   "description": "Lesson Manager service handlers",
   "author": "DAVVAG",
-  "version": "1.7",
+  "version": "1.8",
   "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
   "serviceHandler": {
     "file": "service.php",
@@ -19,6 +19,8 @@
       "SaveContent": {"method": "POST"},
       "DeleteContent": {"method": "POST"},
       "RestoreContent": {"method": "POST"},
+      "ListReusableAssets": {"method": "POST"},
+      "RegisterReusableAsset": {"method": "POST"},
       "ListVideos": {"method": "POST"},
       "SaveVideo": {"method": "POST"},
       "DeleteVideo": {"method": "POST"},

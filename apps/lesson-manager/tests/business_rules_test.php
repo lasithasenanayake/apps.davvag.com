@@ -30,6 +30,7 @@ check($driveEmbed->invoke($service,"https://drive.google.com/file/d/".$driveId."
 check($driveEmbed->invoke($service,'<iframe src="https://docs.google.com/presentation/d/'.$driveId.'/edit"></iframe>')==="https://docs.google.com/presentation/d/".$driveId."/embed","Google Slides iframe HTML normalizes to an embed URL");
 check($driveEmbed->invoke($service,"https://docs.google.com/spreadsheets/d/".$driveId."/edit")==="https://docs.google.com/spreadsheets/d/".$driveId."/preview","Google Sheets links normalize to preview URLs");
 check($driveEmbed->invoke($service,'<iframe src="https://evil.example/embed"></iframe>')===""&&$driveEmbed->invoke($service,"http://drive.google.com/file/d/".$driveId."/view")==="","non-Google and non-HTTPS iframe sources are rejected");
+$pdfEmbed=$reflection->getMethod("internalPdfEmbedUrl");$pdfEmbed->setAccessible(true);check($pdfEmbed->invoke($service,"https://evil.example/book.pdf")===""&&$pdfEmbed->invoke($service,"components/dock/soss-uploader/service/get/other/book.pdf")==="","PDF embeds reject external and non-asset references");
 $videoId=$reflection->getMethod("youtubeVideoId");$videoId->setAccessible(true);
 check($videoId->invoke($service,"https://www.youtube.com/watch?v=dQw4w9WgXcQ")==="dQw4w9WgXcQ","YouTube URLs are normalized to video IDs");
 putenv("DAVVAG_PROVIDER_SECRET=lesson-manager-test-secret");
@@ -53,10 +54,11 @@ check(count($visibleRows->invoke($service,array($active,$deleted,$legacy),obj(ar
 check(count($visibleRows->invoke($service,array($active,$deleted,$legacy),obj(array("deleted_only"=>true))))===1,"deleted-only list requests isolate recoverable records");
 $serviceSource=file_get_contents(__DIR__."/../services/api/service.php");
 check(strpos($serviceSource,"SOSSData::Delete")===false,"Lesson Manager never physically deletes recoverable records");
-$questionSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_question.json"));$ruleSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_assignment_rule.json"));$contentSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_content.json"));
+$questionSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_question.json"));$ruleSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_assignment_rule.json"));$contentSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_content.json"));$assetSchema=json_decode(file_get_contents(__DIR__."/../../../schemas/lesson_manager_asset.json"));
 $schemaHasStatus=function($schema){foreach($schema->fields as $field)if($field->fieldName==="status")return true;return false;};
 check($schemaHasStatus($questionSchema)&&$schemaHasStatus($ruleSchema),"questions and assignment links support soft-delete status");
 $schemaHasEmbed=false;foreach($contentSchema->fields as $field)if($field->fieldName==="embed_url")$schemaHasEmbed=true;check($schemaHasEmbed,"lesson content schema stores validated embed URLs");
+$assetFields=array();foreach($assetSchema->fields as $field)$assetFields[]=$field->fieldName;check(in_array("sha256",$assetFields)&&in_array("media_reference",$assetFields)&&in_array("font_family",$assetFields),"reusable assets store verified hashes, references, and font metadata");
 $component=json_decode(file_get_contents(__DIR__."/../services/api/component.json"),true);foreach($component["serviceHandler"]["methods"] as $method=>$settings){$prefix=strtoupper(isset($settings["method"])?$settings["method"]:"POST")==="GET"?"get":"post";check($reflection->hasMethod($prefix.$method),"service descriptor method ".$method." has a PHP handler");}
 if($failures===0)echo "LessonRules tests passed.".PHP_EOL;
 exit($failures?1:0);

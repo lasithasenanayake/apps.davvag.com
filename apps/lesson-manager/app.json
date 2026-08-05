@@ -13,7 +13,7 @@
   "description": {
     "title": "Lesson Manager",
     "author": "DAVVAG",
-    "version": "2.1",
+    "version": "2.2",
     "icon": "appicon.svg"
   },
   "tags": ["showincms", "showindock"],
@@ -46,7 +46,7 @@
     "apps": ["currency-configuration", "course-manager", "ai-agent-creator", "davvag-tools", "davvag-credit-points"],
     "schemas": [
         "currency_configuration",
-      "lesson_manager_lesson", "lesson_manager_content", "lesson_manager_video",
+      "lesson_manager_lesson", "lesson_manager_content", "lesson_manager_asset", "lesson_manager_video",
       "lesson_manager_quiz", "lesson_manager_question", "lesson_manager_attempt",
       "lesson_manager_progress", "lesson_manager_assignment_rule",
       "lesson_manager_provider_connection",

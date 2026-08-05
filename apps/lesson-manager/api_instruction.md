@@ -326,6 +326,52 @@ does not explicitly sort by `sort_order`. Therefore create content blocks
 sequentially in display order as well as setting `sort_order`; do not create a
 single lesson's content blocks concurrently.
 
+### PDF embeds and reusable assets
+
+The PDF publisher stages raw bytes in the tenant-managed
+`lesson_manager_assets` uploader namespace, verifies the downloaded SHA-256,
+and then registers the file through `RegisterReusableAsset`:
+
+```json
+{
+  "asset_kind": "pdf",
+  "file_name": "textbook-lesson-001-pages-11-13.pdf",
+  "media_reference": "components/dock/soss-uploader/service/get/lesson_manager_assets/lm-HASH-book.pdf",
+  "sha256": "64-character lowercase SHA-256",
+  "source_name": "textbook.pdf",
+  "source_sha256": "64-character lowercase SHA-256"
+}
+```
+
+Allowed kinds are `pdf`, `font`, `image`, and `resource`. Fonts may additionally
+send `font_family`, `font_style`, and `font_weight`. The service accepts only a
+verified reference in `lesson_manager_assets`, validates extension, size, PDF
+signature where applicable, and deduplicates active records by SHA-256.
+`ListReusableAssets` lists the registered tenant assets for teachers and
+administrators.
+
+After registration, create the lesson material using the returned
+`media_reference` for both `url` and `embed_url`:
+
+```json
+{
+  "lesson_id": 501,
+  "content_type": "pdf_embed",
+  "title": "Lesson 1",
+  "url": "components/dock/soss-uploader/service/get/lesson_manager_assets/lm-HASH-book.pdf",
+  "embed_url": "components/dock/soss-uploader/service/get/lesson_manager_assets/lm-HASH-book.pdf",
+  "file_name": "textbook-lesson-001-pages-11-13.pdf",
+  "mime_type": "application/pdf",
+  "sort_order": 1,
+  "is_required": true,
+  "status": "published"
+}
+```
+
+`SaveContent` re-verifies that the embedded PDF exists in the managed asset
+namespace and begins with `%PDF-`; arbitrary external PDF iframe URLs are not
+accepted.
+
 ### Optional video import
 
 The supplied textbook has no video files. If a future source contains videos,
@@ -361,6 +407,7 @@ The browser Studio uses these namespaces:
 | Downloadable source/resource files | `lesson_content_resource` |
 | Local lesson videos | `lesson_video` |
 | Assignment support files | `lesson_assignment_support` |
+| PDF textbook splits and reusable fonts/resources | `lesson_manager_assets` |
 
 The upload service accepts the raw file bytes, not `multipart/form-data`:
 

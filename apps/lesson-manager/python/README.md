@@ -110,3 +110,58 @@ deleting the state file. Verified uploads are reused. A server error containing
 
 See [../api_instruction.md](../api_instruction.md) for the underlying service
 contract and design details.
+
+## PDF textbook publisher
+
+`pdf_lesson_publisher.py` imports a textbook directly from PDF while keeping
+the original page design. It detects numbered lesson-opening pages first and
+falls back to repeated heading typography when a PDF has no bookmarks. The
+sample Sinhala textbooks use legacy font encodings, so a detected title may be
+unreadable even though the rendered page is correct. Such titles are replaced
+with an explicit page-range fallback in the generated manifest.
+
+Start with a dry run. Quote the complete Windows path because it may contain
+spaces or `&`:
+
+```powershell
+.\run_pdf_publisher.cmd CHRISTIANITY_G10_S `
+  --source "C:\path\to\Christianity G10 Sinhala new.pdf"
+```
+
+The first run writes a JSON lesson plan under `.lesson-manager-pdf` in the
+current working directory. Review its chapter/lesson page ranges and replace
+any fallback titles, then set `"approved": true`. Pass that plan explicitly if
+you run the command from another directory:
+
+```powershell
+.\run_pdf_publisher.cmd CHRISTIANITY_G10_S `
+  --source "C:\path\to\Christianity G10 Sinhala new.pdf" `
+  --manifest "C:\path\to\reviewed.lesson-plan.json" `
+  --apply
+
+# Publish only after the draft import and asset verification succeed
+.\run_pdf_publisher.cmd CHRISTIANITY_G10_S `
+  --source "C:\path\to\Christianity G10 Sinhala new.pdf" `
+  --manifest "C:\path\to\reviewed.lesson-plan.json" `
+  --apply --publish
+```
+
+Apply mode performs these operations:
+
+- Splits the source into one page-faithful PDF per manifest lesson.
+- Uploads the original and split PDFs to the tenant-managed
+  `lesson_manager_assets` area and verifies every upload by SHA-256.
+- Extracts full embedded TTF/OTF/WOFF/WOFF2 fonts once, deduplicates them by
+  hash, and registers only fonts whose embedding flags allow reusable use.
+  PDF-only subset/CID fonts remain inside the split PDF and are reported as
+  non-reusable instead of filling the assets area with partial font copies.
+- Records skipped or restricted fonts in the JSON result. `--no-fonts`
+  disables font extraction.
+- Creates a `pdf_embed` material so learners can read the split PDF in Lesson
+  Manager and can also open it in a separate tab.
+- Uses an atomic resume state so reruns reuse verified records and assets.
+
+The manifest SHA-256 and page count must still match the source. Apply mode
+will not use an unapproved plan unless `--accept-detected-plan` is supplied
+explicitly. `--refresh-manifest` reruns detection but refuses to overwrite an
+approved plan.

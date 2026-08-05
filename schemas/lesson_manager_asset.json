@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"asset_kind","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"file_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"mime_type","dataType":"java.lang.String","annotations":{"maxLen":120}},
+    {"fieldName":"media_reference","dataType":"java.lang.String","annotations":{"maxLen":2048}},
+    {"fieldName":"sha256","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"size_bytes","dataType":"long"},
+    {"fieldName":"font_family","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"font_style","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"font_weight","dataType":"int"},
+    {"fieldName":"source_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"source_sha256","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"active"}},
+    {"fieldName":"created_by","dataType":"int"},
+    {"fieldName":"created_at","dataType":"java.util.Date"},
+    {"fieldName":"updated_at","dataType":"java.util.Date"}
+  ],
+  "relations": []
+}
