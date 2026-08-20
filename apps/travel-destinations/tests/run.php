@@ -159,6 +159,8 @@ $apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
 checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
 checkTravel(strpos($apiServiceSource, '$uploadPrefix = "components/dock/soss-uploader/service/get/travel_destination_media/"') !== false && strpos($apiServiceSource, "destinationMedia") !== false, "Destination media associations are not restricted and returned to their owner or administrator.");
+checkTravel(strpos($apiServiceSource, "private function advancedRows") !== false && strpos($apiServiceSource, '\\SOSSData::Query($namespace, $query)') !== false, "Travel searches do not use the public SOSSData advanced-query contract.");
+checkTravel(strpos($apiServiceSource, '$this->destinationSearchSorting($sort)') !== false && strpos($apiServiceSource, '$this->advancedCondition("status", "=", "Published")') !== false, "Destination search does not push validated conditions and sorting into AdvancedQuery.");
 $weatherSettingsView = file_get_contents($appRoot . "/components/admin-weather-settings/partial.html");
 checkTravel(strpos($weatherSettingsView, "CC BY 4.0") !== false && strpos($weatherSettingsView, "non-commercial") !== false, "Weather settings do not disclose provider licence constraints.");
 checkTravel(strpos($detailScript, "GetDestinationWeather") !== false && strpos($detailView, "weather.provider.attributionUrl") !== false, "Destination details do not load and attribute optional weather data.");
@@ -205,6 +207,15 @@ checkTravel($safeAiDestination["known"] === true && $safeAiDestination["destinat
 checkTravel(!isset($safeAiDestination["destination"]["unexpected_admin_field"]), "AI destination enrichment accepted a field outside its allowlist.");
 $lowConfidenceAiDestination = $sanitizeAiDestination->invoke($apiService, array("known" => true, "confidence" => 0.4, "destination" => array("short_summary" => "Guess")), 0.75);
 checkTravel($lowConfidenceAiDestination["known"] === false && count((array)$lowConfidenceAiDestination["destination"]) === 0, "Low-confidence AI destination data was accepted.");
+
+$legacyEqualityConditions = $apiReflection->getMethod("legacyEqualityConditions");
+$legacyEqualityConditions->setAccessible(true);
+$advancedConditions = $legacyEqualityConditions->invoke($apiService, "destination_id:42,moderation_status:Approved,is_active:1");
+checkTravel(count($advancedConditions) === 3 && $advancedConditions[1]["column"] === "moderation_status" && $advancedConditions[1]["value"] === "Approved", "Legacy equality filters were not converted to AdvancedQuery conditions.");
+$destinationSearchSorting = $apiReflection->getMethod("destinationSearchSorting");
+$destinationSearchSorting->setAccessible(true);
+$ratingSorting = $destinationSearchSorting->invoke($apiService, "highest_rated");
+checkTravel($ratingSorting[0]["column"] === "rating_average" && $ratingSorting[0]["direction"] === "DESC", "Destination sort was not converted to an AdvancedQuery sorting descriptor.");
 
 $phaseTwoSchemas = array("travel_destination_route","travel_destination_list","travel_destination_list_item","travel_destination_visit","travel_destination_guide","travel_destination_guide_destination","travel_destination_availability","travel_destination_notification_preference","travel_destination_translation","travel_destination_collection","travel_destination_collection_item","travel_destination_trip","travel_destination_trip_item");
 foreach ($phaseTwoSchemas as $namespace) {

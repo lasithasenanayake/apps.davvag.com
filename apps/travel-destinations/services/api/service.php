@@ -952,10 +952,16 @@ class ApiService {
         if ($status !== "" && !in_array($status, $this->destinationStatuses, true)) {
             return $this->fail($res, "Invalid destination status.");
         }
-        $query = $status === "" ? "" : "status:" . $status;
         $page = isset($body->page) ? max(0, intval($body->page)) : 0;
         $pageSize = isset($body->pageSize) ? min(100, max(1, intval($body->pageSize))) : 30;
-        $items = $this->rows($this->destinationNamespace, $query, "desc", $pageSize + 1, $page * $pageSize);
+        $conditions = $status === "" ? array() : array($this->advancedCondition("status", "=", $status));
+        $items = $this->advancedRows(
+            $this->destinationNamespace,
+            $conditions,
+            array($this->advancedSort("sysversionid", "DESC")),
+            $pageSize + 1,
+            $page * $pageSize
+        );
         $hasMore = count($items) > $pageSize;
         if ($hasMore) {
             array_pop($items);
@@ -1165,7 +1171,13 @@ class ApiService {
             return array();
         }
         $values = array();
-        foreach ($this->rows($this->destinationNamespace, "status:Published", "desc", 500, 0) as $destination) {
+        foreach ($this->advancedRows(
+            $this->destinationNamespace,
+            array($this->advancedCondition("status", "=", "Published")),
+            array($this->advancedSort("name", "ASC")),
+            500,
+            0
+        ) as $destination) {
             foreach (array("name", "province", "district", "nearest_town", "village") as $field) {
                 if (!empty($destination->{$field})) { $values[] = array("label" => strval($destination->{$field}), "type" => $field === "name" ? "destination" : "location", "destinationId" => $field === "name" ? intval($destination->id) : null); }
             }
@@ -1536,7 +1548,6 @@ class ApiService {
         if ($radius !== null && !TravelDestinationRules::validRadius($radius)) {
             return $this->fail($res, "Invalid search radius.");
         }
-        $rows = $this->rows($this->destinationNamespace, "status:Published", "desc", 1000, 0);
         $categoryId = isset($body->categoryId) ? intval($body->categoryId) : 0;
         $amenityIds = isset($body->amenityIds) && is_array($body->amenityIds) ? array_values(array_unique(array_map("intval", $body->amenityIds))) : array();
         $categoryDestinationIds = $categoryId > 0 ? $this->destinationIdsForLink($this->categoryLinkNamespace, "category_id", $categoryId) : null;
@@ -1544,6 +1555,42 @@ class ApiService {
         $keyword = isset($body->keyword) ? mb_strtolower(trim($body->keyword)) : "";
         $searchLanguage = isset($body->language) ? strtolower(trim(strval($body->language))) : "";
         $minimumRating = isset($body->minimumRating) ? max(0, min(5, floatval($body->minimumRating))) : 0;
+        if (($categoryDestinationIds !== null && count($categoryDestinationIds) === 0)
+            || ($amenityDestinationIds !== null && count($amenityDestinationIds) === 0)) {
+            return array("items" => array(), "pagination" => array("page" => $page, "pageSize" => $pageSize, "total" => 0, "hasMore" => false));
+        }
+        $conditions = array($this->advancedCondition("status", "=", "Published"));
+        if ($categoryDestinationIds !== null) {
+            $conditions[] = $this->advancedCondition("id", "IN", $categoryDestinationIds);
+        }
+        if ($amenityDestinationIds !== null) {
+            $conditions[] = $this->advancedCondition("id", "IN", $amenityDestinationIds);
+        }
+        if ($minimumRating > 0) {
+            $conditions[] = $this->advancedCondition("rating_average", ">=", $minimumRating);
+        }
+        if (!empty($body->verifiedOnly)) {
+            $conditions[] = $this->advancedCondition("verification_status", "=", "Verified");
+        }
+        if (isset($body->staySubtype) && trim(strval($body->staySubtype)) !== "") {
+            $conditions[] = $this->advancedCondition("stay_subtype", "=", trim(strval($body->staySubtype)));
+        }
+        foreach (array("province", "district", "nearest_town") as $field) {
+            if (isset($body->{$field}) && trim(strval($body->{$field})) !== "") {
+                $conditions[] = $this->advancedCondition($field, "=", trim(strval($body->{$field})));
+            }
+        }
+        if ($mapOnly) {
+            $conditions[] = $this->advancedCondition("latitude", "IS NOT NULL");
+            $conditions[] = $this->advancedCondition("longitude", "IS NOT NULL");
+        }
+        $rows = $this->advancedRows(
+            $this->destinationNamespace,
+            $conditions,
+            $this->destinationSearchSorting($sort),
+            1000,
+            0
+        );
         $items = array();
         foreach ($rows as $item) {
             if ($searchLanguage !== "" && (!isset($item->primary_language) || strtolower(strval($item->primary_language)) !== $searchLanguage)) {
@@ -2012,10 +2059,80 @@ class ApiService {
         \SOSSData::Insert($this->submissionLogNamespace, $log);
     }
 
+    private function advancedCondition($column, $operator, $value = null) {
+        $condition = array("column" => $column, "operator" => $operator);
+        if ($operator !== "IS NULL" && $operator !== "IS NOT NULL") {
+            $condition["value"] = $value;
+        }
+        return $condition;
+    }
+
+    private function advancedSort($column, $direction) {
+        return array("column" => $column, "direction" => strtoupper($direction));
+    }
+
+    private function destinationSearchSorting($sort) {
+        switch ($sort) {
+            case "highest_rated":
+                return array($this->advancedSort("rating_average", "DESC"), $this->advancedSort("review_count", "DESC"));
+            case "most_reviewed":
+                return array($this->advancedSort("review_count", "DESC"), $this->advancedSort("rating_average", "DESC"));
+            case "recently_added":
+                return array($this->advancedSort("syscreated", "DESC"));
+            case "recently_verified":
+                return array($this->advancedSort("last_verified_date", "DESC"));
+            case "most_viewed":
+                return array($this->advancedSort("view_count", "DESC"));
+            case "name":
+                return array($this->advancedSort("name", "ASC"));
+            case "featured":
+                return array($this->advancedSort("is_featured", "DESC"), $this->advancedSort("publication_date", "DESC"));
+            case "nearest":
+            default:
+                // Distance is calculated after loading because AdvancedQuery intentionally
+                // does not support SQL expressions or geospatial functions.
+                return array($this->advancedSort("sysversionid", "DESC"));
+        }
+    }
+
+    private function legacyEqualityConditions($query) {
+        $conditions = array();
+        foreach (explode(",", trim(strval($query))) as $part) {
+            if (trim($part) === "") {
+                continue;
+            }
+            $field = explode(":", $part, 2);
+            if (count($field) !== 2 || trim($field[0]) === "") {
+                continue;
+            }
+            $conditions[] = $this->advancedCondition(trim($field[0]), "=", $field[1]);
+        }
+        return $conditions;
+    }
+
+    private function advancedRows($namespace, $conditions, $sorting, $size, $offset) {
+        $query = array(
+            "conditions" => is_array($conditions) ? $conditions : array(),
+            "sorting" => is_array($sorting) && count($sorting) > 0
+                ? $sorting
+                : array($this->advancedSort("sysversionid", "DESC")),
+            "pageSize" => intval($size),
+            "pageFrom" => intval($offset)
+        );
+        $result = \SOSSData::Query($namespace, $query);
+        return !empty($result->success) && isset($result->result) && is_array($result->result) ? $result->result : array();
+    }
+
     private function pagedRows($namespace, $query, $body, $defaultSize, $maxSize) {
         $page = isset($body->page) ? max(0, intval($body->page)) : 0;
         $pageSize = isset($body->pageSize) ? min($maxSize, max(1, intval($body->pageSize))) : $defaultSize;
-        $items = $this->rows($namespace, $query, "desc", $pageSize + 1, $page * $pageSize);
+        $items = $this->advancedRows(
+            $namespace,
+            $this->legacyEqualityConditions($query),
+            array($this->advancedSort("sysversionid", "DESC")),
+            $pageSize + 1,
+            $page * $pageSize
+        );
         $hasMore = count($items) > $pageSize;
         if ($hasMore) {
             array_pop($items);
@@ -2031,6 +2148,16 @@ class ApiService {
     }
 
     private function rows($namespace, $query, $sort, $size, $page) {
+        $conditions = $this->legacyEqualityConditions($query);
+        if (count($conditions) > 1) {
+            return $this->advancedRows(
+                $namespace,
+                $conditions,
+                array($this->advancedSort("sysversionid", strtoupper($sort) === "ASC" ? "ASC" : "DESC")),
+                $size,
+                $page
+            );
+        }
         $result = \SOSSData::Query($namespace, urlencode($query), null, $sort, $size, $page);
         return !empty($result->success) && isset($result->result) && is_array($result->result) ? $result->result : array();
     }
