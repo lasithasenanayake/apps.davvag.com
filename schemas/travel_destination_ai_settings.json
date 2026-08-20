@@ -5,7 +5,7 @@
         {"fieldName": "agent_code", "dataType": "java.lang.String", "annotations": {"maxLen": 64}},
         {"fieldName": "is_enabled", "dataType": "boolean"},
         {"fieldName": "fill_empty_only", "dataType": "boolean"},
-        {"fieldName": "minimum_confidence", "dataType": "double"},
+        {"fieldName": "minimum_confidence", "dataType": "double", "annotations": {"decimalPoints": "8,2"}},
         {"fieldName": "updated_by_profile_id", "dataType": "int"},
         {"fieldName": "updated_at", "dataType": "java.util.Date"}
     ],

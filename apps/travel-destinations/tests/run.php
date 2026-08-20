@@ -148,6 +148,7 @@ checkTravel(in_array("travel_destination_map_settings", $app->dependencies->sche
 checkTravel(in_array("travel_destination_description_chunk", $app->dependencies->schemas, true), "Large description chunk schema dependency is missing.");
 checkTravel(in_array("travel_destination_weather_settings", $app->dependencies->schemas, true), "Weather settings schema dependency is missing.");
 checkTravel(in_array("travel_destination_ai_settings", $app->dependencies->schemas, true), "AI settings schema dependency is missing.");
+checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_ai_settings.json"), '"decimalPoints": "8,2"') !== false, "AI minimum confidence does not declare DECIMAL(8,2) precision.");
 checkTravel(in_array("ai-agent-creator", $app->dependencies->apps, true), "AI Agent Creator app dependency is missing.");
 checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
