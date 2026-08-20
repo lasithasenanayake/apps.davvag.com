@@ -128,6 +128,7 @@ class ApiService {
             "authenticated" => $profileId !== null,
             "profileId" => $profileId,
             "administrator" => $this->isAdmin(),
+            "sysadmin" => $this->isAdmin(),
             "radii" => array(1, 5, 10, 25, 50, 100),
             "sorts" => $this->sortValues,
             "map" => array(

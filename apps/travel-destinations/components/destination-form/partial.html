@@ -15,7 +15,7 @@
                         <div><strong>Fill known details with AI</strong><small>{{ aiConfig.agentName ? "Using " + aiConfig.agentName + ". " : "" }}Autofill runs when you leave the name field. Suggestions are validated and must be reviewed before saving.</small></div>
                         <button class="td-button secondary" type="button" :disabled="enriching || !String(form.name || '').trim()" @click="fillWithAi">{{ enriching ? "Researching&hellip;" : "Autofill with AI" }}</button>
                     </div>
-                    <div v-else-if="capabilities.administrator" class="td-alert full">AI autofill is disabled. <button class="td-link" type="button" @click="navigate('/admin/ai-settings')">Choose the default agent in AI settings.</button></div>
+                    <div v-else-if="capabilities.sysadmin === true" class="td-alert full">AI autofill is disabled. <button class="td-link" type="button" @click="navigate('/admin/ai-settings')">Choose the default agent in AI settings.</button></div>
                     <div class="td-field full"><label>Short summary</label><textarea class="td-textarea" v-model="form.short_summary" maxlength="600" placeholder="What makes this place special and who is it suitable for?"></textarea></div>
                     <div class="td-field full"><label>Description (safe Markdown)</label><textarea class="td-textarea" style="min-height:320px" v-model="form.description_markdown" maxlength="250000"></textarea><small>{{ (form.description_markdown || "").length.toLocaleString() }} / 250,000 characters</small></div>
                     <div class="td-field"><label>Primary language</label><input class="td-input" v-model="form.primary_language" maxlength="20"></div>

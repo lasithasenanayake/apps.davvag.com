@@ -154,6 +154,7 @@ $formView = file_get_contents($appRoot . "/components/destination-form/partial.h
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
 checkTravel(strpos($formScript, "savedMedia") !== false && strpos($formView, "td-photo-preview") !== false, "The destination form does not show media attached to the current destination.");
 checkTravel(strpos($formScript, "EnrichDestination") !== false && strpos($formScript, "applyAiDestination") !== false && strpos($formView, "Autofill with AI") !== false, "The destination form does not expose guarded AI autofill.");
+checkTravel(strpos($formView, 'capabilities.sysadmin === true') !== false, "The disabled AI settings notice is not restricted explicitly to sysadmin users.");
 $apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
 checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
