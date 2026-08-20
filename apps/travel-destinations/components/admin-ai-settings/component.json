@@ -1,0 +1,12 @@
+{
+    "name": "admin-ai-settings",
+    "description": "AI Agent Creator integration settings for destination autofill",
+    "author": "DAVVAG",
+    "version": "0.1.0",
+    "resources": {
+        "files": [
+            {"type": "mainScript", "location": "script.js"},
+            {"type": "mainView", "location": "partial.html"}
+        ]
+    }
+}

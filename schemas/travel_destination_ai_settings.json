@@ -1,0 +1,15 @@
+{
+    "fields": [
+        {"fieldName": "id", "dataType": "int", "annotations": {"isPrimary": true, "autoIncrement": true}},
+        {"fieldName": "provider", "dataType": "java.lang.String", "annotations": {"maxLen": 40}},
+        {"fieldName": "agent_code", "dataType": "java.lang.String", "annotations": {"maxLen": 64}},
+        {"fieldName": "is_enabled", "dataType": "boolean"},
+        {"fieldName": "fill_empty_only", "dataType": "boolean"},
+        {"fieldName": "minimum_confidence", "dataType": "double"},
+        {"fieldName": "updated_by_profile_id", "dataType": "int"},
+        {"fieldName": "updated_at", "dataType": "java.util.Date"}
+    ],
+    "relations": [
+        {"relationName": "travel_destination_ai_settings_profile", "relationType": "many-to-one", "targetEntity": "profile", "joinColumns": [{"sourceColumn": "updated_by_profile_id", "targetColumn": "id"}]}
+    ]
+}

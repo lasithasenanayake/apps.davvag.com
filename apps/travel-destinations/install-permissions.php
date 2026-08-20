@@ -132,9 +132,29 @@ if ($existingWeatherSettings->success && count($existingWeatherSettings->result)
     $weatherSettingsInserted = 1;
 }
 
+$aiSettingsInserted = 0;
+$existingAiSettings = SOSSData::Query("travel_destination_ai_settings", "provider:ai-agent-creator", null, "asc", 1, 0, AUTH_DOMAIN, false);
+if ($existingAiSettings->success && count($existingAiSettings->result) === 0) {
+    $aiSettings = new stdClass();
+    $aiSettings->provider = "ai-agent-creator";
+    $aiSettings->agent_code = "";
+    $aiSettings->is_enabled = false;
+    $aiSettings->fill_empty_only = true;
+    $aiSettings->minimum_confidence = 0.75;
+    $aiSettings->updated_by_profile_id = 0;
+    $aiSettings->updated_at = date("Y-m-d H:i:s");
+    $savedAiSettings = SOSSData::Insert("travel_destination_ai_settings", $aiSettings, AUTH_DOMAIN);
+    if (!$savedAiSettings->success) {
+        fwrite(STDERR, "Failed to seed AI autofill settings.\n");
+        exit(1);
+    }
+    $aiSettingsInserted = 1;
+}
+
 echo "Permission entries inserted: " . $inserted . PHP_EOL;
 echo "Permission entries already present: " . $existing . PHP_EOL;
 echo "Reference entries inserted: " . $referenceInserted . PHP_EOL;
 echo "Map settings inserted: " . $mapSettingsInserted . PHP_EOL;
 echo "Weather settings inserted: " . $weatherSettingsInserted . PHP_EOL;
+echo "AI settings inserted: " . $aiSettingsInserted . PHP_EOL;
 ?>

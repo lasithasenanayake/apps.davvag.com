@@ -52,6 +52,10 @@
             "type": "component",
             "location": "components"
         },
+        "admin-ai-settings": {
+            "type": "component",
+            "location": "components"
+        },
         "api": {
             "type": "service",
             "location": "services"
@@ -60,7 +64,7 @@
     "description": {
         "title": "Travel Destinations",
         "author": "DAVVAG",
-        "version": "0.6.3",
+        "version": "0.7.0",
         "icon": "appicon.png"
     },
     "tags": [
@@ -89,7 +93,8 @@
                     "/admin/categories": "admin-categories",
                     "/admin/amenities": "admin-amenities",
                     "/admin/map-settings": "admin-map-settings",
-                    "/admin/weather-settings": "admin-weather-settings"
+                    "/admin/weather-settings": "admin-weather-settings",
+                    "/admin/ai-settings": "admin-ai-settings"
                 }
             }
         },
@@ -126,6 +131,10 @@
                 {
                     "name": "Weather settings",
                     "path": "#/app/travel-destinations/admin/weather-settings"
+                },
+                {
+                    "name": "AI settings",
+                    "path": "#/app/travel-destinations/admin/ai-settings"
                 }
             ]
         }
@@ -133,7 +142,8 @@
     "dependencies": {
         "apps": [
 
-            "davvag-tools"
+            "davvag-tools",
+            "ai-agent-creator"
         ],
         "schemas": [
 
@@ -154,7 +164,8 @@
             "travel_destination_report",
             "travel_destination_map_settings",
             "travel_destination_description_chunk",
-            "travel_destination_weather_settings"
+            "travel_destination_weather_settings",
+            "travel_destination_ai_settings"
             ,"travel_destination_route"
             ,"travel_destination_list"
             ,"travel_destination_list_item"

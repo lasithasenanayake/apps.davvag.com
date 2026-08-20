@@ -1,27 +1,28 @@
 WEBDOCK.component().register(function (exports) {
-    var api, maps, router, selectedFiles = [], rootElement, mapHandle;
+    var api, maps, router, selectedFiles = [], rootElement, mapHandle, lastAiLookupName = "";
     var state = {
         step: 1, categories: [], amenities: [], capabilities: {}, files: [], savedMedia: [],
-        saving: false, submitting: false, uploading: false, locating: false, searchingLocation:false, resolvingMapUrl:false, error: "", notice: "", mapError:"",
-        mapConfig:{enabled:false}, addressQuery:"", locationUrl:"",
+        saving: false, submitting: false, uploading: false, locating: false, searchingLocation:false, resolvingMapUrl:false, enriching:false, error: "", notice: "", mapError:"",
+        mapConfig:{enabled:false}, aiConfig:{enabled:false,configured:false,agentName:"",fillEmptyOnly:true,minimumConfidence:0.75}, addressQuery:"", locationUrl:"",
         staySubtypes: ["Hotel","Cabana","Guesthouse","Homestay","Campsite","Eco Lodge","Bungalow","Hostel"],
         form: emptyForm()
     };
     var viewState = state;
     exports.vue = {
         data: state,
-        methods: {next: next, previous: previous, saveDraft: saveDraft, submitForReview: submitForReview, useCurrentLocation: useCurrentLocation, searchAddress:searchAddress, extractMapUrl:extractMapUrl, mapUrlPasted:mapUrlPasted, refreshMap:scheduleMap, chooseFiles: chooseFiles, uploadPhotos: uploadPhotos, navigate: navigate},
+        methods: {next: next, previous: previous, saveDraft: saveDraft, submitForReview: submitForReview, fillWithAi:fillWithAi, autoFillWithAi:autoFillWithAi, useCurrentLocation: useCurrentLocation, searchAddress:searchAddress, extractMapUrl:extractMapUrl, mapUrlPasted:mapUrlPasted, refreshMap:scheduleMap, chooseFiles: chooseFiles, uploadPhotos: uploadPhotos, navigate: navigate},
         onReady: function (scope, element) {
             viewState = scope || state; rootElement=element;
             api = exports.getComponent("api"); maps=resolveMaps(exports); router = exports.getShellComponent("soss-routes");
             viewState.error = ""; viewState.notice = "";
             if (!api || !api.services) { viewState.error = "Destination services are unavailable."; return; }
-            Promise.all([api.services.Capabilities({}), api.services.GetCategories({}), api.services.GetAmenities({}), api.services.GetMapConfiguration({})]).then(function (responses) {
+            Promise.all([api.services.Capabilities({}), api.services.GetCategories({}), api.services.GetAmenities({}), api.services.GetMapConfiguration({}), api.services.GetAiConfiguration({})]).then(function (responses) {
                 viewState.capabilities = responses[0].success ? responses[0].result : {};
                 if (!viewState.capabilities.authenticated) { viewState.error = "Sign in with an active profile to submit a destination."; }
                 replaceItems(viewState.categories,responses[1].success ? responses[1].result : []);
                 replaceItems(viewState.amenities,responses[2].success ? responses[2].result : []);
                 viewState.mapConfig=responses[3].success ? (responses[3].result||{enabled:false}) : {enabled:false};
+                viewState.aiConfig=responses[4].success ? Object.assign({},viewState.aiConfig,responses[4].result||{}) : viewState.aiConfig;
                 var id = queryValue("id"); if (id) { loadExisting(Number(id)); }
             }).catch(function () { viewState.error = "The submission form could not be prepared."; });
         }
@@ -42,6 +43,62 @@ WEBDOCK.component().register(function (exports) {
     }
     function next() { viewState.error = ""; if (viewState.step === 1 && !viewState.form.name.trim()) { viewState.error = "Add a destination name before continuing."; return; } if (viewState.step === 2 && !viewState.form.category_ids.length) { viewState.error = "Select at least one category."; return; } viewState.step = Math.min(6,viewState.step+1); if(viewState.step===3){scheduleMap();} }
     function previous() { viewState.step = Math.max(1,viewState.step-1); }
+    function autoFillWithAi(){
+        var name=String(viewState.form.name||"").trim().toLowerCase();
+        if(viewState.form.id||!viewState.aiConfig.enabled||!name||name===lastAiLookupName){return;}
+        fillWithAi();
+    }
+    function fillWithAi() {
+        var destinationName=String(viewState.form.name||"").trim();
+        if(viewState.enriching){return;}
+        if(!destinationName){viewState.error="Enter a destination name before using AI autofill.";return;}
+        lastAiLookupName=destinationName.toLowerCase();viewState.enriching=true;viewState.error="";viewState.notice="";
+        api.services.EnrichDestination({destination_name:destinationName}).then(function(response){
+            viewState.enriching=false;
+            if(!response||!response.success){viewState.error=message(response,"The AI agent could not research this destination.");return;}
+            var result=response.result||{};
+            if(!result.known){viewState.notice=result.message||"The selected AI agent does not know this place with enough confidence.";return;}
+            var applied=applyAiDestination(result.destination||{},viewState.aiConfig.fillEmptyOnly!==false);
+            var confidence=Math.round(Number(result.confidence||0)*100);
+            viewState.notice=(result.message||"AI suggestions are ready.")+" Applied "+applied+" field"+(applied===1?"":"s")+" (confidence "+confidence+"%). Review the details and coordinates before saving.";
+            if(viewState.step===3){scheduleMap();}
+        }).error(function(response){viewState.enriching=false;viewState.error=message(response,"The AI agent could not research this destination.");});
+    }
+    function applyAiDestination(suggestion,fillEmptyOnly){
+        var applied=0;
+        var fields=["short_summary","description_markdown","primary_language","tags","stay_subtype","province","district","nearest_town","village","location_description","access_road_description","public_transport_instructions","distance_from_town_km","walking_distance_km","requires_4wd","safety_warnings","responsible_travel_markdown"];
+        fields.forEach(function(field){
+            if(!Object.prototype.hasOwnProperty.call(suggestion,field)){return;}
+            if(fillEmptyOnly&&!formValueIsEmpty(field,viewState.form[field])){return;}
+            viewState.form[field]=suggestion[field];applied++;
+        });
+        if(Object.prototype.hasOwnProperty.call(suggestion,"latitude")&&Object.prototype.hasOwnProperty.call(suggestion,"longitude")){
+            var coordinatesEmpty=formValueIsEmpty("latitude",viewState.form.latitude)&&formValueIsEmpty("longitude",viewState.form.longitude);
+            if(!fillEmptyOnly||coordinatesEmpty){viewState.form.latitude=suggestion.latitude;viewState.form.longitude=suggestion.longitude;applied+=2;}
+        }
+        applied+=applyReferenceNames(suggestion.category_names,viewState.categories,viewState.form.category_ids);
+        applied+=applyReferenceNames(suggestion.amenity_names,viewState.amenities,viewState.form.amenity_ids);
+        return applied;
+    }
+    function formValueIsEmpty(field,value){
+        if(value===null||typeof value==="undefined"){return true;}
+        if(typeof value==="string"){return !value.trim();}
+        if(Array.isArray(value)){return !value.length;}
+        if(typeof value==="number"){return value===0&&(field==="distance_from_town_km"||field==="walking_distance_km");}
+        if(typeof value==="boolean"){return value===false;}
+        return false;
+    }
+    function applyReferenceNames(names,references,selectedIds){
+        if(!Array.isArray(names)){return 0;}
+        var applied=0;
+        names.forEach(function(name){
+            var wanted=normalizeReferenceName(name);
+            var match=references.find(function(item){return normalizeReferenceName(item.name)===wanted||normalizeReferenceName(item.slug)===wanted;});
+            if(match&&selectedIds.indexOf(match.id)<0){selectedIds.push(match.id);applied++;}
+        });
+        return applied;
+    }
+    function normalizeReferenceName(value){return String(value||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
     function saveDraft() {
         if (viewState.saving) { return; } viewState.saving = true; viewState.error = ""; viewState.notice = "";
         var service = viewState.capabilities.administrator ? api.services.SaveDestination : api.services.SaveDestinationDraft;
@@ -155,7 +212,7 @@ WEBDOCK.component().register(function (exports) {
     function copyForm() { return JSON.parse(JSON.stringify(viewState.form)); }
     function navigate(path) { if (router && router.appNavigate) { router.appNavigate(path); } else { window.location.hash = "#/app/travel-destinations"+path; } }
     function queryValue(name) { var match = new RegExp("[?&]"+name+"=([^&]+)").exec(window.location.hash); return match ? decodeURIComponent(match[1]) : ""; }
-    function message(response,fallback) { if(!response){return fallback;}if(typeof response.result==="string"&&response.result){return response.result;}if(response.result&&response.result.message){return response.result.message;}if(response.responseJSON){return message(response.responseJSON,fallback);}return fallback; }
+    function message(response,fallback) { if(!response){return fallback;}if(typeof response.result==="string"&&response.result){return response.result;}if(response.result&&response.result.message){return response.result.message;}if(response.message){return response.message;}if(response.responseJSON){return message(response.responseJSON,fallback);}return fallback; }
     function searchAddress(){
         var query=String(viewState.addressQuery||"").trim();
         if(viewState.searchingLocation||!query){return;}

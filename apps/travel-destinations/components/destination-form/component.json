@@ -2,7 +2,7 @@
     "name": "destination-form",
     "description": "Guided traveler destination submission form",
     "author": "DAVVAG",
-    "version": "0.4.7",
+    "version": "0.5.0",
     "resources": {
         "files": [
             {"type": "mainScript", "location": "script.js"},

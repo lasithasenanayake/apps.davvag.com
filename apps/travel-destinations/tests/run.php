@@ -141,13 +141,19 @@ checkTravel(isset($apiDescriptor->serviceHandler->methods->ResolveMapLocationUrl
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetDestinationWeather), "Public destination weather service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminWeatherSettings), "Admin weather settings read service is not declared.");
 checkTravel(isset($apiDescriptor->serviceHandler->methods->SaveWeatherSettings), "Admin weather settings save service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAiConfiguration), "Traveler AI configuration service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->EnrichDestination), "Destination AI enrichment service is not declared.");
+checkTravel(isset($apiDescriptor->serviceHandler->methods->GetAdminAiSettings) && isset($apiDescriptor->serviceHandler->methods->SaveAiSettings), "Administrator AI settings services are not declared.");
 checkTravel(in_array("travel_destination_map_settings", $app->dependencies->schemas, true), "Map settings schema dependency is missing.");
 checkTravel(in_array("travel_destination_description_chunk", $app->dependencies->schemas, true), "Large description chunk schema dependency is missing.");
 checkTravel(in_array("travel_destination_weather_settings", $app->dependencies->schemas, true), "Weather settings schema dependency is missing.");
+checkTravel(in_array("travel_destination_ai_settings", $app->dependencies->schemas, true), "AI settings schema dependency is missing.");
+checkTravel(in_array("ai-agent-creator", $app->dependencies->apps, true), "AI Agent Creator app dependency is missing.");
 checkTravel(strpos(file_get_contents($tenantRoot . "/schemas/travel_destination_description_chunk.json"), "content_utf8mb4") !== false, "Large descriptions must use utf8mb4-safe chunk storage.");
 $formView = file_get_contents($appRoot . "/components/destination-form/partial.html");
 checkTravel(strpos($formView, 'maxlength="250000"') !== false, "Destination description input is not configured for 250,000 characters.");
 checkTravel(strpos($formScript, "savedMedia") !== false && strpos($formView, "td-photo-preview") !== false, "The destination form does not show media attached to the current destination.");
+checkTravel(strpos($formScript, "EnrichDestination") !== false && strpos($formScript, "applyAiDestination") !== false && strpos($formView, "Autofill with AI") !== false, "The destination form does not expose guarded AI autofill.");
 $apiServiceSource = file_get_contents($appRoot . "/services/api/service.php");
 checkTravel(strpos($apiServiceSource, "syncDestinationDescription") !== false, "Large destination descriptions are not persisted in safe chunks.");
 checkTravel(strpos($apiServiceSource, '$mapOnly && !TravelDestinationRules::validCoordinates') !== false, "Map pagination includes destinations without public coordinates.");
@@ -160,6 +166,9 @@ checkTravel(!in_array("ResolveMapLocationUrl", $permissionManifest->anonymous, t
 checkTravel(in_array("ResolveMapLocationUrl", $permissionManifest->web_user, true), "Authenticated travelers cannot access the map URL resolver.");
 checkTravel(in_array("GetDestinationWeather", $permissionManifest->anonymous, true), "Anonymous users cannot access public destination weather.");
 checkTravel(in_array("GetAdminWeatherSettings", $permissionManifest->sysadmin, true) && in_array("SaveWeatherSettings", $permissionManifest->sysadmin, true), "Weather settings are not restricted to the administrator permission manifest.");
+checkTravel(!in_array("EnrichDestination", $permissionManifest->anonymous, true), "Anonymous users can invoke destination AI enrichment.");
+checkTravel(in_array("GetAiConfiguration", $permissionManifest->web_user, true) && in_array("EnrichDestination", $permissionManifest->web_user, true), "Authenticated travelers cannot use destination AI enrichment.");
+checkTravel(in_array("GetAdminAiSettings", $permissionManifest->sysadmin, true) && in_array("SaveAiSettings", $permissionManifest->sysadmin, true), "AI settings are not restricted to the administrator permission manifest.");
 checkTravel(in_array("AssociateDestinationMedia", $permissionManifest->sysadmin, true), "Administrators cannot attach uploaded photos to destinations.");
 
 putenv("DAVVAG_PROVIDER_SECRET=travel-destination-test-secret");
@@ -184,6 +193,17 @@ checkTravel(is_array($normalizedWeather) && $normalizedWeather["available"] === 
 checkTravel($normalizedWeather["current"]["summary"] === "Light rain", "Weather-code summary normalization failed.");
 checkTravel(count($normalizedWeather["forecast"]) === 2 && $normalizedWeather["forecast"][0]["sunrise"] === "2026-07-28T06:01", "Daily forecast or sunrise normalization failed.");
 checkTravel($normalizedWeather["provider"]["name"] === "Open-Meteo" && $normalizedWeather["provider"]["licence"] === "CC BY 4.0", "Weather provider attribution is incomplete.");
+
+$decodeAiReply = $apiReflection->getMethod("decodeAiDestinationReply");
+$decodeAiReply->setAccessible(true);
+$sanitizeAiDestination = $apiReflection->getMethod("sanitizeAiDestination");
+$sanitizeAiDestination->setAccessible(true);
+$decodedAiReply = $decodeAiReply->invoke($apiService, "```json\n{\"known\":true,\"confidence\":0.91,\"destination\":{\"short_summary\":\"Known place\",\"latitude\":7.3,\"longitude\":80.6,\"category_names\":[\"Hiking\"],\"unexpected_admin_field\":\"unsafe\"}}\n```");
+$safeAiDestination = $sanitizeAiDestination->invoke($apiService, $decodedAiReply, 0.75);
+checkTravel($safeAiDestination["known"] === true && $safeAiDestination["destination"]["short_summary"] === "Known place", "A valid structured AI destination reply was not accepted.");
+checkTravel(!isset($safeAiDestination["destination"]["unexpected_admin_field"]), "AI destination enrichment accepted a field outside its allowlist.");
+$lowConfidenceAiDestination = $sanitizeAiDestination->invoke($apiService, array("known" => true, "confidence" => 0.4, "destination" => array("short_summary" => "Guess")), 0.75);
+checkTravel($lowConfidenceAiDestination["known"] === false && count((array)$lowConfidenceAiDestination["destination"]) === 0, "Low-confidence AI destination data was accepted.");
 
 $phaseTwoSchemas = array("travel_destination_route","travel_destination_list","travel_destination_list_item","travel_destination_visit","travel_destination_guide","travel_destination_guide_destination","travel_destination_availability","travel_destination_notification_preference","travel_destination_translation","travel_destination_collection","travel_destination_collection_item","travel_destination_trip","travel_destination_trip_item");
 foreach ($phaseTwoSchemas as $namespace) {

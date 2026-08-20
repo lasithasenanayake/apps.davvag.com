@@ -1,0 +1,20 @@
+<div class="td-app"><div class="td-shell">
+    <nav class="td-nav"><a class="td-brand" href="#/app/travel-destinations/admin"><span class="td-brand-mark"></span><span>Travel administration</span></a><div class="td-actions"><button class="td-link" @click="navigate('/admin')">Destinations</button><button class="td-link" @click="navigate('/admin/map-settings')">Map settings</button><button class="td-link" @click="navigate('/admin/weather-settings')">Weather settings</button></div></nav>
+    <div class="td-section-head"><div><p class="td-eyebrow" style="color:var(--td-leaf)">AI integration</p><h1>Destination autofill</h1><p>Link one saved AI Agent Creator agent as the default destination researcher.</p></div><span class="td-badge">{{ form.enabled ? "Enabled" : "Disabled" }}</span></div>
+    <div v-if="error" class="td-alert error">{{ error }}</div><div v-if="notice" class="td-alert">{{ notice }}</div>
+    <div v-if="loading" class="td-loading">Loading AI settings&hellip;</div>
+    <div v-if="!loading && authorized" class="td-settings-layout">
+        <form class="td-panel" @submit.prevent="save">
+            <div class="td-alert">AI suggestions are treated as untrusted input. The server accepts only known destination fields, validates their types and ranges, and rejects replies below the selected confidence threshold.</div>
+            <div class="td-form-grid">
+                <label class="td-check full"><input type="checkbox" v-model="form.enabled"> Enable AI autofill in the destination form</label>
+                <div class="td-field full"><label>Default AI agent</label><select class="td-select" v-model="form.agent_code"><option value="">Choose a saved agent</option><option v-for="agent in agents" :key="agent.agentCode" :value="agent.agentCode">{{ agent.name }} ({{ agent.agentCode }})</option></select><small>The list comes from AI Agent Creator. Agent keys and provider credentials are never exposed here.</small></div>
+                <div class="td-field full"><label>Minimum confidence</label><input class="td-input" type="number" min="0.5" max="1" step="0.05" v-model.number="form.minimum_confidence"><small>Suggestions below this value are not applied. Recommended: 0.75.</small></div>
+                <label class="td-check full"><input type="checkbox" v-model="form.fill_empty_only"> Fill empty fields only, preserving anything the traveler already entered</label>
+            </div>
+            <button class="td-button" style="margin-top:20px" type="submit" :disabled="saving || (form.enabled && !form.agent_code)">{{ saving ? "Saving&hellip;" : "Save AI settings" }}</button>
+        </form>
+        <section class="td-panel"><h2>Available agents</h2><p v-if="!agents.length">No saved agents were found. Create and save an agent in AI Agent Creator, then return here.</p><div v-for="agent in agents" :key="agent.agentCode" style="padding:14px 0;border-bottom:1px solid var(--td-line)"><strong>{{ agent.name }}</strong><div><code>{{ agent.agentCode }}</code></div><small>{{ agent.description || "No description provided." }}</small></div><p class="td-alert" style="margin-top:18px">The agent must return structured JSON. The travel service also extracts JSON from fenced replies, then applies its own allowlist and validation.</p></section>
+    </div>
+    <div v-if="!loading && !authorized" class="td-alert error">Administrator access is required.</div>
+</div></div>
