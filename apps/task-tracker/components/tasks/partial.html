@@ -29,6 +29,7 @@
           <div class="tm-task-title">
             <strong>{{ task.subject }}</strong>
             <span class="tm-task-badges">
+              <span class="label label-info">{{ task.taskType || 'Uncategorized' }}</span>
               <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
               <span class="label label-default">{{ task.status }}</span>
             </span>
@@ -63,9 +64,10 @@
         <textarea id="taskBodyEditor" class="form-control" rows="8"></textarea>
 
         <div class="row">
-          <div class="col-sm-4"><label>Status</label><select class="form-control" v-model="form.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
-          <div class="col-sm-4"><label>Priority</label><select class="form-control" v-model="form.priority"><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select></div>
-          <div class="col-sm-4"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="form.progress"></div>
+          <div class="col-sm-3"><label>Task Type</label><select class="form-control" v-model="form.taskType" v-bind:disabled="taskTypesLoading || isBusy"><option value="" disabled>Select a task type</option><option v-for="taskType in taskTypeOptions" v-bind:value="taskType">{{ taskType }}</option></select></div>
+          <div class="col-sm-3"><label>Status</label><select class="form-control" v-model="form.status"><option v-for="status in statusOptions">{{ status }}</option></select></div>
+          <div class="col-sm-3"><label>Priority</label><select class="form-control" v-model="form.priority"><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select></div>
+          <div class="col-sm-3"><label>Progress</label><input type="number" min="0" max="100" class="form-control" v-model="form.progress"></div>
         </div>
 
         <label>Assignees</label>

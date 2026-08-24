@@ -7,12 +7,15 @@ WEBDOCK.component().register(function (exports) {
         errors: [],
         loading: false,
         loadingProjects: false,
+        loadingTaskTypes: false,
         projectOptions: [],
+        taskTypeOptions: [],
         filters: {
             period: "weekly",
             startDate: "",
             endDate: "",
-            projectId: ""
+            projectId: "",
+            taskType: ""
         },
         report: emptyReport()
     };
@@ -57,7 +60,19 @@ WEBDOCK.component().register(function (exports) {
             return;
         }
         loadProjects();
+        loadTaskTypes();
         loadReport();
+    }
+
+    function loadTaskTypes() {
+        bindData.loadingTaskTypes = true;
+        api.services.ListTaskTypes({}).then(function (response) {
+            bindData.loadingTaskTypes = false;
+            bindData.taskTypeOptions = response.success ? (response.result || []) : [];
+        }).error(function () {
+            bindData.loadingTaskTypes = false;
+            setError("Could not load task types.");
+        });
     }
 
     function loadProjects() {
@@ -114,7 +129,8 @@ WEBDOCK.component().register(function (exports) {
             period: bindData.filters.period,
             startDate: bindData.filters.startDate,
             endDate: bindData.filters.endDate,
-            projectId: bindData.filters.projectId
+            projectId: bindData.filters.projectId,
+            taskType: bindData.filters.taskType
         };
     }
 
@@ -149,6 +165,7 @@ WEBDOCK.component().register(function (exports) {
         bindData.filters.startDate = filters.startDate || bindData.filters.startDate;
         bindData.filters.endDate = filters.endDate || bindData.filters.endDate;
         bindData.filters.projectId = filters.projectId === "" ? "" : String(filters.projectId || "");
+        bindData.filters.taskType = filters.taskType || "";
     }
 
     function openSummary() {
@@ -194,6 +211,9 @@ WEBDOCK.component().register(function (exports) {
         if (String(data.projectId || "") !== "") {
             bindData.filters.projectId = String(data.projectId);
         }
+        if (String(data.taskType || "") !== "") {
+            bindData.filters.taskType = String(data.taskType);
+        }
     }
 
     function filterQuery() {
@@ -204,6 +224,9 @@ WEBDOCK.component().register(function (exports) {
         ];
         if (bindData.filters.projectId !== "") {
             values.push("projectId=" + encodeURIComponent(bindData.filters.projectId));
+        }
+        if (bindData.filters.taskType !== "") {
+            values.push("taskType=" + encodeURIComponent(bindData.filters.taskType));
         }
         return "?" + values.join("&");
     }

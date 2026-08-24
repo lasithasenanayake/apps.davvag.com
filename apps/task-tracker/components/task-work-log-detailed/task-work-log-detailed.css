@@ -9,7 +9,7 @@
     border-radius: 6px;
     display: grid;
     gap: 12px;
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
     margin-bottom: 12px;
     padding: 12px;
 }
@@ -22,7 +22,7 @@
 .tm-detail-summary strong { display: block; font-size: 18px; }
 .tm-detail-results { border: 1px solid #d8dde4; border-radius: 6px; overflow: hidden; }
 .tm-detail-results .tm-empty { color: #68717d; padding: 22px; text-align: center; }
-.tm-detail-table { margin-bottom: 0; min-width: 1180px; }
+.tm-detail-table { margin-bottom: 0; min-width: 1280px; }
 .tm-detail-table th { background: #f6f8fb; color: #59636f; font-size: 12px; vertical-align: middle !important; }
 .tm-detail-table td { vertical-align: top !important; }
 .tm-detail-table tfoot th { background: #eef3f8; border-top: 2px solid #cbd4de; font-size: 13px; }

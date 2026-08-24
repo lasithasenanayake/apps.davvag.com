@@ -20,6 +20,7 @@
             "SaveProject": {"method": "POST"},
             "DeleteProject": {"method": "POST"},
             "ListTasks": {"method": "POST"},
+            "ListTaskTypes": {"method": "POST"},
             "SaveTask": {"method": "POST"},
             "DeleteTask": {"method": "POST"},
             "ListMyTasks": {"method": "POST"},

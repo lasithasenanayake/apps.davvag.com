@@ -43,6 +43,14 @@
             }
         },
         {
+            "fieldName": "taskType",
+            "dataType": "java.lang.String",
+            "annotations": {
+                "maxLen": 50,
+                "encoding": "utf8"
+            }
+        },
+        {
             "fieldName": "progress",
             "dataType": "int"
         },

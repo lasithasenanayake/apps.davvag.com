@@ -154,6 +154,7 @@ class TaskEmailClient {
         $task->body = $message->bodyHtml !== "" ? $message->bodyHtml : nl2br(htmlspecialchars($message->bodyText, ENT_QUOTES, "UTF-8"));
         $task->status = "New";
         $task->priority = "Normal";
+        $task->taskType = "Support";
         $task->progress = 0;
         $task->createdate = $message->date !== "" ? $message->date : date("Y-m-d H:i:s");
         $task->updatedate = date("Y-m-d H:i:s");

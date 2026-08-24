@@ -193,6 +193,10 @@ class TaskManagerService {
         return $tasks;
     }
 
+    public function postListTaskTypes($req, $res) {
+        return $this->taskTypes();
+    }
+
     public function postListMyTasks($req, $res) {
         $body = $this->body($req);
         $profileId = $this->currentProfileId();
@@ -265,8 +269,15 @@ class TaskManagerService {
             return null;
         }
 
+        $taskType = isset($task->taskType) ? $this->canonicalTaskType($task->taskType) : null;
+        if ($taskType === null) {
+            $res->SetError("A valid task type is required.");
+            return null;
+        }
+
         $task->status = isset($task->status) && $task->status !== "" ? $task->status : "New";
         $task->priority = isset($task->priority) && $task->priority !== "" ? $task->priority : "Normal";
+        $task->taskType = $taskType;
         $task->progress = isset($task->progress) ? intval($task->progress) : 0;
         $task->updatedate = date("Y-m-d H:i:s");
         if (!isset($task->createdate)) {
@@ -682,9 +693,14 @@ class TaskManagerService {
         $params->parameters->startdate = $filters->startDate;
         $params->parameters->enddate = $filters->endDate;
         $params->parameters->projectid = $filters->projectId === "" ? 0 : intval($filters->projectId);
+        $params->parameters->tasktype = $filters->taskType;
         $params->parameters->profileid = $this->isSysAdmin() ? 0 : intval($currentProfileId === null ? -1 : $currentProfileId);
         $params->parameters->issysadmin = $this->isSysAdmin() ? 1 : 0;
 
+        // ExecuteRaw does not synchronize joined table schemas. Touch the task
+        // namespace first so a newly deployed taskType column exists even when
+        // a report route is opened before the Tasks screen.
+        SOSSData::Query($this->taskNamespace, "", null, "desc", 1, 0);
         $rawResult = SOSSData::ExecuteRaw($this->workLogReportNamespace, $params);
         if (!isset($rawResult->success) || !$rawResult->success) {
             $res->SetError("Could not load work logs for the report.");
@@ -706,6 +722,7 @@ class TaskManagerService {
             $row->taskId = isset($rawRow->taskId) ? intval($rawRow->taskId) : 0;
             $row->taskSubject = isset($rawRow->taskSubject) ? $rawRow->taskSubject : "Task " . $row->taskId;
             $row->taskStatus = isset($rawRow->taskStatus) ? $rawRow->taskStatus : "";
+            $row->taskType = isset($rawRow->taskType) && trim((string)$rawRow->taskType) !== "" ? $rawRow->taskType : "Uncategorized";
             $row->profileId = isset($rawRow->profileId) ? intval($rawRow->profileId) : 0;
             $row->profileName = isset($rawRow->profileName) ? $rawRow->profileName : "";
             $row->comments = isset($rawRow->comments) ? $rawRow->comments : "";
@@ -780,11 +797,21 @@ class TaskManagerService {
             }
         }
 
+        $taskType = "";
+        if (isset($body->taskType) && trim((string)$body->taskType) !== "") {
+            $taskType = $this->canonicalTaskType($body->taskType);
+            if ($taskType === null) {
+                $res->SetError("A valid task type is required.");
+                return null;
+            }
+        }
+
         $filters = new stdClass();
         $filters->period = $period;
         $filters->startDate = $start->format("Y-m-d");
         $filters->endDate = $end->format("Y-m-d");
         $filters->projectId = $projectId;
+        $filters->taskType = $taskType;
         return $filters;
     }
 
@@ -838,6 +865,7 @@ class TaskManagerService {
                 $task->taskId = $row->taskId;
                 $task->taskSubject = $row->taskSubject;
                 $task->taskStatus = $row->taskStatus;
+                $task->taskType = $row->taskType;
                 $task->totalMinutes = 0;
                 $tasks[$projectKey][$taskKey] = $task;
             }
@@ -898,6 +926,7 @@ class TaskManagerService {
                 $task->taskId = $row->taskId;
                 $task->taskSubject = $row->taskSubject;
                 $task->taskStatus = $row->taskStatus;
+                $task->taskType = $row->taskType;
                 $task->totalMinutes = 0;
                 $tasks[$dateKey][$projectKey][$taskKey] = $task;
             }
@@ -1066,7 +1095,39 @@ class TaskManagerService {
         if (!isset($task->progress) || $task->progress === "") {
             $task->progress = 0;
         }
+        if (!isset($task->taskType) || trim((string)$task->taskType) === "") {
+            $task->taskType = "Uncategorized";
+        }
         return $task;
+    }
+
+    private function taskTypes() {
+        return array(
+            "Support",
+            "Development",
+            "Quality Assurance",
+            "Bug Fix",
+            "Meeting",
+            "Research",
+            "Design",
+            "Documentation",
+            "Deployment",
+            "Maintenance",
+            "Training",
+            "Administration",
+            "Other",
+            "Uncategorized"
+        );
+    }
+
+    private function canonicalTaskType($value) {
+        $candidate = trim((string)$value);
+        foreach ($this->taskTypes() as $taskType) {
+            if (strcasecmp($candidate, $taskType) === 0) {
+                return $taskType;
+            }
+        }
+        return null;
     }
 
     private function projectName($projectId, &$cache) {

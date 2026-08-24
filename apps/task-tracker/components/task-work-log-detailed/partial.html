@@ -21,6 +21,13 @@
       </select>
     </div>
     <div class="tm-detail-field">
+      <label>Task Type</label>
+      <select class="form-control" v-model="filters.taskType" v-on:change="filterChanged" v-bind:disabled="loadingTaskTypes || loading">
+        <option value="">All Task Types</option>
+        <option v-for="taskType in taskTypeOptions" v-bind:value="taskType">{{ taskType }}</option>
+      </select>
+    </div>
+    <div class="tm-detail-field">
       <label>{{ filters.period == 'specific' ? 'From' : 'Date in period' }}</label>
       <input class="form-control" type="date" v-model="filters.startDate" v-on:change="filterChanged" v-bind:disabled="loading">
     </div>
@@ -57,13 +64,14 @@
 
   <div class="tm-panel tm-detail-results">
     <div class="tm-empty" v-if="loading">Loading detailed work logs...</div>
-    <div class="tm-empty" v-if="!loading && report.rows.length == 0">No work logs were found for the selected period and project.</div>
+    <div class="tm-empty" v-if="!loading && report.rows.length == 0">No work logs were found for the selected filters.</div>
     <div class="table-responsive" v-if="!loading && report.rows.length > 0">
       <table class="table table-striped tm-detail-table">
         <thead>
           <tr>
             <th>Date</th>
             <th>Project / Task</th>
+            <th>Task Type</th>
             <th>Person</th>
             <th>Work description</th>
             <th>Start</th>
@@ -81,6 +89,7 @@
               <strong><span class="tm-detail-swatch" v-if="row.projectColor" v-bind:style="projectColorStyle(row.projectColor)"></span>{{ row.projectName }}</strong>
               <span class="tm-detail-task">#{{ row.taskId }} {{ row.taskSubject }}</span>
             </td>
+            <td><span class="label label-info">{{ row.taskType || 'Uncategorized' }}</span></td>
             <td>{{ row.profileName || '-' }}</td>
             <td class="tm-detail-comments">{{ row.comments || '-' }}</td>
             <td class="tm-detail-nowrap">{{ row.startTime || '-' }}</td>
@@ -96,7 +105,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <th colspan="7">Filtered total</th>
+            <th colspan="8">Filtered total</th>
             <th class="text-right">{{ report.totalMinutes }}</th>
             <th class="text-right">{{ report.totalHHMM }}</th>
             <th class="text-right">{{ decimalHours(report.totalHours) }}</th>

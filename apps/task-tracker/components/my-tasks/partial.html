@@ -32,6 +32,7 @@
           <div class="tm-task-title">
             <strong>{{ task.subject }}</strong>
             <span class="tm-task-badges">
+              <span class="label label-info">{{ task.taskType || 'Uncategorized' }}</span>
               <span class="label" v-bind:class="priorityLabelClass(task)">{{ task.priority || 'Normal' }}</span>
               <span class="label label-default">{{ task.status }}</span>
             </span>

@@ -35,6 +35,13 @@
         <option v-for="project in projectOptions" v-bind:value="project.projectId">{{ project.name }}</option>
       </select>
     </div>
+    <div class="tm-report-field">
+      <label>Task Type</label>
+      <select class="form-control" v-model="filters.taskType" v-on:change="filterChanged" v-bind:disabled="loadingTaskTypes || loading">
+        <option value="">All Task Types</option>
+        <option v-for="taskType in taskTypeOptions" v-bind:value="taskType">{{ taskType }}</option>
+      </select>
+    </div>
   </div>
 
   <div class="alert alert-danger" v-for="error in errors">{{ error }}</div>
@@ -69,7 +76,7 @@
 
   <div class="tm-panel tm-report-results">
     <div class="tm-empty" v-if="loading">Loading work log summary...</div>
-    <div class="tm-empty" v-if="!loading && report.projects.length == 0">No work logs were found for the selected period and project.</div>
+    <div class="tm-empty" v-if="!loading && report.projects.length == 0">No work logs were found for the selected filters.</div>
 
     <div v-if="!loading && viewMode == 'project'">
       <article class="tm-report-group" v-for="project in report.projects">
@@ -82,10 +89,11 @@
         </header>
         <div class="table-responsive">
           <table class="table tm-report-table">
-            <thead><tr><th>Task</th><th>Status</th><th class="text-right">Minutes</th><th class="text-right">HH:MM</th><th class="text-right">Hours</th></tr></thead>
+            <thead><tr><th>Task</th><th>Type</th><th>Status</th><th class="text-right">Minutes</th><th class="text-right">HH:MM</th><th class="text-right">Hours</th></tr></thead>
             <tbody>
               <tr v-for="task in project.tasks">
                 <td><span class="tm-report-id">#{{ task.taskId }}</span> {{ task.taskSubject }}</td>
+                <td><span class="label label-info">{{ task.taskType || 'Uncategorized' }}</span></td>
                 <td><span class="label label-default">{{ task.taskStatus || 'Unknown' }}</span></td>
                 <td class="text-right">{{ task.totalMinutes }}</td>
                 <td class="text-right"><strong>{{ task.totalHHMM }}</strong></td>
@@ -113,6 +121,7 @@
               <tbody>
                 <tr v-for="task in project.tasks">
                   <td><span class="tm-report-id">#{{ task.taskId }}</span> {{ task.taskSubject }}</td>
+                  <td><span class="label label-info">{{ task.taskType || 'Uncategorized' }}</span></td>
                   <td class="text-right">{{ task.totalMinutes }} min</td>
                   <td class="text-right"><strong>{{ task.totalHHMM }}</strong></td>
                   <td class="text-right">{{ decimalHours(task.totalHours) }} hours</td>

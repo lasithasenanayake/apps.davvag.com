@@ -9,7 +9,7 @@
         <h3>{{ project ? project.name : 'Time Tracker' }}</h3>
         <span v-if="task">{{ task.subject }}</span>
       </div>
-      <span class="tt-pill">{{ task ? (task.priority || 'Normal') : 'Work' }}</span>
+      <span class="tt-pill">{{ task ? (task.taskType || 'Uncategorized') : 'Work' }}</span>
     </div>
 
     <div class="tt-empty" v-if="!task && !errors.length">

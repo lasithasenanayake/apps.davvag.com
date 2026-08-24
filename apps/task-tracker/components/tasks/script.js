@@ -11,6 +11,8 @@ WEBDOCK.component().register(function (exports) {
         project: null,
         allowedProfiles: [],
         allowedProfilesLoading: false,
+        taskTypeOptions: [],
+        taskTypesLoading: false,
         tasks: [],
         attachments: [],
         selectedTask: null,
@@ -18,7 +20,7 @@ WEBDOCK.component().register(function (exports) {
         formOpen: false,
         isBusy: false,
         activeStatus: "New",
-        statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
+            statusOptions: ["New", "In Progress", "Waiting", "Done", "Closed"]
     };
 
     exports.vue = {
@@ -57,6 +59,7 @@ WEBDOCK.component().register(function (exports) {
         return {
             status: "New",
             priority: "Normal",
+            taskType: "",
             progress: 0,
             subject: "",
             body: "",
@@ -83,7 +86,20 @@ WEBDOCK.component().register(function (exports) {
         }
 
         loadProject();
+        loadTaskTypes();
         loadTasks();
+    }
+
+    function loadTaskTypes() {
+        bindData.taskTypesLoading = true;
+        api.services.ListTaskTypes({}).then(function (response) {
+            bindData.taskTypesLoading = false;
+            bindData.taskTypeOptions = response.success ? (response.result || []) : [];
+        }).error(function () {
+            bindData.taskTypesLoading = false;
+            bindData.taskTypeOptions = [];
+            setError("Could not load task types.");
+        });
     }
 
     function loadProject() {
@@ -201,6 +217,10 @@ WEBDOCK.component().register(function (exports) {
         syncRichTextBody();
         if (!bindData.form.subject) {
             setError("Task subject is required.");
+            return;
+        }
+        if (!bindData.form.taskType) {
+            setError("Task type is required.");
             return;
         }
         bindData.form.projectId = routeData.projectId;

@@ -147,6 +147,8 @@ Each split component has a hash fallback for direct testing, but shell navigatio
 - Shows tasks under one project.
 - Uses status tabs: `New`, `In Progress`, `Waiting`, `Done`, `Closed`.
 - Creates and edits tasks.
+- Requires a server-validated task type when creating or editing a task.
+- Displays task types on task lists and task detail surfaces.
 - Limits task assignee choices to profiles allocated on the project.
 - Handles attachments with FileReader previews and `davvag-tools/davvag-file-uploader`.
 - Navigates to `/task` for work-progress logging.
@@ -170,6 +172,7 @@ Each split component has a hash fallback for direct testing, but shell navigatio
 
 - Shows exact work-log totals for weekly, monthly, or specific inclusive date ranges.
 - Filters to all accessible projects or one selected accessible project.
+- Filters by the task type stored on each task; untyped legacy tasks are `Uncategorized`.
 - Switches between Project-wise task totals and Date-wise project/task totals.
 - Preserves the requested `summery` spelling in the component and route identifier; the visible title is Work Log Summary.
 
@@ -177,6 +180,7 @@ Each split component has a hash fallback for direct testing, but shell navigatio
 
 - Shows one row per matching work log with project, task, profile, comments, times, status, progress, minutes, `HH:MM`, and decimal hours.
 - Uses the same filters and backend inclusion rules as the Summary report.
+- Displays and filters by task type.
 - Preserves filters when navigating between the Summary and Detailed reports.
 
 `components/task-style`:
@@ -214,6 +218,7 @@ POST ProjectDetails
 POST SaveProject
 POST DeleteProject
 POST ListTasks
+POST ListTaskTypes
 POST SaveTask
 POST DeleteTask
 POST TaskDetails
@@ -283,6 +288,29 @@ task_manager_notifications
 ```
 
 All persistence goes through `SOSSData`.
+
+## Task Types
+
+Tasks store their category in the `taskType` field of `task_manager_tasks`. `ListTaskTypes` is the single source of truth for task creation and report filters. The controlled values are:
+
+```text
+Support
+Development
+Quality Assurance
+Bug Fix
+Meeting
+Research
+Design
+Documentation
+Deployment
+Maintenance
+Training
+Administration
+Other
+Uncategorized
+```
+
+`SaveTask` canonicalizes values case-insensitively and rejects values outside this list. New tasks must select a type. Tasks created before this field existed are normalized to `Uncategorized` when read. New tasks imported by `TaskEmailClient` use `Support`.
 
 ## Permissions
 
@@ -384,9 +412,9 @@ The Task View UI stores `logDate`, `startTime`, and `endTime` while the user edi
 
 ## Work Log Reports
 
-Work Log Summary and Work Log Detailed are read-only reports over the existing work-log namespace. They do not create reporting tables. `schemas/task_manager_work_log_report.json` defines the `SOSSData::ExecuteRaw()` join used by both endpoints. SQL applies the inclusive `logDate` range, optional project filter, and project-profile access condition before rows reach PHP. PHP then shapes the already-filtered rows and aggregates exact `durationInMinutes` values.
+Work Log Summary and Work Log Detailed are read-only reports over the existing work-log namespace. They do not create reporting tables. `schemas/task_manager_work_log_report.json` defines the `SOSSData::ExecuteRaw()` join used by both endpoints. SQL applies the inclusive `logDate` range, optional project and task-type filters, and project-profile access condition before rows reach PHP. PHP then shapes the already-filtered rows and aggregates exact `durationInMinutes` values.
 
-Raw queries bypass `sysviewobject`, so the report SQL must retain its `task_manager_project_access` `EXISTS` condition for non-sysadmin profiles. Dates remain strictly validated as `YYYY-MM-DD`, and project/profile/admin parameters remain server-derived or cast integers; never accept browser-provided SQL fragments.
+Raw queries bypass `sysviewobject`, so the report SQL must retain its `task_manager_project_access` `EXISTS` condition for non-sysadmin profiles. Dates remain strictly validated as `YYYY-MM-DD`; task types are canonicalized against the controlled server list; and project/profile/admin parameters remain server-derived or cast integers. Never accept browser-provided SQL fragments.
 
 `WorkLogSummary` returns:
 
@@ -488,7 +516,7 @@ Default search is `UNSEEN`, default limit is `25`, and imported messages are mar
 
 The service uses the PHP IMAP extension inside the service class, reads project IMAP settings from `task_manager_projects`, and only imports email from profiles assigned to that project through `task_manager_project_access` or `profileids`.
 
-New email threads create `task_manager_tasks` rows with `emailMessageId`, `emailFromEmail`, and `emailFromName`, then assign the sender profile in `task_manager_task_assignees`. Replies are matched by `Message-ID`, `In-Reply-To`, or `References`; matching messages are saved to `task_manager_task_comments` with `emailMessageId` and `emailFromEmail`.
+New email threads create `task_manager_tasks` rows with task type `Support`, `emailMessageId`, `emailFromEmail`, and `emailFromName`, then assign the sender profile in `task_manager_task_assignees`. Replies are matched by `Message-ID`, `In-Reply-To`, or `References`; matching messages are saved to `task_manager_task_comments` with `emailMessageId` and `emailFromEmail`.
 
 Email attachments are stored directly into the same DAVVAG uploader paths:
 
