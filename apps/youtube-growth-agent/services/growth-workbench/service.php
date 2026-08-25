@@ -49,6 +49,10 @@ class GrowthWorkbenchService extends \YtgServiceBase {
             ), array(array("column" => "transcriptId", "direction" => "DESC")));
             if ($transcript !== null) {
                 $transcript->segments = $this->decodeJson(isset($transcript->segments) ? $transcript->segments : array());
+                if (isset($transcript->sourceType) && $transcript->sourceType === "YOUTUBE_CAPTION") {
+                    $transcript->segments = YouTubeCaptionParser::normalizeSegments($transcript->segments);
+                    $transcript->plainText = YouTubeCaptionParser::plainText($transcript->segments);
+                }
                 $result->transcript = $transcript;
             }
             $result->retention = $this->rowsForVideo("ytg_retention_points", $channel->channelId, $videoId, array(array("column" => "elapsedRatio", "direction" => "ASC")), 200);

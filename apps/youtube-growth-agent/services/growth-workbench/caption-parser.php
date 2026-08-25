@@ -12,8 +12,6 @@ final class YouTubeCaptionParser {
         $content = str_replace(array("\r\n", "\r"), "\n", $content);
         $blocks = preg_split('/\n{2,}/', trim($content));
         $segments = array();
-        $plainParts = array();
-        $plainLength = 0;
         $previousEnd = 0;
         $durationMs = max(1000, intval($durationMs));
 
@@ -48,25 +46,90 @@ final class YouTubeCaptionParser {
             if (count($segments) >= intval($maxSegments)) {
                 return self::failure("The caption track contains more than " . intval($maxSegments) . " timestamped segments.");
             }
-            if ($plainLength + strlen($text) + 1 > intval($maxCharacters)) {
-                return self::failure("The caption transcript exceeds the 250,000 character storage limit.");
-            }
-
             $segments[] = (object)array("startMs" => $startMs, "endMs" => $endMs, "text" => $text);
-            $plainParts[] = $text;
-            $plainLength += strlen($text) + 1;
             $previousEnd = $endMs;
         }
 
+        $segments = self::normalizeSegments($segments);
         if (!count($segments)) {
             return self::failure("The caption track did not contain readable WebVTT timestamp cues.");
+        }
+        $plainText = self::plainText($segments);
+        if (strlen($plainText) > intval($maxCharacters)) {
+            return self::failure("The caption transcript exceeds the 250,000 character storage limit.");
         }
         return (object)array(
             "success" => true,
             "error" => "",
             "segments" => $segments,
-            "plainText" => trim(implode("\n", $plainParts))
+            "plainText" => $plainText
         );
+    }
+
+    public static function normalizeSegments($segments) {
+        if (is_object($segments)) { $segments = (array)$segments; }
+        if (!is_array($segments)) { return array(); }
+        $output = array();
+        foreach ($segments as $value) {
+            $item = is_object($value) ? $value : (object)$value;
+            $startMs = isset($item->startMs) ? max(0, intval($item->startMs)) : -1;
+            $endMs = isset($item->endMs) ? intval($item->endMs) : -1;
+            $text = self::cleanText(isset($item->text) ? $item->text : "");
+            if ($startMs < 0 || $endMs <= $startMs || $text === "") { continue; }
+
+            if (count($output)) {
+                $previous = $output[count($output) - 1];
+                $adjacent = $startMs <= $previous->endMs + 250;
+                if ($adjacent) {
+                    $remainder = self::rollingRemainder($previous->text, $text);
+                    if ($remainder !== null) {
+                        if ($remainder === "") {
+                            if ($endMs - $startMs <= 250) { continue; }
+                        } else {
+                            $text = $remainder;
+                            $startMs = max($startMs, $previous->endMs);
+                            if ($endMs <= $startMs) { continue; }
+                        }
+                    }
+                }
+            }
+            $output[] = (object)array("startMs" => $startMs, "endMs" => $endMs, "text" => $text);
+        }
+        return $output;
+    }
+
+    public static function plainText($segments) {
+        $parts = array();
+        foreach (is_array($segments) ? $segments : array() as $value) {
+            $item = is_object($value) ? $value : (object)$value;
+            $text = self::cleanText(isset($item->text) ? $item->text : "");
+            if ($text !== "") { $parts[] = $text; }
+        }
+        return trim(implode("\n", $parts));
+    }
+
+    private static function rollingRemainder($previous, $current) {
+        $previous = self::cleanText($previous);
+        $current = self::cleanText($current);
+        if ($previous === "" || $current === "") { return null; }
+        if ($current === $previous) { return ""; }
+        if (strpos($current, $previous) === 0) {
+            return self::cleanText(substr($current, strlen($previous)));
+        }
+
+        $previousTokens = preg_split('/\s+/u', $previous, -1, PREG_SPLIT_NO_EMPTY);
+        $currentTokens = preg_split('/\s+/u', $current, -1, PREG_SPLIT_NO_EMPTY);
+        $maximum = min(count($previousTokens), count($currentTokens));
+        for ($size = $maximum; $size >= 2; $size--) {
+            if (array_slice($previousTokens, -$size) === array_slice($currentTokens, 0, $size)) {
+                return self::cleanText(implode(" ", array_slice($currentTokens, $size)));
+            }
+        }
+        return null;
+    }
+
+    private static function cleanText($value) {
+        return trim(preg_replace('/\s+/u', ' ', (string)$value));
     }
 
     private static function timestampMs($value) {

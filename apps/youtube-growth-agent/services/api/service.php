@@ -4,6 +4,9 @@ namespace youtube_growth_agent;
 if (!class_exists("YtgServiceBase")) {
     require_once(PLUGIN_PATH_LOCAL . "/youtube-growth/youtube-growth.php");
 }
+if (!class_exists(__NAMESPACE__ . "\\YouTubeCaptionParser")) {
+    require_once(dirname(__DIR__) . "/growth-workbench/caption-parser.php");
+}
 
 class ApiService extends \YtgServiceBase {
     public function postGetConfiguration($req, $res) {
@@ -278,6 +281,10 @@ class ApiService extends \YtgServiceBase {
         ), array(array("column" => "transcriptId", "direction" => "DESC")));
         if ($transcript !== null) {
             $transcript->segments = $this->decodeJson(isset($transcript->segments) ? $transcript->segments : array());
+            if (isset($transcript->sourceType) && $transcript->sourceType === "YOUTUBE_CAPTION") {
+                $transcript->segments = YouTubeCaptionParser::normalizeSegments($transcript->segments);
+                $transcript->plainText = YouTubeCaptionParser::plainText($transcript->segments);
+            }
         }
         return (object)array(
             "video" => $video,

@@ -4,6 +4,9 @@ namespace youtube_growth_agent;
 if (!class_exists("YtgServiceBase")) {
     require_once(PLUGIN_PATH_LOCAL . "/youtube-growth/youtube-growth.php");
 }
+if (!class_exists(__NAMESPACE__ . "\\YouTubeCaptionParser")) {
+    require_once(dirname(__DIR__) . "/growth-workbench/caption-parser.php");
+}
 
 class GrowthAiService extends \YtgServiceBase {
     public function postGenerateShortCandidates($req, $res) {
@@ -101,6 +104,10 @@ class GrowthAiService extends \YtgServiceBase {
         if ($video === null) { $this->fail($res, "The selected video is not available in this channel workspace."); return null; }
         $transcript = $this->first("ytg_transcripts", array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "videoId", "operator" => "=", "value" => $videoId)), array(array("column" => "transcriptId", "direction" => "DESC")));
         if ($requireTranscript && $transcript === null) { $this->fail($res, "A transcript is required for this analysis."); return null; }
+        if ($transcript !== null && isset($transcript->sourceType) && $transcript->sourceType === "YOUTUBE_CAPTION") {
+            $transcript->segments = YouTubeCaptionParser::normalizeSegments($this->decodeJson(isset($transcript->segments) ? $transcript->segments : array()));
+            $transcript->plainText = YouTubeCaptionParser::plainText($transcript->segments);
+        }
         $retention = $this->query("ytg_retention_points", array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "videoId", "operator" => "=", "value" => $videoId)), array(array("column" => "elapsedRatio", "direction" => "ASC")), 200, 0);
         $safeVideo = array("videoId" => $video->youtubeVideoId, "title" => $video->title, "description" => substr($video->description, 0, 10000), "durationSeconds" => intval($video->durationSeconds), "contentType" => $video->contentType, "language" => isset($video->language) ? $video->language : "", "tags" => $this->decodeJson(isset($video->tags) ? $video->tags : array()));
         return (object)array("channel" => $channel, "video" => $video, "safeVideo" => $safeVideo, "transcript" => $transcript, "retention" => $retention->success ? $retention->result : array(), "language" => isset($channel->defaultLanguage) && trim($channel->defaultLanguage) !== "" ? $channel->defaultLanguage : "English");

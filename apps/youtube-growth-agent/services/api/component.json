@@ -2,7 +2,7 @@
   "name": "api",
   "description": "Channel-scoped YouTube Growth Agent API",
   "author": "DAVVAG",
-  "version": "0.3",
+  "version": "0.5",
   "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
   "dependency": {"plugins": [
     {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
