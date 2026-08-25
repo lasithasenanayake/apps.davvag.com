@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {"fieldName":"accessId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"profileId","dataType":"int"},
+    {"fieldName":"role","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"Active"}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"},
+    {"fieldName":"updatedAt","dataType":"java.util.Date"}
+  ],
+  "relations": [{"relationName":"ytg_access_channel","relationType":"many-to-one","targetEntity":"ytg_channels","joinColumns":[{"sourceColumn":"channelId","targetColumn":"channelId"}]},{"relationName":"ytg_access_profile","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"profileId","targetColumn":"id"}]}]
+}

@@ -1,0 +1,77 @@
+{
+  "components": {
+    "app-style": {"type": "component", "location": "components"},
+    "main-view": {"type": "component", "location": "components"},
+    "command-centre": {"type": "component", "location": "components"},
+    "video-library": {"type": "component", "location": "components"},
+    "video-inspector": {"type": "component", "location": "components"},
+    "recommendation-inbox": {"type": "component", "location": "components"},
+    "settings": {"type": "component", "location": "components"},
+    "api": {"type": "service", "location": "services"},
+    "youtube-auth": {"type": "service", "location": "services"},
+    "youtube-sync": {"type": "service", "location": "services"},
+    "youtube-analytics": {"type": "service", "location": "services"},
+    "ai-orchestrator": {"type": "service", "location": "services"}
+  },
+  "description": {
+    "title": "YouTube Growth Agent",
+    "author": "DAVVAG",
+    "version": "0.1",
+    "icon": "appicon.svg"
+  },
+  "tags": ["showincms", "showindock"],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "main-view",
+      "onLoad": ["app-style", "api", "youtube-auth", "youtube-sync", "youtube-analytics", "ai-orchestrator"],
+      "routes": {
+        "partials": {
+          "/": "main-view",
+          "/channels": "main-view",
+          "/dashboard": "command-centre",
+          "/videos": "video-library",
+          "/video": "video-inspector",
+          "/recommendations": "recommendation-inbox",
+          "/settings": "settings"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {"name": "Channels", "path": "channels"},
+        {"name": "Command Centre", "path": "dashboard"},
+        {"name": "Videos", "path": "videos"},
+        {"name": "Recommendations", "path": "recommendations"},
+        {"name": "Settings & Privacy", "path": "settings"}
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": ["ai-agent-creator", "davvag-scheduler"],
+    "schemas": [
+      "profile",
+      "schedule_pending",
+      "ytg_channels",
+      "ytg_channel_access",
+      "ytg_oauth_grants",
+      "ytg_videos",
+      "ytg_video_statistics",
+      "ytg_analytics_daily",
+      "ytg_reach_daily",
+      "ytg_traffic_sources",
+      "ytg_recommendations",
+      "ytg_sync_jobs",
+      "ytg_quota_usage",
+      "ytg_agent_runs",
+      "ytg_audit_log"
+    ],
+    "workflows": [
+      "youtube-growth-agent/initial-channel-sync.json",
+      "youtube-growth-agent/daily-channel-sync.json",
+      "youtube-growth-agent/generate-weekly-plan.json",
+      "youtube-growth-agent/delete-channel-data.json"
+    ],
+    "plugins": ["auth", "profile", "sossdata", "davvag-flow", "youtube-growth"],
+    "php-extensions": ["curl", "openssl"]
+  }
+}

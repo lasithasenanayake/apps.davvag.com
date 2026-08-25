@@ -1,0 +1,13 @@
+{
+  "fields": [
+    {"fieldName":"auditId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"profileId","dataType":"int"},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"action","dataType":"java.lang.String","annotations":{"maxLen":100}},
+    {"fieldName":"target","dataType":"java.lang.String","annotations":{"maxLen":255}},
+    {"fieldName":"beforeData","dataType":"object"},
+    {"fieldName":"afterData","dataType":"object"},
+    {"fieldName":"approvedAt","dataType":"java.util.Date"},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}

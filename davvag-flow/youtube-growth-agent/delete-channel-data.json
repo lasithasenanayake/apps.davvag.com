@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Growth Agent explicit stored-data deletion",
+  "start_up_node": "delete-stored-data",
+  "inputData": [{"name":"channelId","datatype":"string"},{"name":"confirmation","datatype":"string"}],
+  "delete-stored-data": {
+    "urntype": "service",
+    "appCode": "youtube-growth-agent",
+    "componentCode": "youtube-auth",
+    "method": {"type":"post","name":"DeleteChannelData","params":[{"name":"postData","type":"object","value":"inputData"}],"return":true,"returnobj":"deleteResult"},
+    "fail": "nodefail"
+  }
+}

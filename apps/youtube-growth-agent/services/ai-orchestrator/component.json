@@ -1,0 +1,20 @@
+{
+  "name": "ai-orchestrator",
+  "description": "Validated evidence-backed channel planning service",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {"plugins": [
+    {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
+    {"type": "php", "plugin_location": "local", "location": "/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "youtube_growth_agent\\AiOrchestratorService",
+    "methods": {
+      "GenerateChannelPlan": {"method": "POST"},
+      "ValidateRecommendation": {"method": "POST"}
+    }
+  },
+  "transformers": {}
+}

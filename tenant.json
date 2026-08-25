@@ -1,5 +1,6 @@
 {
     "apps":{
+        "youtube-growth-agent":{"version":"latest"},
         "davvag-credit-points":{"version":"latest"},
         "travel-destinations":{"version":"latest"},
         "davvag-mesh":{"version":"latest"},

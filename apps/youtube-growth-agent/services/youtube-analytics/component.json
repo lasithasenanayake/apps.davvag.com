@@ -1,0 +1,17 @@
+{
+  "name": "youtube-analytics",
+  "description": "Official metric provenance and freshness status",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {"plugins": [
+    {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
+    {"type": "php", "plugin_location": "local", "location": "/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "youtube_growth_agent\\YouTubeAnalyticsService",
+    "methods": {"GetAnalyticsStatus": {"method": "POST"}}
+  },
+  "transformers": {}
+}

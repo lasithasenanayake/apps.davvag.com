@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {"fieldName":"runId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"agentType","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"model","dataType":"java.lang.String","annotations":{"maxLen":120}},
+    {"fieldName":"promptVersion","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"inputRefs","dataType":"object"},
+    {"fieldName":"output","dataType":"object"},
+    {"fieldName":"validationStatus","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"tokenUsage","dataType":"int"},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Growth Agent daily channel sync",
+  "start_up_node": "run-daily-sync",
+  "inputData": [{"name":"channelId","datatype":"string"},{"name":"scheduled","datatype":"boolean"}],
+  "run-daily-sync": {
+    "urntype": "service",
+    "appCode": "youtube-growth-agent",
+    "componentCode": "youtube-sync",
+    "method": {"type":"post","name":"RunDailySync","params":[{"name":"postData","type":"object","value":"inputData"}],"return":true,"returnobj":"syncResult"},
+    "fail": "nodefail"
+  }
+}

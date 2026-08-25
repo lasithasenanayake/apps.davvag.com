@@ -1,0 +1,27 @@
+{
+  "fields": [
+    {"fieldName":"recommendationId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"fingerprint","dataType":"java.lang.String","annotations":{"maxLen":160}},
+    {"fieldName":"type","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"priority","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"observation","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+    {"fieldName":"evidence","dataType":"object"},
+    {"fieldName":"reasoning","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"actions","dataType":"object"},
+    {"fieldName":"suggestedAsset","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"hypothesis","dataType":"java.lang.String","annotations":{"maxLen":5000,"encoding":"utf8"}},
+    {"fieldName":"confidence","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"effort","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"metricToReview","dataType":"java.lang.String","annotations":{"maxLen":255}},
+    {"fieldName":"reviewAt","dataType":"java.util.Date"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"New"}},
+    {"fieldName":"requiresApproval","dataType":"boolean","annotations":{"default":true}},
+    {"fieldName":"sourceDateStart","dataType":"java.util.Date"},
+    {"fieldName":"sourceDateEnd","dataType":"java.util.Date"},
+    {"fieldName":"createdAt","dataType":"java.util.Date"},
+    {"fieldName":"updatedAt","dataType":"java.util.Date"},
+    {"fieldName":"completedAt","dataType":"java.util.Date"}
+  ]
+}

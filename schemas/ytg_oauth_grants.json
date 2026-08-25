@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {"fieldName":"grantId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"profileId","dataType":"int"},
+    {"fieldName":"credentialRef","dataType":"java.lang.String","annotations":{"maxLen":160}},
+    {"fieldName":"scopes","dataType":"object"},
+    {"fieldName":"expiresAt","dataType":"java.util.Date"},
+    {"fieldName":"lastVerifiedAt","dataType":"java.util.Date"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"Connected"}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"},
+    {"fieldName":"updatedAt","dataType":"java.util.Date"}
+  ],
+  "relations": [{"relationName":"ytg_grant_channel","relationType":"many-to-one","targetEntity":"ytg_channels","joinColumns":[{"sourceColumn":"channelId","targetColumn":"channelId"}]}]
+}

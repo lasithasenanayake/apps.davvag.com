@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {"fieldName":"trafficId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"date","dataType":"java.util.Date"},
+    {"fieldName":"sourceType","dataType":"java.lang.String","annotations":{"maxLen":120}},
+    {"fieldName":"sourceDetail","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},
+    {"fieldName":"views","dataType":"long"},
+    {"fieldName":"watchMinutes","dataType":"double"},
+    {"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"reportId","dataType":"java.lang.String","annotations":{"maxLen":180}},
+    {"fieldName":"refreshedAt","dataType":"java.util.Date"}
+  ]
+}

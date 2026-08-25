@@ -1,0 +1,27 @@
+{
+  "fields": [
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"isPrimary":true,"maxLen":90}},
+    {"fieldName":"ownerProfileId","dataType":"int"},
+    {"fieldName":"youtubeChannelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"handle","dataType":"java.lang.String","annotations":{"maxLen":180,"encoding":"utf8"}},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"uploadsPlaylistId","dataType":"java.lang.String","annotations":{"maxLen":100}},
+    {"fieldName":"thumbnailUrl","dataType":"java.lang.String","annotations":{"maxLen":1000}},
+    {"fieldName":"timezone","dataType":"java.lang.String","annotations":{"maxLen":80,"default":"UTC"}},
+    {"fieldName":"defaultLanguage","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"English"}},
+    {"fieldName":"scopes","dataType":"object"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"Connected"}},
+    {"fieldName":"connectionHealth","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"Connected"}},
+    {"fieldName":"subscriberCount","dataType":"long"},
+    {"fieldName":"viewCount","dataType":"long"},
+    {"fieldName":"videoCount","dataType":"long"},
+    {"fieldName":"lastMetadataSyncAt","dataType":"java.util.Date"},
+    {"fieldName":"lastAnalyticsSyncAt","dataType":"java.util.Date"},
+    {"fieldName":"lastReportingSyncAt","dataType":"java.util.Date"},
+    {"fieldName":"lastAuthorizationVerifiedAt","dataType":"java.util.Date"},
+    {"fieldName":"lastAnalysisAt","dataType":"java.util.Date"},
+    {"fieldName":"createdAt","dataType":"java.util.Date"},
+    {"fieldName":"updatedAt","dataType":"java.util.Date"}
+  ]
+}

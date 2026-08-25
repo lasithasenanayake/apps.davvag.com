@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {"fieldName":"quotaId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"usageDate","dataType":"java.util.Date"},
+    {"fieldName":"operation","dataType":"java.lang.String","annotations":{"maxLen":120}},
+    {"fieldName":"units","dataType":"int"},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "youtube-sync",
+  "description": "Quota-aware, resumable YouTube catalogue and analytics sync",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {"plugins": [
+    {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
+    {"type": "php", "plugin_location": "local", "location": "/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "youtube_growth_agent\\YouTubeSyncService",
+    "methods": {
+      "RunInitialSync": {"method": "POST"},
+      "RunDailySync": {"method": "POST"},
+      "SyncVideo": {"method": "POST"}
+    }
+  },
+  "transformers": {}
+}

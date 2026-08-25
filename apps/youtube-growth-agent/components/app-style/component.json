@@ -1,0 +1,10 @@
+{
+  "name": "app-style",
+  "description": "Shared YouTube Growth Agent styles",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {
+    "files": [{"type":"mainScript","location":"script.js"}],
+    "css": [{"type":"css","location":"app-style.css"}]
+  }
+}

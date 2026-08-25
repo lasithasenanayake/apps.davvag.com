@@ -1,0 +1,1 @@
+{"name":"recommendation-inbox","description":"Evidence-backed recommendation inbox","author":"DAVVAG","version":"0.1","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

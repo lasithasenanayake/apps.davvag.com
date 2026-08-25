@@ -1,0 +1,22 @@
+{
+  "name": "youtube-auth",
+  "description": "Secure Google OAuth and YouTube data-deletion service",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {"plugins": [
+    {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
+    {"type": "php", "plugin_location": "local", "location": "/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "youtube_growth_agent\\YouTubeAuthService",
+    "methods": {
+      "StartConnect": {"method": "POST"},
+      "OAuthCallback": {"method": "GET"},
+      "DisconnectChannel": {"method": "POST"},
+      "DeleteChannelData": {"method": "POST"}
+    }
+  },
+  "transformers": {}
+}

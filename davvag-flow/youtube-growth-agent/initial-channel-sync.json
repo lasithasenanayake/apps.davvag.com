@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Growth Agent initial channel sync",
+  "start_up_node": "run-initial-sync",
+  "inputData": [{"name":"channelId","datatype":"string"},{"name":"force","datatype":"boolean"}],
+  "run-initial-sync": {
+    "urntype": "service",
+    "appCode": "youtube-growth-agent",
+    "componentCode": "youtube-sync",
+    "method": {"type":"post","name":"RunInitialSync","params":[{"name":"postData","type":"object","value":"inputData"}],"return":true,"returnobj":"syncResult"},
+    "fail": "nodefail"
+  }
+}

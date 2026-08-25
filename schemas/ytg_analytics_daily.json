@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {"fieldName":"analyticsId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"date","dataType":"java.util.Date"},
+    {"fieldName":"contentType","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"views","dataType":"long"},
+    {"fieldName":"engagedViews","dataType":"long"},
+    {"fieldName":"watchMinutes","dataType":"double"},
+    {"fieldName":"avgViewDuration","dataType":"double"},
+    {"fieldName":"avgViewPercentage","dataType":"double"},
+    {"fieldName":"subscribersGained","dataType":"long"},
+    {"fieldName":"subscribersLost","dataType":"long"},
+    {"fieldName":"likes","dataType":"long"},
+    {"fieldName":"comments","dataType":"long"},
+    {"fieldName":"shares","dataType":"long"},
+    {"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"refreshedAt","dataType":"java.util.Date"}
+  ]
+}

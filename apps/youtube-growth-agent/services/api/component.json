@@ -1,0 +1,27 @@
+{
+  "name": "api",
+  "description": "Channel-scoped YouTube Growth Agent API",
+  "author": "DAVVAG",
+  "version": "0.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {"plugins": [
+    {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
+    {"type": "php", "plugin_location": "local", "location": "/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "youtube_growth_agent\\ApiService",
+    "methods": {
+      "GetConfiguration": {"method": "POST"},
+      "SaveConfiguration": {"method": "POST"},
+      "ListChannels": {"method": "POST"},
+      "GetDashboard": {"method": "POST"},
+      "ListVideos": {"method": "POST"},
+      "GetVideoAnalysis": {"method": "POST"},
+      "ListRecommendations": {"method": "POST"},
+      "UpdateRecommendationStatus": {"method": "POST"},
+      "ListSyncJobs": {"method": "POST"}
+    }
+  },
+  "transformers": {}
+}

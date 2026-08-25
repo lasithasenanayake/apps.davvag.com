@@ -1,0 +1,18 @@
+{
+  "fields": [
+    {"fieldName":"jobId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"type","dataType":"java.lang.String","annotations":{"maxLen":50}},
+    {"fieldName":"externalId","dataType":"java.lang.String","annotations":{"maxLen":255}},
+    {"fieldName":"idempotencyKey","dataType":"java.lang.String","annotations":{"maxLen":180}},
+    {"fieldName":"cursor","dataType":"java.lang.String","annotations":{"maxLen":2000}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"attempts","dataType":"int"},
+    {"fieldName":"processedItems","dataType":"int"},
+    {"fieldName":"quotaUsed","dataType":"int"},
+    {"fieldName":"startedAt","dataType":"java.util.Date"},
+    {"fieldName":"completedAt","dataType":"java.util.Date"},
+    {"fieldName":"error","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"details","dataType":"object"}
+  ]
+}

@@ -1,0 +1,35 @@
+<section class="ytg-shell" v-bind:class="{'ytg-skeleton': loading}">
+    <header class="ytg-header">
+        <div><h1>YouTube Growth Agent</h1><p>Isolated, evidence-based workspaces for each authorized channel.</p></div>
+        <div class="ytg-header-actions">
+            <button type="button" class="ytg-button secondary" v-on:click="openSettings">Settings &amp; Privacy</button>
+            <button type="button" class="ytg-button" v-on:click="connectChannel" v-bind:disabled="!!connecting || (configuration && !configuration.ready)">{{ connecting ? "Opening Google..." : "Connect YouTube Channel" }}</button>
+        </div>
+    </header>
+    <div class="ytg-alert error" v-if="error">{{ error }}</div><div class="ytg-alert" v-if="info">{{ info }}</div>
+    <div class="ytg-alert warning" v-if="configuration && !configuration.ready">Server integration is not ready. Open Settings &amp; Privacy to see missing configuration.</div>
+    <div class="ytg-empty ytg-panel" v-if="!loading && !channels.length">
+        <h2>No channel workspace yet</h2><p>Connect a channel using least-privilege read-only OAuth. This app never combines unrelated channel totals.</p>
+        <button type="button" class="ytg-button" v-on:click="connectChannel" v-bind:disabled="!!connecting || (configuration && !configuration.ready)">Connect first channel</button>
+    </div>
+    <div class="ytg-grid" v-if="channels.length">
+        <article class="ytg-panel ytg-col-6" v-for="channel in channels">
+            <div class="ytg-channel-card">
+                <img class="ytg-avatar" v-bind:src="channel.thumbnailUrl" alt="" v-if="channel.thumbnailUrl">
+                <div><h2>{{ channel.title }}</h2><div class="ytg-muted">{{ channel.handle || channel.youtubeChannelId }}</div>
+                    <div class="ytg-badges"><span class="ytg-badge" v-bind:class="healthClass(channel.connectionHealth)">{{ channel.connectionHealth }}</span><span class="ytg-badge">{{ channel.role }}</span><span class="ytg-badge">{{ channel.defaultLanguage || "English" }}</span></div>
+                </div>
+            </div>
+            <div class="ytg-grid">
+                <div class="ytg-col-4 ytg-kpi"><small>Subscribers</small><strong>{{ formatNumber(channel.subscriberCount) }}</strong></div>
+                <div class="ytg-col-4 ytg-kpi"><small>Videos</small><strong>{{ formatNumber(channel.videoCount) }}</strong></div>
+                <div class="ytg-col-4 ytg-kpi"><small>Open actions</small><strong>{{ formatNumber(channel.openRecommendations) }}</strong></div>
+            </div>
+            <p class="ytg-muted">Last metadata sync: {{ formatDate(channel.lastMetadataSyncAt) }}</p>
+            <div class="ytg-progress"><span v-bind:style="{width: Math.min(100, ((channel.quotaUsedToday || 0) / (channel.quotaLimit || 9500)) * 100) + '%'}"></span></div>
+            <p class="ytg-muted">Quota recorded today: {{ formatNumber(channel.quotaUsedToday) }} / {{ formatNumber(channel.quotaLimit) }}</p>
+            <button type="button" class="ytg-button" v-on:click="openChannel(channel)">Open workspace</button>
+        </article>
+    </div>
+    <p class="ytg-footer-note">Official YouTube metrics remain labelled by source and freshness. Recommendations are hypotheses and require human action.</p>
+</section>

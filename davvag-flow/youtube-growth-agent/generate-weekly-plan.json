@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Growth Agent weekly plan",
+  "start_up_node": "generate-plan",
+  "inputData": [{"name":"channelId","datatype":"string"}],
+  "generate-plan": {
+    "urntype": "service",
+    "appCode": "youtube-growth-agent",
+    "componentCode": "ai-orchestrator",
+    "method": {"type":"post","name":"GenerateChannelPlan","params":[{"name":"postData","type":"object","value":"inputData"}],"return":true,"returnobj":"planResult"},
+    "fail": "nodefail"
+  }
+}

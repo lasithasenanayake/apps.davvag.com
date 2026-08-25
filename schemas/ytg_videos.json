@@ -1,0 +1,23 @@
+{
+  "fields": [
+    {"fieldName":"videoId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"youtubeVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":50000,"encoding":"utf8"}},
+    {"fieldName":"publishedAt","dataType":"java.util.Date"},
+    {"fieldName":"durationSeconds","dataType":"int"},
+    {"fieldName":"contentType","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"contentTypeSource","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"language","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"categoryId","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"tags","dataType":"object"},
+    {"fieldName":"thumbnailUrl","dataType":"java.lang.String","annotations":{"maxLen":1000}},
+    {"fieldName":"privacyStatus","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"liveBroadcastContent","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"hasTranscript","dataType":"boolean","annotations":{"default":false}},
+    {"fieldName":"metadataRefreshedAt","dataType":"java.util.Date"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"Active"}}
+  ],
+  "relations": [{"relationName":"ytg_video_channel","relationType":"many-to-one","targetEntity":"ytg_channels","joinColumns":[{"sourceColumn":"channelId","targetColumn":"channelId"}]}]
+}

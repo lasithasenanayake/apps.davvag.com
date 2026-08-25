@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="YouTube Growth Agent">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d57"/><stop offset="1" stop-color="#b80f2e"/></linearGradient></defs>
+  <rect width="128" height="128" rx="28" fill="#101827"/>
+  <path d="M25 42c2-8 8-13 17-14 15-2 29-2 44 0 9 1 15 6 17 14 2 10 2 20 0 30-2 8-8 13-17 14-15 2-29 2-44 0-9-1-15-6-17-14-2-10-2-20 0-30Z" fill="url(#g)"/>
+  <path d="m55 44 25 14-25 14V44Z" fill="#fff"/><path d="M34 101 49 86l12 8 23-27 11 9-33 38-12-8-8 8Z" fill="#44d7b6"/>
+</svg>

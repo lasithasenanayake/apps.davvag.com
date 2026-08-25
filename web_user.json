@@ -1,5 +1,8 @@
 {
     "apps":  {
+                 "youtube-growth-agent":  {
+                                                    "version":  "latest"
+                                                },
                  "davvag-credit-points":  {
                                                     "version":  "latest"
                                                 },
