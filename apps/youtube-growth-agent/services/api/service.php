@@ -268,13 +268,24 @@ class ApiService extends \YtgServiceBase {
             array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
             array("column" => "videoId", "operator" => "=", "value" => $videoId)
         ), array(array("column" => "recommendationId", "direction" => "DESC")), 100, 0);
+        $retention = $this->query("ytg_retention_points", array(
+            array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
+            array("column" => "videoId", "operator" => "=", "value" => $videoId)
+        ), array(array("column" => "elapsedRatio", "direction" => "ASC")), 200, 0);
+        $transcript = $this->first("ytg_transcripts", array(
+            array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
+            array("column" => "videoId", "operator" => "=", "value" => $videoId)
+        ), array(array("column" => "transcriptId", "direction" => "DESC")));
+        if ($transcript !== null) {
+            $transcript->segments = $this->decodeJson(isset($transcript->segments) ? $transcript->segments : array());
+        }
         return (object)array(
             "video" => $video,
             "statistics" => $statistics->success ? $statistics->result : array(),
             "recommendations" => $recommendations->success ? $this->normalizeRecommendations($recommendations->result) : array(),
-            "retention" => array(),
-            "transcript" => null,
-            "phaseNotice" => "Retention curves and transcript analysis are Phase 2; no YouTube audiovisual content is downloaded."
+            "retention" => $retention->success ? $retention->result : array(),
+            "transcript" => $transcript,
+            "phaseNotice" => "Retention comes from YouTube Analytics. Transcript provenance is shown explicitly; no YouTube audiovisual content is downloaded."
         );
     }
 

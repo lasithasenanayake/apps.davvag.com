@@ -244,6 +244,8 @@ class YouTubeAuthService extends \YtgServiceBase {
         $namespaces = array(
             "ytg_video_statistics", "ytg_analytics_daily", "ytg_reach_daily", "ytg_traffic_sources",
             "ytg_recommendations", "ytg_sync_jobs", "ytg_quota_usage", "ytg_agent_runs", "ytg_videos",
+            "ytg_retention_points", "ytg_transcripts", "ytg_short_candidates", "ytg_content_ideas",
+            "ytg_calendar_items", "ytg_competitors", "ytg_competitor_videos", "ytg_comments", "ytg_experiments",
             "ytg_oauth_grants", "ytg_channel_access"
         );
         $deleted = array();

@@ -6,6 +6,10 @@ WEBDOCK.component().register(function(exports) {
     var pendingProfileFile;
     var state = {
         provider: "openai",
+        providerDrafts: {},
+        modelFilter: "",
+        testAttachments: [],
+        testSessionId: "creator-console-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10),
         format: "json",
         agents: [],
         selectedAgentCode: "",
@@ -21,43 +25,8 @@ WEBDOCK.component().register(function(exports) {
         }
     };
 
-    var providers = {
-        openai: {
-            method: "REST API: chat/completions",
-            model: "gpt-4.1-mini",
-            apiPlaceholder: "sk-...",
-            endpoint: "",
-            fields: ["apiKey"]
-        },
-        ollama: {
-            method: "Local runtime: CLI/HTTP",
-            model: "llama3.1",
-            apiPlaceholder: "",
-            endpoint: "http://localhost:11434/api/chat",
-            fields: ["endpoint", "cliCommand"]
-        },
-        lmstudio: {
-            method: "Local inference server",
-            model: "local-model",
-            apiPlaceholder: "",
-            endpoint: "http://localhost:1234/v1/chat/completions",
-            fields: ["endpoint"]
-        },
-        google: {
-            method: "Generative Language API",
-            model: "gemini-1.5-pro",
-            apiPlaceholder: "AIza...",
-            endpoint: "https://generativelanguage.googleapis.com/v1beta",
-            fields: ["apiKey"]
-        },
-        other: {
-            method: "Custom API schema",
-            model: "custom-model",
-            apiPlaceholder: "token or key",
-            endpoint: "https://api.example.com/v1/chat",
-            fields: ["apiKey", "endpoint", "customMethod", "authHeader"]
-        }
-    };
+    // Populated exclusively by creator-api/Providers; the browser keeps no model catalog.
+    var providers = {};
 
     function find(selector) {
         return root.find(selector);
@@ -92,6 +61,12 @@ WEBDOCK.component().register(function(exports) {
 
     function setBusy(isBusy) {
         find("button, input, textarea, select").prop("disabled", isBusy);
+        if (!isBusy) {
+            find("[data-streaming]").prop("disabled", true).prop("checked", false);
+            find('[data-modality][data-supported="false"]').prop("disabled", true).prop("checked", false);
+            var model = selectedModel();
+            if (model && $.inArray("temperature", model.supportedParameters || []) === -1) find("[data-temperature]").prop("disabled", true);
+        }
     }
 
     function profileImageUrl(profileId) {
@@ -133,34 +108,147 @@ WEBDOCK.component().register(function(exports) {
         setProfileImage(identity.image || profileImageUrl(identity.profileId));
     }
 
-    function setProvider(provider) {
-        var meta = providers[provider] || providers.openai;
-        state.provider = provider;
+    function providerFields(provider) {
+        if (provider === "ollama") return ["endpoint", "cliCommand"];
+        if (provider === "lmstudio") return ["endpoint"];
+        if (provider === "other") return ["apiKey", "endpoint", "customMethod", "authHeader"];
+        return ["apiKey"];
+    }
 
-        find("[data-provider]").removeClass("is-active");
-        find('[data-provider="' + provider + '"]').addClass("is-active");
-        find("[data-connection-method]").text(meta.method);
+    function connectionDraft() {
+        return { apiKey: find("[data-api-key]").val(), endpoint: find("[data-endpoint]").val(), cliCommand: find("[data-cli-command]").val(), customMethod: find("[data-custom-method]").val(), authHeader: find("[data-auth-header]").val() };
+    }
 
+    function applyConnectionDraft(meta) {
+        var draft = state.providerDrafts[state.provider] || {};
+        find("[data-api-key]").val(draft.apiKey || "");
+        find("[data-endpoint]").val(draft.endpoint || meta.defaultEndpoint || "");
+        find("[data-cli-command]").val(draft.cliCommand || "");
+        find("[data-custom-method]").val(draft.customMethod || "POST");
+        find("[data-auth-header]").val(draft.authHeader || "");
+    }
+
+    function renderProviderButtons() {
+        var container = find("[data-provider-options]").empty();
+        $.each(providers, function(code, meta) {
+            container.append($("<button>").attr("type", "button").attr("data-provider", code).addClass("agent-creator__provider").text(meta.label || code));
+        });
+    }
+
+    function modelList() {
+        var meta = providers[state.provider] || {};
+        return $.isArray(meta.fallbackModels) ? meta.fallbackModels : [];
+    }
+
+    function selectedModel() {
+        var id = find("[data-model]").val();
+        if (id === "__custom__") id = $.trim(find("[data-custom-model]").val() || "");
+        var list = modelList();
+        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+        if (id) {
+            var custom = { id: id, name: id, lifecycle: "custom", inputModalities: ["text"], outputModalities: ["text"], supportedParameters: ["temperature", "maxTokens"], pricing: { status: "unknown" } };
+            if (state.provider === "other") {
+                try { $.extend(true, custom, JSON.parse(find("[data-custom-model-metadata]").val() || "{}")); } catch (ignore) {}
+                custom.inputModalities = ["text"]; custom.outputModalities = ["text"];
+            }
+            return custom;
+        }
+        return null;
+    }
+
+    function selectedModelId() {
+        return find("[data-model]").val() === "__custom__" ? $.trim(find("[data-custom-model]").val() || "") : (find("[data-model]").val() || "");
+    }
+
+    function renderModels(preferredId) {
+        var select = find("[data-model]").empty();
+        var filter = $.trim(state.modelFilter.toLowerCase());
+        $.each(modelList(), function(_, model) {
+            var haystack = [model.name, model.id, model.description, model.recommendedUse, (model.inputModalities || []).join(" ")].join(" ").toLowerCase();
+            if (filter && haystack.indexOf(filter) === -1) return;
+            var label = (model.name || model.id) + " — " + model.id + (model.recommendedUse ? " [" + model.recommendedUse + "]" : "");
+            select.append($("<option>").attr("value", model.id).text(label));
+        });
+        select.append($("<option>").attr("value", "__custom__").text("Custom model ID (advanced)"));
+        if (preferredId && select.find('option[value="' + preferredId.replace(/"/g, "") + '"]').length) select.val(preferredId);
+        else select.prop("selectedIndex", 0);
+        updateModelExperience();
+    }
+
+    function renderModalities(model) {
+        $.each({ input: "[data-input-modalities]", output: "[data-output-modalities]" }, function(direction, selector) {
+            var supported = model && $.isArray(model[direction + "Modalities"]) ? model[direction + "Modalities"] : ["text"];
+            var box = find(selector).empty();
+            $.each(["text", "image", "audio", "video", "document"], function(_, modality) {
+                var enabled = $.inArray(modality, supported) !== -1;
+                var input = $("<input>").attr({ type: "checkbox", "data-modality": direction, "data-supported": enabled ? "true" : "false", value: modality }).prop("disabled", !enabled).prop("checked", enabled && modality === "text");
+                var label = $("<label>").addClass("agent-creator__modality").toggleClass("is-disabled", !enabled).append(input).append($("<span>").text(modality + (enabled ? "" : " — unsupported")));
+                box.append(label);
+            });
+        });
+    }
+
+    function renderModelInfo(model) {
+        var panel = find("[data-model-info]").empty();
+        if (!model) { panel.text("Select a model to see capabilities, limits, and pricing."); return; }
+        var pricing = model.pricing || {};
+        panel.append($("<strong>").text((model.name || model.id) + " · " + (model.lifecycle || "unknown")));
+        panel.append($("<p>").text(model.description || "No catalog description."));
+        panel.append($("<p>").text("Input: " + (model.inputModalities || ["text"]).join(", ") + " · Output: " + (model.outputModalities || ["text"]).join(", ")));
+        panel.append($("<p>").text("Context: " + (model.contextWindow ? Number(model.contextWindow).toLocaleString() + " tokens" : "provider/model dependent") + " · Max output: " + (model.maxOutputTokens ? Number(model.maxOutputTokens).toLocaleString() : "unknown")));
+        if (pricing.status === "local") panel.append($("<p>").text("No per-token provider API fee. Local hardware, hosting, and electricity costs are not included."));
+        else if (pricing.inputPerMillionTokens != null && pricing.outputPerMillionTokens != null) panel.append($("<p>").text("USD $" + pricing.inputPerMillionTokens + " input / $" + pricing.outputPerMillionTokens + " output per 1M tokens" + (pricing.cachedInputPerMillionTokens != null ? " · $" + pricing.cachedInputPerMillionTokens + " cached input" : "")));
+        else panel.append($("<p>").text("Pricing unavailable; configure and verify custom pricing outside this catalog."));
+        if (pricing.officialUrl) panel.append($("<a>").attr({ href: pricing.officialUrl, target: "_blank", rel: "noopener noreferrer" }).text("Official pricing · verified " + (pricing.lastVerified || "unknown")));
+    }
+
+    function updateModelExperience() {
+        var custom = find("[data-model]").val() === "__custom__";
+        find("[data-custom-model-field]").toggleClass("is-hidden", !custom);
+        var model = selectedModel();
+        renderModelInfo(model); renderModalities(model);
+        var limit = model && model.maxOutputTokens ? model.maxOutputTokens : 200000;
+        find("[data-max-tokens]").attr("max", limit).val(Math.min(parseInt(find("[data-max-tokens]").val(), 10) || 2048, limit));
+        var supportsTemperature = !model || $.inArray("temperature", model.supportedParameters || []) !== -1;
+        find("[data-temperature]").prop("disabled", !supportsTemperature);
+        calculateEstimate();
+    }
+
+    function rateToPico(value) {
+        var parts = String(value == null ? "0" : value).split(".");
+        return BigInt(parts[0] || "0") * 1000000n + BigInt(((parts[1] || "") + "000000").slice(0, 6));
+    }
+
+    function calculateEstimate() {
+        var model = selectedModel(), pricing = model && model.pricing ? model.pricing : {};
+        if (pricing.status === "local") { find("[data-cost-estimate]").text("Estimated provider API fee: USD $0. Local operating costs are excluded."); return; }
+        if (pricing.inputPerMillionTokens == null || pricing.outputPerMillionTokens == null) { find("[data-cost-estimate]").text("Pricing unavailable."); return; }
+        var input = BigInt(Math.max(0, parseInt(find("[data-estimate-input]").val(), 10) || 0));
+        var cached = BigInt(Math.max(0, parseInt(find("[data-estimate-cached]").val(), 10) || 0)); if (cached > input) cached = input;
+        var output = BigInt(Math.max(0, parseInt(find("[data-estimate-output]").val(), 10) || 0));
+        var inputRate = rateToPico(pricing.inputPerMillionTokens), cachedRate = pricing.cachedInputPerMillionTokens == null ? inputRate : rateToPico(pricing.cachedInputPerMillionTokens), outputRate = rateToPico(pricing.outputPerMillionTokens);
+        var pico = (input - cached) * inputRate + cached * cachedRate + output * outputRate;
+        var whole = pico / 1000000000000n, fraction = String(pico % 1000000000000n).padStart(12, "0").replace(/0+$/, "");
+        find("[data-cost-estimate]").text("Estimated cost: USD $" + whole + (fraction ? "." + fraction : "") + " = uncached input + cached input + output. Modality/tool fees not listed by the selected catalog entry are excluded.");
+    }
+
+    function setProvider(provider, options) {
+        if (!providers[provider]) return;
+        if ((!options || !options.skipDraftSave) && providers[state.provider]) state.providerDrafts[state.provider] = connectionDraft();
+        state.provider = provider; var meta = providers[provider];
+        find("[data-provider]").removeClass("is-active").attr("aria-pressed", "false");
+        find('[data-provider="' + provider + '"]').addClass("is-active").attr("aria-pressed", "true");
+        find("[data-connection-method]").text(meta.connectionMethod || "Provider API");
         find("[data-field]").addClass("is-hidden");
-        for (var i = 0; i < meta.fields.length; i++) {
-            find('[data-field="' + meta.fields[i] + '"]').removeClass("is-hidden");
-        }
-
-        find("[data-model]").attr("placeholder", meta.model);
-        find("[data-api-key]").attr("placeholder", meta.apiPlaceholder);
-        find("[data-endpoint]").attr("placeholder", meta.endpoint);
-
-        if (!find("[data-model]").val()) {
-            find("[data-model]").val(meta.model);
-        }
-        if (!find("[data-endpoint]").val() && meta.endpoint) {
-            find("[data-endpoint]").val(meta.endpoint);
-        }
-
-        setStatus("Provider mapped to " + meta.method + ".", "muted");
+        $.each(providerFields(provider), function(_, field) { find('[data-field="' + field + '"]').removeClass("is-hidden"); });
+        applyConnectionDraft(meta); state.modelFilter = ""; find("[data-model-filter]").val(""); renderModels();
+        setStatus((meta.notes || ("Provider mapped to " + meta.connectionMethod + ".")), "muted");
     }
 
     function collectForm() {
+        var inputModalities = [], outputModalities = [];
+        find('[data-modality="input"]:checked').each(function() { inputModalities.push($(this).val()); });
+        find('[data-modality="output"]:checked').each(function() { outputModalities.push($(this).val()); });
         return {
             agentCode: find("[data-agent-code]").val(),
             agentName: find("[data-agent-name]").val(),
@@ -173,7 +261,9 @@ WEBDOCK.component().register(function(exports) {
             capabilities: find("[data-agent-capabilities]").val(),
             skills: find("[data-agent-skills]").val(),
             provider: state.provider,
-            model: find("[data-model]").val(),
+            model: selectedModelId(),
+            customModelMetadata: find("[data-custom-model-metadata]").val(),
+            modalities: { input: inputModalities, output: outputModalities },
             apiKey: find("[data-api-key]").val(),
             endpoint: find("[data-endpoint]").val(),
             cliCommand: find("[data-cli-command]").val(),
@@ -182,7 +272,7 @@ WEBDOCK.component().register(function(exports) {
             systemPrompt: find("[data-system-prompt]").val(),
             temperature: find("[data-temperature]").val(),
             maxTokens: find("[data-max-tokens]").val(),
-            streaming: find("[data-streaming]").is(":checked")
+            streaming: false
         };
     }
 
@@ -240,6 +330,37 @@ WEBDOCK.component().register(function(exports) {
             }
         }
         return null;
+    }
+
+    function loadProviders() {
+        if (!api) return;
+        api.services.Providers().then(function(response) {
+            var result = serviceResult(response);
+            if (result.success === false || !result.providers) {
+                setStatus(result.message || "Provider catalog is unavailable.", "error"); return;
+            }
+            providers = result.providers; renderProviderButtons();
+            var first = providers.openai ? "openai" : Object.keys(providers)[0];
+            if (first) setProvider(first, { skipDraftSave: true });
+        }).error(function(response) {
+            var result = serviceResult(response && response.responseJSON ? response.responseJSON : response);
+            setStatus(result.message || "Provider catalog is unavailable; creation is disabled.", "error");
+        });
+    }
+
+    function discoverModels() {
+        if (!api || !api.services.DiscoverModels || !providers[state.provider]) return;
+        setBusy(true); setStatus("Refreshing models from the provider…", "muted");
+        api.services.DiscoverModels({ provider: state.provider, apiKey: find("[data-api-key]").val(), endpoint: find("[data-endpoint]").val() }).then(function(response) {
+            var result = serviceResult(response); setBusy(false);
+            if (result.success === false) { setStatus(result.message || "Model discovery failed; curated models remain available.", "error"); return; }
+            providers[state.provider].fallbackModels = result.models || providers[state.provider].fallbackModels;
+            renderModels(selectedModelId());
+            setStatus(result.warning || "Available generation models refreshed and merged with the curated catalog.", result.discoverySuccess === false ? "muted" : "success");
+        }).error(function(response) {
+            setBusy(false); var result = serviceResult(response && response.responseJSON ? response.responseJSON : response);
+            setStatus(result.message || "Model discovery failed; curated models remain available.", "error");
+        });
     }
 
     function loadAgents() {
@@ -370,10 +491,16 @@ WEBDOCK.component().register(function(exports) {
         }
 
         renderAgents();
+        updateTestAgentInfo();
     }
 
     function fillFormFromAgent(agent) {
-        var config = agent.configuration;
+        var config = agent && agent.configuration ? agent.configuration : {};
+        var provider = config.provider || {};
+        var agentConfig = config.agent || {};
+        var parameters = config.parameters || {};
+        var connection = config.connection || {};
+        var modalities = config.modalities || { input: ["text"], output: ["text"] };
         find("[data-agent-code]").val(agent.agentCode);
         find("[data-agent-name]").val(agent.name);
         find("[data-agent-description]").val(agent.description || "");
@@ -381,27 +508,96 @@ WEBDOCK.component().register(function(exports) {
         find("[data-agent-skills]").val(JSON.stringify(agent.skills || config.skills || [], null, 2));
         applyAgentIdentity(agent);
 
-        setProvider(config.provider.type);
-        find("[data-model]").val(config.provider.model);
+        if (providers[provider.type || "openai"]) setProvider(provider.type || "openai", { skipDraftSave: true });
+        var known = false;
+        find("[data-model] option").each(function() { if ($(this).val() === provider.model) known = true; });
+        if (known) find("[data-model]").val(provider.model);
+        else { find("[data-model]").val("__custom__"); find("[data-custom-model]").val(provider.model || ""); }
+        updateModelExperience();
+        $.each(["input", "output"], function(_, direction) {
+            find('[data-modality="' + direction + '"]').prop("checked", false);
+            $.each(modalities[direction] || ["text"], function(__, modality) { find('[data-modality="' + direction + '"][value="' + modality + '"]:not(:disabled)').prop("checked", true); });
+        });
         find("[data-api-key]").val("");
-        find("[data-system-prompt]").val(config.agent.startupPrompt || "");
-        find("[data-temperature]").val(config.parameters.temperature);
-        find("[data-temperature-value]").text(config.parameters.temperature);
-        find("[data-max-tokens]").val(config.parameters.maxTokens);
-        find("[data-streaming]").prop("checked", !!config.parameters.streaming);
+        find("[data-system-prompt]").val(agentConfig.startupPrompt || "");
+        find("[data-temperature]").val(parameters.temperature == null ? 0.7 : parameters.temperature);
+        find("[data-temperature-value]").text(parameters.temperature == null ? 0.7 : parameters.temperature);
+        find("[data-max-tokens]").val(parameters.maxTokens || 2048);
+        find("[data-streaming]").prop("checked", false);
 
-        if (config.connection.endpoint) {
-            find("[data-endpoint]").val(config.connection.endpoint);
+        if (connection.endpoint) {
+            find("[data-endpoint]").val(connection.endpoint);
         }
-        if (config.connection.runtime && config.connection.runtime.cliCommand) {
-            find("[data-cli-command]").val(config.connection.runtime.cliCommand);
+        if (connection.runtime && connection.runtime.cliCommand) {
+            find("[data-cli-command]").val(connection.runtime.cliCommand);
         }
-        if (config.connection.httpMethod) {
-            find("[data-custom-method]").val(config.connection.httpMethod);
+        if (connection.httpMethod) {
+            find("[data-custom-method]").val(connection.httpMethod);
         }
-        if (config.connection.auth && config.connection.auth.header) {
-            find("[data-auth-header]").val(config.connection.auth.header);
+        if (connection.auth && connection.auth.header && connection.auth.header !== "********") {
+            find("[data-auth-header]").val(connection.auth.header);
         }
+    }
+
+    function agentInputModalities(agent) {
+        var config = agent && agent.configuration ? agent.configuration : {};
+        return config.modalities && $.isArray(config.modalities.input) ? config.modalities.input : ["text"];
+    }
+
+    function updateTestAgentInfo() {
+        var agent = getAgent(find("[data-test-agent]").val());
+        if (!agent) { find("[data-test-agent-info]").text("Select an agent to see its model and enabled modalities."); return; }
+        var config = agent.configuration || {}, provider = config.provider || {}, modalities = config.modalities || { input: ["text"], output: ["text"] };
+        find("[data-test-agent-info]").text((provider.type || "unknown") + " / " + (provider.model || "unknown") + " · input: " + (modalities.input || ["text"]).join(", ") + " · output: " + (modalities.output || ["text"]).join(", "));
+        state.testAttachments = $.grep(state.testAttachments, function(item) { return $.inArray(item.type, modalities.input || ["text"]) !== -1; });
+        renderTestAttachments();
+    }
+
+    function typeFromMime(mime) {
+        if (mime.indexOf("image/") === 0) return "image";
+        if (mime.indexOf("audio/") === 0) return "audio";
+        if (mime.indexOf("video/") === 0) return "video";
+        return "document";
+    }
+
+    function renderTestAttachments() {
+        var box = find("[data-test-attachments]").empty();
+        if (!state.testAttachments.length) { box.append($("<span>").addClass("agent-creator__empty").text("No attachments selected.")); return; }
+        $.each(state.testAttachments, function(index, item) {
+            var card = $("<div>").addClass("agent-creator__attachment");
+            if (item.type === "image") card.append($("<img>").attr({ src: item.url, alt: "Preview of " + item.name }));
+            else if (item.type === "audio") card.append($("<audio>").attr("controls", true).attr("src", item.url));
+            else if (item.type === "video") card.append($("<video>").attr("controls", true).attr("src", item.url));
+            card.append($("<span>").text(item.name + " · " + item.type + " · " + Math.ceil(item.size / 1024) + " KB"));
+            card.append($("<button>").attr({ type: "button", "data-remove-attachment": index }).addClass("agent-creator__button").text("Remove"));
+            box.append(card);
+        });
+    }
+
+    function addTestFiles(files) {
+        var agent = getAgent(find("[data-test-agent]").val()), supported = agentInputModalities(agent), total = 0;
+        var allowedMimes = ["image/jpeg", "image/png", "image/webp", "image/gif", "audio/mpeg", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/webm", "video/mp4", "video/webm", "video/quicktime", "application/pdf", "text/plain", "text/csv", "application/json", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+        $.each(state.testAttachments, function(_, item) { total += item.size; });
+        $.each(Array.prototype.slice.call(files || []), function(_, file) {
+            var type = typeFromMime(file.type || "application/octet-stream");
+            if ($.inArray(file.type, allowedMimes) === -1) { setStatus((file.name || "File") + " has an unsupported MIME type.", "error"); return; }
+            if ($.inArray(type, supported) === -1) { setStatus(type + " input is not enabled for the selected agent.", "error"); return; }
+            if (state.testAttachments.length >= 8 || file.size > 10485760 || total + file.size > 20971520) { setStatus("Attachment limits are 8 files, 10 MB each, and 20 MB total.", "error"); return; }
+            total += file.size;
+            var reader = new FileReader();
+            reader.onload = function(event) { state.testAttachments.push({ type: type, url: event.target.result, mimeType: file.type, name: file.name, size: file.size }); renderTestAttachments(); };
+            reader.onerror = function() { setStatus("Could not read " + file.name + ".", "error"); };
+            reader.readAsDataURL(file);
+        });
+        find("[data-test-files]").val("");
+    }
+
+    function renderRuntimeOutputs(outputs) {
+        var box = find("[data-test-outputs]").empty();
+        $.each(outputs || [], function(index, item) {
+            var link = $("<a>").attr({ href: item.url, target: "_blank", rel: "noopener noreferrer" }).text("Open " + (item.type || "output") + " " + (index + 1));
+            box.append($("<div>").addClass("agent-creator__attachment").append(link).append($("<span>").text(item.mimeType || "")));
+        });
     }
 
     function testAgent(event) {
@@ -413,6 +609,7 @@ WEBDOCK.component().register(function(exports) {
             setStatus("Select a saved agent before testing.", "error");
             return;
         }
+        if (!$.trim(message) && !state.testAttachments.length) { setStatus("Enter a message or add an attachment.", "error"); return; }
 
         setBusy(true);
         find("[data-test-response]").text("Waiting for response...");
@@ -420,6 +617,8 @@ WEBDOCK.component().register(function(exports) {
         api.services.TestAgent({
             agentCode: agentCode,
             message: message,
+            content: state.testAttachments,
+            sessionId: state.testSessionId,
             profileId: "creator-console"
         })
             .then(function(response) {
@@ -433,11 +632,13 @@ WEBDOCK.component().register(function(exports) {
 
                 find("[data-test-response]").text(JSON.stringify({
                     reply: result.reply || "",
+                    outputs: result.outputs || [],
                     session: result.session || null,
                     usage: result.usage || null,
                     billingUsageId: result.billingUsageId || "",
                     skillResults: result.skillResults || []
                 }, null, 2));
+                renderRuntimeOutputs(result.outputs || []);
                 setStatus("Agent response received from " + result.provider + " / " + result.model + ".", "success");
             })
             .error(function(response) {
@@ -541,7 +742,10 @@ WEBDOCK.component().register(function(exports) {
         renderOutput();
         showSkillBuilder(false);
         syncSkillBuilderTextarea();
-        setProvider("openai");
+        state.providerDrafts = {};
+        state.testAttachments = [];
+        renderTestAttachments();
+        if (providers.openai) setProvider("openai", { skipDraftSave: true });
         renderAgents();
     }
 
@@ -1145,11 +1349,16 @@ WEBDOCK.component().register(function(exports) {
     }
 
     function bindEvents() {
-        find("[data-provider]").on("click", function() {
-            find("[data-model]").val("");
-            find("[data-endpoint]").val("");
+        find("[data-provider-options]").on("click", "[data-provider]", function() {
             setProvider($(this).data("provider"));
         });
+
+        find("[data-model-filter]").on("input", function() { state.modelFilter = $(this).val() || ""; renderModels(); });
+        find("[data-model]").on("change", updateModelExperience);
+        find("[data-custom-model]").on("input", updateModelExperience);
+        find("[data-custom-model-metadata]").on("input", updateModelExperience);
+        find("[data-discover-models]").on("click", discoverModels);
+        find("[data-estimate-input], [data-estimate-cached], [data-estimate-output]").on("input", calculateEstimate);
 
         find("[data-temperature]").on("input", function() {
             find("[data-temperature-value]").text($(this).val());
@@ -1191,6 +1400,11 @@ WEBDOCK.component().register(function(exports) {
         find("[data-test-agent]").on("change", function() {
             selectAgent($(this).val());
         });
+        find("[data-test-files]").on("change", function() { addTestFiles(this.files); });
+        find("[data-test-attachments]").on("click", "[data-remove-attachment]", function() {
+            state.testAttachments.splice(parseInt($(this).data("remove-attachment"), 10), 1);
+            renderTestAttachments();
+        });
         find("[data-agent-list]").on("click", "[data-agent-item]", function() {
             selectAgent($(this).data("agent-item"));
         });
@@ -1207,8 +1421,9 @@ WEBDOCK.component().register(function(exports) {
         api = exports.getComponent("creator-api");
         bindEvents();
         initializeProfileTools();
-        setProvider("openai");
         renderOutput();
+        renderTestAttachments();
+        loadProviders();
         loadAgents();
     };
 });

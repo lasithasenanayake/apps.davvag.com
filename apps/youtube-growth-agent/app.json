@@ -7,23 +7,26 @@
     "video-inspector": {"type": "component", "location": "components"},
     "recommendation-inbox": {"type": "component", "location": "components"},
     "settings": {"type": "component", "location": "components"},
+    "growth-studio": {"type": "component", "location": "components"},
     "api": {"type": "service", "location": "services"},
     "youtube-auth": {"type": "service", "location": "services"},
     "youtube-sync": {"type": "service", "location": "services"},
     "youtube-analytics": {"type": "service", "location": "services"},
-    "ai-orchestrator": {"type": "service", "location": "services"}
+    "ai-orchestrator": {"type": "service", "location": "services"},
+    "growth-workbench": {"type": "service", "location": "services"},
+    "growth-ai": {"type": "service", "location": "services"}
   },
   "description": {
     "title": "YouTube Growth Agent",
     "author": "DAVVAG",
-    "version": "0.1",
+    "version": "0.3",
     "icon": "appicon.svg"
   },
   "tags": ["showincms", "showindock"],
   "configuration": {
     "webdock": {
       "startupComponent": "main-view",
-      "onLoad": ["app-style", "api", "youtube-auth", "youtube-sync", "youtube-analytics", "ai-orchestrator"],
+      "onLoad": ["app-style", "api", "youtube-auth", "youtube-sync", "youtube-analytics", "ai-orchestrator", "growth-workbench", "growth-ai"],
       "routes": {
         "partials": {
           "/": "main-view",
@@ -32,6 +35,8 @@
           "/videos": "video-library",
           "/video": "video-inspector",
           "/recommendations": "recommendation-inbox",
+          "/intelligence": "growth-studio",
+          "/growth-studio": "growth-studio",
           "/settings": "settings"
         }
       }
@@ -42,6 +47,8 @@
         {"name": "Command Centre", "path": "dashboard"},
         {"name": "Videos", "path": "videos"},
         {"name": "Recommendations", "path": "recommendations"},
+        {"name": "Content Intelligence", "path": "intelligence"},
+        {"name": "Packaging & Experiments", "path": "growth-studio"},
         {"name": "Settings & Privacy", "path": "settings"}
       ]
     }
@@ -63,13 +70,26 @@
       "ytg_sync_jobs",
       "ytg_quota_usage",
       "ytg_agent_runs",
+      "ytg_retention_points",
+      "ytg_transcripts",
+      "ytg_short_candidates",
+      "ytg_content_ideas",
+      "ytg_calendar_items",
+      "ytg_competitors",
+      "ytg_competitor_videos",
+      "ytg_comments",
+      "ytg_experiments",
       "ytg_audit_log"
     ],
     "workflows": [
       "youtube-growth-agent/initial-channel-sync.json",
       "youtube-growth-agent/daily-channel-sync.json",
       "youtube-growth-agent/generate-weekly-plan.json",
-      "youtube-growth-agent/delete-channel-data.json"
+      "youtube-growth-agent/delete-channel-data.json",
+      "youtube-growth-agent/analyze-video.json",
+      "youtube-growth-agent/generate-short-candidates.json",
+      "youtube-growth-agent/refresh-competitors.json",
+      "youtube-growth-agent/review-experiments.json"
     ],
     "plugins": ["auth", "profile", "sossdata", "davvag-flow", "youtube-growth"],
     "php-extensions": ["curl", "openssl"]

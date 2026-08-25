@@ -4,7 +4,7 @@
             <p class="agent-creator__eyebrow">DAVVAG agent setup</p>
             <h1>AI Agent Creator</h1>
         </div>
-        <div class="agent-creator__status" data-creator-status>Choose a provider and generate a configuration.</div>
+        <div class="agent-creator__status" data-creator-status role="status" aria-live="polite">Loading provider catalog…</div>
     </header>
 
     <div class="agent-creator__workspace">
@@ -14,16 +14,41 @@
                     <h2>Provider</h2>
                     <span data-connection-method>REST API: chat/completions</span>
                 </div>
-                <div class="agent-creator__provider-grid" data-provider-options>
-                    <button type="button" class="agent-creator__provider is-active" data-provider="openai">OpenAI API</button>
-                    <button type="button" class="agent-creator__provider" data-provider="ollama">Local Ollama</button>
-                    <button type="button" class="agent-creator__provider" data-provider="lmstudio">LM Studio</button>
-                    <button type="button" class="agent-creator__provider" data-provider="google">Google AI API</button>
-                    <button type="button" class="agent-creator__provider" data-provider="other">Other API</button>
-                </div>
+                <div class="agent-creator__provider-grid" data-provider-options aria-label="AI provider"></div>
             </div>
 
             <form data-creator-form>
+                <div class="agent-creator__section">
+                    <div class="agent-creator__section-head"><h2>Model</h2><button type="button" class="agent-creator__button" data-discover-models>Refresh available models</button></div>
+                    <label class="agent-creator__field">
+                        <span>Search models</span>
+                        <input type="search" data-model-filter autocomplete="off" placeholder="Filter by name, ID, or capability" />
+                    </label>
+                    <label class="agent-creator__field">
+                        <span>Model</span>
+                        <select data-model aria-describedby="model-info"><option value="">Loading models…</option></select>
+                    </label>
+                    <label class="agent-creator__field is-hidden" data-custom-model-field>
+                        <span>Custom model ID</span>
+                        <input type="text" data-custom-model autocomplete="off" placeholder="Exact provider model ID" />
+                        <span>Optional validated metadata JSON (Other API only)</span>
+                        <textarea rows="5" data-custom-model-metadata placeholder='{"inputModalities":["text","image"],"outputModalities":["text"],"contextWindow":32000,"maxOutputTokens":4096,"pricing":{"inputPerMillionTokens":"0.50","outputPerMillionTokens":"1.50","currency":"USD"}}'></textarea>
+                    </label>
+                    <div class="agent-creator__model-info" id="model-info" data-model-info>Select a model to see capabilities, limits, and pricing.</div>
+                </div>
+
+                <div class="agent-creator__section">
+                    <div class="agent-creator__section-head"><h2>Capabilities and modalities</h2><span>Only provider-supported inputs can be enabled</span></div>
+                    <fieldset class="agent-creator__modality-fieldset">
+                        <legend>Accepted input</legend>
+                        <div class="agent-creator__modality-grid" data-input-modalities></div>
+                    </fieldset>
+                    <fieldset class="agent-creator__modality-fieldset">
+                        <legend>Produced output</legend>
+                        <div class="agent-creator__modality-grid" data-output-modalities></div>
+                    </fieldset>
+                </div>
+
                 <div class="agent-creator__section">
                     <div class="agent-creator__section-head">
                         <h2>Agent Identity</h2>
@@ -86,11 +111,6 @@
                 </div>
 
                 <div class="agent-creator__form-grid">
-                    <label class="agent-creator__field">
-                        <span>Model name/version</span>
-                        <input type="text" data-model autocomplete="off" placeholder="gpt-4.1-mini" />
-                    </label>
-
                     <label class="agent-creator__field" data-field="apiKey">
                         <span>API key</span>
                         <input type="password" data-api-key autocomplete="off" placeholder="sk-..." />
@@ -102,7 +122,7 @@
                     </label>
 
                     <label class="agent-creator__field is-hidden" data-field="cliCommand">
-                        <span>CLI command</span>
+                        <span>CLI command (manual metadata; never executed)</span>
                         <input type="text" data-cli-command autocomplete="off" placeholder="ollama run llama3.1" />
                     </label>
 
@@ -121,8 +141,8 @@
                     </label>
 
                     <label class="agent-creator__field agent-creator__field--full">
-                        <span>Startup/system prompt</span>
-                        <textarea data-system-prompt rows="7" placeholder="Define the agent personality, domain knowledge, boundaries, and behavior."></textarea>
+                        <span>Startup/system prompt (optional)</span>
+                        <textarea data-system-prompt rows="7" placeholder="Optionally define the agent personality, domain knowledge, boundaries, and behavior."></textarea>
                     </label>
                 </div>
 
@@ -143,10 +163,20 @@
                         </label>
 
                         <label class="agent-creator__toggle">
-                            <input type="checkbox" data-streaming checked />
-                            <span>Streaming mode</span>
+                            <input type="checkbox" data-streaming disabled />
+                            <span>Streaming unavailable in this Webdock transport; saved as false</span>
                         </label>
                     </div>
+                </div>
+
+                <div class="agent-creator__section">
+                    <div class="agent-creator__section-head"><h2>Estimated request cost</h2><span>Estimate only</span></div>
+                    <div class="agent-creator__cost-grid">
+                        <label class="agent-creator__field"><span>Input tokens</span><input type="number" min="0" step="1" value="1000" data-estimate-input /></label>
+                        <label class="agent-creator__field"><span>Cached input tokens</span><input type="number" min="0" step="1" value="0" data-estimate-cached /></label>
+                        <label class="agent-creator__field"><span>Output tokens</span><input type="number" min="0" step="1" value="500" data-estimate-output /></label>
+                    </div>
+                    <div class="agent-creator__cost" data-cost-estimate>Pricing unavailable.</div>
                 </div>
 
                 <div class="agent-creator__actions">
@@ -191,16 +221,23 @@
                         <option value="">Select an agent</option>
                     </select>
                 </label>
+                <div class="agent-creator__model-info" data-test-agent-info>Select an agent to see its model and enabled modalities.</div>
                 <label class="agent-creator__field">
                     <span>Message</span>
                     <textarea data-test-message rows="5" placeholder="Ask the selected saved agent something."></textarea>
                 </label>
+                <label class="agent-creator__field">
+                    <span>Attachments (up to 8 files, 10 MB each, 20 MB total)</span>
+                    <input type="file" data-test-files multiple accept="image/*,audio/*,video/*,.pdf,.txt,.csv,.json,.docx" />
+                </label>
+                <div class="agent-creator__attachment-list" data-test-attachments aria-live="polite"></div>
                 <div class="agent-creator__actions">
                     <button type="submit" class="agent-creator__button agent-creator__button--primary">Test Response</button>
                     <button type="button" class="agent-creator__button" data-delete-agent>Delete Agent</button>
                 </div>
             </form>
             <pre class="agent-creator__response" data-test-response>Select a saved agent and send a message.</pre>
+            <div class="agent-creator__runtime-outputs" data-test-outputs></div>
         </section>
     </div>
 

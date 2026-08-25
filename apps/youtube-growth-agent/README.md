@@ -1,6 +1,6 @@
-# YouTube Growth Agent — Phase 0/1
+# YouTube Growth Agent - Phase 0-3 Read-Only Advisor
 
-This tenant app implements the read-only DAVVAG MVP defined in `YouTube-Growth-Agent-DAVVAG-Specification.md`.
+This tenant app implements the read-only DAVVAG command centre, content-intelligence workspace, and experiment workflow defined in `YouTube-Growth-Agent-DAVVAG-Specification.md`.
 
 ## Included
 
@@ -8,48 +8,85 @@ This tenant app implements the read-only DAVVAG MVP defined in `YouTube-Growth-A
 - Google web-server OAuth with YouTube read-only and Analytics read-only scopes.
 - AES-256-GCM encrypted OAuth state and credential storage outside the web application directory.
 - Server-side profile/channel authorization on every channel-scoped service.
-- Uploads-playlist catalogue import; video details are read in batches of 50 and `search.list` is not used.
-- Resumable initial/daily sync jobs, quota safety accounting, retry handling, Reporting API job setup and idempotent report imports.
-- Official-metric command centre, video library, video inspector, recommendation inbox and weekly plan.
-- Evidence/source/date validation, safe AI fallback, disconnect, local stored-data deletion and audit records.
-- No channel write-back, scraping, audiovisual download, automatic comments, numeric viral score or unrelated-owner aggregate total.
+- Uploads-playlist catalogue import; video details are read in batches and `search.list` is not used.
+- Resumable initial/daily sync jobs, quota accounting, retry handling, Reporting API setup, and idempotent imports.
+- Official-metric command centre, video library, video inspector, recommendation inbox, and weekly plan.
+- User-provided transcripts with provenance and validated timestamps.
+- Per-video audience-retention imports from the YouTube Analytics API.
+- Timestamped Shorts candidates, SEO/video briefs, public competitor workspaces, and a content calendar.
+- Packaging variants, native A/B test preparation, community themes, manual reply drafts, experiment journals, and session-path proposals.
+- Saved-agent reuse through `ai-agent-creator`, strict JSON/evidence validation, auditable runs, and deterministic fallbacks.
+- Sinhala/English generation requests based on channel settings.
+- Disconnect, local stored-data deletion, and audit records covering Phase 0-3 namespaces.
+- No channel write-back, scraping, audiovisual download, automatic comments, numeric viral score, or unrelated-owner aggregate total.
+
+## Growth Studio
+
+Open either route for the Phase 2/3 workspace:
+
+```text
+#/app/youtube-growth-agent/intelligence
+#/app/youtube-growth-agent/growth-studio
+```
+
+Select a video before importing a transcript, refreshing retention/comments, or generating AI-assisted output. Merely opening the page does not call an AI provider. Every saved-agent action requires a per-action confirmation that the selected video context may be sent to the provider configured in AI Agent Creator.
+
+## Saved-agent mapping
+
+The app calls `CreatorService::interactWithAgent()` and does not duplicate provider, model, key, session, or skill logic.
+
+Defaults:
+
+```text
+Shorts/transcript analysis  transcript-analyzer-agent
+SEO and video briefs       seo-suggestion-agent
+Packaging                  seo-suggestion-agent
+Community/session paths    YTG_AI_AGENT_CODE fallback
+```
+
+Optional protected overrides:
+
+```text
+YTG_TRANSCRIPT_AGENT_CODE
+YTG_SEO_AGENT_CODE
+YTG_PACKAGING_AGENT_CODE
+YTG_COMMUNITY_AGENT_CODE
+YTG_STRATEGIST_AGENT_CODE
+```
+
+Invalid, unavailable, or unsupported agent JSON is rejected. The app then returns deterministic output based on authorized workspace data.
 
 ## Google API configuration
 
-Sign in as a DAVVAG system administrator and open `#/app/youtube-growth-agent/settings`. The Google client ID, client secret, encryption key, privacy policy URL and terms URL can be saved there. The app generates its OAuth callback from the active service URL and displays the exact URI to register in Google Cloud.
+Sign in as a DAVVAG system administrator and open `#/app/youtube-growth-agent/settings`. Save the Google client ID, client secret, encryption key, privacy policy URL, and terms URL. The app generates the OAuth callback from the active service URL and displays the exact URI to register in Google Cloud.
 
-The server stores the configuration in the tenant-protected file below. Direct HTTP access is denied and secret values are never returned to the browser.
+The protected configuration file is:
 
 ```text
 TENANT_RESOURCE_LOCATION/data/youtube-growth-agent/configuration.php
 ```
 
-Environment variables or protected DAVVAG constants with these names remain supported as fallback configuration:
+Supported environment variables or protected constants:
 
 ```text
 YTG_GOOGLE_CLIENT_ID
 YTG_GOOGLE_CLIENT_SECRET
-YTG_OAUTH_REDIRECT_URI          generated automatically when saved in Settings
+YTG_OAUTH_REDIRECT_URI
 YTG_ENCRYPTION_KEY              at least 32 characters
 YTG_PRIVACY_POLICY_URL
 YTG_TERMS_URL
-```
-
-Optional:
-
-```text
 YTG_AI_AGENT_CODE               defaults to youtube-growth-strategist
 YTG_DAILY_QUOTA_LIMIT           defaults to 9500; maximum 10000
 YTG_DERIVED_METRICS_ENABLED     defaults to false
 ```
 
-The callback registered in Google Cloud must exactly match the read-only URI shown by Settings, typically:
+The Google callback typically is:
 
 ```text
 https://your-host/base/components/youtube-growth-agent/youtube-auth/service/OAuthCallback
 ```
 
-Enable the YouTube Data API v3, YouTube Analytics API, and YouTube Reporting API for the OAuth project. Production OAuth and data use also require an appropriate consent screen, verified domain, privacy policy, terms, and YouTube API policy review as applicable.
+Enable the YouTube Data API v3, YouTube Analytics API, and YouTube Reporting API. Production use also requires the appropriate consent screen, verified domain, privacy policy, terms, and policy review.
 
 Encrypted runtime credentials are stored beneath:
 
@@ -59,6 +96,13 @@ MEDIA_FOLDER/youtube-growth-agent/{DATASTORE_DOMAIN}/
 
 Only opaque `credentialRef` values are stored in `ytg_oauth_grants`.
 
-## Deferred by the specification
+## Deliberately deferred
 
-Phase 2–4 features are not presented as complete: transcript/caption import, retention curves, Shorts candidates, competitor research, packaging workshop, content calendar, experiments, community reply drafting and approved metadata write-back. The Video Inspector marks these boundaries instead of inventing unavailable data.
+- Direct YouTube caption-track listing/download. The official endpoints require `youtube.force-ssl`; this needs a separate incremental consent flow instead of silently widening the base read-only scopes. User transcript upload is operational.
+- Starting or controlling native YouTube A/B tests through an API. The app prepares variants and reminders for manual use in YouTube Studio.
+- Publishing comment replies, changing playlists/end screens, or applying metadata.
+- Phase 4 incremental write authorization, approval queues, team workflow, and asset rendering/export.
+
+## Verification baseline
+
+The Phase 2/3 implementation is verified for PHP syntax, JSON parsing, declared resource/dependency existence, service descriptor/handler matching, saved-agent validator fallbacks, and delete-data namespace coverage. Live browser, Google OAuth/API, datastore migration, and two-profile/two-channel isolation tests still require a configured running tenant.

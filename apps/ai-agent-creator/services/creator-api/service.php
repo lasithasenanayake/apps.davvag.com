@@ -33,9 +33,11 @@ class CreatorService {
         }
 
         $out = $this->ok();
-        $out->config = $created->config;
-        $out->json = json_encode($created->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        $out->yaml = $this->toYaml($created->config);
+        // Configuration previews are client-visible and must never disclose credentials.
+        $safeConfig = $this->maskSecrets($created->config);
+        $out->config = $safeConfig;
+        $out->json = json_encode($safeConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $out->yaml = $this->toYaml($safeConfig);
         return $out;
     }
 
@@ -46,11 +48,18 @@ class CreatorService {
 
         if ($agentCodeForExisting !== "" && isset($agents[$agentCodeForExisting]) && isset($agents[$agentCodeForExisting]["configuration"])) {
             $incomingKey = $this->stringValue($body, "apiKey", "");
-            if ($incomingKey === "" || $incomingKey === "********") {
+            $existingProvider = isset($agents[$agentCodeForExisting]["configuration"]["provider"]["type"])
+                ? (string)$agents[$agentCodeForExisting]["configuration"]["provider"]["type"] : "";
+            $incomingProvider = strtolower($this->stringValue($body, "provider", "openai"));
+            if ($existingProvider === $incomingProvider && ($incomingKey === "" || $incomingKey === "********")) {
                 $existingKey = $this->apiKeyFromConfig($agents[$agentCodeForExisting]["configuration"]);
                 if ($existingKey !== "") {
                     $body->apiKey = $existingKey;
                 }
+            }
+            $incomingHeader = $this->stringValue($body, "authHeader", "");
+            if ($existingProvider === $incomingProvider && ($incomingHeader === "" || $incomingHeader === "********") && isset($agents[$agentCodeForExisting]["configuration"]["connection"]["auth"]["header"])) {
+                $body->authHeader = $agents[$agentCodeForExisting]["configuration"]["connection"]["auth"]["header"];
             }
         }
 
@@ -135,19 +144,25 @@ class CreatorService {
         if ($agentCode === "") {
             return $this->fail("Select a saved agent before testing.");
         }
-        if ($message === "") {
-            return $this->fail("Test message is required.");
+        $content = isset($body->content) ? $body->content : array();
+        $testSessionId = $this->normalizeSessionId($this->stringValue($body, "sessionId", ""));
+        if ($testSessionId === "") {
+            $testSessionId = "creator-console-" . ($profileId === "" ? "default" : $profileId);
+        }
+        if ($message === "" && empty($content)) {
+            return $this->fail("A test message or attachment is required.");
         }
 
         return $this->runAgent(array(
             "agentCode" => $agentCode,
             "message" => $message,
+            "content" => $content,
             "profile" => array(
                 "profileId" => $profileId === "" ? "creator-console" : $profileId,
                 "externalId" => "creator-console",
                 "connectorCode" => "creator-console"
             ),
-            "sessionId" => "creator-console-" . ($profileId === "" ? "default" : $profileId),
+            "sessionId" => $testSessionId,
             "flow" => array("flowCode" => "creator-console", "name" => "Creator Console"),
             "connector" => array("code" => "creator-console", "label" => "Creator Console"),
             "payload" => array("source" => "creator-console")
@@ -225,6 +240,7 @@ class CreatorService {
         $runInput = array(
             "agentCode" => $agentCode,
             "message" => $message,
+            "content" => isset($body["content"]) ? $body["content"] : array(),
             "profile" => $profile,
             "sessionId" => $sessionId,
             "flow" => isset($body["flow"]) ? $this->objectToArray($body["flow"]) : array(
@@ -273,12 +289,17 @@ class CreatorService {
         $appContext = $this->applicationContextFromRunBody($body);
         $agentCode = $this->normalizeAgentCode($this->arrayString($body, "agentCode", ""));
         $message = $this->arrayString($body, "message", "");
+        $contentResult = $this->normalizeRuntimeContent(isset($body["content"]) ? $body["content"] : array(), $message);
 
         if ($agentCode === "") {
             return $this->fail("Agent code is required.");
         }
-        if ($message === "") {
-            return $this->fail("Message is required.");
+        if (!$contentResult->success) {
+            return $contentResult;
+        }
+        $content = $contentResult->content;
+        if ($message === "" && !count($content)) {
+            return $this->fail("Message or content is required.");
         }
 
         $agents = $this->loadAgents();
@@ -295,7 +316,7 @@ class CreatorService {
         }
 
         $agent = $agents[$agentCode];
-        $config = $agent["configuration"];
+        $config = $this->normalizeSavedConfig(isset($agent["configuration"]) ? $agent["configuration"] : array());
         $identityStatus = $this->validateSavedAgentIdentity($config);
         if (!$identityStatus->success) {
             $this->recordAgentError($requestId, $agentCode, $config, "", "", $appContext, "identity", $identityStatus->message, $startedAt, array());
@@ -303,20 +324,26 @@ class CreatorService {
         }
 
         $profile = isset($body["profile"]) ? $this->objectToArray($body["profile"]) : array();
+        $explicitSessionId = $this->normalizeSessionId($this->arrayString($body, "sessionId", ""));
+        $ephemeral = false;
         $profileId = $this->normalizeProfileId($this->arrayString($profile, "profileId", ""));
         if ($profileId === "") {
             $profileId = $this->normalizeProfileId($this->arrayString($profile, "externalId", ""));
         }
-        if ($profileId === "") {
-            $profileId = "anonymous-" . substr(hash("sha256", $agentCode . "|" . $message), 0, 12);
+        if ($profileId === "" && $explicitSessionId !== "") {
+            $profileId = "anonymous-session-" . substr(hash("sha256", $agentCode . "|" . $explicitSessionId), 0, 12);
+            $profile["profileId"] = $profileId;
+        } elseif ($profileId === "") {
+            $ephemeral = true;
+            $profileId = "anonymous-ephemeral-" . substr($requestId, -12);
             $profile["profileId"] = $profileId;
         } else {
             $profile["profileId"] = $profileId;
         }
 
-        $sessionId = $this->normalizeSessionId($this->arrayString($body, "sessionId", ""));
+        $sessionId = $explicitSessionId;
         if ($sessionId === "") {
-            $sessionId = $this->defaultSessionId($agentCode, $profileId);
+            $sessionId = $ephemeral ? "ephemeral-" . substr($requestId, -16) : $this->defaultSessionId($agentCode, $profileId);
         }
 
         $sessions = $this->loadSessions();
@@ -336,7 +363,11 @@ class CreatorService {
             "skillResults" => $skillResults
         );
 
-        $result = $this->callProvider($config, $message, $runtimeContext, isset($session["history"]) && is_array($session["history"]) ? $session["history"] : array());
+        $compatibility = $this->validateContentForConfig($config, $content);
+        if ($compatibility !== true) {
+            return $this->fail($compatibility);
+        }
+        $result = $this->callProvider($config, $message, $runtimeContext, isset($session["history"]) && is_array($session["history"]) ? $session["history"] : array(), $content);
         if (!$result->success) {
             $this->recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, "provider", $result->message, $startedAt, array(
                 "skillResults" => $skillResults
@@ -344,15 +375,18 @@ class CreatorService {
             return $result;
         }
 
-        $session = $this->appendSessionTurn($session, $message, $result->reply, $skillResults, $runtimeContext);
-        $sessions[$sessionKey] = $session;
-        if (!$this->saveSessions($sessions)) {
+        $session = $this->appendSessionTurn($session, $message, $result->reply, $skillResults, $runtimeContext, $content);
+        if (!$ephemeral) {
+            $sessions[$sessionKey] = $session;
+        }
+        if (!$ephemeral && !$this->saveSessions($sessions)) {
             $messageText = "Agent replied, but the session context could not be saved.";
             $this->recordAgentError($requestId, $agentCode, $config, $profileId, $sessionId, $appContext, "session", $messageText, $startedAt, array());
             return $this->fail($messageText);
         }
 
         $usage = isset($result->usage) && is_array($result->usage) ? $result->usage : $this->emptyTokenUsage();
+        $usage["cost"] = $this->calculateUsageCost($config, $usage);
         $billingUsageId = $this->recordBillingUsage($requestId, $agentCode, $config, $profile, $sessionId, $appContext, $message, $result->reply, $usage, $startedAt, array(
             "skillCount" => count($skillResults),
             "requestChars" => isset($result->requestChars) ? (int)$result->requestChars : 0,
@@ -365,6 +399,7 @@ class CreatorService {
         $out = $this->ok();
         $out->agentCode = $agentCode;
         $out->reply = $result->reply;
+        $out->outputs = isset($result->outputs) && is_array($result->outputs) ? $result->outputs : array();
         $out->provider = $config["provider"]["type"];
         $out->model = $config["provider"]["model"];
         $out->profile = $profile;
@@ -373,6 +408,7 @@ class CreatorService {
         $out->usage = $usage;
         $out->billingUsageId = $billingUsageId;
         $out->billingLogged = $billingUsageId !== "";
+        $out->ephemeralSession = $ephemeral;
         $out->raw = isset($result->raw) ? $result->raw : null;
         return $out;
     }
@@ -550,13 +586,20 @@ class CreatorService {
         }
 
         $systemPrompt = $this->stringValue($body, "systemPrompt", "");
-        if ($systemPrompt === "") {
-            return $this->fail("Startup/system prompt is required.");
-        }
 
+        $modelMetaResult = $this->customModelMetadata($body, $provider, $model);
+        if (!$modelMetaResult->success) return $modelMetaResult;
+        $modelMeta = $modelMetaResult->model;
         $temperature = $this->numberValue($body, "temperature", 0.7, 0, 2);
-        $maxTokens = $this->integerValue($body, "maxTokens", 2048, 1, 200000);
-        $streaming = $this->boolValue($body, "streaming", true);
+        $modelOutputLimit = $modelMeta && !empty($modelMeta["maxOutputTokens"])
+            ? (int)$modelMeta["maxOutputTokens"] : 200000;
+        $maxTokens = $this->integerValue($body, "maxTokens", min(2048, $modelOutputLimit), 1, $modelOutputLimit);
+        // This component has no SSE transport. Persisting true would be misleading.
+        $streaming = false;
+        $modalitiesResult = $this->configuredModalities($body, $modelMeta);
+        if (!$modalitiesResult->success) {
+            return $modalitiesResult;
+        }
 
         $apiKey = $this->stringValue($body, "apiKey", "");
         $endpoint = $this->stringValue($body, "endpoint", "");
@@ -583,6 +626,8 @@ class CreatorService {
             $maxTokens,
             $streaming,
             $skills,
+            $modalitiesResult->modalities,
+            $modelMeta,
             array(
                 "code" => $agentCode,
                 "name" => $agentName,
@@ -602,38 +647,224 @@ class CreatorService {
     }
 
     private function providerMap() {
+        $verified = "2026-08-25";
+        $openAiPricing = "https://developers.openai.com/api/docs/models";
+        $googlePricing = "https://ai.google.dev/gemini-api/docs/pricing";
         return array(
             "openai" => array(
-                "type" => "openai",
-                "label" => "OpenAI API",
-                "connectionMethod" => "REST API (chat/completions)",
-                "defaultEndpoint" => "https://api.openai.com/v1/chat/completions"
+                "type" => "openai", "code" => "openai", "label" => "OpenAI API",
+                "connectionMethod" => "REST API (Responses for curated models; Chat Completions for legacy configs)",
+                "defaultEndpoint" => "https://api.openai.com/v1/responses", "credentialsRequired" => true,
+                "modelDiscovery" => array("supported" => true, "endpoint" => "https://api.openai.com/v1/models"),
+                "pricingSourceUrl" => $openAiPricing, "pricingLastVerified" => $verified,
+                "notes" => "Curated current models use the Responses API. Older saved agents retain Chat Completions.",
+                "fallbackModels" => array(
+                    $this->catalogModel("gpt-5.6-luna", "GPT-5.6 Luna", "Cost-sensitive, high-volume work.", "Fast", "stable", array("text", "image"), array("text"), 1050000, 128000, array("maxTokens"), "responses", "0.20", null, "1.20", $openAiPricing, $verified),
+                    $this->catalogModel("gpt-5.6-terra", "GPT-5.6 Terra", "Balanced intelligence and cost.", "Balanced", "stable", array("text", "image"), array("text"), 1050000, 128000, array("maxTokens"), "responses", "2.00", null, "12.00", $openAiPricing, $verified),
+                    $this->catalogModel("gpt-5.6-sol", "GPT-5.6 Sol", "Frontier model for complex professional work.", "Best quality", "stable", array("text", "image"), array("text"), 1050000, 128000, array("maxTokens"), "responses", "4.00", null, "20.00", $openAiPricing, $verified)
+                )
             ),
             "ollama" => array(
-                "type" => "ollama",
-                "label" => "Local Ollama",
-                "connectionMethod" => "Local runtime (CLI/HTTP)",
-                "defaultEndpoint" => "http://localhost:11434/api/chat"
+                "type" => "ollama", "code" => "ollama", "label" => "Local Ollama",
+                "connectionMethod" => "Local HTTP runtime (CLI command is saved as manual metadata only)",
+                "defaultEndpoint" => "http://localhost:11434/api/chat", "credentialsRequired" => false,
+                "modelDiscovery" => array("supported" => true, "endpoint" => "/api/tags"),
+                "pricingSourceUrl" => "https://ollama.com/", "pricingLastVerified" => $verified,
+                "notes" => "No per-token provider API fee. Local hardware, hosting, and electricity costs are not included.",
+                "fallbackModels" => array(
+                    $this->catalogModel("gemma4", "Gemma 4", "Local vision-capable model; availability depends on the installed runtime.", "Local vision", "local", array("text", "image"), array("text"), null, null, array("temperature", "maxTokens"), "ollama-chat", "0", null, "0", "https://docs.ollama.com/capabilities/vision", $verified),
+                    $this->catalogModel("llama3.1", "Llama 3.1", "Common local text model; limits depend on the installed variant.", "Local", "local", array("text"), array("text"), null, null, array("temperature", "maxTokens"), "ollama-chat", "0", null, "0", "https://ollama.com/library", $verified)
+                )
             ),
             "lmstudio" => array(
-                "type" => "lmstudio",
-                "label" => "LM Studio",
-                "connectionMethod" => "Local inference server",
-                "defaultEndpoint" => "http://localhost:1234/v1/chat/completions"
+                "type" => "lmstudio", "code" => "lmstudio", "label" => "LM Studio",
+                "connectionMethod" => "Local OpenAI-compatible server",
+                "defaultEndpoint" => "http://localhost:1234/v1/chat/completions", "credentialsRequired" => false,
+                "modelDiscovery" => array("supported" => true, "endpoint" => "http://localhost:1234/api/v1/models"),
+                "pricingSourceUrl" => "https://lmstudio.ai/docs/developer/rest/list", "pricingLastVerified" => $verified,
+                "notes" => "No per-token provider API fee. Local hardware, hosting, and electricity costs are not included. Capabilities come from the loaded model.",
+                "fallbackModels" => array(
+                    $this->catalogModel("local-model", "Loaded local model", "Choose a discovered generative model or enter its exact local key.", "Local", "local", array("text"), array("text"), null, null, array("temperature", "maxTokens"), "openai-chat", "0", null, "0", "https://lmstudio.ai/docs/developer", $verified)
+                )
             ),
             "google" => array(
-                "type" => "google",
-                "label" => "Google AI API",
-                "connectionMethod" => "Generative Language API",
-                "defaultEndpoint" => "https://generativelanguage.googleapis.com/v1beta"
+                "type" => "google", "code" => "google", "label" => "Google AI API",
+                "connectionMethod" => "Gemini generateContent API", "defaultEndpoint" => "https://generativelanguage.googleapis.com/v1beta",
+                "credentialsRequired" => true, "modelDiscovery" => array("supported" => true, "endpoint" => "https://generativelanguage.googleapis.com/v1beta/models"),
+                "pricingSourceUrl" => $googlePricing, "pricingLastVerified" => $verified,
+                "notes" => "Standard paid API token pricing is shown; free-tier availability and long-context tiers can differ.",
+                "fallbackModels" => array(
+                    $this->catalogModel("gemini-2.5-flash-lite", "Gemini 2.5 Flash-Lite", "Fast, budget-friendly multimodal model.", "Fast", "stable", array("text", "image", "audio", "video", "document"), array("text"), 1000000, 65536, array("temperature", "maxTokens"), "generateContent", "0.10", "0.01", "0.40", $googlePricing, $verified, array("audioInputPerMillionTokens" => "0.30")),
+                    $this->catalogModel("gemini-2.5-flash", "Gemini 2.5 Flash", "Price-performance model for multimodal reasoning.", "Balanced", "stable", array("text", "image", "audio", "video", "document"), array("text"), 1000000, 65536, array("temperature", "maxTokens"), "generateContent", "0.30", "0.03", "2.50", $googlePricing, $verified, array("audioInputPerMillionTokens" => "1.00")),
+                    $this->catalogModel("gemini-2.5-pro", "Gemini 2.5 Pro", "Advanced multimodal model for complex reasoning and coding.", "Best quality", "stable", array("text", "image", "audio", "video", "document"), array("text"), 1048576, 65536, array("temperature", "maxTokens"), "generateContent", "1.25", "0.125", "10.00", $googlePricing, $verified, array("priceTierNote" => "Rates shown apply to prompts up to 200k tokens."))
+                )
             ),
             "other" => array(
-                "type" => "other",
-                "label" => "Other 3rd-party API",
-                "connectionMethod" => "Custom API schema",
-                "defaultEndpoint" => ""
+                "type" => "other", "code" => "other", "label" => "Other OpenAI-compatible API",
+                "connectionMethod" => "Fixed OpenAI-compatible chat contract", "defaultEndpoint" => "", "credentialsRequired" => true,
+                "modelDiscovery" => array("supported" => false), "pricingSourceUrl" => "", "pricingLastVerified" => $verified,
+                "notes" => "Text-only by default. This adapter sends model/messages/parameters and reads choices[0].message.content, reply, or text; arbitrary schemas are not claimed.",
+                "fallbackModels" => array(
+                    $this->catalogModel("custom-model", "Custom model ID", "Manually configured text model with unknown limits and pricing.", "Custom", "custom", array("text"), array("text"), null, null, array("temperature", "maxTokens"), "custom-fixed", null, null, null, "", $verified)
+                )
             )
         );
+    }
+
+    private function catalogModel($id, $name, $description, $recommended, $lifecycle, $input, $output, $context, $maxOutput, $parameters, $apiMode, $inputPrice, $cachedPrice, $outputPrice, $pricingUrl, $verified, $extraPricing = array()) {
+        return array(
+            "id" => $id, "name" => $name, "description" => $description, "recommendedUse" => $recommended,
+            "lifecycle" => $lifecycle, "inputModalities" => $input, "outputModalities" => $output,
+            "contextWindow" => $context, "maxOutputTokens" => $maxOutput, "supportedParameters" => $parameters,
+            "apiMode" => $apiMode, "pricing" => array_merge(array(
+                "status" => $inputPrice === null || $outputPrice === null ? "unknown" : ($lifecycle === "local" ? "local" : "paid_api"),
+                "currency" => "USD", "unit" => "per 1M tokens", "inputPerMillionTokens" => $inputPrice,
+                "cachedInputPerMillionTokens" => $cachedPrice, "outputPerMillionTokens" => $outputPrice,
+                "officialUrl" => $pricingUrl, "lastVerified" => $verified
+            ), $extraPricing)
+        );
+    }
+
+    private function modelMetadata($provider, $model) {
+        $providers = $this->providerMap();
+        if (isset($providers[$provider]["fallbackModels"])) {
+            foreach ($providers[$provider]["fallbackModels"] as $item) {
+                if (isset($item["id"]) && $item["id"] === $model) {
+                    return $item;
+                }
+            }
+        }
+        $local = $provider === "ollama" || $provider === "lmstudio";
+        return $this->catalogModel(
+            $model, $model, "Custom model ID. Verify capabilities and limits with the provider.", "Custom",
+            $local ? "local" : "custom", array("text"), array("text"), null, null,
+            array("temperature", "maxTokens"), $provider === "openai" ? "chat-completions" : "default",
+            $local ? "0" : null, null, $local ? "0" : null,
+            isset($providers[$provider]["pricingSourceUrl"]) ? $providers[$provider]["pricingSourceUrl"] : "", "2026-08-25"
+        );
+    }
+
+    private function customModelMetadata($body, $provider, $model) {
+        $out = $this->ok(); $out->model = $this->modelMetadata($provider, $model);
+        if ($provider !== "other" || !isset($body->customModelMetadata) || $body->customModelMetadata === "") return $out;
+        $raw = is_string($body->customModelMetadata) ? json_decode($body->customModelMetadata, true) : $this->objectToArray($body->customModelMetadata);
+        if (!is_array($raw)) return $this->fail("Custom model metadata must be valid JSON.");
+        $input = isset($raw["inputModalities"]) ? $this->normalizeModalityList($raw["inputModalities"]) : array("text");
+        $output = isset($raw["outputModalities"]) ? $this->normalizeModalityList($raw["outputModalities"]) : array("text");
+        if ($input !== array("text") || $output !== array("text")) return $this->fail("The fixed custom API adapter is text-only. Multimodal custom APIs require a validated request/response mapping that this version does not claim.");
+        $out->model["inputModalities"] = $input; $out->model["outputModalities"] = $output;
+        if (isset($raw["contextWindow"]) && is_numeric($raw["contextWindow"])) $out->model["contextWindow"] = max(1, min(10000000, (int)$raw["contextWindow"]));
+        if (isset($raw["maxOutputTokens"]) && is_numeric($raw["maxOutputTokens"])) $out->model["maxOutputTokens"] = max(1, min(1000000, (int)$raw["maxOutputTokens"]));
+        if (isset($raw["pricing"]) && is_array($raw["pricing"])) {
+            $pricing = $out->model["pricing"];
+            foreach (array("inputPerMillionTokens", "cachedInputPerMillionTokens", "outputPerMillionTokens") as $key) {
+                if (array_key_exists($key, $raw["pricing"])) {
+                    $value = $raw["pricing"][$key];
+                    if ($value !== null && !preg_match('/^\d+(?:\.\d{1,6})?$/', (string)$value)) return $this->fail("Custom pricing values must be non-negative decimal strings.");
+                    $pricing[$key] = $value === null ? null : (string)$value;
+                }
+            }
+            $pricing["currency"] = isset($raw["pricing"]["currency"]) && preg_match('/^[A-Z]{3}$/', (string)$raw["pricing"]["currency"]) ? (string)$raw["pricing"]["currency"] : "USD";
+            $pricing["status"] = $pricing["inputPerMillionTokens"] !== null && $pricing["outputPerMillionTokens"] !== null ? "manual" : "unknown";
+            $pricing["officialUrl"] = ""; $pricing["lastVerified"] = gmdate("Y-m-d"); $out->model["pricing"] = $pricing;
+        }
+        return $out;
+    }
+
+    private function configuredModalities($body, $modelMeta) {
+        $supportedInput = $modelMeta && isset($modelMeta["inputModalities"]) ? $modelMeta["inputModalities"] : array("text");
+        $supportedOutput = $modelMeta && isset($modelMeta["outputModalities"]) ? $modelMeta["outputModalities"] : array("text");
+        $raw = isset($body->modalities) ? $this->objectToArray($body->modalities) : array();
+        $input = isset($raw["input"]) ? $this->normalizeModalityList($raw["input"]) : $this->normalizeModalityList(isset($body->inputModalities) ? $body->inputModalities : array("text"));
+        $output = isset($raw["output"]) ? $this->normalizeModalityList($raw["output"]) : $this->normalizeModalityList(isset($body->outputModalities) ? $body->outputModalities : array("text"));
+        if (!count($input)) {
+            $input = array("text");
+        }
+        if (!count($output)) {
+            $output = array("text");
+        }
+        foreach ($input as $modality) {
+            if (!in_array($modality, $supportedInput, true)) {
+                return $this->fail("Selected model does not support " . $modality . " input.");
+            }
+        }
+        foreach ($output as $modality) {
+            if (!in_array($modality, $supportedOutput, true)) {
+                return $this->fail("Selected model does not support " . $modality . " output.");
+            }
+        }
+        $out = $this->ok();
+        $out->modalities = array("input" => $input, "output" => $output);
+        return $out;
+    }
+
+    public function postDiscoverModels($req, $res) {
+        $body = $this->body($req);
+        $provider = strtolower($this->stringValue($body, "provider", ""));
+        $providers = $this->providerMap();
+        if (!isset($providers[$provider]) || $provider === "other") return $this->fail("Model discovery is not supported for this provider.");
+        $apiKey = $this->stringValue($body, "apiKey", "");
+        $endpoint = $this->stringValue($body, "endpoint", $providers[$provider]["defaultEndpoint"]);
+        if (($provider === "openai" || $provider === "google") && $apiKey === "") return $this->fail("An API key is required for authenticated model discovery.");
+        $url = ""; $headers = array("Accept: application/json");
+        if ($provider === "openai") { $url = "https://api.openai.com/v1/models"; $headers[] = "Authorization: Bearer " . $apiKey; }
+        elseif ($provider === "google") { $url = "https://generativelanguage.googleapis.com/v1beta/models"; $headers[] = "x-goog-api-key: " . $apiKey; }
+        elseif ($provider === "ollama") { $parts = parse_url($endpoint); $url = $parts && isset($parts["scheme"], $parts["host"]) ? $parts["scheme"] . "://" . $parts["host"] . (isset($parts["port"]) ? ":" . $parts["port"] : "") . "/api/tags" : ""; }
+        elseif ($provider === "lmstudio") { $parts = parse_url($endpoint); $url = $parts && isset($parts["scheme"], $parts["host"]) ? $parts["scheme"] . "://" . $parts["host"] . (isset($parts["port"]) ? ":" . $parts["port"] : "") . "/api/v1/models" : ""; }
+        if ($url === "" || !function_exists("curl_init")) return $this->fail("Model discovery endpoint is unavailable.");
+        $ch = curl_init($url); curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); curl_setopt($ch, CURLOPT_TIMEOUT, 15); curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        $raw = curl_exec($ch); $error = curl_error($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($raw === false || $status < 200 || $status >= 300) {
+            $out = $this->ok(); $out->models = $providers[$provider]["fallbackModels"]; $out->discoverySuccess = false;
+            $out->warning = $this->sanitizeProviderError($raw === false ? $error : "Discovery returned HTTP " . $status . ".") . " Curated fallback models are shown."; return $out;
+        }
+        $decoded = json_decode($raw, true); $discovered = $this->discoveredModelEntries($provider, $decoded);
+        $merged = array(); foreach ($providers[$provider]["fallbackModels"] as $item) $merged[$item["id"]] = $item;
+        foreach ($discovered as $item) if (!isset($merged[$item["id"]])) $merged[$item["id"]] = $item;
+        $out = $this->ok(); $out->models = array_values($merged); $out->discoverySuccess = true; return $out;
+    }
+
+    private function discoveredModelEntries($provider, $decoded) {
+        $items = array();
+        if ($provider === "google") $source = isset($decoded["models"]) && is_array($decoded["models"]) ? $decoded["models"] : array();
+        elseif ($provider === "ollama") $source = isset($decoded["models"]) && is_array($decoded["models"]) ? $decoded["models"] : array();
+        elseif ($provider === "lmstudio") $source = isset($decoded["models"]) && is_array($decoded["models"]) ? $decoded["models"] : array();
+        else $source = isset($decoded["data"]) && is_array($decoded["data"]) ? $decoded["data"] : array();
+        foreach ($source as $entry) {
+            if (!is_array($entry)) continue;
+            if ($provider === "google" && (!isset($entry["supportedGenerationMethods"]) || !in_array("generateContent", $entry["supportedGenerationMethods"], true))) continue;
+            if ($provider === "lmstudio" && isset($entry["type"]) && !in_array($entry["type"], array("llm", "vlm"), true)) continue;
+            $id = $provider === "google" ? preg_replace('#^models/#', '', isset($entry["name"]) ? $entry["name"] : "") : (isset($entry["id"]) ? $entry["id"] : (isset($entry["key"]) ? $entry["key"] : (isset($entry["name"]) ? $entry["name"] : "")));
+            if ($id === "" || !$this->isValidModelName($id)) continue;
+            $vision = $provider === "lmstudio" && !empty($entry["capabilities"]["vision"]);
+            $meta = $this->modelMetadata($provider, $id); $meta["name"] = isset($entry["displayName"]) ? $entry["displayName"] : (isset($entry["display_name"]) ? $entry["display_name"] : $id);
+            $meta["description"] = "Discovered from the provider; pricing and unspecified limits remain unknown.";
+            if ($vision) $meta["inputModalities"] = array("text", "image");
+            if (isset($entry["max_context_length"])) $meta["contextWindow"] = (int)$entry["max_context_length"];
+            $items[] = $meta;
+        }
+        return $items;
+    }
+
+    private function normalizeModalityList($value) {
+        if (is_string($value)) {
+            $value = preg_split('/[\s,]+/', strtolower($value));
+        } elseif (is_object($value)) {
+            $value = (array)$value;
+        }
+        if (!is_array($value)) {
+            return array();
+        }
+        $allowed = array("text", "image", "audio", "video", "document");
+        $out = array();
+        foreach ($value as $item) {
+            $item = strtolower(trim((string)$item));
+            if (in_array($item, $allowed, true) && !in_array($item, $out, true)) {
+                $out[] = $item;
+            }
+        }
+        return $out;
     }
 
     private function validateProviderDetails($provider, $apiKey, $endpoint, $cliCommand, $customMethod, $authHeader) {
@@ -652,8 +883,8 @@ class CreatorService {
         }
 
         if ($provider === "ollama") {
-            if ($endpoint === "" && $cliCommand === "") {
-                return "Ollama requires a local HTTP endpoint or CLI command.";
+            if ($endpoint === "") {
+                return "Ollama requires its HTTP API endpoint. The CLI command is metadata only and is never executed.";
             }
             if ($endpoint !== "" && !$this->isHttpUrl($endpoint)) {
                 return "Ollama endpoint must be a valid HTTP URL.";
@@ -690,7 +921,7 @@ class CreatorService {
         return "Unsupported provider type.";
     }
 
-    private function buildConfig($meta, $provider, $model, $apiKey, $endpoint, $cliCommand, $customMethod, $authHeader, $systemPrompt, $temperature, $maxTokens, $streaming, $skills, $agentMeta) {
+    private function buildConfig($meta, $provider, $model, $apiKey, $endpoint, $cliCommand, $customMethod, $authHeader, $systemPrompt, $temperature, $maxTokens, $streaming, $skills, $modalities, $modelMeta, $agentMeta) {
         if ($provider === "openai" || $provider === "google") {
             $endpoint = $meta["defaultEndpoint"];
         } else {
@@ -704,7 +935,8 @@ class CreatorService {
 
         if ($provider === "openai") {
             $connection["httpMethod"] = "POST";
-            $connection["path"] = "/v1/chat/completions";
+            $connection["path"] = $modelMeta && $modelMeta["apiMode"] === "responses" ? "/v1/responses" : "/v1/chat/completions";
+            $connection["endpoint"] = $modelMeta && $modelMeta["apiMode"] === "responses" ? "https://api.openai.com/v1/responses" : "https://api.openai.com/v1/chat/completions";
             $connection["auth"] = array("type" => "bearer", "apiKey" => $apiKey);
         } elseif ($provider === "ollama") {
             $connection["httpMethod"] = "POST";
@@ -727,7 +959,9 @@ class CreatorService {
             "provider" => array(
                 "type" => $provider,
                 "name" => $meta["label"],
-                "model" => $model
+                "model" => $model,
+                "apiMode" => $modelMeta && isset($modelMeta["apiMode"]) ? $modelMeta["apiMode"] : ($provider === "openai" ? "chat-completions" : "default"),
+                "modelInfo" => $modelMeta
             ),
             "connection" => $connection,
             "agent" => array(
@@ -742,6 +976,7 @@ class CreatorService {
                 "messages" => array(array("role" => "system", "content" => $systemPrompt))
             ),
             "skills" => $skills,
+            "modalities" => $modalities,
             "parameters" => array(
                 "temperature" => $temperature,
                 "maxTokens" => $maxTokens,
@@ -977,12 +1212,33 @@ class CreatorService {
     private function validateSavedAgentIdentity($config) {
         $identity = $this->identityFromConfig($config);
         if (empty($identity["profile"]["profileId"]) || empty($identity["user"]["userid"])) {
-            return $this->fail("Saved agent is missing its mapped profile or sysuser account. Re-save the agent before running it.");
+            // Identity metadata was not present in early saved-agent records. It is
+            // additive context, not a prerequisite for provider execution.
+            return $this->ok();
         }
         if (isset($identity["user"]["groupid"]) && $identity["user"]["groupid"] !== "sysuser") {
             return $this->fail("Saved agent user is not mapped to the sysuser group.");
         }
         return $this->ok();
+    }
+
+    private function normalizeSavedConfig($config) {
+        $config = is_array($config) ? $config : array();
+        if (!isset($config["provider"]) || !is_array($config["provider"])) $config["provider"] = array();
+        if (!isset($config["provider"]["type"])) $config["provider"]["type"] = "openai";
+        if (!isset($config["provider"]["model"])) $config["provider"]["model"] = "";
+        if (!isset($config["provider"]["apiMode"])) $config["provider"]["apiMode"] = "chat-completions";
+        if (!isset($config["connection"]) || !is_array($config["connection"])) $config["connection"] = array();
+        if (!isset($config["connection"]["httpMethod"])) $config["connection"]["httpMethod"] = "POST";
+        if (!isset($config["agent"]) || !is_array($config["agent"])) $config["agent"] = array();
+        if (!isset($config["agent"]["startupPrompt"])) $config["agent"]["startupPrompt"] = "You are a helpful assistant.";
+        if (!isset($config["agent"]["capabilities"])) $config["agent"]["capabilities"] = array();
+        if (!isset($config["parameters"]) || !is_array($config["parameters"])) $config["parameters"] = array();
+        if (!isset($config["parameters"]["temperature"])) $config["parameters"]["temperature"] = 0.7;
+        if (!isset($config["parameters"]["maxTokens"])) $config["parameters"]["maxTokens"] = 2048;
+        $config["parameters"]["streaming"] = false;
+        if (!isset($config["modalities"]) || !is_array($config["modalities"])) $config["modalities"] = array("input" => array("text"), "output" => array("text"));
+        return $config;
     }
 
     private function identityFromConfig($config) {
@@ -1087,9 +1343,9 @@ class CreatorService {
         }
     }
 
-    private function callProvider($config, $message, $runtimeContext = array(), $history = array()) {
+    private function callProvider($config, $message, $runtimeContext = array(), $history = array(), $content = array()) {
         $provider = $config["provider"]["type"];
-        $payload = $this->providerPayload($config, $message, $runtimeContext, $history);
+        $payload = $this->providerPayload($config, $message, $runtimeContext, $history, $content);
         $url = $this->providerUrl($config);
         $headers = array("Content-Type: application/json");
 
@@ -1116,7 +1372,7 @@ class CreatorService {
         return $config["connection"]["endpoint"];
     }
 
-    private function providerPayload($config, $message, $runtimeContext, $history) {
+    private function providerPayload($config, $message, $runtimeContext, $history, $content = array()) {
         $provider = $config["provider"]["type"];
         $model = $config["provider"]["model"];
         $messages = $this->conversationMessages($config, $message, $runtimeContext, $history);
@@ -1125,6 +1381,10 @@ class CreatorService {
         $maxTokens = $config["parameters"]["maxTokens"];
 
         if ($provider === "ollama") {
+            if (count($content)) {
+                $last = count($messages) - 1;
+                $messages[$last] = $this->ollamaMessage($message, $content);
+            }
             return array(
                 "model" => $model,
                 "messages" => $messages,
@@ -1135,10 +1395,12 @@ class CreatorService {
 
         if ($provider === "google") {
             $contents = array();
-            foreach (array_slice($messages, 1) as $item) {
+            $conversation = array_slice($messages, 1);
+            foreach ($conversation as $index => $item) {
+                $isLast = $index === count($conversation) - 1;
                 $contents[] = array(
                     "role" => $item["role"] === "assistant" ? "model" : "user",
-                    "parts" => array(array("text" => $item["content"]))
+                    "parts" => $isLast && count($content) ? $this->googleParts($content) : array(array("text" => $item["content"]))
                 );
             }
 
@@ -1163,6 +1425,25 @@ class CreatorService {
             );
         }
 
+        $apiMode = isset($config["provider"]["apiMode"]) ? $config["provider"]["apiMode"] : "chat-completions";
+        if ($provider === "openai" && $apiMode === "responses") {
+            $input = array();
+            foreach ($messages as $index => $item) {
+                $isLast = $index === count($messages) - 1;
+                $input[] = array(
+                    "role" => $item["role"],
+                    "content" => $isLast && count($content)
+                        ? $this->openAiResponseContent($content)
+                        : array(array("type" => $item["role"] === "assistant" ? "output_text" : "input_text", "text" => $item["content"]))
+                );
+            }
+            return array("model" => $model, "input" => $input, "max_output_tokens" => $maxTokens, "stream" => false);
+        }
+
+        if (count($content) && ($provider === "openai" || $provider === "lmstudio")) {
+            $messages[count($messages) - 1]["content"] = $this->openAiChatContent($content);
+        }
+
         return array(
             "model" => $model,
             "messages" => $messages,
@@ -1170,6 +1451,67 @@ class CreatorService {
             "max_tokens" => $maxTokens,
             "stream" => false
         );
+    }
+
+    private function openAiResponseContent($content) {
+        $parts = array();
+        foreach ($content as $item) {
+            if ($item["type"] === "text") {
+                $parts[] = array("type" => "input_text", "text" => $item["text"]);
+            } elseif ($item["type"] === "image") {
+                $parts[] = array("type" => "input_image", "image_url" => $item["url"]);
+            } elseif ($item["type"] === "document") {
+                $parts[] = array("type" => "input_file", "file_url" => $item["url"]);
+            }
+        }
+        return $parts;
+    }
+
+    private function openAiChatContent($content) {
+        $parts = array();
+        foreach ($content as $item) {
+            if ($item["type"] === "text") {
+                $parts[] = array("type" => "text", "text" => $item["text"]);
+            } elseif ($item["type"] === "image") {
+                $parts[] = array("type" => "image_url", "image_url" => array("url" => $item["url"]));
+            }
+        }
+        return $parts;
+    }
+
+    private function googleParts($content) {
+        $parts = array();
+        foreach ($content as $item) {
+            if ($item["type"] === "text") {
+                $parts[] = array("text" => $item["text"]);
+                continue;
+            }
+            if (strpos($item["url"], "data:") === 0) {
+                $comma = strpos($item["url"], ",");
+                $parts[] = array("inlineData" => array("mimeType" => $item["mimeType"], "data" => substr($item["url"], $comma + 1)));
+            } else {
+                $parts[] = array("fileData" => array("mimeType" => $item["mimeType"], "fileUri" => $item["url"]));
+            }
+        }
+        return $parts;
+    }
+
+    private function ollamaMessage($message, $content) {
+        $images = array();
+        foreach ($content as $item) {
+            if ($item["type"] === "image") {
+                $comma = strpos($item["url"], ",");
+                if (strpos($item["url"], "data:") !== 0 || $comma === false) {
+                    continue;
+                }
+                $images[] = substr($item["url"], $comma + 1);
+            }
+        }
+        $out = array("role" => "user", "content" => $message);
+        if (count($images)) {
+            $out["images"] = $images;
+        }
+        return $out;
     }
 
     private function conversationMessages($config, $message, $runtimeContext, $history) {
@@ -1240,6 +1582,9 @@ class CreatorService {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
         $raw = curl_exec($ch);
         $curlError = curl_error($ch);
@@ -1247,7 +1592,7 @@ class CreatorService {
         curl_close($ch);
 
         if ($raw === false) {
-            return $this->fail("Agent request failed: " . $curlError);
+            return $this->fail($this->sanitizeProviderError("Agent request failed: " . $curlError));
         }
 
         $response = json_decode($raw);
@@ -1262,16 +1607,18 @@ class CreatorService {
             } elseif (isset($response->error) && is_string($response->error)) {
                 $message = $response->error;
             }
-            return $this->fail($message);
+            return $this->fail($this->sanitizeProviderError($message));
         }
 
         $reply = $this->extractReply($provider, $response);
-        if ($reply === "") {
+        $outputs = $this->extractOutputs($provider, $response);
+        if ($reply === "" && !count($outputs)) {
             return $this->fail("Agent provider returned JSON, but no text response was found.");
         }
 
         $out = $this->ok();
         $out->reply = $reply;
+        $out->outputs = $outputs;
         $out->usage = $this->extractTokenUsage($provider, $response, $payload, $reply);
         $out->requestChars = strlen((string)$payloadJson);
         $out->responseChars = strlen((string)$reply);
@@ -1286,6 +1633,22 @@ class CreatorService {
         }
         if (isset($response->output_text) && is_string($response->output_text)) {
             return trim($response->output_text);
+        }
+        if (isset($response->output) && is_array($response->output)) {
+            $text = array();
+            foreach ($response->output as $output) {
+                if (!isset($output->content) || !is_array($output->content)) {
+                    continue;
+                }
+                foreach ($output->content as $part) {
+                    if (isset($part->text) && is_string($part->text)) {
+                        $text[] = $part->text;
+                    }
+                }
+            }
+            if (count($text)) {
+                return trim(implode("\n", $text));
+            }
         }
         if ($provider === "ollama" && isset($response->message->content)) {
             return trim((string)$response->message->content);
@@ -1309,6 +1672,42 @@ class CreatorService {
             return trim((string)$response->text);
         }
         return "";
+    }
+
+    private function extractOutputs($provider, $response) {
+        $outputs = array();
+        if ($provider === "google" && isset($response->candidates[0]->content->parts) && is_array($response->candidates[0]->content->parts)) {
+            foreach ($response->candidates[0]->content->parts as $part) {
+                if (isset($part->inlineData->data) && isset($part->inlineData->mimeType)) {
+                    $mime = (string)$part->inlineData->mimeType;
+                    $outputs[] = array("type" => $this->contentTypeFromMime($mime), "url" => "data:" . $mime . ";base64," . (string)$part->inlineData->data, "mimeType" => $mime);
+                } elseif (isset($part->fileData->fileUri)) {
+                    $mime = isset($part->fileData->mimeType) ? (string)$part->fileData->mimeType : "application/octet-stream";
+                    $outputs[] = array("type" => $this->contentTypeFromMime($mime), "url" => (string)$part->fileData->fileUri, "mimeType" => $mime);
+                }
+            }
+        }
+        if (isset($response->output) && is_array($response->output)) {
+            foreach ($response->output as $output) {
+                if (!isset($output->content) || !is_array($output->content)) {
+                    continue;
+                }
+                foreach ($output->content as $part) {
+                    $url = isset($part->image_url) ? $part->image_url : (isset($part->url) ? $part->url : "");
+                    if ($url !== "") {
+                        $outputs[] = array("type" => "image", "url" => (string)$url, "mimeType" => isset($part->mime_type) ? (string)$part->mime_type : "image/png");
+                    }
+                }
+            }
+        }
+        return $outputs;
+    }
+
+    private function sanitizeProviderError($message) {
+        $message = substr((string)$message, 0, 1000);
+        $message = preg_replace('/(sk-[A-Za-z0-9_-]{8,}|AIza[A-Za-z0-9_-]{8,})/', '********', $message);
+        $message = preg_replace('/(authorization|api[-_ ]?key|token)\s*[:=]\s*[^\s,;]+/i', '$1: ********', $message);
+        return $message;
     }
 
     private function extractTokenUsage($provider, $response, $payload, $reply) {
@@ -1446,6 +1845,112 @@ class CreatorService {
             return 0;
         }
         return max(1, (int)ceil(strlen($text) / 4));
+    }
+
+    private function normalizeRuntimeContent($raw, $message) {
+        if (is_object($raw)) $raw = (array)$raw;
+        if ($raw === null || $raw === "") $raw = array();
+        if (!is_array($raw)) return $this->fail("Content must be an array.");
+        $allowedMimes = array(
+            "image" => array("image/jpeg", "image/png", "image/webp", "image/gif"),
+            "audio" => array("audio/mpeg", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/webm"),
+            "video" => array("video/mp4", "video/webm", "video/quicktime"),
+            "document" => array("application/pdf", "text/plain", "text/csv", "application/json", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        );
+        $providedContent = count($raw) > 0;
+        $content = array(); $attachments = 0; $totalBytes = 0; $hasText = false;
+        foreach ($raw as $index => $item) {
+            $item = $this->objectToArray($item);
+            $type = strtolower($this->arrayString($item, "type", ""));
+            if ($type === "file") $type = "document";
+            if ($type === "text") {
+                $text = trim($this->arrayString($item, "text", ""));
+                if ($text === "") return $this->fail("Content item " . ($index + 1) . " has empty text.");
+                $content[] = array("type" => "text", "text" => $this->limitText($text, 50000));
+                $hasText = true;
+                continue;
+            }
+            if (!isset($allowedMimes[$type])) return $this->fail("Content item " . ($index + 1) . " has an unsupported type.");
+            $mime = strtolower($this->arrayString($item, "mimeType", ""));
+            if (!in_array($mime, $allowedMimes[$type], true)) return $this->fail("Content item " . ($index + 1) . " has an unsupported MIME type.");
+            $url = trim($this->arrayString($item, "url", ""));
+            if (!$this->isSafeContentReference($url, $mime)) return $this->fail("Content item " . ($index + 1) . " has an unsafe or unsupported reference.");
+            $bytes = isset($item["size"]) && is_numeric($item["size"]) ? (int)$item["size"] : $this->dataUrlBytes($url);
+            if ($bytes < 0 || $bytes > 10485760) return $this->fail("Each attachment must be 10 MB or smaller.");
+            $totalBytes += $bytes; $attachments++;
+            if ($attachments > 8 || $totalBytes > 20971520) return $this->fail("Use at most 8 attachments and 20 MB total.");
+            $content[] = array(
+                "type" => $type, "url" => $url, "mimeType" => $mime,
+                "name" => $this->limitText(basename(str_replace("\\", "/", $this->arrayString($item, "name", $type))), 180), "size" => $bytes
+            );
+        }
+        if ($providedContent && !$hasText && trim($message) !== "") array_unshift($content, array("type" => "text", "text" => $this->limitText(trim($message), 50000)));
+        $out = $this->ok(); $out->content = $content; return $out;
+    }
+
+    private function isSafeContentReference($url, $mime) {
+        if ($url === "" || preg_match('/^[A-Za-z]:[\\\\\/]/', $url) || strpos($url, "../") !== false || strpos($url, "..\\") !== false) return false;
+        if (strpos($url, "data:") === 0) {
+            if (strpos($url, "data:" . $mime . ";base64,") !== 0) return false;
+            $comma = strpos($url, ",");
+            return $comma !== false && base64_decode(substr($url, $comma + 1), true) !== false;
+        }
+        $parts = parse_url($url);
+        if (!is_array($parts) || !isset($parts["scheme"]) || !in_array(strtolower($parts["scheme"]), array("https", "gs"), true)) return false;
+        if (isset($parts["host"])) {
+            $host = strtolower($parts["host"]);
+            $ip = filter_var($host, FILTER_VALIDATE_IP);
+            if ($host === "localhost" || substr($host, -6) === ".local" || ($ip && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))) return false;
+        }
+        return true;
+    }
+
+    private function dataUrlBytes($url) {
+        if (strpos($url, "data:") !== 0) return 0;
+        $comma = strpos($url, ","); $encoded = $comma === false ? "" : substr($url, $comma + 1);
+        return (int)floor(strlen($encoded) * 3 / 4);
+    }
+
+    private function contentTypeFromMime($mime) {
+        if (strpos($mime, "image/") === 0) return "image";
+        if (strpos($mime, "audio/") === 0) return "audio";
+        if (strpos($mime, "video/") === 0) return "video";
+        return "document";
+    }
+
+    private function validateContentForConfig($config, $content) {
+        $enabled = isset($config["modalities"]["input"]) && is_array($config["modalities"]["input"]) ? $config["modalities"]["input"] : array("text");
+        $provider = isset($config["provider"]["type"]) ? $config["provider"]["type"] : "";
+        foreach ($content as $item) {
+            if (!in_array($item["type"], $enabled, true)) return "This agent is not configured for " . $item["type"] . " input.";
+            if ($provider === "ollama" && $item["type"] === "image" && strpos($item["url"], "data:") !== 0) return "Ollama image input must be uploaded inline; the server does not fetch URLs or local paths.";
+        }
+        return true;
+    }
+
+    private function calculateUsageCost($config, $usage) {
+        $model = isset($config["provider"]["model"]) ? $config["provider"]["model"] : "";
+        $provider = isset($config["provider"]["type"]) ? $config["provider"]["type"] : "";
+        $meta = isset($config["provider"]["modelInfo"]) && is_array($config["provider"]["modelInfo"]) ? $config["provider"]["modelInfo"] : $this->modelMetadata($provider, $model);
+        $pricing = isset($meta["pricing"]) && is_array($meta["pricing"]) ? $meta["pricing"] : array();
+        if (($provider === "ollama" || $provider === "lmstudio") && isset($pricing["status"]) && $pricing["status"] === "local") return array("status" => "local", "currency" => "USD", "amount" => "0", "estimated" => true, "note" => "No per-token provider API fee; local operating costs are excluded.");
+        if (!isset($pricing["inputPerMillionTokens"], $pricing["outputPerMillionTokens"]) || $pricing["inputPerMillionTokens"] === null || $pricing["outputPerMillionTokens"] === null) return array("status" => "unavailable", "currency" => "USD", "amount" => null, "estimated" => true, "note" => "Pricing unavailable.");
+        $input = $this->usageInt($usage, "inputTokens"); $output = $this->usageInt($usage, "outputTokens");
+        $cached = min($input, $this->usageInt($usage, "cachedTokens")); $uncached = $input - $cached;
+        $inputRate = $this->decimalRateToPicoPerToken($pricing["inputPerMillionTokens"]);
+        $outputRate = $this->decimalRateToPicoPerToken($pricing["outputPerMillionTokens"]);
+        $cachedRate = isset($pricing["cachedInputPerMillionTokens"]) && $pricing["cachedInputPerMillionTokens"] !== null ? $this->decimalRateToPicoPerToken($pricing["cachedInputPerMillionTokens"]) : $inputRate;
+        $picoUsd = ($uncached * $inputRate) + ($cached * $cachedRate) + ($output * $outputRate);
+        $amount = rtrim(rtrim(number_format($picoUsd / 1000000000000, 12, ".", ""), "0"), "."); if ($amount === "") $amount = "0";
+        return array("status" => "estimated", "currency" => isset($pricing["currency"]) ? $pricing["currency"] : "USD", "amount" => $amount, "estimated" => true,
+            "source" => isset($pricing["officialUrl"]) ? $pricing["officialUrl"] : "", "lastVerified" => isset($pricing["lastVerified"]) ? $pricing["lastVerified"] : "",
+            "breakdown" => array("uncachedInputTokens" => $uncached, "cachedInputTokens" => $cached, "outputTokens" => $output));
+    }
+
+    private function decimalRateToPicoPerToken($value) {
+        $value = trim((string)$value); if (!preg_match('/^(\d+)(?:\.(\d+))?$/', $value, $matches)) return 0;
+        $fraction = isset($matches[2]) ? substr(str_pad($matches[2], 6, "0"), 0, 6) : "000000";
+        return ((int)$matches[1] * 1000000) + (int)$fraction;
     }
 
     private function skillsValue($body) {
@@ -1837,7 +2342,7 @@ class CreatorService {
             return false;
         }
 
-        return file_put_contents($this->sessionsFile(), json_encode($sessions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+        return $this->atomicJsonWrite($this->sessionsFile(), $sessions);
     }
 
     private function defaultSession($agentCode, $profileId, $sessionId) {
@@ -1854,7 +2359,7 @@ class CreatorService {
         );
     }
 
-    private function appendSessionTurn($session, $message, $reply, $skillResults, $runtimeContext) {
+    private function appendSessionTurn($session, $message, $reply, $skillResults, $runtimeContext, $content = array()) {
         $now = gmdate("c");
         if (!isset($session["history"]) || !is_array($session["history"])) {
             $session["history"] = array();
@@ -1863,7 +2368,15 @@ class CreatorService {
             $session["context"] = array();
         }
 
-        $session["history"][] = array("role" => "user", "content" => $message, "at" => $now);
+        $safeContent = array();
+        foreach ($content as $item) {
+            if (!is_array($item) || !isset($item["type"]) || $item["type"] === "text") continue;
+            $reference = isset($item["url"]) && strpos($item["url"], "data:") !== 0 ? $item["url"] : "inline-media-not-persisted";
+            $safeContent[] = array("type" => $item["type"], "mimeType" => isset($item["mimeType"]) ? $item["mimeType"] : "", "name" => isset($item["name"]) ? $item["name"] : "", "size" => isset($item["size"]) ? $item["size"] : 0, "reference" => $reference);
+        }
+        $userTurn = array("role" => "user", "content" => $message, "at" => $now);
+        if (count($safeContent)) $userTurn["attachments"] = $safeContent;
+        $session["history"][] = $userTurn;
         $session["history"][] = array("role" => "assistant", "content" => $reply, "at" => $now);
         $session["history"] = array_slice($session["history"], -40);
         $session["messageCount"] = isset($session["messageCount"]) ? ((int)$session["messageCount"] + 1) : 1;
@@ -1934,7 +2447,24 @@ class CreatorService {
             return false;
         }
 
-        return file_put_contents($this->agentsFile(), json_encode($agents, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) !== false;
+        return $this->atomicJsonWrite($this->agentsFile(), $agents);
+    }
+
+    private function atomicJsonWrite($file, $value) {
+        $json = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if (!is_string($json)) return false;
+        $lock = @fopen($file . ".lock", "c");
+        if (!$lock || !flock($lock, LOCK_EX)) {
+            if ($lock) fclose($lock);
+            return false;
+        }
+        $tmp = $file . ".tmp." . getmypid() . "." . substr($this->newRuntimeId("write"), -8);
+        $written = file_put_contents($tmp, $json, LOCK_EX) !== false;
+        if ($written && function_exists("chmod")) @chmod($tmp, 0664);
+        $saved = $written && @rename($tmp, $file);
+        if (!$saved && file_exists($tmp)) @unlink($tmp);
+        flock($lock, LOCK_UN); fclose($lock);
+        return $saved;
     }
 
     private function storageDir() {
@@ -1986,7 +2516,7 @@ class CreatorService {
             $out = array();
             foreach ($value as $key => $item) {
                 $keyName = strtolower((string)$key);
-                if (in_array($keyName, array("apikey", "api_key", "key", "token", "secret", "password", "authorization", "authheader", "clientsecret", "accesstoken"))
+                if (in_array($keyName, array("apikey", "api_key", "key", "token", "secret", "password", "authorization", "authheader", "header", "clientsecret", "accesstoken"))
                     || strpos($keyName, "token") !== false
                     || strpos($keyName, "secret") !== false
                     || strpos($keyName, "password") !== false

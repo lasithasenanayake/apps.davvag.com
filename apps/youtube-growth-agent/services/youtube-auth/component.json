@@ -2,7 +2,7 @@
   "name": "youtube-auth",
   "description": "Secure Google OAuth and YouTube data-deletion service",
   "author": "DAVVAG",
-  "version": "0.1",
+  "version": "0.3",
   "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
   "dependency": {"plugins": [
     {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},

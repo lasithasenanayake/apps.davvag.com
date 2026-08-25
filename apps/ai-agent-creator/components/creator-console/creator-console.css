@@ -316,6 +316,115 @@
     padding: 0.75rem;
 }
 
+.agent-creator button:focus-visible,
+.agent-creator a:focus-visible,
+.agent-creator input:focus-visible,
+.agent-creator textarea:focus-visible,
+.agent-creator select:focus-visible {
+    outline: 3px solid rgba(40, 66, 113, 0.32);
+    outline-offset: 2px;
+}
+
+.agent-creator__model-info,
+.agent-creator__cost {
+    display: grid;
+    gap: 0.35rem;
+    border: 1px solid #d8ded7;
+    border-radius: 8px;
+    background: #f8faf7;
+    color: #35413d;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    padding: 0.8rem;
+}
+
+.agent-creator__model-info a {
+    color: #284271;
+    font-weight: 800;
+    width: fit-content;
+}
+
+.agent-creator__modality-fieldset {
+    min-width: 0;
+    margin: 0;
+    border: 1px solid #d8ded7;
+    border-radius: 8px;
+    padding: 0.7rem;
+}
+
+.agent-creator__modality-fieldset legend {
+    color: #2a3833;
+    font-size: 0.86rem;
+    font-weight: 800;
+    padding: 0 0.35rem;
+}
+
+.agent-creator__modality-grid,
+.agent-creator__cost-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 0.55rem;
+}
+
+.agent-creator__modality {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #cbd3cc;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.55rem;
+}
+
+.agent-creator__modality input {
+    width: 1rem;
+    margin: 0;
+}
+
+.agent-creator__modality.is-disabled {
+    background: #f0f2ef;
+    color: #777f7c;
+}
+
+.agent-creator__attachment-list,
+.agent-creator__runtime-outputs {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+}
+
+.agent-creator__attachment {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    border: 1px solid #d8ded7;
+    border-radius: 8px;
+    background: #f8faf7;
+    padding: 0.55rem;
+}
+
+.agent-creator__attachment img,
+.agent-creator__attachment video {
+    width: 5rem;
+    height: 3.5rem;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.agent-creator__attachment audio {
+    width: min(14rem, 45%);
+}
+
+.agent-creator__attachment span {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    font-size: 0.8rem;
+}
+
 .agent-creator__toggle--compact {
     min-height: 3.4rem;
 }

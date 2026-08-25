@@ -1,1 +1,1 @@
-{"name":"video-inspector","description":"Channel-scoped video analysis","author":"DAVVAG","version":"0.1","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"video-inspector","description":"Channel-scoped metrics, retention, transcript provenance, and evidence analysis","author":"DAVVAG","version":"0.3","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

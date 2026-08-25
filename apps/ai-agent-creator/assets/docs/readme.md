@@ -253,3 +253,85 @@ That means the app can keep an agent identity, write billing usage, and record r
 - Add UI helpers in `components/creator-console/script.js` if you want more templates.
 - Keep skill payloads JSON-safe so they can be persisted and rendered into prompts.
 - Prefer template variables over hardcoded IDs, URLs, or session values.
+
+## Model Selection And Catalog
+
+The backend `Providers` method is the single source of truth for provider and model choices. The console loads it at startup; it does not contain a second hard-coded model map. Each curated entry includes the exact model ID, display name, lifecycle, supported input/output modalities, context and output limits, supported parameters, API adapter mode, pricing units, official URL, and a last-verified date.
+
+Use **Refresh available models** to query authenticated OpenAI or Google model lists, Ollama `GET /api/tags`, or LM Studio `GET /api/v1/models`. Discovered generation models are merged with curated entries. Embedding-only LM Studio models and Google models without `generateContent` are excluded. If discovery fails, the curated list remains usable and the console shows a non-blocking warning. API keys are sent only for the discovery request and are never returned in catalog metadata or stored in browser storage.
+
+The advanced **Custom model ID** choice defaults to text input/output and unknown pricing until a curated entry is added. The custom provider is deliberately described as a fixed OpenAI-compatible chat contract; it does not claim support for arbitrary request schemas.
+
+### Updating Models And Prices
+
+Edit `CreatorService::providerMap()` in `services/creator-api/service.php`. Use only official provider model and pricing documentation, update `pricingLastVerified` and each model's `pricing.lastVerified`, and leave unknown fields as `null`. Do not infer output modalities from input capabilities. Current official references are:
+
+- OpenAI model catalog and pricing: `https://developers.openai.com/api/docs/models`
+- Gemini models and pricing: `https://ai.google.dev/gemini-api/docs/models` and `https://ai.google.dev/gemini-api/docs/pricing`
+- Ollama vision and model-list APIs: `https://docs.ollama.com/capabilities/vision` and `https://docs.ollama.com/api/tags`
+- LM Studio model-list API: `https://lmstudio.ai/docs/developer/rest/list`
+
+## Pricing And Estimates
+
+The estimator uses catalog prices and integer pico-dollar arithmetic for token rates. It separates uncached input, cached input (when published), and output tokens. Runtime responses add `usage.cost` without changing existing token-usage keys or billing-schema records.
+
+All displayed costs are estimates. Provider-reported token counts are preferred; character-based token estimates are used when a provider omits usage. Tool, storage, long-context tier, image/audio/video, tax, hosting, and other fees are excluded unless the selected catalog entry publishes an applicable unit. The UI displays **Pricing unavailable** rather than inventing a value. Ollama and LM Studio show a zero per-token provider API fee while explicitly excluding hardware, hosting, and electricity.
+
+## Multimodal Configuration
+
+Saved configurations add, without replacing existing keys:
+
+```json
+{
+  "modalities": {
+    "input": ["text", "image"],
+    "output": ["text"]
+  }
+}
+```
+
+The console only enables modalities declared by the selected curated/discovered model. Older records without `modalities` load as text-only. Attachments are limited to 8 per request, 10 MB each, and 20 MB total. MIME type, reference scheme, modality compatibility, and malformed data are validated on both sides. Server filesystem paths, traversal, private-network references, and arbitrary server-side URL fetching are rejected. Inline base64 is sent to providers but never persisted in session history; only safe attachment metadata or a durable external reference is retained.
+
+### Runtime Content And Outputs
+
+`TestAgent`, `RunAgent`, and `InteractWithAgent` continue to accept the existing `message` string. Callers may add `content`:
+
+```json
+{
+  "agentCode": "vision-agent",
+  "message": "Describe this image",
+  "content": [
+    {"type": "text", "text": "Describe this image"},
+    {"type": "image", "url": "data:image/jpeg;base64,...", "mimeType": "image/jpeg", "name": "photo.jpg", "size": 1024}
+  ]
+}
+```
+
+Allowed types are `text`, `image`, `audio`, `video`, and `document` (`file` is accepted as an alias for `document`). Successful responses always retain string `reply` and add `outputs`, which may contain image/audio/video/document URLs and MIME types.
+
+## Provider Limitations
+
+- OpenAI: new curated models use the Responses API and native `input_text`/`input_image` parts. Existing saved configurations without `apiMode` retain Chat Completions. The curated general models currently produce text only in this app.
+- Google: `generateContent` maps inline data or provider-supported file URIs into native parts for text, image, audio, video, and documents. General Gemini entries are not labeled as media-output generators.
+- Ollama: the HTTP chat API is the only runtime. Vision sends the REST API's base64 `images` array and is enabled only for configured vision models. The saved CLI field is manual metadata and is never executed.
+- LM Studio: the OpenAI-compatible chat endpoint is used. Discovery excludes embeddings and enables image input only when LM Studio reports `capabilities.vision` for that model.
+- Other: text-only fixed chat payload and response parsing. Validated manual token limits and token pricing may be supplied; multimodal request mappings remain disabled rather than being guessed.
+- Streaming: disabled because the current Webdock service transport has no end-to-end SSE channel. It is always saved and sent as `false`.
+
+## Backward Compatibility And Security
+
+All existing public methods, component codes, workflow metadata, top-level agent keys, and common request/response fields remain unchanged. Existing callers that send only `agentCode`, `message`, `profile`, `sessionId`, `flow`, `connector`, and `payload` stay on the text path. Older configuration records receive defensive runtime defaults and require no migration.
+
+Configuration previews, YAML, saved-agent responses, prompt context, and provider errors mask secrets. Provider connection drafts live only in memory and are isolated per provider. Anonymous requests with no explicit profile or session receive a unique ephemeral identity/session instead of an identity derived from message text. Agent and session JSON writes use a lock, same-directory temporary file, and atomic rename while retaining the existing JSON format.
+
+## Tests
+
+No production credentials or paid calls are used:
+
+```powershell
+C:\xampp\php\php.exe -l services\creator-api\service.php
+C:\xampp\php\php.exe -l tests\run.php
+C:\xampp\php\php.exe -d xdebug.mode=off tests\run.php
+```
+
+The harness covers catalog metadata, secret masking, old-record defaults, streaming consistency, model limits, exact cost calculation and unavailable pricing, OpenAI/Google/Ollama multimodal payloads, attachment safety, LM Studio filtering, provider-error sanitization, and atomic persistence. Browser smoke testing should cover provider switching, model filtering, custom model selection, estimates, save/reload, attachment preview/removal/rejection, and a test call using non-production credentials or a local provider.

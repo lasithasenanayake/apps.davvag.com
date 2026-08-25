@@ -6,6 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
+**Implementation baseline:** app version 0.3; Phase 0/1 plus the read-only advisory portions of Phase 2/3 implemented on 2026-08-25
 
 ---
 
@@ -699,6 +700,17 @@ Reference: [YouTube videos.update](https://developers.google.com/youtube/v3/docs
 - Video briefs and content calendar.
 - Sinhala/English content generation.
 
+Implementation status (2026-08-25):
+
+- Implemented user-provided transcript upload with provenance, size limits, and validated timestamps.
+- Implemented official per-video audience-retention import from YouTube Analytics.
+- Implemented validated timestamped Shorts candidates with saved-agent and deterministic paths.
+- Implemented SEO/video briefs without unsupported keyword-volume claims.
+- Implemented public competitor workspaces using channels, uploads playlists, and videos; `search.list` and scraping are not used.
+- Implemented content ideas and channel-timezone-labelled calendar records.
+- Every saved-agent prompt carries the channel language so configured agents can return Sinhala or English.
+- Direct YouTube caption-track download remains deferred until a separate incremental `youtube.force-ssl` consent flow is implemented. The base OAuth connection is not silently widened.
+
 ### Phase 3 — Packaging, community, and experiments
 
 - Title/thumbnail workshop.
@@ -707,12 +719,38 @@ Reference: [YouTube videos.update](https://developers.google.com/youtube/v3/docs
 - Experiment journal.
 - End-screen, playlist, and session-path recommendations.
 
+Implementation status (2026-08-25):
+
+- Implemented title and thumbnail briefs with strict title length, structure, evidence, and unsupported-claim validation.
+- Implemented draft native YouTube A/B test preparation and reminders; starting a test remains a manual YouTube Studio action.
+- Implemented read-only comment sampling, evidence-linked themes, and reply drafts that always require human approval.
+- Implemented experiment creation, running/completed states, results, limitations, and audit events.
+- Implemented end-screen and playlist proposals restricted to video IDs already present in the authorized channel workspace.
+- No Phase 3 path publishes a reply, changes metadata, edits a playlist/end screen, or writes to YouTube.
+
 ### Phase 4 — Approved actions and team workflow
 
 - Incremental write authorization.
 - Metadata update preview and approval.
 - Team roles and approval queues.
 - Optional asset export/rendering from user-provided source media.
+
+### Saved-agent integration baseline
+
+Phase 2/3 generation reuses `ai-agent-creator` through `CreatorService::interactWithAgent()`. Provider calls, model settings, secrets, sessions, skills, and agent configuration remain owned by the shared runtime.
+
+Default specialist codes are `transcript-analyzer-agent` for transcript/Shorts work and `seo-suggestion-agent` for briefs and packaging. Protected `YTG_*_AGENT_CODE` overrides may select other saved agents for transcript, SEO, packaging, community, and strategy work.
+
+Opening Growth Studio does not call a provider. Each generation action requires an explicit `confirmAgentDataShare=true` after the UI discloses that the selected video context may be sent to the saved agent's configured provider. The service authorizes the channel, loads trusted channel-scoped data, calls the shared agent runtime, validates strict JSON, records the run, and returns a deterministic fallback when the agent is unavailable or rejected.
+
+The registered Phase 2/3 runtime is:
+
+```text
+component: growth-studio
+services:  growth-workbench, growth-ai
+routes:    /intelligence, /growth-studio
+workflows: analyze-video, generate-short-candidates, refresh-competitors, review-experiments
+```
 
 ---
 
