@@ -1,15 +1,18 @@
 WEBDOCK.component().register(function (exports) {
-    var workbench, ai;
+    var workbench, ai, auth;
     var state = {
         channelId: "", videoId: "", loading: false, busy: "", error: "", info: "", activeTab: "transcript",
-        data: null, aiConsent: false, transcriptText: "", transcriptLanguage: "English", aiResult: null,
+        data: null, aiConsent: false, transcriptText: "", transcriptLanguage: "English", captionLanguage: "", aiResult: null,
+        autoTranscriptAttempts: {},
         competitor: {youtubeChannelId: "", label: ""},
         calendar: {title: "", format: "VIDEO", plannedAt: "", notes: ""},
         experiment: {name: "", type: "PACKAGING", hypothesis: "", variantsText: "Variant A\nVariant B", primaryMetric: "thumbnailImpressionsCtr"}
     };
     exports.vue = {data: state, methods: {
         load: load, selectVideo: selectVideo, setTab: function (tab) { state.activeTab = tab; state.aiResult = null; },
-        importTranscript: importTranscript, syncRetention: syncRetention, generateShorts: function () { generate("GenerateShortCandidates"); },
+        importTranscript: importTranscript, requestCaptionAccess: requestCaptionAccess, downloadYouTubeTranscript: function () { downloadYouTubeTranscript(false); },
+        exportTranscript: exportTranscript, transcriptPreview: transcriptPreview, transcriptSource: transcriptSource,
+        syncRetention: syncRetention, generateShorts: function () { generate("GenerateShortCandidates"); },
         generateBrief: function () { generate("GenerateVideoBrief"); }, addCompetitor: addCompetitor, refreshCompetitors: refreshCompetitors,
         saveCalendar: saveCalendar, generatePackaging: function () { generate("GeneratePackagingVariants"); }, syncComments: syncComments,
         analyzeCommunity: function () { generate("AnalyzeCommunity"); }, generateSession: function () { generate("GenerateSessionRecommendations"); },
@@ -20,11 +23,12 @@ WEBDOCK.component().register(function (exports) {
     exports.onReady = function () {};
 
     function initialize() {
-        workbench = exports.getComponent("growth-workbench"); ai = exports.getComponent("growth-ai");
+        workbench = exports.getComponent("growth-workbench"); ai = exports.getComponent("growth-ai"); auth = exports.getComponent("youtube-auth");
         state.channelId = query("channelId") || window.localStorage.getItem("ytg.selectedChannelId") || "";
         state.videoId = query("videoId") || "";
         if (!state.channelId) { state.error = "Select a channel workspace first."; return; }
-        if (!workbench || !ai) { state.error = "Growth Studio services are not loaded."; return; }
+        if (!workbench || !ai || !auth) { state.error = "Growth Studio services are not loaded."; return; }
+        window.addEventListener("message", oauthMessage);
         load();
     }
     function load() {
@@ -33,12 +37,73 @@ WEBDOCK.component().register(function (exports) {
             state.loading = false;
             if (!response.success) { state.error = message(response, "Growth Studio could not be loaded."); return; }
             state.data = response.result; state.videoId = response.result.selectedVideoId || state.videoId;
-            if (response.result.transcript) { state.transcriptText = response.result.transcript.plainText || ""; state.transcriptLanguage = response.result.transcript.language || "English"; }
+            if (response.result.transcript) {
+                state.transcriptText = response.result.transcript.plainText || "";
+                state.transcriptLanguage = response.result.transcript.language || "English";
+            } else {
+                state.transcriptText = "";
+                var capabilities = response.result.capabilities || {};
+                if (state.videoId && capabilities.automaticTranscriptImport && !state.autoTranscriptAttempts[state.videoId]) {
+                    state.autoTranscriptAttempts[state.videoId] = true;
+                    window.setTimeout(function () { downloadYouTubeTranscript(true); }, 0);
+                }
+            }
         }).error(function () { state.loading = false; state.error = "Growth Studio could not be loaded."; });
     }
     function selectVideo() { state.transcriptText = ""; state.aiResult = null; load(); }
     function importTranscript() {
         call(workbench, "ImportTranscript", {channelId: state.channelId, videoId: state.videoId, plainText: state.transcriptText, language: state.transcriptLanguage}, "Transcript saved.");
+    }
+    function requestCaptionAccess() {
+        if (state.busy) { return; }
+        var popup = window.open("about:blank", "ytgCaptionOAuth", "width=720,height=780");
+        if (!popup) { state.error = "Google authorization popup was blocked."; return; }
+        state.busy = "StartCaptionConnect"; state.error = ""; state.info = "";
+        auth.services.StartCaptionConnect({channelId: state.channelId}).then(function (response) {
+            state.busy = "";
+            if (response.success) { popup.location.href = response.result.authUrl; }
+            else { popup.close(); state.error = message(response, "Caption authorization could not be started."); }
+        }).error(function () { state.busy = ""; popup.close(); state.error = "Caption authorization could not be started."; });
+    }
+    function oauthMessage(event) {
+        if (!event || event.origin !== window.location.origin || !event.data || event.data.type !== "ytg-oauth-complete") { return; }
+        if (event.data.success) {
+            state.info = "Automatic timestamped caption downloads are enabled.";
+            if (state.videoId) { delete state.autoTranscriptAttempts[state.videoId]; }
+            load();
+        } else { state.error = "Caption authorization was cancelled or failed."; }
+    }
+    function downloadYouTubeTranscript(automatic) {
+        if (!state.videoId || state.busy) { return; }
+        state.busy = "DownloadTranscript"; state.error = ""; state.info = automatic ? "Downloading the available YouTube caption track..." : "";
+        workbench.services.DownloadTranscript({channelId: state.channelId, videoId: state.videoId, language: state.captionLanguage}).then(function (response) {
+            state.busy = "";
+            if (response.success) { state.info = response.result.message || "Timestamped transcript downloaded."; load(); }
+            else { state.error = message(response, "The timestamped transcript could not be downloaded."); }
+        }).error(function () { state.busy = ""; state.error = "The timestamped transcript could not be downloaded."; });
+    }
+    function transcriptPreview() {
+        var transcript = state.data && state.data.transcript ? state.data.transcript : null;
+        return transcript && transcript.segments && transcript.segments.slice ? transcript.segments.slice(0, 200) : [];
+    }
+    function transcriptSource() {
+        var transcript = state.data && state.data.transcript ? state.data.transcript : null;
+        if (!transcript) { return "No transcript"; }
+        return transcript.sourceType === "YOUTUBE_CAPTION" ? "YouTube caption" : "User-provided";
+    }
+    function exportTranscript() {
+        var transcript = state.data && state.data.transcript ? state.data.transcript : null;
+        var segments = transcript && transcript.segments ? transcript.segments : [];
+        if (!segments.length || !window.Blob || !window.URL || !window.URL.createObjectURL) { state.error = "No timestamped transcript is available to export."; return; }
+        var lines = [];
+        for (var index = 0; index < segments.length; index++) {
+            lines.push("[" + formatTime(segments[index].startMs) + " - " + formatTime(segments[index].endMs) + "] " + (segments[index].text || ""));
+        }
+        var url = window.URL.createObjectURL(new Blob([lines.join("\r\n")], {type: "text/plain;charset=utf-8"}));
+        var link = document.createElement("a");
+        link.href = url; link.download = "youtube-transcript-" + state.videoId + "-timestamped.txt";
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 1000);
     }
     function syncRetention() { call(workbench, "SyncRetention", {channelId: state.channelId, videoId: state.videoId}, "Retention refreshed."); }
     function syncComments() { call(workbench, "SyncComments", {channelId: state.channelId, videoId: state.videoId}, "Comments refreshed."); }

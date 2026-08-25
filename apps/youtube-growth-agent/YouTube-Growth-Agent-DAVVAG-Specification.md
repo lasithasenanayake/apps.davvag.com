@@ -709,7 +709,7 @@ Implementation status (2026-08-25):
 - Implemented public competitor workspaces using channels, uploads playlists, and videos; `search.list` and scraping are not used.
 - Implemented content ideas and channel-timezone-labelled calendar records.
 - Every saved-agent prompt carries the channel language so configured agents can return Sinhala or English.
-- Direct YouTube caption-track download remains deferred until a separate incremental `youtube.force-ssl` consent flow is implemented. The base OAuth connection is not silently widened.
+- Direct YouTube caption-track download is implemented with a separate owner-triggered incremental `youtube.force-ssl` consent flow. After consent, selecting a video without a stored transcript automatically runs `captions.list` and `captions.download`, parses WebVTT cues into validated millisecond timestamps, records provenance, and retains manual transcript import as fallback. Existing base OAuth connections are not silently widened.
 
 ### Phase 3 — Packaging, community, and experiments
 

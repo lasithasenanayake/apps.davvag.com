@@ -38,6 +38,55 @@ class YouTubeAuthService extends \YtgServiceBase {
         }
     }
 
+    public function postStartCaptionConnect($req, $res) {
+        $profile = $this->requireProfile($res);
+        if ($profile === null) { return null; }
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner"));
+        if ($channel === null) { return null; }
+        $grant = $this->grantForProfile($channel->channelId, $profile->id);
+        if ($grant === null || !isset($grant->credentialRef)) {
+            return $this->fail($res, "Connect this YouTube channel before enabling automatic captions.");
+        }
+        $status = \YtgConfig::status();
+        if (!$status->ready) { return $this->fail($res, "YouTube OAuth is not fully configured."); }
+
+        try {
+            $state = rtrim(strtr(base64_encode(random_bytes(32)), "+/", "-_"), "=");
+            $redirectUri = \YtgConfig::redirectUri() !== "" ? \YtgConfig::redirectUri() : \YtgConfig::currentServiceRedirectUri();
+            $scope = "https://www.googleapis.com/auth/youtube.force-ssl";
+            $scopes = array_values(array_unique(array_merge(\YtgConfig::scopes(), array($scope))));
+            $store = new \YtgSecretStore();
+            $store->putState($state, array(
+                "profileId" => $profile->id,
+                "profileName" => $profile->name,
+                "redirectUri" => $redirectUri,
+                "createdAt" => time(),
+                "mode" => "caption",
+                "channelId" => $channel->channelId
+            ));
+            $params = array(
+                "client_id" => \YtgConfig::clientId(),
+                "redirect_uri" => $redirectUri,
+                "response_type" => "code",
+                "scope" => implode(" ", $scopes),
+                "state" => $state,
+                "access_type" => "offline",
+                "prompt" => "consent select_account",
+                "include_granted_scopes" => "true"
+            );
+            $this->audit("CAPTION_OAUTH_STARTED", $channel->channelId, "youtube-caption-access", null, array("scope" => $scope));
+            return (object)array(
+                "authUrl" => "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query($params, "", "&", PHP_QUERY_RFC3986),
+                "scope" => $scope,
+                "captionDownloadOnly" => true,
+                "message" => "Google consent is required once before automatic caption downloads."
+            );
+        } catch (\Throwable $error) {
+            return $this->fail($res, "Unable to start caption authorization: " . $error->getMessage());
+        }
+    }
+
     public function getOAuthCallback($req, $res) {
         $query = $req->Query();
         $state = isset($query->state) ? trim((string)$query->state) : "";
@@ -66,6 +115,10 @@ class YouTubeAuthService extends \YtgServiceBase {
             if (!$tokenResponse->success || !is_array($tokenResponse->data) || !isset($tokenResponse->data["access_token"])) {
                 $message = $tokenResponse->error !== "" ? $tokenResponse->error : "Token exchange failed.";
                 $this->callbackHtml(false, $message);
+            }
+
+            if (isset($stateData["mode"]) && $stateData["mode"] === "caption") {
+                $this->completeCaptionAuthorization($stateData, $tokenResponse->data, $profile, $google);
             }
 
             $channelResponse = \YtgHttpClient::request(
@@ -279,6 +332,57 @@ class YouTubeAuthService extends \YtgServiceBase {
             array("column" => "profileId", "operator" => "=", "value" => $profileId),
             array("column" => "status", "operator" => "=", "value" => "Connected")
         ));
+    }
+
+    private function completeCaptionAuthorization($stateData, $newToken, $profile, $google) {
+        $channelId = isset($stateData["channelId"]) ? $this->channelId($stateData["channelId"]) : "";
+        $channel = $channelId !== "" ? $this->channelAccess($channelId, array("Owner")) : null;
+        if ($channel === null) { $this->callbackHtml(false, "The caption authorization channel is unavailable to this owner."); }
+        $grant = $this->grantForProfile($channelId, $profile->id);
+        if ($grant === null || !isset($grant->credentialRef)) { $this->callbackHtml(false, "The existing channel credential could not be found."); }
+
+        $owned = \YtgHttpClient::request(
+            "GET",
+            "https://www.googleapis.com/youtube/v3/channels?part=id&mine=true&maxResults=50",
+            $newToken["access_token"]
+        );
+        $ownsChannel = false;
+        foreach ($owned->success && isset($owned->data["items"]) ? $owned->data["items"] : array() as $item) {
+            if (isset($item["id"]) && (string)$item["id"] === (string)$channel->youtubeChannelId) { $ownsChannel = true; break; }
+        }
+        if (!$ownsChannel) { $this->callbackHtml(false, "Authorize the Google account that owns the selected YouTube channel."); }
+
+        $old = $google->accessToken($grant->credentialRef);
+        $storedToken = $old->success && is_array($old->token) ? $old->token : array();
+        $mergedToken = array_merge($storedToken, $newToken);
+        if (!isset($mergedToken["refresh_token"]) && isset($storedToken["refresh_token"])) { $mergedToken["refresh_token"] = $storedToken["refresh_token"]; }
+        $mergedToken["expires_at"] = time() + max(60, intval(isset($newToken["expires_in"]) ? $newToken["expires_in"] : 3600));
+        $google->storeCredential($grant->credentialRef, $mergedToken);
+
+        $scopes = isset($newToken["scope"]) ? preg_split('/\s+/', trim((string)$newToken["scope"])) : $this->scopeValues(isset($grant->scopes) ? $grant->scopes : array());
+        $scopes[] = "https://www.googleapis.com/auth/youtube.force-ssl";
+        $scopes = array_values(array_unique(array_filter($scopes)));
+        $grant->scopes = $scopes;
+        $grant->expiresAt = date("Y-m-d H:i:s", $mergedToken["expires_at"]);
+        $grant->lastVerifiedAt = $this->now();
+        $grant->status = "Connected";
+        $grant->updatedAt = $this->now();
+        \SOSSData::Update("ytg_oauth_grants", $grant);
+
+        $channel->scopes = $scopes;
+        $channel->lastAuthorizationVerifiedAt = $this->now();
+        $channel->updatedAt = $this->now();
+        unset($channel->_accessRole);
+        \SOSSData::Update("ytg_channels", $channel);
+        $this->audit("CAPTION_SCOPE_GRANTED", $channelId, "youtube-caption-access", null, array("scope" => "https://www.googleapis.com/auth/youtube.force-ssl"));
+        $this->callbackHtml(true, "Automatic timestamped caption downloads are enabled for " . $channel->title . ".");
+    }
+
+    private function scopeValues($value) {
+        if (is_array($value)) { return $value; }
+        if (is_object($value)) { return array_values((array)$value); }
+        $decoded = json_decode((string)$value, true);
+        return is_array($decoded) ? $decoded : preg_split('/\s+/', trim((string)$value));
     }
 
     private function callbackHtml($success, $message) {

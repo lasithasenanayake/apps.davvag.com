@@ -4,6 +4,9 @@ namespace youtube_growth_agent;
 if (!class_exists("YtgServiceBase")) {
     require_once(PLUGIN_PATH_LOCAL . "/youtube-growth/youtube-growth.php");
 }
+if (!class_exists(__NAMESPACE__ . "\\YouTubeCaptionParser")) {
+    require_once(__DIR__ . "/caption-parser.php");
+}
 
 class GrowthWorkbenchService extends \YtgServiceBase {
     public function postGetWorkbench($req, $res) {
@@ -14,6 +17,8 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         if ($videoId === false) { return null; }
         $videoConditions = array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId));
         $videos = $this->query("ytg_videos", $videoConditions, array(array("column" => "publishedAt", "direction" => "DESC")), 100, 0);
+        $grant = $this->credentialGrant($channel->channelId);
+        $captionAuthorized = $this->hasCaptionScope($grant);
         $result = (object)array(
             "channel" => $this->safeChannel($channel),
             "videos" => $videos->success ? $videos->result : array(),
@@ -28,11 +33,13 @@ class GrowthWorkbenchService extends \YtgServiceBase {
             "calendarItems" => $this->rows("ytg_calendar_items", $channel->channelId, array(array("column" => "plannedAt", "direction" => "ASC")), 100),
             "experiments" => $this->rows("ytg_experiments", $channel->channelId, array(array("column" => "experimentId", "direction" => "DESC")), 100),
             "capabilities" => (object)array(
-                "authorizedCaptionImport" => false,
+                "authorizedCaptionImport" => $captionAuthorized,
                 "userTranscriptUpload" => true,
                 "retentionAnalytics" => true,
                 "channelWriteBack" => false,
-                "captionScopeRequired" => "https://www.googleapis.com/auth/youtube.force-ssl"
+                "captionScopeRequired" => "https://www.googleapis.com/auth/youtube.force-ssl",
+                "captionQuotaPerImport" => 250,
+                "automaticTranscriptImport" => $captionAuthorized
             )
         );
         if ($videoId !== "") {
@@ -91,6 +98,82 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         $this->audit("TRANSCRIPT_IMPORTED", $channel->channelId, "video:" . $video->youtubeVideoId, null, array("source" => "USER_UPLOAD", "language" => $language, "segments" => count($segments)));
         $row->segments = $segments;
         return (object)array("transcript" => $row, "message" => "User-provided transcript saved with validated timestamps.");
+    }
+
+    public function postDownloadTranscript($req, $res) {
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager", "Editor"));
+        if ($channel === null) { return null; }
+        $video = $this->ownedVideo($channel->channelId, isset($body->videoId) ? $body->videoId : "");
+        if ($video === null) { return $this->fail($res, "A video in this channel workspace is required."); }
+        $grant = $this->credentialGrant($channel->channelId);
+        if ($grant === null || !isset($grant->credentialRef)) { return $this->fail($res, "Connected YouTube credentials are required."); }
+        if (!$this->hasCaptionScope($grant)) { return $this->fail($res, "Enable automatic captions for this channel first. Google requires separate youtube.force-ssl consent."); }
+
+        $preferredLanguage = isset($body->language) ? strtolower(trim((string)$body->language)) : "";
+        if ($preferredLanguage !== "" && !preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/', $preferredLanguage)) {
+            return $this->fail($res, "Preferred caption language must be a valid language code such as en or si.");
+        }
+        $quota = $this->consumeQuota($channel->channelId, "captions.list", 50);
+        if (!$quota->success) { return $this->fail($res, $quota->message); }
+
+        $google = new \YtgGoogleClient();
+        $list = $google->dataGet($grant->credentialRef, "captions", array(
+            "part" => "id,snippet",
+            "videoId" => $video->youtubeVideoId
+        ));
+        if (!$list->success) {
+            return $this->fail($res, $list->status === 403 ? "YouTube denied caption access. Re-enable automatic captions as the video owner." : ($list->error !== "" ? $list->error : "Caption tracks could not be listed."));
+        }
+        $track = $this->selectCaptionTrack(isset($list->data["items"]) ? $list->data["items"] : array(), $preferredLanguage);
+        if ($track === null) {
+            return (object)array("transcript" => null, "message" => "No downloadable caption track is available for this video. You can still paste a transcript manually.");
+        }
+
+        $quota = $this->consumeQuota($channel->channelId, "captions.download", 200);
+        if (!$quota->success) { return $this->fail($res, $quota->message); }
+        $token = $google->accessToken($grant->credentialRef);
+        if (!$token->success) { return $this->fail($res, $token->error !== "" ? $token->error : "YouTube authorization could not be refreshed."); }
+        $url = "https://www.googleapis.com/youtube/v3/captions/" . rawurlencode($track->id) . "?tfmt=vtt";
+        $download = \YtgHttpClient::request("GET", $url, $token->accessToken, null, false, true);
+        if (!$download->success) {
+            return $this->fail($res, $download->status === 403 ? "YouTube did not allow this caption track to be downloaded. The connected account must be able to edit the video." : ($download->error !== "" ? $download->error : "The caption track could not be downloaded."));
+        }
+
+        $durationMs = max(1000, intval(isset($video->durationSeconds) ? $video->durationSeconds : 0) * 1000);
+        $parsed = YouTubeCaptionParser::parseVtt($download->text, $durationMs);
+        if (!$parsed->success) { return $this->fail($res, $parsed->error); }
+
+        $oldRows = $this->query("ytg_transcripts", array(
+            array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
+            array("column" => "videoId", "operator" => "=", "value" => $video->youtubeVideoId),
+            array("column" => "sourceType", "operator" => "=", "value" => "YOUTUBE_CAPTION")
+        ), array(), 100, 0);
+        if ($oldRows->success) { foreach ($oldRows->result as $oldRow) { \SOSSData::Delete("ytg_transcripts", $oldRow); } }
+
+        $row = (object)array(
+            "channelId" => $channel->channelId,
+            "videoId" => $video->youtubeVideoId,
+            "language" => $this->language($track->language),
+            "sourceType" => "YOUTUBE_CAPTION",
+            "segments" => $parsed->segments,
+            "plainText" => $parsed->plainText,
+            "durationMs" => $durationMs,
+            "provenance" => substr("YouTube captions.download; track=" . $track->id . "; language=" . $track->language . "; kind=" . $track->trackKind . "; autoGenerated=" . ($track->autoGenerated ? "yes" : "no"), 0, 500),
+            "refreshedAt" => $this->now(),
+            "createdAt" => $this->now()
+        );
+        $save = \SOSSData::Insert("ytg_transcripts", $row);
+        if (!$save->success) { return $this->fail($res, "The timestamped caption transcript could not be saved."); }
+        $video->hasTranscript = true;
+        \SOSSData::Update("ytg_videos", $video);
+        $this->audit("YOUTUBE_CAPTION_IMPORTED", $channel->channelId, "video:" . $video->youtubeVideoId, null, array("language" => $track->language, "trackKind" => $track->trackKind, "segments" => count($parsed->segments)));
+        return (object)array(
+            "transcript" => $row,
+            "captionTrack" => (object)array("language" => $track->language, "name" => $track->name, "trackKind" => $track->trackKind, "autoGenerated" => $track->autoGenerated),
+            "quotaUnits" => 250,
+            "message" => count($parsed->segments) . " timestamped caption segments downloaded from YouTube."
+        );
     }
 
     public function postSyncRetention($req, $res) {
@@ -319,6 +402,49 @@ class GrowthWorkbenchService extends \YtgServiceBase {
 
     private function deleteRowsForVideo($namespace, $channelId, $videoId) {
         foreach ($this->rowsForVideo($namespace, $channelId, $videoId, array(), 10000) as $row) { \SOSSData::Delete($namespace, $row); }
+    }
+
+    private function hasCaptionScope($grant) {
+        if ($grant === null || !isset($grant->scopes)) { return false; }
+        $scopes = $grant->scopes;
+        if (is_string($scopes)) {
+            $decoded = json_decode($scopes, true);
+            $scopes = is_array($decoded) ? $decoded : preg_split('/\s+/', trim($scopes));
+        } elseif (is_object($scopes)) {
+            $scopes = array_values((array)$scopes);
+        }
+        return is_array($scopes) && in_array("https://www.googleapis.com/auth/youtube.force-ssl", $scopes, true);
+    }
+
+    private function selectCaptionTrack($items, $preferredLanguage) {
+        if (!is_array($items)) { return null; }
+        $ranked = array();
+        foreach ($items as $item) {
+            if (!is_array($item) || !isset($item["id"], $item["snippet"]) || !is_array($item["snippet"])) { continue; }
+            $id = trim((string)$item["id"]);
+            if ($id === "" || strlen($id) > 500 || preg_match('/[\x00-\x1F\x7F]/', $id)) { continue; }
+            $snippet = $item["snippet"];
+            $status = strtolower(isset($snippet["status"]) ? (string)$snippet["status"] : "");
+            if ($status === "failed") { continue; }
+            $language = strtolower(isset($snippet["language"]) ? trim((string)$snippet["language"]) : "und");
+            $trackKind = strtolower(isset($snippet["trackKind"]) ? trim((string)$snippet["trackKind"]) : "standard");
+            $score = 0;
+            if ($preferredLanguage !== "" && $language !== $preferredLanguage) { $score += 100; }
+            if (!empty($snippet["isDraft"])) { $score += 20; }
+            if ($status !== "serving") { $score += 10; }
+            if ($trackKind === "asr") { $score += 5; }
+            $ranked[] = (object)array(
+                "id" => $id,
+                "language" => $language,
+                "name" => isset($snippet["name"]) ? substr(trim((string)$snippet["name"]), 0, 150) : "",
+                "trackKind" => $trackKind,
+                "autoGenerated" => $trackKind === "asr",
+                "score" => $score
+            );
+        }
+        if (!count($ranked)) { return null; }
+        usort($ranked, function ($left, $right) { return $left->score === $right->score ? strcmp($left->language, $right->language) : $left->score - $right->score; });
+        return $ranked[0];
     }
 
     private function normalizeTranscriptSegments($value, $plainText, $durationMs) {

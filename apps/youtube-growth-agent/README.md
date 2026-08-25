@@ -11,7 +11,7 @@ This tenant app implements the read-only DAVVAG command centre, content-intellig
 - Uploads-playlist catalogue import; video details are read in batches and `search.list` is not used.
 - Resumable initial/daily sync jobs, quota accounting, retry handling, Reporting API setup, and idempotent imports.
 - Official-metric command centre, video library, video inspector, recommendation inbox, and weekly plan.
-- User-provided transcripts with provenance and validated timestamps.
+- Automatic timestamped YouTube caption downloads after separate owner consent, plus user-provided transcripts with provenance and validated timestamps.
 - Per-video audience-retention imports from the YouTube Analytics API.
 - Timestamped Shorts candidates, SEO/video briefs, public competitor workspaces, and a content calendar.
 - Packaging variants, native A/B test preparation, community themes, manual reply drafts, experiment journals, and session-path proposals.
@@ -98,7 +98,7 @@ Only opaque `credentialRef` values are stored in `ytg_oauth_grants`.
 
 ## Deliberately deferred
 
-- Direct YouTube caption-track listing/download. The official endpoints require `youtube.force-ssl`; this needs a separate incremental consent flow instead of silently widening the base read-only scopes. User transcript upload is operational.
+- Automatic caption-track listing/download is available from Growth Studio. The owner must explicitly enable the incremental `youtube.force-ssl` scope once; the base connection remains least-privilege. Selecting a video without a stored transcript then imports its best serving caption track automatically, while manual upload remains available when YouTube has no downloadable track.
 - Starting or controlling native YouTube A/B tests through an API. The app prepares variants and reminders for manual use in YouTube Studio.
 - Publishing comment replies, changing playlists/end screens, or applying metadata.
 - Phase 4 incremental write authorization, approval queues, team workflow, and asset rendering/export.
