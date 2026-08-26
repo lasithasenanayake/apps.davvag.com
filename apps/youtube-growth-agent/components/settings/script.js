@@ -29,6 +29,7 @@ WEBDOCK.component().register(function (exports) {
             saveConfiguration: saveConfiguration,
             generateEncryptionKey: generateEncryptionKey,
             copyRedirectUri: copyRedirectUri,
+            copyCronUrl: copyCronUrl,
             connectChannel: connectChannel,
             disconnect: disconnect,
             deleteData: deleteData,
@@ -123,13 +124,25 @@ WEBDOCK.component().register(function (exports) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(value).then(function () {
                 state.info = "OAuth redirect URI copied.";
-            }).catch(function () { legacyCopy(value); });
+            }).catch(function () { legacyCopy(value, "OAuth redirect URI copied."); });
             return;
         }
-        legacyCopy(value);
+        legacyCopy(value, "OAuth redirect URI copied.");
     }
 
-    function legacyCopy(value) {
+    function copyCronUrl() {
+        var value = state.configuration && state.configuration.cronUrl ? state.configuration.cronUrl : "";
+        if (!value) { return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(value).then(function () {
+                state.info = "Cron URL copied.";
+            }).catch(function () { legacyCopy(value, "Cron URL copied."); });
+            return;
+        }
+        legacyCopy(value, "Cron URL copied.");
+    }
+
+    function legacyCopy(value, message) {
         var element = document.createElement("textarea");
         element.value = value;
         element.setAttribute("readonly", "readonly");
@@ -139,7 +152,7 @@ WEBDOCK.component().register(function (exports) {
         element.select();
         document.execCommand("copy");
         document.body.removeChild(element);
-        state.info = "OAuth redirect URI copied.";
+        state.info = message;
     }
 
     function connectChannel() {

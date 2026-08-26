@@ -5,6 +5,12 @@ if (!class_exists("YtgServiceBase")) {
     require_once(PLUGIN_PATH_LOCAL . "/youtube-growth/youtube-growth.php");
 }
 
+class YouTubeCronResponse {
+    private $error = null;
+    public function SetError($error) { $this->error = $error; }
+    public function GetError() { return $this->error; }
+}
+
 class YouTubeSyncService extends \YtgServiceBase {
     public function postRunInitialSync($req, $res) {
         return $this->runSync($this->body($req), $res, "INITIAL_SYNC");
@@ -12,6 +18,83 @@ class YouTubeSyncService extends \YtgServiceBase {
 
     public function postRunDailySync($req, $res) {
         return $this->runSync($this->body($req), $res, "DAILY_SYNC");
+    }
+
+    public function runDailyCron() {
+        $running = $this->first("ytg_cron_runs", array(
+            array("column" => "status", "operator" => "=", "value" => "Running")
+        ), array(array("column" => "cronRunId", "direction" => "DESC")));
+        if ($running !== null && isset($running->startedAt) && strtotime((string)$running->startedAt) > time() - 3600) {
+            return (object)array("success" => false, "status" => "Running");
+        }
+        if ($running !== null) {
+            $running->status = "Failed";
+            $running->completedAt = $this->now();
+            \SOSSData::Update("ytg_cron_runs", $running);
+        }
+
+        $cron = (object)array(
+            "runDate" => $this->today(),
+            "status" => "Running",
+            "totalChannels" => 0,
+            "completedChannels" => 0,
+            "skippedChannels" => 0,
+            "pendingChannels" => 0,
+            "failedChannels" => 0,
+            "startedAt" => $this->now(),
+            "completedAt" => null
+        );
+        $insert = \SOSSData::Insert("ytg_cron_runs", $cron);
+        if (!$insert->success) {
+            return (object)array("success" => false, "status" => "Failed");
+        }
+        $cron->cronRunId = $this->generatedId($insert);
+
+        try {
+            $channels = $this->query("ytg_channels", array(
+                array("column" => "status", "operator" => "=", "value" => "Connected")
+            ), array(array("column" => "channelId", "direction" => "ASC")), 10000, 0);
+            if (!$channels->success) {
+                throw new \RuntimeException("Connected channels could not be loaded.");
+            }
+            $cron->totalChannels = count($channels->result);
+            foreach ($channels->result as $channel) {
+                $idempotencyKey = "DAILY_SYNC:" . $channel->channelId . ":" . $this->today();
+                $completed = $this->first("ytg_sync_jobs", array(
+                    array("column" => "idempotencyKey", "operator" => "=", "value" => $idempotencyKey),
+                    array("column" => "status", "operator" => "=", "value" => "Completed")
+                ), array(array("column" => "jobId", "direction" => "DESC")));
+                if ($completed !== null && isset($channel->lastAnalyticsSyncAt) && $this->hasUsableDate($channel->lastAnalyticsSyncAt)) {
+                    $cron->skippedChannels++;
+                    continue;
+                }
+
+                try {
+                    $response = new YouTubeCronResponse();
+                    $result = $this->runSync((object)array("channelId" => $channel->channelId), $response, "DAILY_SYNC", $channel);
+                    if ($result !== null && isset($result->job->status) && $result->job->status === "Completed") {
+                        $cron->completedChannels++;
+                    } elseif ($result !== null && isset($result->job->status) && $result->job->status === "Partial") {
+                        $cron->pendingChannels++;
+                    } else {
+                        $cron->failedChannels++;
+                    }
+                } catch (\Throwable $ignored) {
+                    $cron->failedChannels++;
+                }
+            }
+
+            $cron->status = $cron->failedChannels > 0 ? "Failed" : ($cron->pendingChannels > 0 ? "Partial" : "Completed");
+            $cron->completedAt = $this->now();
+            \SOSSData::Update("ytg_cron_runs", $cron);
+            return (object)array("success" => $cron->status === "Completed", "status" => $cron->status);
+        } catch (\Throwable $ignored) {
+            $cron->status = "Failed";
+            $cron->failedChannels++;
+            $cron->completedAt = $this->now();
+            \SOSSData::Update("ytg_cron_runs", $cron);
+            return (object)array("success" => false, "status" => "Failed");
+        }
     }
 
     public function postSyncVideo($req, $res) {
@@ -70,10 +153,13 @@ class YouTubeSyncService extends \YtgServiceBase {
         }
     }
 
-    private function runSync($body, $res, $type) {
-        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager"));
+    private function runSync($body, $res, $type, $trustedChannel = null) {
+        $channel = $trustedChannel;
         if ($channel === null) {
-            return null;
+            $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager"));
+            if ($channel === null) {
+                return null;
+            }
         }
         $grant = $this->credentialGrant($channel->channelId);
         if ($grant === null || !isset($grant->credentialRef)) {

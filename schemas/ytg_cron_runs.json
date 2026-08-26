@@ -1,0 +1,14 @@
+{
+  "fields": [
+    {"fieldName":"cronRunId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"runDate","dataType":"java.util.Date"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"totalChannels","dataType":"int"},
+    {"fieldName":"completedChannels","dataType":"int"},
+    {"fieldName":"skippedChannels","dataType":"int"},
+    {"fieldName":"pendingChannels","dataType":"int"},
+    {"fieldName":"failedChannels","dataType":"int"},
+    {"fieldName":"startedAt","dataType":"java.util.Date"},
+    {"fieldName":"completedAt","dataType":"java.util.Date"}
+  ]
+}

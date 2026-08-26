@@ -33,6 +33,14 @@
         </form>
     </div>
 
+    <div class="ytg-panel ytg-configuration-panel" v-if="configuration && configuration.canManageConfiguration && configuration.cronUrl">
+        <div class="ytg-panel-head"><div><h2>Daily analysis cron</h2><p class="ytg-muted">Add this URL to cPanel and run it hourly. Channels with a completed daily synchronization are skipped until the next date.</p></div><span class="ytg-badge good">Token protected</span></div>
+        <label class="ytg-field">Cron URL
+            <div class="ytg-input-row"><input type="text" v-bind:value="configuration.cronUrl" readonly><button type="button" class="ytg-button secondary" v-on:click="copyCronUrl">Copy URL</button></div>
+        </label>
+        <small class="ytg-muted">A successful fully completed run returns only <span class="ytg-code">done</span>. Errors return an empty response and remain recorded server-side.</small>
+    </div>
+
     <div class="ytg-alert warning" v-if="configuration && !configuration.canManageConfiguration && !configuration.ready">A system administrator must complete the Google API configuration before channels can be connected.</div>
     <div class="ytg-grid" v-if="configuration">
         <div class="ytg-panel ytg-col-6"><h2>Server readiness</h2><div class="ytg-check" v-for="(ready,name) in configuration.checks"><span>{{name}}</span><strong v-bind:class="ready ? 'ok' : 'missing'">{{ready ? "Configured" : "Missing"}}</strong></div><p class="ytg-muted">Client secret and encryption key values remain server-side.</p></div>

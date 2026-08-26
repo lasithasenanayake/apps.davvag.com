@@ -52,6 +52,25 @@ class YtgConfig {
     public static function derivedMetricsEnabled() { return self::boolean("YTG_DERIVED_METRICS_ENABLED", false); }
     public static function dailyQuotaLimit() { return self::integer("YTG_DAILY_QUOTA_LIMIT", 9500, 100, 10000); }
 
+    public static function cronToken() {
+        $key = self::encryptionKey();
+        return strlen($key) >= 32 ? hash_hmac("sha256", "youtube-growth-agent:daily-cron:v1", $key) : "";
+    }
+
+    public static function dailyCronUrl() {
+        $token = self::cronToken();
+        if ($token === "") {
+            return "";
+        }
+        $serviceUrl = self::currentServiceRedirectUri();
+        $marker = "/components/";
+        $position = strpos($serviceUrl, $marker);
+        if ($position === false) {
+            return "";
+        }
+        return rtrim(substr($serviceUrl, 0, $position), "/") . "/youtube-growth-agent-cron.php?token=" . rawurlencode($token);
+    }
+
     public static function storageDirectory() {
         $root = defined("TENANT_RESOURCE_LOCATION") ? TENANT_RESOURCE_LOCATION : dirname(__DIR__, 2);
         return rtrim($root, "\\/") . "/data/youtube-growth-agent";
@@ -184,6 +203,7 @@ class YtgConfig {
                 $ready = false;
             }
         }
+        $canManageConfiguration = defined("GROUPID") && strtolower((string)GROUPID) === "sysadmin";
         return (object)array(
             "ready" => $ready,
             "checks" => (object)$checks,
@@ -192,7 +212,8 @@ class YtgConfig {
             "derivedMetricsEnabled" => self::derivedMetricsEnabled(),
             "privacyPolicyUrl" => self::privacyUrl(),
             "termsUrl" => self::termsUrl(),
-            "canManageConfiguration" => defined("GROUPID") && strtolower((string)GROUPID) === "sysadmin",
+            "canManageConfiguration" => $canManageConfiguration,
+            "cronUrl" => $canManageConfiguration ? self::dailyCronUrl() : "",
             "configurationLocation" => "data/youtube-growth-agent/configuration.php",
             "values" => (object)array(
                 "googleClientId" => self::clientId(),
