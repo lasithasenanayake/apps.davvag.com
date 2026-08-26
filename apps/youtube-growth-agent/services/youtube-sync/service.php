@@ -46,10 +46,25 @@ class YouTubeSyncService extends \YtgServiceBase {
             if ($video === null) {
                 return $this->fail($res, "Video could not be stored.");
             }
-            $this->syncVideoAnalytics($google, $grant->credentialRef, $channel->channelId, $youtubeVideoId, 28);
+            $analytics = $this->syncVideoAnalytics($google, $grant->credentialRef, $channel->channelId, $youtubeVideoId, 28);
             $this->generateRecommendations($channel->channelId);
-            $this->audit("VIDEO_SYNC", $channel->channelId, "youtube-video:" . $youtubeVideoId, null, array("source" => "YOUTUBE_DATA"));
-            return (object)array("video" => $video, "quota" => $quota, "syncedAt" => $this->now());
+            $message = "Video and Analytics metrics refreshed.";
+            if (!$analytics->success) {
+                $message = "Video details refreshed, but YouTube Analytics could not be refreshed: " . $analytics->error;
+            } elseif (!$analytics->stored) {
+                $message = "Video details refreshed. YouTube Analytics has no activity available for this video in the selected date range yet.";
+            }
+            $this->audit("VIDEO_SYNC", $channel->channelId, "youtube-video:" . $youtubeVideoId, null, array(
+                "metadataSource" => "YOUTUBE_DATA",
+                "analytics" => $analytics
+            ));
+            return (object)array(
+                "video" => $video,
+                "analytics" => $analytics,
+                "quota" => $quota,
+                "syncedAt" => $this->now(),
+                "message" => $message
+            );
         } catch (\Throwable $error) {
             return $this->fail($res, "Video sync failed: " . $error->getMessage());
         }
@@ -386,13 +401,22 @@ class YouTubeSyncService extends \YtgServiceBase {
         }
 
         $videoParams = $params;
+        $videoParams["metrics"] = "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage";
         $videoParams["dimensions"] = "video";
         $videoParams["sort"] = "-views";
-        $videoParams["maxResults"] = 50;
-        $videoResponse = $google->analytics($credentialRef, $videoParams);
+        $videoParams["maxResults"] = 200;
+        $videoParams["startIndex"] = 1;
         $videoCount = 0;
-        if ($videoResponse->success) {
-            foreach ($this->analyticsRows($videoResponse->data) as $row) {
+        $videoError = "";
+        $videoPages = 0;
+        do {
+            $videoResponse = $google->analytics($credentialRef, $videoParams);
+            if (!$videoResponse->success) {
+                $videoError = $videoResponse->error;
+                break;
+            }
+            $videoRows = $this->analyticsRows($videoResponse->data);
+            foreach ($videoRows as $row) {
                 if (!isset($row["video"]) || $this->youtubeId($row["video"]) === "") {
                     continue;
                 }
@@ -418,8 +442,24 @@ class YouTubeSyncService extends \YtgServiceBase {
                     $videoCount++;
                 }
             }
+            $videoPages++;
+            if (count($videoRows) < intval($videoParams["maxResults"])) {
+                break;
+            }
+            $videoParams["startIndex"] += count($videoRows);
+        } while ($videoPages < 25);
+        if ($videoError === "" && $videoPages === 25 && count($videoRows) === intval($videoParams["maxResults"])) {
+            $videoError = "The per-video Analytics import reached its 5,000-row safety limit.";
         }
-        return (object)array("success" => true, "startDate" => $start, "endDate" => $end, "dailyRows" => $dailyCount, "videoRows" => $videoCount, "videoError" => $videoResponse->success ? "" : $videoResponse->error);
+        return (object)array(
+            "success" => true,
+            "startDate" => $start,
+            "endDate" => $end,
+            "dailyRows" => $dailyCount,
+            "videoRows" => $videoCount,
+            "videoPages" => $videoPages,
+            "videoError" => $videoError
+        );
     }
 
     private function syncVideoAnalytics($google, $credentialRef, $channelId, $videoId, $days) {
@@ -429,19 +469,33 @@ class YouTubeSyncService extends \YtgServiceBase {
             "ids" => "channel==MINE",
             "startDate" => $start,
             "endDate" => $end,
-            "metrics" => "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares",
+            "metrics" => "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage",
             "filters" => "video==" . $videoId,
             "maxResults" => 1
         ));
         if (!$response->success) {
-            return false;
+            return (object)array(
+                "success" => false,
+                "stored" => false,
+                "rows" => 0,
+                "startDate" => $start,
+                "endDate" => $end,
+                "error" => $response->error !== "" ? $response->error : "The Analytics report request failed."
+            );
         }
         $rows = $this->analyticsRows($response->data);
         if (!count($rows)) {
-            return true;
+            return (object)array(
+                "success" => true,
+                "stored" => false,
+                "rows" => 0,
+                "startDate" => $start,
+                "endDate" => $end,
+                "error" => ""
+            );
         }
         $row = $rows[0];
-        $this->upsert("ytg_video_statistics", array(
+        $save = $this->upsert("ytg_video_statistics", array(
             array("column" => "channelId", "operator" => "=", "value" => $channelId),
             array("column" => "videoId", "operator" => "=", "value" => $videoId),
             array("column" => "capturedDate", "operator" => "=", "value" => $this->today()),
@@ -452,8 +506,6 @@ class YouTubeSyncService extends \YtgServiceBase {
             "capturedDate" => $this->today(),
             "capturedAt" => $this->now(),
             "views" => $this->metric($row, "views"),
-            "likes" => $this->metric($row, "likes"),
-            "comments" => $this->metric($row, "comments"),
             "watchMinutes" => $this->metric($row, "estimatedMinutesWatched"),
             "avgViewDuration" => $this->metric($row, "averageViewDuration"),
             "avgViewPercentage" => $this->metric($row, "averageViewPercentage"),
@@ -461,7 +513,24 @@ class YouTubeSyncService extends \YtgServiceBase {
             "analyticsEndDate" => $end,
             "source" => "YOUTUBE_ANALYTICS"
         ));
-        return true;
+        if (!$save->success) {
+            return (object)array(
+                "success" => false,
+                "stored" => false,
+                "rows" => 1,
+                "startDate" => $start,
+                "endDate" => $end,
+                "error" => "The Analytics report was returned but could not be stored."
+            );
+        }
+        return (object)array(
+            "success" => true,
+            "stored" => true,
+            "rows" => 1,
+            "startDate" => $start,
+            "endDate" => $end,
+            "error" => ""
+        );
     }
 
     private function syncReporting($google, $credentialRef, $channelId, $importReports) {
