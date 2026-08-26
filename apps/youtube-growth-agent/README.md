@@ -98,9 +98,9 @@ Only opaque `credentialRef` values are stored in `ytg_oauth_grants`.
 
 ## Hourly cron
 
-System administrators can copy the token-protected daily-analysis URL from **Settings & Privacy**. Configure cPanel to request that URL hourly. The endpoint processes connected channels whose daily sync is not yet complete and skips channels with a completed `DAILY_SYNC` job for the current date.
+System administrators can copy the daily-analysis service URL from **Settings & Privacy**. Configure cPanel to request that URL hourly and grant its `RunDailyCron` operation through the normal service permissions. The endpoint processes connected channels whose daily sync is not yet complete and skips channels with a completed `DAILY_SYNC` job for the current date.
 
-Successful fully completed invocations return only `done`. Invalid tokens and incomplete or failed invocations return an empty error response. Aggregate invocations are retained in `ytg_cron_runs`; per-channel results remain in `ytg_sync_jobs`.
+Successful fully completed invocations return only `done`. Incomplete or failed invocations return an empty error response. Aggregate invocations are retained in `ytg_cron_runs`; per-channel results remain in `ytg_sync_jobs`.
 
 ## Deliberately deferred
 

@@ -12,6 +12,29 @@ class YouTubeCronResponse {
 }
 
 class YouTubeSyncService extends \YtgServiceBase {
+    public function getRunDailyCron($req, $res) {
+        @ini_set("display_errors", "0");
+        @ini_set("display_startup_errors", "0");
+        ignore_user_abort(true);
+        @set_time_limit(0);
+
+        try {
+            $result = $this->runDailyCron();
+            if (!is_object($result) || !isset($result->success) || !$result->success) {
+                http_response_code(500);
+                exit;
+            }
+            http_response_code(200);
+            header("Content-Type: text/plain; charset=utf-8");
+            header("Cache-Control: no-store");
+            echo "done";
+            exit;
+        } catch (\Throwable $ignored) {
+            http_response_code(500);
+            exit;
+        }
+    }
+
     public function postRunInitialSync($req, $res) {
         return $this->runSync($this->body($req), $res, "INITIAL_SYNC");
     }

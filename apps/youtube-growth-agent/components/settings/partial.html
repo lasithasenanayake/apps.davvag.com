@@ -34,7 +34,7 @@
     </div>
 
     <div class="ytg-panel ytg-configuration-panel" v-if="configuration && configuration.canManageConfiguration && configuration.cronUrl">
-        <div class="ytg-panel-head"><div><h2>Daily analysis cron</h2><p class="ytg-muted">Add this URL to cPanel and run it hourly. Channels with a completed daily synchronization are skipped until the next date.</p></div><span class="ytg-badge good">Token protected</span></div>
+        <div class="ytg-panel-head"><div><h2>Daily analysis cron</h2><p class="ytg-muted">Add this service URL to cPanel and run it hourly. Channels with a completed daily synchronization are skipped until the next date.</p></div><span class="ytg-badge good">Service permission</span></div>
         <label class="ytg-field">Cron URL
             <div class="ytg-input-row"><input type="text" v-bind:value="configuration.cronUrl" readonly><button type="button" class="ytg-button secondary" v-on:click="copyCronUrl">Copy URL</button></div>
         </label>

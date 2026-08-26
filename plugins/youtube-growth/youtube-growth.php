@@ -52,23 +52,13 @@ class YtgConfig {
     public static function derivedMetricsEnabled() { return self::boolean("YTG_DERIVED_METRICS_ENABLED", false); }
     public static function dailyQuotaLimit() { return self::integer("YTG_DAILY_QUOTA_LIMIT", 9500, 100, 10000); }
 
-    public static function cronToken() {
-        $key = self::encryptionKey();
-        return strlen($key) >= 32 ? hash_hmac("sha256", "youtube-growth-agent:daily-cron:v1", $key) : "";
-    }
-
     public static function dailyCronUrl() {
-        $token = self::cronToken();
-        if ($token === "") {
-            return "";
-        }
         $serviceUrl = self::currentServiceRedirectUri();
-        $marker = "/components/";
-        $position = strpos($serviceUrl, $marker);
-        if ($position === false) {
+        $marker = "/youtube-auth/service/OAuthCallback";
+        if (substr($serviceUrl, -strlen($marker)) !== $marker) {
             return "";
         }
-        return rtrim(substr($serviceUrl, 0, $position), "/") . "/youtube-growth-agent-cron.php?token=" . rawurlencode($token);
+        return substr($serviceUrl, 0, -strlen($marker)) . "/youtube-sync/service/RunDailyCron";
     }
 
     public static function storageDirectory() {

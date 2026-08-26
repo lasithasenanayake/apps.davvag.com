@@ -2,7 +2,7 @@
   "name": "youtube-sync",
   "description": "Quota-aware, resumable YouTube catalogue and analytics sync",
   "author": "DAVVAG",
-  "version": "0.2",
+  "version": "0.3",
   "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
   "dependency": {"plugins": [
     {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"},
@@ -14,6 +14,7 @@
     "methods": {
       "RunInitialSync": {"method": "POST"},
       "RunDailySync": {"method": "POST"},
+      "RunDailyCron": {"method": "GET"},
       "SyncVideo": {"method": "POST"}
     }
   },

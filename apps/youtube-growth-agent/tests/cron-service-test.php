@@ -1,7 +1,6 @@
 <?php
 define("TENANT_RESOURCE_LOCATION", __DIR__ . "/fixtures/no-tenant");
 define("PLUGIN_PATH_LOCAL", dirname(__DIR__, 3) . "/plugins");
-define("YTG_ENCRYPTION_KEY", "test-cron-encryption-key-with-at-least-32-characters");
 define("GROUPID", "sysadmin");
 
 $_SERVER["HTTPS"] = "on";
@@ -49,9 +48,7 @@ function expectCron($condition, $message) {
     }
 }
 
-$expectedToken = hash_hmac("sha256", "youtube-growth-agent:daily-cron:v1", YTG_ENCRYPTION_KEY);
-expectCron(\YtgConfig::cronToken() === $expectedToken, "the cron token should be a deterministic HMAC of the protected encryption key");
-expectCron(\YtgConfig::dailyCronUrl() === "https://www.example.com/youtube-growth-agent-cron.php?token=" . $expectedToken, "the Settings cron URL should target the public root endpoint");
+expectCron(\YtgConfig::dailyCronUrl() === "https://www.example.com/components/youtube-growth-agent/youtube-sync/service/RunDailyCron", "the Settings cron URL should target the application service method");
 
 $service = new \youtube_growth_agent\YouTubeSyncService();
 $result = $service->runDailyCron();
@@ -60,10 +57,12 @@ expectCron($result->success && $result->status === "Completed", "an all-skipped 
 expectCron($record->totalChannels === 1 && $record->skippedChannels === 1, "today's completed channel should be recorded as skipped");
 expectCron($record->completedChannels === 0 && $record->pendingChannels === 0 && $record->failedChannels === 0, "a skipped channel must not run analysis again");
 
-$endpoint = file_get_contents(dirname(__DIR__, 4) . "/davvag-core/youtube-growth-agent-cron.php");
-expectCron(strpos($endpoint, "hash_equals") !== false, "the public endpoint must compare its token in constant time");
-expectCron(strpos($endpoint, "ytgCronFinish(200, \"done\")") !== false, "the only successful public response should be done");
-expectCron(strpos($endpoint, "ytgCronFinish(500)") !== false, "internal failures should return an empty error response");
+$serviceSource = file_get_contents(dirname(__DIR__) . "/services/youtube-sync/service.php");
+$descriptor = json_decode(file_get_contents(dirname(__DIR__) . "/services/youtube-sync/component.json"));
+expectCron(isset($descriptor->serviceHandler->methods->RunDailyCron) && $descriptor->serviceHandler->methods->RunDailyCron->method === "GET", "the daily cron must be registered as a GET service method");
+expectCron(strpos($serviceSource, "function getRunDailyCron") !== false, "the cron endpoint must be implemented in the youtube-sync service");
+expectCron(strpos($serviceSource, "echo \"done\"") !== false, "the only successful service response should be done");
+expectCron(strpos($serviceSource, "http_response_code(500)") !== false, "internal failures should return an empty error response");
 
 echo "CRON_SERVICE_OK" . PHP_EOL;
 ?>
