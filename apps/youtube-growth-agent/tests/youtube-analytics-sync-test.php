@@ -108,5 +108,13 @@ $failure = $singleMethod->invoke($service, new FakeAnalyticsClient($failureRespo
 expectAnalytics(!$failure->success && !$failure->stored, "an Analytics API failure must not be reported as a successful refresh");
 expectAnalytics($failure->error === "Analytics API is not enabled.", "the actionable API error should be returned to the inspector");
 
+$bulkFailure = $bulkMethod->invoke($service, new FakeAnalyticsClient($failureResponse), "credential", "ytg_test_channel_123", 28);
+expectAnalytics(!$bulkFailure->success && $bulkFailure->error === "Analytics API is not enabled.", "a dashboard Analytics failure must remain retryable and expose its API error");
+
+$dateMethod = $reflection->getMethod("hasUsableDate");
+$dateMethod->setAccessible(true);
+expectAnalytics(!$dateMethod->invoke($service, "1970-01-01 00:00:00"), "the datastore epoch default must not count as a completed Analytics sync");
+expectAnalytics($dateMethod->invoke($service, "2026-08-26 14:33:59"), "a real Analytics sync timestamp should satisfy idempotency");
+
 echo "YOUTUBE_ANALYTICS_SYNC_OK" . PHP_EOL;
 ?>

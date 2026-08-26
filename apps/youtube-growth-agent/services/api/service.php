@@ -131,8 +131,8 @@ class ApiService extends \YtgServiceBase {
             return $this->fail($res, "Dashboard range must be 7, 28, 90, or 365 days.");
         }
 
-        $end = date("Y-m-d");
-        $start = date("Y-m-d", strtotime("-" . ($days - 1) . " days"));
+        $end = date("Y-m-d", strtotime("yesterday"));
+        $start = date("Y-m-d", strtotime($end . " -" . ($days - 1) . " days"));
         $analytics = $this->query("ytg_analytics_daily", array(
             array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
             array("column" => "videoId", "operator" => "=", "value" => ""),
@@ -190,12 +190,31 @@ class ApiService extends \YtgServiceBase {
             array("column" => "status", "operator" => "IN", "value" => array("New", "Accepted", "In Progress", "Needs Data"))
         ), array(array("column" => "recommendationId", "direction" => "DESC")), 3, 0);
 
+        $lastSyncJob = $this->first("ytg_sync_jobs", array(
+            array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
+            array("column" => "type", "operator" => "IN", "value" => array("INITIAL_SYNC", "DAILY_SYNC"))
+        ), array(array("column" => "jobId", "direction" => "DESC")));
+        $metadataFreshness = isset($channel->lastMetadataSyncAt) ? $this->optionalDate($channel->lastMetadataSyncAt) : null;
+        $analyticsFreshness = isset($channel->lastAnalyticsSyncAt) ? $this->optionalDate($channel->lastAnalyticsSyncAt) : null;
+        $reportingFreshness = isset($channel->lastReportingSyncAt) ? $this->optionalDate($channel->lastReportingSyncAt) : null;
+        $syncError = $lastSyncJob !== null && isset($lastSyncJob->error) ? trim((string)$lastSyncJob->error) : "";
+        if ($syncError === "" && $lastSyncJob !== null && isset($lastSyncJob->status) && $lastSyncJob->status === "Completed" && $analyticsFreshness === null) {
+            $syncError = "The previous synchronization completed metadata only. Run initial sync again to retry YouTube Analytics; any Google API or authorization error will now be shown here.";
+        }
+        $syncState = (object)array(
+            "status" => $lastSyncJob !== null && isset($lastSyncJob->status) ? $lastSyncJob->status : "Not Run",
+            "error" => $syncError,
+            "lastAttemptAt" => $lastSyncJob !== null && isset($lastSyncJob->completedAt) ? $this->optionalDate($lastSyncJob->completedAt) : null
+        );
+
         return (object)array(
             "channel" => $this->decorateChannel($channel, isset($channel->_accessRole) ? $channel->_accessRole : "Viewer"),
             "range" => (object)array("days" => $days, "startDate" => $start, "endDate" => $end),
             "metrics" => $summary,
             "reach" => $reachSummary,
             "daily" => $daily,
+            "hasAnalyticsData" => count($daily) > 0,
+            "sync" => $syncState,
             "topVideos" => $this->topVideos($channel->channelId, 5),
             "recommendations" => $recommendations->success ? $this->normalizeRecommendations($recommendations->result) : array(),
             "labels" => (object)array(
@@ -204,9 +223,9 @@ class ApiService extends \YtgServiceBase {
                 "recommendations" => "Product recommendation; expected outcomes are hypotheses"
             ),
             "freshness" => (object)array(
-                "metadata" => isset($channel->lastMetadataSyncAt) ? $channel->lastMetadataSyncAt : null,
-                "analytics" => isset($channel->lastAnalyticsSyncAt) ? $channel->lastAnalyticsSyncAt : null,
-                "reporting" => isset($channel->lastReportingSyncAt) ? $channel->lastReportingSyncAt : null
+                "metadata" => $metadataFreshness,
+                "analytics" => $analyticsFreshness,
+                "reporting" => $reportingFreshness
             )
         );
     }
@@ -458,6 +477,14 @@ class ApiService extends \YtgServiceBase {
         }
         $scheme = strtolower((string)parse_url($value, PHP_URL_SCHEME));
         return in_array($scheme, array("http", "https"), true);
+    }
+
+    private function optionalDate($value) {
+        if ($value === null || trim((string)$value) === "") {
+            return null;
+        }
+        $timestamp = strtotime((string)$value);
+        return $timestamp !== false && $timestamp > 86400 ? $value : null;
     }
 
     private function hasStoredOAuthGrants() {

@@ -83,7 +83,8 @@ class YouTubeSyncService extends \YtgServiceBase {
         $force = isset($body->force) && $body->force === true;
         $idempotencyKey = $type . ":" . $channel->channelId . ":" . ($type === "DAILY_SYNC" ? $this->today() : "catalogue");
         $prior = $this->first("ytg_sync_jobs", array(array("column" => "idempotencyKey", "operator" => "=", "value" => $idempotencyKey)), array(array("column" => "jobId", "direction" => "DESC")));
-        if (!$force && $prior !== null && isset($prior->status) && $prior->status === "Completed") {
+        $analyticsPreviouslySynced = isset($channel->lastAnalyticsSyncAt) && $this->hasUsableDate($channel->lastAnalyticsSyncAt);
+        if (!$force && $prior !== null && isset($prior->status) && $prior->status === "Completed" && $analyticsPreviouslySynced) {
             return (object)array("job" => $prior, "idempotent" => true, "message" => "This synchronization window already completed.");
         }
         if (!$force && $prior !== null && isset($prior->status) && $prior->status === "Running" && isset($prior->startedAt) && strtotime($prior->startedAt) > time() - 3600) {
@@ -131,6 +132,16 @@ class YouTubeSyncService extends \YtgServiceBase {
             $reporting = $this->syncReporting($google, $grant->credentialRef, $channel->channelId, $type === "DAILY_SYNC");
             $recommendationCount = $this->generateRecommendations($channel->channelId);
 
+            $warnings = array();
+            if (!$analytics->success) {
+                $warnings[] = "YouTube Analytics: " . ($analytics->error !== "" ? $analytics->error : "The report request failed.");
+            } elseif (isset($analytics->videoError) && $analytics->videoError !== "") {
+                $warnings[] = "Per-video Analytics: " . $analytics->videoError;
+            }
+            if (!$reporting->success) {
+                $warnings[] = "YouTube Reporting: " . ($reporting->error !== "" ? $reporting->error : "The reporting request failed.");
+            }
+
             $channel->lastMetadataSyncAt = $this->now();
             if ($analytics->success) {
                 $channel->lastAnalyticsSyncAt = $this->now();
@@ -140,7 +151,7 @@ class YouTubeSyncService extends \YtgServiceBase {
             }
             $channel->lastAuthorizationVerifiedAt = $this->now();
             $channel->lastAnalysisAt = $this->now();
-            $channel->connectionHealth = "Connected";
+            $channel->connectionHealth = count($warnings) ? "Sync Warning" : "Connected";
             $channel->status = "Connected";
             $channel->updatedAt = $this->now();
             unset($channel->_accessRole);
@@ -149,8 +160,9 @@ class YouTubeSyncService extends \YtgServiceBase {
             $job->cursor = $catalogue->nextPageToken;
             $job->processedItems = intval($catalogue->processedItems);
             $job->quotaUsed = $this->quotaUsedToday($channel->channelId);
-            $job->status = $catalogue->nextPageToken !== "" ? "Partial" : "Completed";
+            $job->status = $catalogue->nextPageToken !== "" || count($warnings) ? "Partial" : "Completed";
             $job->completedAt = $this->now();
+            $job->error = count($warnings) ? substr(implode(" ", $warnings), 0, 9000) : "";
             $job->details = (object)array(
                 "catalogue" => $catalogue,
                 "analytics" => $analytics,
@@ -159,12 +171,23 @@ class YouTubeSyncService extends \YtgServiceBase {
             );
             \SOSSData::Update("ytg_sync_jobs", $job);
             $this->queueSchedule($channel->channelId, "RunDailySync", date("Y-m-d H:i:s", strtotime("tomorrow 02:00")));
-            $this->audit("SYNC_COMPLETED", $channel->channelId, "sync-job:" . $job->jobId, null, array("status" => $job->status, "processedItems" => $job->processedItems));
+            $this->audit("SYNC_COMPLETED", $channel->channelId, "sync-job:" . $job->jobId, null, array(
+                "status" => $job->status,
+                "processedItems" => $job->processedItems,
+                "warnings" => $warnings
+            ));
+            $message = "YouTube synchronization completed.";
+            if (count($warnings)) {
+                $message = "Metadata synchronized, but some data sources need attention. " . implode(" ", $warnings);
+            } elseif ($catalogue->nextPageToken !== "") {
+                $message = "The catalogue page limit was reached. Run sync again to resume from the saved cursor.";
+            }
             return (object)array(
                 "job" => $job,
                 "idempotent" => false,
                 "channel" => $this->safeChannel($channel),
-                "message" => $job->status === "Partial" ? "The catalogue page limit was reached. Run sync again to resume from the saved cursor." : "YouTube synchronization completed."
+                "warnings" => $warnings,
+                "message" => $message
             );
         } catch (\Throwable $error) {
             $job->status = "Failed";
@@ -792,6 +815,14 @@ class YouTubeSyncService extends \YtgServiceBase {
             }
         }
         return $out;
+    }
+
+    private function hasUsableDate($value) {
+        if ($value === null || trim((string)$value) === "") {
+            return false;
+        }
+        $timestamp = strtotime((string)$value);
+        return $timestamp !== false && $timestamp > 86400;
     }
 
     private function metric($row, $name) {
