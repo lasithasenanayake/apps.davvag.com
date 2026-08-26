@@ -1,1 +1,1 @@
-{"name":"command-centre","description":"Official channel metrics and prioritized actions","author":"DAVVAG","version":"0.3","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}
+{"name":"command-centre","description":"Official channel metrics and prioritized actions","author":"DAVVAG","version":"0.4","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

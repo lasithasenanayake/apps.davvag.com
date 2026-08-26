@@ -30,6 +30,10 @@ $script = file_get_contents(dirname(__DIR__) . "/components/command-centre/scrip
 expectDashboard(strpos($partial, "dashboard.sync&&dashboard.sync.error") !== false, "the last sync error should remain visible on the dashboard");
 expectDashboard(strpos($script, "formatAnalyticsNumber") !== false, "missing Analytics rows should use explicit unavailable formatting");
 expectDashboard(strpos($script, "load(true)") !== false, "sync results should remain visible while dashboard data reloads");
+expectDashboard(strpos($partial, "Enable Analytics API") === false, "API action labels should be produced by the allowlisted parser rather than embedded error HTML");
+expectDashboard(strpos($partial, "rel=\"noopener noreferrer\"") !== false, "external API actions should isolate the new browser tab");
+expectDashboard(strpos($script, "youtubeanalytics.googleapis.com/overview?project=") !== false, "Analytics errors should expose the allowlisted Google enable action");
+expectDashboard(strpos($script, "youtubereporting.googleapis.com/overview?project=") !== false, "Reporting errors should expose the allowlisted Google enable action");
 
 echo "DASHBOARD_STATE_OK" . PHP_EOL;
 ?>
