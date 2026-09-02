@@ -41,27 +41,33 @@ class ProductService {
 
     public function postProductSearch($req,$res){
         $product=$req->Body(true);
-        $search = "";
-        
-        if(isset($product->column)){
-            $search  =$product->column."_".$product->value;
+        if(isset($product->column) && isset($product->value)){
+            $search = $product->column."_".$product->value;
+        }else{
+            $res->SetError("Product search requires a column and value.");
+            return array();
         }
         $result= CacheData::getObjects(md5($search),"product_search_1");
         if(!isset($result)){
-            $mainObj = new stdClass();
-            $mainObj->parameters = new stdClass();
-            $mainObj->parameters->column = $product->column;
-            $mainObj->parameters->value = $product->value;
-            //$mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
-            $result =SOSSData::ExecuteRaw("product_search_1",$mainObj);
-            //$result = SOSSData::Query ("profile",urlencode($search),$mainObj);
+            $searchQuery = array(
+                "conditions" => array(
+                    array(
+                        "column" => $product->column,
+                        "operator" => "LIKE",
+                        "value" => "%".$product->value."%"
+                    )
+                ),
+                "pageSize" => 1000,
+                "pageFrom" => 0
+            );
+            $result = SOSSData::Query("products",$searchQuery);
             if($result->success){
                 if(isset($result->result)){
                     CacheData::setObjects(md5($search),"product_search_1",$result->result);
                 }
-                return $result->result;
+                return isset($result->result) ? $result->result : array();
             }
-            $res->SetError(isset($result->message) ? $result->message : "Product search failed.");
+            $res->SetError("Unable to search products.");
             return array();
         }else{
             return $result;

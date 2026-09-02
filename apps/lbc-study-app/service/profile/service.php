@@ -7,25 +7,34 @@ class ProfileService{
     
 
     public function getSearchV1($req,$res){
-        $s  =null;
-        if(isset($req->Query()->column)){
-            $search  =$req->Query()->column."_".$req->Query()->value;
+        $query = $req->Query();
+        if(isset($query->column) && isset($query->value)){
+            $search = $query->column."_".$query->value;
+        }else{
+            return array();
         }
         $result= CacheData::getObjects(md5($search),"profiles_search_1");
         if(!isset($result)){
-            $mainObj = new stdClass();
-            $mainObj->parameters = new stdClass();
-            $mainObj->parameters->column = $req->Query()->column;
-            $mainObj->parameters->value = $req->Query()->value;
-            //$mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
-            $result =SOSSData::ExecuteRaw("profiles_search_1",$mainObj);
-            //$result = SOSSData::Query ("profile",urlencode($search),$mainObj);
+            $searchQuery = array(
+                "conditions" => array(
+                    array(
+                        "column" => $query->column,
+                        "operator" => "LIKE",
+                        "value" => "%".$query->value."%"
+                    )
+                ),
+                "pageSize" => 1000,
+                "pageFrom" => 0
+            );
+            $result = SOSSData::Query("profile",$searchQuery);
             if($result->success){
                 if(isset($result->result)){
                     CacheData::setObjects(md5($search),"profiles_search_1",$result->result);
                 }
+                return isset($result->result) ? $result->result : array();
             }
-            return $result->result;
+            $res->SetError("Unable to search profiles.");
+            return array();
         }else{
             return $result;
         }
