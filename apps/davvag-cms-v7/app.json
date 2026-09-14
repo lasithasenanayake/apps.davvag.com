@@ -84,7 +84,7 @@
     "description": {
         "title": "Davvag CMS v7",
         "author": "Davvag",
-        "version": "1.0",
+        "version": "1.2",
         "icon": "davvag-cms-v7-icon.png"
     },
     "tags": [
@@ -129,11 +129,9 @@
     },
     "dependencies": {
         "apps": [
-
             "davvag-tools"
         ],
         "schemas": [
-
             "davvag_launchers_query",
             "davvag_launchers_subquery",
             "profile_notify_u"

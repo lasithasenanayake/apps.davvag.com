@@ -1,8 +1,8 @@
 
 WEBDOCK.component().register(function(exports, scope){
     var $progress,$progressBar,$closebutton,$modal=[];
-    var applist=[];
-    var AppIndex=0;
+    var embedId=0;
+    var descriptorRequests=Object.create(null);
     var AppInstance=[];
     exports.initialize = function(){
         
@@ -60,19 +60,19 @@ WEBDOCK.component().register(function(exports, scope){
         }
     }
 
-    function RenderHTML(element,Completed,Error,appComplete,_data){
-        AppIndex=0;
-        applist=[];
+    function RenderHTML(element,Completed,Error,appComplete,_data,options){
+        var AppIndex=0;
+        var applist=[];
         
-        element.find("[webdock-app]").each(function(i,el){
+        element.find("[webdock-component]").each(function(i,el){
            
-            var component = $(this).attr("webdock-component");
-            var app=$(this).attr("webdock-app");
-            if (!app || !component) {
+            var component = String($(this).attr("webdock-component") || "").trim();
+            var app=String($(this).attr("webdock-app") || "").trim();
+            if (!component) {
                 return;
             }
             var data=parseDataAttribute($(this).attr("webdock-data"), _data);
-            var element_id=safeId(app+"-"+component+"-"+(new Date()).getTime()+"-"+i);
+            var element_id=safeId(app+"-"+component+"-"+(new Date()).getTime()+"-"+(++embedId));
             $(this).attr('id', element_id);
             applist.push({"component":component,"app":app,"data":data,"element_id":element_id,
             "Completed":Completed,"Error":Error,"appComplete":appComplete});
@@ -85,23 +85,27 @@ WEBDOCK.component().register(function(exports, scope){
             return;
         }
         loadApp();
-    }
 
-    function loadApp(){
-        if (!applist[AppIndex]) {
-            return;
+        // Each HTML section owns its queue, including when sections load concurrently.
+        function loadApp(){
+            if (!applist[AppIndex] || options && options.isCurrent && !options.isCurrent()) {
+                return;
+            }
+            var item = applist[AppIndex];
+            RenderApplication(item.app,item.component,item.element_id,function(r){
+                if (Completed) {
+                    Completed(r);
+                }
+                AppIndex++;
+                loadApp();
+            },function(e){
+                if (Error) {
+                    Error(e);
+                }
+                AppIndex++;
+                loadApp();
+            },item.appComplete,item.data,options);
         }
-        RenderApplication(applist[AppIndex].app,applist[AppIndex].component,applist[AppIndex].element_id,function(r){
-            AppIndex++;
-            if(applist.length>AppIndex){
-                loadApp();
-            }
-        },function(e){
-            AppIndex++;
-            if(applist.length>AppIndex){
-                loadApp();
-            }
-        },applist[AppIndex].appComplete,applist[AppIndex].data);
     }
 
     function popup_large(id,title){
@@ -175,96 +179,130 @@ WEBDOCK.component().register(function(exports, scope){
     
     
     
-    function RenderApplication(appId,startupComponent,id,cb,er,cbcompleted,d){
+    // Share in-flight descriptor lookups across concurrent component-only embeds.
+    // The framework owns the completed descriptor cache.
+    function downloadDescriptor(appId, version, done){
+        if(descriptorRequests[appId]){
+            descriptorRequests[appId].push(done);
+            return;
+        }
+        descriptorRequests[appId] = [done];
+        WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
+            var callbacks = descriptorRequests[appId];
+            delete descriptorRequests[appId];
+            callbacks.forEach(function(callback){ callback(descriptor); });
+        }, version);
+    }
+
+    function resolveComponentApp(apps, component, isCurrent, done){
+        var appIds = Object.keys(apps || {});
+        var matches = [];
+        var failed = false;
+        var index = 0;
+        function next(){
+            if(!isCurrent()){
+                return;
+            }
+            if(index >= appIds.length){
+                if(failed){
+                    done("Unable to inspect available apps. Try again or specify webdock-app.");
+                }else if(matches.length > 1){
+                    done('Component "' + component + '" exists in multiple apps (' + matches.map(function(match){ return match.appId; }).join(", ") + '). Specify webdock-app.');
+                }else if(matches.length === 0){
+                    done('No accessible CMS app provides component "' + component + '". Check the component name, showincms tag and user-group access.');
+                }else{
+                    done(null, matches[0].appId, matches[0].descriptor);
+                }
+                return;
+            }
+            var appId = appIds[index++];
+            downloadDescriptor(appId, apps[appId] && apps[appId].version, function(descriptor){
+                if(!descriptor || !descriptor.components){
+                    failed = true;
+                }else if(Object.prototype.hasOwnProperty.call(descriptor.components, component)){
+                    matches.push({appId: appId, descriptor: descriptor});
+                }
+                next();
+            });
+        }
+        next();
+    }
+
+    function RenderApplication(appId,startupComponent,id,cb,er,cbcompleted,d,options){
         callback[id]=cb;
         errCallback[id]=er;
         completed[id]=cbcompleted;
         data_collected[id]=d;
-        var leftMenu = exports.getShellComponent("left-menu");
-        if (!leftMenu || typeof leftMenu.getApps !== "function") {
-            renderLoadError(id, "Application menu service is not available.");
-            if (er) {
-                er("Application menu service is not available.");
-            }
+        // CMS uses its own API-backed app list; existing dock callers keep left-menu.
+        var provider = options && options.getApps ? options
+            : window.CMSV7 && typeof window.CMSV7.getApps === "function" ? window.CMSV7
+            : exports.getShellComponent("left-menu");
+        if(!provider || typeof provider.getApps !== "function"){
+            fail("Application list service is not available.");
             return;
         }
-        leftMenu.getApps(function(apps){
-            var renderDiv = $("#" + id);
-            renderDiv.empty();
-            var appObj = apps && apps[appId] ? apps[appId] : null;
-            if(appObj==null){
-                renderLoadError(id, "App was not found or permission is missing.");
-                if (er) {
-                    er("App was not found or permission is missing.");
+        provider.getApps(function(apps){
+            if(!isCurrent()){
+                return;
+            }
+            $("#" + id).empty();
+            if(appId){
+                if(!apps || !Object.prototype.hasOwnProperty.call(apps, appId)){
+                    fail('App "' + appId + '" is not in the available app list. Check its showincms tag and user-group access.');
+                    return;
                 }
-                return;
-            }
-            var loadID=safeId("dft_" + id+"_app0001");
-            window[loadID]=window[loadID]?window[loadID]:{loading:false,apps:{app:{}}};
-            window[loadID].apps[appId]=window[loadID].apps[appId]?window[loadID].apps[appId]:{loading:false,app:{}};
-            //var appdock= window[loadID].apps[appId];
-            if(window[loadID].loading){
-                console.log("Already Same component loading.....");
-                return;
-            }
-
-            window[loadID].loading=true;
-            
-
-            let MemoryApp= WEBDOCK.componentManager.getMemoryApp(appId,startupComponent);
-            if(MemoryApp && MemoryApp.results){
-                try {
-                    
-                    renderApp(MemoryApp.results,id,MemoryApp.desc,MemoryApp.instance,appId);
-                    window[loadID].loading=false;
-                    console.log("Memory Loaded..");
-                    return; 
-                } catch (error) {
-                    renderLoadError(id, "Error loading application from memory.");
-                    window[loadID].loading=false;
-                    if (er) {
-                        er(error);
+                downloadDescriptor(appId, apps[appId].version, function(descriptor){
+                    load(appId, apps[appId], descriptor);
+                });
+            }else{
+                resolveComponentApp(apps, startupComponent, isCurrent, function(error, resolvedAppId, descriptor){
+                    if(error){
+                        fail(error);
+                        return;
                     }
-
-                    //console.log("Error Loading from Memory");
-                    //alert("App not Loaded or permission Issue");
-                }
-                
+                    load(resolvedAppId, apps[resolvedAppId], descriptor);
+                });
             }
-            var ver="9.0";
-            //var appObj = apps[appId];
-            WEBDOCK.componentManager.downloadAppDescriptor(appId, function(descriptor){
-                WEBDOCK.componentManager.downloadComponents(appId, descriptor,function(){
-                    WEBDOCK.componentManager.getOnDemand(appId,descriptor, startupComponent, function(results,desc, instance){
-                        if(instance){
-                            try {
-                                renderApp(results,id,desc,instance,appId);
-                                
-                            } catch (error) {
-                                renderLoadError(id, "App did not load. Please check permission and component registration.");
-                                if (er) {
-                                    er(error);
-                                }
-
-                                //alert("App not Loaded or permission Issue");
-                            }
-                            
-                        }else{
-                            renderLoadError(id, "App did not load. Please check permission and component registration.");
-                            if (er) {
-                                er("App instance was not created.");
-                            }
-
-                            //alert("App not Loaded or permission Issue");
-                        }
-                        window[loadID].loading=false;
-                        
-                    },appObj.version);
-                },appObj.version);       
-            },appObj.version);
-
         });
-        //});
+
+        function load(resolvedAppId, appObj, descriptor){
+            if(!isCurrent()){
+                return;
+            }
+            if(!descriptor || !descriptor.components || !Object.prototype.hasOwnProperty.call(descriptor.components, startupComponent)){
+                fail("App component is not registered.");
+                return;
+            }
+            $("#" + id).attr("webdock-app", resolvedAppId);
+            var version = descriptor.description && descriptor.description.version || appObj.version;
+            WEBDOCK.componentManager.downloadComponents(resolvedAppId, descriptor, function(){
+                if(!isCurrent()){
+                    return;
+                }
+                WEBDOCK.componentManager.getOnDemand(resolvedAppId, descriptor, startupComponent, function(results, desc, instance){
+                    if(!isCurrent()){
+                        return;
+                    }
+                    if(!instance){
+                        fail("App instance was not created.");
+                        return;
+                    }
+                    renderApp(results, id, desc, instance, resolvedAppId);
+                }, version);
+            }, version);
+        }
+        function fail(message){
+            if(!isCurrent()){
+                return;
+            }
+            renderLoadError(id, message);
+            if(er){
+                er(message);
+            }
+        }
+        function isCurrent(){
+            return !!document.getElementById(id) && (!options || !options.isCurrent || options.isCurrent());
+        }
     }
 
     function renderApp(data,id,desc,instance,appid){

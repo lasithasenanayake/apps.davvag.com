@@ -2,7 +2,7 @@
     "name" : "davvag-app-downloader",
     "description":"Reusable app launcher and embedded component renderer",
     "author":"DAVVAG",
-    "version" : "0.2",
+    "version" : "0.4",
     "gitUrl" : "",
     "resources": {
         "files":[

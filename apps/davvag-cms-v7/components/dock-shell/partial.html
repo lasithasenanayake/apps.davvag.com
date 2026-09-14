@@ -3,7 +3,7 @@
     <main class="cms-v7-main">
         <div v-if="loading" class="cms-v7-loading">Loading page...</div>
         <div v-if="error" class="cms-v7-error">{{ error }}</div>
-        <div v-show="mode == 'page'" class="cms-v7-page">
+        <div v-show="mode == 'page'" v-bind:key="pageRevision" class="cms-v7-page">
             <template v-for="block in renderBlocks">
                 <section v-if="block.type == 'heroCarousel'" v-bind:key="block.id" v-bind:class="heroCarouselClass(block)">
                     <div class="cms-v7-hero-track">
@@ -86,7 +86,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="cms-v7-container" v-if="block.section.type == 'html'" v-html="block.section.html"></div>
+                    <div class="cms-v7-container" v-if="block.section.type == 'html'" v-html="block.section.html" v-cms-apps="block.section.html"></div>
                 </section>
             </template>
             <div v-if="!loading && page.sections.length == 0" class="cms-v7-empty">This page has no sections yet.</div>

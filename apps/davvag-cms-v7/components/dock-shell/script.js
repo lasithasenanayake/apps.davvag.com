@@ -7,6 +7,7 @@ WEBDOCK.component().register(function(exports){
         mode: "page",
         site: {},
         page: {sections: []},
+        pageRevision: 0,
         renderBlocks: []
     };
     var heroTimers = [];
@@ -17,6 +18,24 @@ WEBDOCK.component().register(function(exports){
 
     var vueData = {
         data: bindData,
+        directives: {
+            cmsApps: {
+                inserted: renderEmbeddedApps,
+                componentUpdated: function(element, binding){
+                    if(binding.value !== binding.oldValue){
+                        renderEmbeddedApps(element);
+                    }
+                },
+                unbind: function(element){
+                    element.cmsEmbedToken = null;
+                    $(element).find("[webdock-component]").each(function(){
+                        if(this.__vue__){
+                            this.__vue__.$destroy();
+                        }
+                    });
+                }
+            }
+        },
         methods: {
             sectionClass: sectionClass,
             heroCarouselClass: heroCarouselClass,
@@ -57,12 +76,39 @@ WEBDOCK.component().register(function(exports){
         }
     }
 
+    function renderEmbeddedApps(element){
+        var token = {};
+        element.cmsEmbedToken = token;
+        function isCurrent(){
+            return element.cmsEmbedToken === token && document.documentElement.contains(element);
+        }
+        Vue.nextTick(function(){
+            if(!isCurrent() || !element.querySelector("[webdock-component]")){
+                return;
+            }
+            exports.getAppComponent("davvag-tools", "davvag-app-downloader", function(loader){
+                if(!isCurrent()){
+                    return;
+                }
+                if(!loader || typeof loader.RenderHTML !== "function"){
+                    $(element).append('<div class="cms-v7-error">Embedded apps could not be loaded.</div>');
+                    return;
+                }
+                loader.RenderHTML($(element), null, null, null, undefined, {
+                    getApps: loadPermittedApps,
+                    isCurrent: isCurrent
+                });
+            });
+        });
+    }
+
     function setupGlobalApi(){
         window.CMSV7 = window.CMSV7 || {};
         window.CMSV7.getSite = function(){
             return bindData.site;
         };
         window.CMSV7.applyTheme = applyTheme;
+        window.CMSV7.getApps = loadPermittedApps;
         window.CMSV7.reload = function(){
             loadSite(navigate);
         };
@@ -134,11 +180,14 @@ WEBDOCK.component().register(function(exports){
             renderAppRoute(route);
             return;
         }
-        appRenderRequestId++;
+        var requestId = ++appRenderRequestId;
         bindData.mode = "page";
         bindData.error = "";
         bindData.loading = true;
         api.services.Page({slug: routeToSlug(route)}).then(function(result){
+            if(requestId !== appRenderRequestId){
+                return;
+            }
             bindData.loading = false;
             if(result.success && result.result){
                 bindData.page = result.result;
@@ -152,6 +201,9 @@ WEBDOCK.component().register(function(exports){
                 preparePage();
             }
         }).error(function(){
+            if(requestId !== appRenderRequestId){
+                return;
+            }
             bindData.loading = false;
             bindData.error = "Page not found.";
             bindData.page = {sections: []};
@@ -279,11 +331,6 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadPermittedApps(callback){
-        if(window.apps){
-            permittedApps = window.apps;
-            callback(permittedApps);
-            return;
-        }
         if(permittedApps){
             callback(permittedApps);
             return;
@@ -294,26 +341,25 @@ WEBDOCK.component().register(function(exports){
         }
         permittedAppsLoading = true;
         if(!WEBDOCK.callRest){
-            finishPermittedAppsLoad({});
+            finishPermittedAppsLoad(null);
             return;
         }
         WEBDOCK.callRest("components/object/apps?tags=showincms")
             .success(function(data){
-                finishPermittedAppsLoad(data && data.result ? data.result : {});
+                finishPermittedAppsLoad(data && data.success === true && data.result ? data.result : null);
             })
             .error(function(){
-                finishPermittedAppsLoad({});
+                finishPermittedAppsLoad(null);
             });
     }
 
     function finishPermittedAppsLoad(apps){
-        permittedApps = apps || {};
-        window.apps = permittedApps;
+        permittedApps = apps;
         permittedAppsLoading = false;
         var callbacks = permittedAppsCallbacks.slice();
         permittedAppsCallbacks = [];
         for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](permittedApps);
+            callbacks[i](permittedApps || {});
         }
     }
 
@@ -503,6 +549,7 @@ WEBDOCK.component().register(function(exports){
 
     function preparePage(){
         clearHeroTimers();
+        bindData.pageRevision++;
         bindData.renderBlocks = buildRenderBlocks(bindData.page.sections || []);
         startHeroTimers();
     }

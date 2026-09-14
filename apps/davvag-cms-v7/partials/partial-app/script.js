@@ -95,11 +95,6 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadPermittedApps(callback){
-        if(window.apps){
-            permittedApps = window.apps;
-            callback(permittedApps);
-            return;
-        }
         if(permittedApps){
             callback(permittedApps);
             return;
@@ -110,26 +105,25 @@ WEBDOCK.component().register(function(exports){
         }
         permittedAppsLoading = true;
         if(!WEBDOCK.callRest){
-            finishPermittedAppsLoad({});
+            finishPermittedAppsLoad(null);
             return;
         }
         WEBDOCK.callRest("components/object/apps?tags=showincms")
             .success(function(data){
-                finishPermittedAppsLoad(data && data.result ? data.result : {});
+                finishPermittedAppsLoad(data && data.success === true && data.result ? data.result : null);
             })
             .error(function(){
-                finishPermittedAppsLoad({});
+                finishPermittedAppsLoad(null);
             });
     }
 
     function finishPermittedAppsLoad(apps){
-        permittedApps = apps || {};
-        window.apps = permittedApps;
+        permittedApps = apps;
         permittedAppsLoading = false;
         var callbacks = permittedAppsCallbacks.slice();
         permittedAppsCallbacks = [];
         for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](permittedApps);
+            callbacks[i](permittedApps || {});
         }
     }
 

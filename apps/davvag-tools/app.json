@@ -28,7 +28,7 @@
     "description": {
         "title": "DAVVAG Tools",
         "author": "Davvag",
-        "version": "0.7",
+        "version": "0.9",
         "icon": "davvag-tools-icon.png"
     },
     "tags": [
