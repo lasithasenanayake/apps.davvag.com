@@ -1,14 +1,164 @@
-<section class="lmp"><nav><a href="#/app/lesson-market-place/admin/packages">Packages</a><a href="#/app/lesson-market-place/admin/enrolments">Review requests</a><a href="#/app/lesson-market-place/">Catalog</a></nav>
-<h1>{{id?'Edit package':'Create a lesson package'}}</h1><p>Status: {{status}} · Draft revision {{revision}}</p><p v-if="error" class="lmp-error" role="alert">{{error}}</p><p v-if="info" class="lmp-success" role="status">{{info}}</p><p v-if="busy" role="status">Working…</p>
-<form @submit.prevent="save"><div class="lmp-row"><label>Package name<input required maxlength="200" v-model="form.name"></label><label>Stable package code<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="100" :disabled="!!id" v-model="form.slug"></label></div>
-<label>DAVVAG product<select required :disabled="!!id" v-model="form.product_id"><option :value="0">Select a product</option><option v-for="p in products" :value="p.id">{{p.name}} (#{{p.id}})</option><option v-if="id" :value="form.product_id">Linked product #{{form.product_id}}</option></select></label><button type="button" :disabled="busy||!!id" @click="createProduct">Create product</button><button type="button" :disabled="busy" @click="moreProducts">More products</button>
-<label>Summary<textarea maxlength="2000" v-model="form.summary"></textarea></label><label>Rich description</label><div><button type="button" @click="rich('bold')">Bold</button><button type="button" @click="rich('italic')">Italic</button><button type="button" @click="rich('insertUnorderedList')">List</button></div><div class="lmp-editor" contenteditable="true" role="textbox" aria-label="Package description" aria-multiline="true" data-lmp-editor @input="sync"></div>
-<label>Cover image<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" :disabled="busy" @change="upload"></label><label>Cover URL<input type="text" v-model="form.cover_image" maxlength="2000"></label>
-<label>Learning outcomes<textarea v-model="form.outcomes" maxlength="6000"></textarea></label><label>Audience<textarea v-model="form.audience" maxlength="4000"></textarea></label><label>Prerequisites<textarea v-model="form.prerequisites" maxlength="6000"></textarea></label>
-<div class="lmp-row"><label>Pricing<select v-model="form.pricing_mode"><option value="free">Free</option><option value="credits">Credits</option></select></label><label v-if="form.pricing_mode==='credits'">Whole credit price<input type="number" min="1" max="1000000000" step="1" v-model="form.credit_price"></label></div><label><input type="checkbox" v-model="form.approval_required"> Require staff approval before enrolment</label>
-<h2>Choose lessons</h2><p>Include all required preceding lessons. Package order affects display only.</p><div v-for="lesson in lessons" :key="lesson.id"><label><input type="checkbox" :checked="form.lesson_ids.indexOf(lesson.id)>=0" @change="toggle(lesson.id)"> Course #{{lesson.course_id}} / {{lesson.subject}} / {{lesson.name}} ({{lesson.status}})</label></div><button type="button" :disabled="busy" @click="moreLessons">More subjects and lessons</button><ol><li v-for="(id,index) in form.lesson_ids" :key="id">Lesson #{{id}} <button type="button" @click="move(index,-1)" :disabled="index===0">Up</button><button type="button" @click="move(index,1)" :disabled="index===form.lesson_ids.length-1">Down</button></li></ol>
-<button class="lmp-primary" :disabled="busy||status==='archived'">Save draft</button><button type="button" :disabled="busy||!id||status==='archived'" @click="publish">Publish saved draft</button><button type="button" :disabled="busy||!id||status==='archived'" @click="setStatus('unpublished')">Unpublish</button><button type="button" :disabled="busy||!id||status==='archived'" @click="setStatus('archived')">Archive</button><button type="button" @click="showPreview">{{preview?'Close preview':'Preview draft'}}</button>
-</form>
-<article v-if="preview" class="lmp-panel lmp-content"><h2>{{form.name}}</h2><p>{{form.summary}}</p><p>{{form.pricing_mode==='free'?'Free':form.credit_price+' credits'}} · {{form.approval_required?'Approval required':'Automatic enrolment'}}</p><p class="lmp-lines">{{form.outcomes}}</p><div v-html="savedDescription"></div><p>Formatted description reflects the last saved draft.</p><a v-if="status==='published'" :href="'#/app/lesson-market-place/package?slug='+form.slug" target="_blank" rel="noopener">Preview published package</a></article>
-<section v-if="id"><h2>Place this package on a CMS page</h2><button :disabled="busy" @click="loadPages">Load CMS pages</button><label>Existing page<select v-model="pageSlug"><option value="">Create a new page below</option><option v-for="page in pages" :value="page.slug">{{page.title}} ({{page.status}})</option></select></label><label>Page code<input v-model="pageSlug" placeholder="my-course-package"></label><label>Title for a new page<input v-model="pageTitle"></label><button :disabled="busy||!pageSlug" @click="place">Add package component</button><p v-if="pageLink"><a :href="pageLink" target="_blank" rel="noopener">Preview / open CMS page</a><label>Shareable link<input readonly :value="pageLink" @focus="$event.target.select()"></label></p><p><a href="#/app/davvag-cms-v7-setting">Open CMS page settings</a> to publish a new draft page or adjust its layout.</p></section>
+<section class="lmp">
+    <nav>
+        <a href="#/app/lesson-market-place/admin/packages">Packages</a>
+        <a href="#/app/lesson-market-place/admin/enrolments">Review requests</a>
+        <a href="#/app/lesson-market-place/">Catalog</a>
+    </nav>
+
+    <h1>{{id?'Edit package':'Create a lesson package'}}</h1>
+    <p>Status: {{status}} · Draft revision {{revision}}</p>
+    <p v-if="error" class="lmp-error" role="alert">{{error}}</p>
+    <p v-if="info" class="lmp-success" role="status">{{info}}</p>
+    <p v-if="busy" role="status">Working…</p>
+
+    <form @submit.prevent="save">
+        <div class="lmp-row">
+            <label>
+                Package name
+                <input required maxlength="200" v-model="form.name">
+            </label>
+            <label>
+                Stable package code
+                <input required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="100" :disabled="!!id" v-model="form.slug">
+            </label>
+        </div>
+
+        <label>
+            DAVVAG product
+            <select required :disabled="!!id" v-model="form.product_id">
+                <option :value="0">Select a product</option>
+                <option v-for="p in products" :value="p.id">{{p.name}} (#{{p.id}})</option>
+                <option v-if="id" :value="form.product_id">Linked product #{{form.product_id}}</option>
+            </select>
+        </label>
+        <button type="button" :disabled="busy||!!id" @click="createProduct">Create product</button>
+        <button type="button" :disabled="busy" @click="moreProducts">More products</button>
+
+        <label>
+            Summary
+            <textarea maxlength="2000" v-model="form.summary"></textarea>
+        </label>
+        <label>Rich description</label>
+        <div>
+            <button type="button" @click="rich('bold')">Bold</button>
+            <button type="button" @click="rich('italic')">Italic</button>
+            <button type="button" @click="rich('insertUnorderedList')">List</button>
+        </div>
+        <div
+            class="lmp-editor"
+            contenteditable="true"
+            role="textbox"
+            aria-label="Package description"
+            aria-multiline="true"
+            data-lmp-editor
+            @input="sync"
+        ></div>
+
+        <label>
+            Cover image
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" :disabled="busy" @change="upload">
+        </label>
+        <label>
+            Cover URL
+            <input type="text" v-model="form.cover_image" maxlength="2000">
+        </label>
+
+        <label>
+            Learning outcomes
+            <textarea v-model="form.outcomes" maxlength="6000"></textarea>
+        </label>
+        <label>
+            Audience
+            <textarea v-model="form.audience" maxlength="4000"></textarea>
+        </label>
+        <label>
+            Prerequisites
+            <textarea v-model="form.prerequisites" maxlength="6000"></textarea>
+        </label>
+
+        <div class="lmp-row">
+            <label>
+                Pricing
+                <select v-model="form.pricing_mode">
+                    <option value="free">Free</option>
+                    <option value="credits">Credits</option>
+                </select>
+            </label>
+            <label v-if="form.pricing_mode==='credits'">
+                Whole credit price
+                <input type="number" min="1" max="1000000000" step="1" v-model="form.credit_price">
+            </label>
+        </div>
+        <label>
+            <input type="checkbox" v-model="form.approval_required">
+            Require staff approval before enrolment
+        </label>
+
+        <h2>Choose lessons</h2>
+        <p>Include all required preceding lessons. Package order affects display only.</p>
+        <div v-for="lesson in lessons" :key="lesson.id">
+            <label>
+                <input type="checkbox" :checked="form.lesson_ids.indexOf(lesson.id)>=0" @change="toggle(lesson.id)">
+                Course #{{lesson.course_id}} / {{lesson.subject}} / {{lesson.name}} ({{lesson.status}})
+            </label>
+        </div>
+        <button type="button" :disabled="busy" @click="moreLessons">More subjects and lessons</button>
+        <ol>
+            <li v-for="(id,index) in form.lesson_ids" :key="id">
+                Lesson #{{id}}
+                <button type="button" @click="move(index,-1)" :disabled="index===0">Up</button>
+                <button type="button" @click="move(index,1)" :disabled="index===form.lesson_ids.length-1">Down</button>
+            </li>
+        </ol>
+
+        <button class="lmp-primary" :disabled="busy||status==='archived'">Save draft</button>
+        <button type="button" :disabled="busy||!id||status==='archived'" @click="publish">Publish saved draft</button>
+        <button type="button" :disabled="busy||!id||status==='archived'" @click="setStatus('unpublished')">Unpublish</button>
+        <button type="button" :disabled="busy||!id||status==='archived'" @click="setStatus('archived')">Archive</button>
+        <button type="button" @click="showPreview">{{preview?'Close preview':'Preview draft'}}</button>
+    </form>
+
+    <article v-if="preview" class="lmp-panel lmp-content">
+        <h2>{{form.name}}</h2>
+        <p>{{form.summary}}</p>
+        <p>{{form.pricing_mode==='free'?'Free':form.credit_price+' credits'}} · {{form.approval_required?'Approval required':'Automatic enrolment'}}</p>
+        <p class="lmp-lines">{{form.outcomes}}</p>
+        <div v-html="savedDescription"></div>
+        <p>Formatted description reflects the last saved draft.</p>
+        <a v-if="status==='published'" :href="'#/app/lesson-market-place/package?slug='+form.slug" target="_blank" rel="noopener">
+            Preview published package
+        </a>
+    </article>
+
+    <section v-if="id">
+        <h2>Place this package on a CMS page</h2>
+        <button :disabled="busy" @click="loadPages">Load CMS pages</button>
+        <label>
+            Existing page
+            <select v-model="pageSlug">
+                <option value="">Create a new page below</option>
+                <option v-for="page in pages" :value="page.slug">{{page.title}} ({{page.status}})</option>
+            </select>
+        </label>
+        <label>
+            Page code
+            <input v-model="pageSlug" placeholder="my-course-package">
+        </label>
+        <label>
+            Title for a new page
+            <input v-model="pageTitle">
+        </label>
+        <button :disabled="busy||!pageSlug" @click="place">Add package component</button>
+        <p v-if="pageLink">
+            <a :href="pageLink" target="_blank" rel="noopener">Preview / open CMS page</a>
+            <label>
+                Shareable link
+                <input readonly :value="pageLink" @focus="$event.target.select()">
+            </label>
+        </p>
+        <p>
+            <a href="#/app/davvag-cms-v7-setting">Open CMS page settings</a>
+            to publish a new draft page or adjust its layout.
+        </p>
+    </section>
 </section>

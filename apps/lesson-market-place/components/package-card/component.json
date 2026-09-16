@@ -1,23 +1,23 @@
 {
-  "name": "package-card",
-  "version": "0.1.0",
-  "resources": {
-    "files": [
-      {
-        "type": "mainScript",
-        "location": "script.js"
-      },
-      {
-        "type": "mainView",
-        "location": "partial.html"
-      }
+    "name": "package-card",
+    "version": "0.1.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    },
+    "inputData": [
+        {
+            "name": "slug",
+            "datatype": "string",
+            "description": "Published package slug; CMS webdock-data JSON input."
+        }
     ]
-  },
-  "inputData": [
-    {
-      "name": "slug",
-      "datatype": "string",
-      "description": "Published package slug; CMS webdock-data JSON input."
-    }
-  ]
 }

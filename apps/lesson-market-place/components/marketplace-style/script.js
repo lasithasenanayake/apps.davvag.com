@@ -1,1 +1,3 @@
-WEBDOCK.component().register(function(exports) {});
+WEBDOCK.component().register(function(exports) {
+}
+);

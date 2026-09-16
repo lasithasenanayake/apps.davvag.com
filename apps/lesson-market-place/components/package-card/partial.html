@@ -1,30 +1,89 @@
 <section class="lmp" aria-label="Lesson package">
-  <p v-if="busy" role="status">Loading…</p><p v-if="error" class="lmp-error" role="alert">{{error}} <button :disabled="busy" @click="load">Retry</button></p>
-  <p v-if="info" class="lmp-success" role="status">{{info}}</p>
-  <article v-if="item" class="lmp-panel">
-    <img v-if="item.terms.cover_image" class="lmp-cover" :src="item.terms.cover_image" alt="">
-    <div class="lmp-content"><p class="lmp-eyebrow">LESSON PACKAGE · {{item.terms.lessons.length}} LESSONS</p>
-      <h1>{{item.terms.name}}</h1><p>{{item.terms.summary}}</p>
-      <p class="lmp-price">{{item.terms.credit_price ? item.terms.credit_price+' credits' : 'Free'}} <span class="lmp-muted">· Permanent access · {{item.terms.approval_required?'Staff approval required':'Automatic enrolment'}}</span></p>
-      <div v-html="item.terms.description"></div>
-      <h2>What you will learn</h2><p class="lmp-lines">{{item.terms.outcomes}}</p>
-      <h2>Who this is for</h2><p class="lmp-lines">{{item.terms.audience}}</p>
-      <h2>Prerequisites</h2><p class="lmp-lines">{{item.terms.prerequisites || 'No additional prerequisites specified.'}}</p>
-      <h2>Included lessons</h2>
-      <ol><li v-for="lesson in item.terms.lessons" :key="lesson.id"><strong>{{lesson.title}}</strong><br><span class="lmp-muted">{{lesson.course_title}} / {{lesson.subject_title}}</span> <span v-if="item.already_accessible.indexOf(lesson.id)>=0">· Already accessible</span></li></ol>
-      <p v-if="item.already_accessible.length">You already have access to {{item.already_accessible.length}} included lesson(s). The full package price still applies.</p>
-      <p v-if="item.attempt">Request: <strong>{{item.attempt.status.replace(/_/g,' ')}}</strong><span v-if="item.attempt.decision_reason"> — {{item.attempt.decision_reason}}</span></p>
-      <p v-if="item.wallet_error" role="alert">{{item.wallet_error}}</p>
-      <button class="lmp-primary" :disabled="busy || (item.attempt && item.attempt.status==='pending_approval') || (item.status!=='published' && !(item.attempt && item.attempt.status==='active'))" @click="action">{{label()}}</button>
-      <button v-if="item.attempt && ['pending_approval','awaiting_payment'].indexOf(item.attempt.status)>=0" :disabled="busy" @click="cancel">Cancel request</button>
-      <a href="#/app/lesson-market-place/my-enrolments">My enrolments</a>
-      <section v-if="confirming" class="lmp-confirm" aria-label="Confirm enrolment" tabindex="-1">
-        <h2>Confirm {{item.terms.name}}</h2><p>{{item.terms.lessons.length}} included lessons · {{item.terms.credit_price}} credits · Package version {{item.version_id}}</p>
-        <p v-if="item.terms.approval_required && (!item.attempt || item.attempt.status!=='awaiting_payment')">Staff will review your request. No credits are charged or reserved now. If approved, you will confirm payment separately.</p>
-        <div v-else-if="item.terms.credit_price"><p>Available balance: {{item.balance ? item.balance.availableBalance : 'Unavailable'}} credits</p><p>Balance after enrolment: {{item.balance ? item.balance.availableBalance-item.terms.credit_price : 'Unavailable'}} credits</p></div>
-        <button :disabled="busy || (!item.terms.approval_required && item.terms.credit_price>0 && (!item.balance || item.balance.status!=='ACTIVE' || item.balance.availableBalance<item.terms.credit_price))" class="lmp-primary" @click="confirm">{{busy?'Processing…':(item.terms.approval_required && (!item.attempt || item.attempt.status!=='awaiting_payment')?'Submit request':'Confirm enrolment')}}</button>
-        <button :disabled="busy" @click="close">Back</button><button v-if="item.terms.credit_price" :disabled="busy" @click="buy">Buy credits</button>
-      </section>
-    </div>
-  </article>
+    <p v-if="busy" role="status">Loading…</p>
+    <p v-if="error" class="lmp-error" role="alert">
+        {{error}}
+        <button :disabled="busy" @click="load">Retry</button>
+    </p>
+    <p v-if="info" class="lmp-success" role="status">{{info}}</p>
+
+    <article v-if="item" class="lmp-panel">
+        <img v-if="item.terms.cover_image" class="lmp-cover" :src="item.terms.cover_image" alt="">
+        <div class="lmp-content">
+            <p class="lmp-eyebrow">LESSON PACKAGE · {{item.terms.lessons.length}} LESSONS</p>
+            <h1>{{item.terms.name}}</h1>
+            <p>{{item.terms.summary}}</p>
+            <p class="lmp-price">
+                {{item.terms.credit_price ? item.terms.credit_price+' credits' : 'Free'}}
+                <span class="lmp-muted">
+                    · Permanent access · {{item.terms.approval_required?'Staff approval required':'Automatic enrolment'}}
+                </span>
+            </p>
+            <div v-html="item.terms.description"></div>
+
+            <h2>What you will learn</h2>
+            <p class="lmp-lines">{{item.terms.outcomes}}</p>
+
+            <h2>Who this is for</h2>
+            <p class="lmp-lines">{{item.terms.audience}}</p>
+
+            <h2>Prerequisites</h2>
+            <p class="lmp-lines">{{item.terms.prerequisites || 'No additional prerequisites specified.'}}</p>
+
+            <h2>Included lessons</h2>
+            <ol>
+                <li v-for="lesson in item.terms.lessons" :key="lesson.id">
+                    <strong>{{lesson.title}}</strong><br>
+                    <span class="lmp-muted">{{lesson.course_title}} / {{lesson.subject_title}}</span>
+                    <span v-if="item.already_accessible.indexOf(lesson.id)>=0">· Already accessible</span>
+                </li>
+            </ol>
+
+            <p v-if="item.already_accessible.length">
+                You already have access to {{item.already_accessible.length}} included lesson(s). The full package price still applies.
+            </p>
+            <p v-if="item.attempt">
+                Request: <strong>{{item.attempt.status.replace(/_/g,' ')}}</strong>
+                <span v-if="item.attempt.decision_reason"> — {{item.attempt.decision_reason}}</span>
+            </p>
+            <p v-if="item.wallet_error" role="alert">{{item.wallet_error}}</p>
+
+            <button
+                class="lmp-primary"
+                :disabled="busy || (item.attempt && item.attempt.status==='pending_approval') || (item.status!=='published' && !(item.attempt && item.attempt.status==='active'))"
+                @click="action"
+            >
+                {{label()}}
+            </button>
+            <button
+                v-if="item.attempt && ['pending_approval','awaiting_payment'].indexOf(item.attempt.status)>=0"
+                :disabled="busy"
+                @click="cancel"
+            >
+                Cancel request
+            </button>
+            <a href="#/app/lesson-market-place/my-enrolments">My enrolments</a>
+
+            <section v-if="confirming" class="lmp-confirm" aria-label="Confirm enrolment" tabindex="-1">
+                <h2>Confirm {{item.terms.name}}</h2>
+                <p>{{item.terms.lessons.length}} included lessons · {{item.terms.credit_price}} credits · Package version {{item.version_id}}</p>
+                <p v-if="item.terms.approval_required && (!item.attempt || item.attempt.status!=='awaiting_payment')">
+                    Staff will review your request. No credits are charged or reserved now. If approved, you will confirm payment separately.
+                </p>
+                <div v-else-if="item.terms.credit_price">
+                    <p>Available balance: {{item.balance ? item.balance.availableBalance : 'Unavailable'}} credits</p>
+                    <p>Balance after enrolment: {{item.balance ? item.balance.availableBalance-item.terms.credit_price : 'Unavailable'}} credits</p>
+                </div>
+
+                <button
+                    :disabled="busy || (!item.terms.approval_required && item.terms.credit_price>0 && (!item.balance || item.balance.status!=='ACTIVE' || item.balance.availableBalance<item.terms.credit_price))"
+                    class="lmp-primary"
+                    @click="confirm"
+                >
+                    {{busy?'Processing…':(item.terms.approval_required && (!item.attempt || item.attempt.status!=='awaiting_payment')?'Submit request':'Confirm enrolment')}}
+                </button>
+                <button :disabled="busy" @click="close">Back</button>
+                <button v-if="item.terms.credit_price" :disabled="busy" @click="buy">Buy credits</button>
+            </section>
+        </div>
+    </article>
 </section>

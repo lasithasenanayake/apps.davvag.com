@@ -1,1 +1,55 @@
-<section class="lmp"><nav><a href="#/app/lesson-market-place/">Catalog</a><a href="#/app/lesson-market-place/my-enrolments">My enrolments</a><a href="#/app/lesson-market-place/admin/packages">Manage packages</a><a href="#/app/lesson-market-place/admin/enrolments">Review requests</a></nav><h1>Review enrolment requests</h1><p v-if="busy" role="status">Loading…</p><p v-if="error" class="lmp-error" role="alert">{{error}}</p><label>Request status<select v-model="status" @change="offset=0;load()"><option value="">All states</option><option v-for="s in ['pending_approval','awaiting_payment','active','rejected','cancelled']">{{s}}</option></select></label><button :disabled="busy" @click="load">Refresh</button><p v-if="!busy&&!items.length" class="lmp-empty">No matching requests.</p><article class="lmp-panel lmp-content" v-for="item in items" :key="item.id"><h2>{{item.terms.name}}</h2><p>{{item.status.replace(/_/g,' ')}} · Version {{item.version_id}} · Attempt {{item.attempt_number}}</p><p>{{item.terms.credit_price}} credits · {{item.terms.lessons.length}} lessons</p><p v-if="item.decision_reason">{{item.decision_reason}}</p><button @click="open(item)">Open package</button><p>Learner: {{item.learner_name}} (#{{item.profile_id}})</p><details><summary>Requested terms and lessons</summary><p>{{item.terms.summary}}</p><div v-html="item.terms.description"></div><ol><li v-for="lesson in item.terms.lessons">{{lesson.course_title}} / {{lesson.subject_title}} / {{lesson.title}}</li></ol><p>Internal note: {{item.internal_note||'None'}}</p></details><button v-if="item.status==='pending_approval'" :disabled="busy" @click="decide(item,'approve')">Approve</button><button v-if="item.status==='pending_approval'" :disabled="busy" @click="decide(item,'reject')">Reject</button></article><div class="lmp-row"><button :disabled="busy||offset===0" @click="page(-1)">Previous</button><span>{{offset+1}}–{{Math.min(offset+20,total)}} of {{total}}</span><button :disabled="busy||offset+20>=total" @click="page(1)">Next</button></div></section>
+<section class="lmp">
+    <nav>
+        <a href="#/app/lesson-market-place/">Catalog</a>
+        <a href="#/app/lesson-market-place/my-enrolments">My enrolments</a>
+        <a href="#/app/lesson-market-place/admin/packages">Manage packages</a>
+        <a href="#/app/lesson-market-place/admin/enrolments">Review requests</a>
+    </nav>
+
+    <h1>Review enrolment requests</h1>
+
+    <p v-if="busy" role="status">Loading…</p>
+    <p v-if="error" class="lmp-error" role="alert">{{error}}</p>
+
+    <label>
+        Request status
+        <select v-model="status" @change="offset=0;load()">
+            <option value="">All states</option>
+            <option v-for="s in ['pending_approval','awaiting_payment','active','rejected','cancelled']">{{s}}</option>
+        </select>
+    </label>
+
+    <button :disabled="busy" @click="load">Refresh</button>
+
+    <p v-if="!busy&&!items.length" class="lmp-empty">No matching requests.</p>
+
+    <article class="lmp-panel lmp-content" v-for="item in items" :key="item.id">
+        <h2>{{item.terms.name}}</h2>
+        <p>{{item.status.replace(/_/g,' ')}} · Version {{item.version_id}} · Attempt {{item.attempt_number}}</p>
+        <p>{{item.terms.credit_price}} credits · {{item.terms.lessons.length}} lessons</p>
+        <p v-if="item.decision_reason">{{item.decision_reason}}</p>
+        <button @click="open(item)">Open package</button>
+        <p>Learner: {{item.learner_name}} (#{{item.profile_id}})</p>
+
+        <details>
+            <summary>Requested terms and lessons</summary>
+            <p>{{item.terms.summary}}</p>
+            <div v-html="item.terms.description"></div>
+            <ol>
+                <li v-for="lesson in item.terms.lessons">
+                    {{lesson.course_title}} / {{lesson.subject_title}} / {{lesson.title}}
+                </li>
+            </ol>
+            <p>Internal note: {{item.internal_note||'None'}}</p>
+        </details>
+
+        <button v-if="item.status==='pending_approval'" :disabled="busy" @click="decide(item,'approve')">Approve</button>
+        <button v-if="item.status==='pending_approval'" :disabled="busy" @click="decide(item,'reject')">Reject</button>
+    </article>
+
+    <div class="lmp-row">
+        <button :disabled="busy||offset===0" @click="page(-1)">Previous</button>
+        <span>{{offset+1}}–{{Math.min(offset+20,total)}} of {{total}}</span>
+        <button :disabled="busy||offset+20>=total" @click="page(1)">Next</button>
+    </div>
+</section>

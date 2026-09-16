@@ -1,18 +1,18 @@
 {
-  "name": "marketplace-style",
-  "version": "0.1.0",
-  "resources": {
-    "files": [
-      {
-        "type": "mainScript",
-        "location": "script.js"
-      }
-    ],
-    "css": [
-      {
-        "type": "css",
-        "location": "marketplace.css"
-      }
-    ]
-  }
+    "name": "marketplace-style",
+    "version": "0.1.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "marketplace.css"
+            }
+        ]
+    }
 }

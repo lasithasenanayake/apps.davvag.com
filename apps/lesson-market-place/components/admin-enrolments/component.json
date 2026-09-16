@@ -1,16 +1,16 @@
 {
-  "name": "admin-enrolments",
-  "version": "0.1.0",
-  "resources": {
-    "files": [
-      {
-        "type": "mainScript",
-        "location": "script.js"
-      },
-      {
-        "type": "mainView",
-        "location": "partial.html"
-      }
-    ]
-  }
+    "name": "admin-enrolments",
+    "version": "0.1.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
 }
