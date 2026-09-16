@@ -1,5 +1,7 @@
 WEBDOCK.component().register(function(exports){
     var scope;
+    function resumeMarketplace(){var route=sessionStorage.getItem('lmp_signin_return');if(/^#\/app\/lesson-market-place\/(package\?slug=[a-z0-9-]+|my-enrolments)$/.test(route||'')){sessionStorage.removeItem('lmp_signin_return');location.href=location.pathname+route;return true;}return false;}
+
 
     var bindData = {
         profile: localStorage.profile ? JSON.parse(localStorage.profile) : {address:{gpspoint:"", city:""},address2:{},address3:{}},
@@ -89,6 +91,7 @@ WEBDOCK.component().register(function(exports){
                 if (result.result){
                     localStorage.loginData = JSON.stringify(result.result);
                     localStorage.profile = JSON.stringify(result.result.profile);
+                    if(resumeMarketplace())return;
                     if(sessionStorage.redirecturl){
                         location.href=sessionStorage.redirecturl;
                     }else{
@@ -97,7 +100,7 @@ WEBDOCK.component().register(function(exports){
                 }
             }).error(function(result){
                 localStorage.clear();
-                sessionStorage.clear();
+                var marketplaceReturn=sessionStorage.getItem('lmp_signin_return');sessionStorage.clear();if(marketplaceReturn)sessionStorage.setItem('lmp_signin_return',marketplaceReturn);
                 //pInstance.appNavigate("/login");
             });
         }
@@ -178,7 +181,8 @@ WEBDOCK.component().register(function(exports){
                             cb();
                         else
                         {
-                            if(sessionStorage.redirecturl){
+                            if(resumeMarketplace())return;
+                    if(sessionStorage.redirecturl){
                                 scope.isBusy=false;
                                 r=sessionStorage.redirecturl;
                                 sessionStorage.removeItem("redirecturl");

@@ -1,67 +1,66 @@
 {
-    "components": {
-        "davvag-img-cropper": {
-            "type": "service",
-            "location": "services"
-        },
-        "davvag-file-uploader": {
-            "type": "service",
-            "location": "services"
-        },
-        "davvag-app-downloader": {
-            "type": "service",
-            "location": "services"
-        },
-        "viewObject": {
-            "type": "component",
-            "location": "apps"
-        },
-        "capture": {
-            "type": "component",
-            "location": "apps"
-        },
-        "viewObjectAPI": {
-            "type": "service",
-            "location": "services"
-        }
+  "components": {
+    "davvag-img-cropper": {
+      "type": "service",
+      "location": "services"
     },
-    "description": {
-        "title": "DAVVAG Tools",
-        "author": "Davvag",
-        "version": "0.9",
-        "icon": "davvag-tools-icon.png"
+    "davvag-file-uploader": {
+      "type": "service",
+      "location": "services"
     },
-    "tags": [
-        "showincms",
-        "showindock"
-    ],
-    "configuration": {
-        "webdock": {
-            "onLoad": [
-                "viewObjectAPI"
-            ],
-            "routes": {
-                "partials": {
-                    "/viewObject": "viewObject"
-                }
-            }
-        }
+    "davvag-app-downloader": {
+      "type": "service",
+      "location": "services"
     },
-    "dependencies": {
-        "apps": [],
-        "schemas": [
-
-            "user_object",
-            "user_view_objects",
-            "usergroups",
-            "users"
-        ],
-        "workflows": [],
-        "plugins": [
-            "auth",
-            "phpcache",
-            "sossdata"
-        ],
-        "php-extensions": []
+    "viewObject": {
+      "type": "component",
+      "location": "apps"
+    },
+    "capture": {
+      "type": "component",
+      "location": "apps"
+    },
+    "viewObjectAPI": {
+      "type": "service",
+      "location": "services"
     }
+  },
+  "description": {
+    "title": "DAVVAG Tools",
+    "author": "Davvag",
+    "version": "1.0",
+    "icon": "davvag-tools-icon.png"
+  },
+  "tags": [
+    "showincms",
+    "showindock"
+  ],
+  "configuration": {
+    "webdock": {
+      "onLoad": [
+        "viewObjectAPI"
+      ],
+      "routes": {
+        "partials": {
+          "/viewObject": "viewObject"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "apps": [],
+    "schemas": [
+      "user_object",
+      "user_view_objects",
+      "usergroups",
+      "users"
+    ],
+    "workflows": [],
+    "plugins": [
+      "auth",
+      "phpcache",
+      "sossdata"
+    ],
+    "php-extensions": []
+  }
 }

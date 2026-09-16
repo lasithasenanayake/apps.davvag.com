@@ -1,0 +1,70 @@
+{
+  "name": "marketplace-api",
+  "version": "0.1.0",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "lesson_market_place\\MarketplaceApi",
+    "methods": {
+      "Catalog": {
+        "method": "POST"
+      },
+      "Package": {
+        "method": "POST"
+      },
+      "RequestEnrolment": {
+        "method": "POST"
+      },
+      "ConfirmEnrolment": {
+        "method": "POST"
+      },
+      "CancelEnrolment": {
+        "method": "POST"
+      },
+      "DecideEnrolment": {
+        "method": "POST"
+      },
+      "MyEnrolments": {
+        "method": "POST"
+      },
+      "AdminEnrolments": {
+        "method": "POST"
+      },
+      "AdminPackages": {
+        "method": "POST"
+      },
+      "AdminPackage": {
+        "method": "POST"
+      },
+      "SavePackage": {
+        "method": "POST"
+      },
+      "PublishPackage": {
+        "method": "POST"
+      },
+      "SetPackageStatus": {
+        "method": "POST"
+      },
+      "Lookups": {
+        "method": "POST"
+      },
+      "CreateProduct": {
+        "method": "POST"
+      },
+      "CmsPages": {
+        "method": "POST"
+      },
+      "PlaceOnPage": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

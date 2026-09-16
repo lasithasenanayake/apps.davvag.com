@@ -1,1 +1,54 @@
-{"name":"credit-api","description":"Authenticated Credit Points self-service API","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"}]},"serviceHandler":{"file":"service.php","class":"davvag_credit_points\\CreditApiService","methods":{"Bootstrap":{"method":"POST"},"Balance":{"method":"POST"},"Transactions":{"method":"POST"},"Packages":{"method":"POST"},"CreatePurchase":{"method":"POST"},"PurchaseStatus":{"method":"POST"},"RewardStatus":{"method":"POST"},"ClaimReward":{"method":"POST"},"RedeemCoupon":{"method":"POST"}}},"transformers":{}}
+{
+  "name": "credit-api",
+  "description": "Authenticated Credit Points self-service API",
+  "author": "DAVVAG",
+  "version": "1.5",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_credit_points\\CreditApiService",
+    "methods": {
+      "Bootstrap": {
+        "method": "POST"
+      },
+      "Balance": {
+        "method": "POST"
+      },
+      "Transactions": {
+        "method": "POST"
+      },
+      "Packages": {
+        "method": "POST"
+      },
+      "CreatePurchase": {
+        "method": "POST"
+      },
+      "PurchaseStatus": {
+        "method": "POST"
+      },
+      "RewardStatus": {
+        "method": "POST"
+      },
+      "ClaimReward": {
+        "method": "POST"
+      },
+      "RedeemCoupon": {
+        "method": "POST"
+      },
+      "StartCheckout": {
+        "method": "POST"
+      },
+      "ReconcileCheckouts": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

@@ -1,0 +1,128 @@
+{
+  "components": {
+    "catalog": {
+      "type": "component",
+      "location": "components"
+    },
+    "package-card": {
+      "type": "component",
+      "location": "components"
+    },
+    "my-enrolments": {
+      "type": "component",
+      "location": "components"
+    },
+    "admin-packages": {
+      "type": "component",
+      "location": "components"
+    },
+    "package-editor": {
+      "type": "component",
+      "location": "components"
+    },
+    "admin-enrolments": {
+      "type": "component",
+      "location": "components"
+    },
+    "marketplace-style": {
+      "type": "component",
+      "location": "components"
+    },
+    "marketplace-api": {
+      "type": "service",
+      "location": "services"
+    }
+  },
+  "description": {
+    "title": "Lesson Marketplace",
+    "author": "DAVVAG",
+    "version": "0.1.0",
+    "icon": "appicon.svg"
+  },
+  "tags": [
+    "showincms",
+    "showindock"
+  ],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "catalog",
+      "onLoad": [
+        "marketplace-style",
+        "marketplace-api"
+      ],
+      "routes": {
+        "partials": {
+          "/": "catalog",
+          "/package": "package-card",
+          "/my-enrolments": "my-enrolments",
+          "/admin/packages": "admin-packages",
+          "/admin/package": "package-editor",
+          "/admin/enrolments": "admin-enrolments"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {
+          "name": "Catalog",
+          "path": "#/app/lesson-market-place/"
+        },
+        {
+          "name": "My enrolments",
+          "path": "#/app/lesson-market-place/my-enrolments"
+        },
+        {
+          "name": "Manage packages",
+          "path": "#/app/lesson-market-place/admin/packages"
+        },
+        {
+          "name": "Review requests",
+          "path": "#/app/lesson-market-place/admin/enrolments"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": [
+      "lesson-manager",
+      "davvag-credit-points",
+      "course-manager",
+      "productapp",
+      "davvag-tools",
+      "davvag-cms-v7",
+      "davvag-cms-v7-setting",
+      "currency-configuration",
+      "userapp"
+    ],
+    "schemas": [
+      "lmp_package",
+      "lmp_version",
+      "lmp_version_lesson",
+      "lmp_enrolment",
+      "lmp_attempt",
+      "lmp_grant",
+      "lmp_operation",
+      "lmp_audit",
+      "products",
+      "profile",
+      "lesson_manager_lesson",
+      "course_manager_course",
+      "course_manager_subject",
+      "course_manager_notification",
+      "davvag_credit_program",
+      "davvag_credit_lesson_unlock"
+    ],
+    "workflows": [],
+    "plugins": [
+      "sossdata",
+      "auth",
+      "profile",
+      "protected-media"
+    ],
+    "php-extensions": [
+      "mysqli",
+      "dom",
+      "json"
+    ]
+  }
+}

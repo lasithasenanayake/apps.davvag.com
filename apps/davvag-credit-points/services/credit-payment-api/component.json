@@ -1,1 +1,27 @@
-{"name":"credit-payment-api","description":"Signed payment completion boundary","author":"DAVVAG","version":"1.0","resources":{"files":[{"type":"mainScript","location":"script.js"}]},"serviceHandler":{"file":"service.php","class":"davvag_credit_points\\CreditPaymentApiService","methods":{"Complete":{"method":"POST"},"Status":{"method":"POST"}}},"transformers":{}}
+{
+  "name": "credit-payment-api",
+  "description": "Signed payment completion boundary",
+  "author": "DAVVAG",
+  "version": "1.5",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_credit_points\\CreditPaymentApiService",
+    "methods": {
+      "Complete": {
+        "method": "POST"
+      },
+      "Status": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

@@ -1,105 +1,106 @@
 {
-    "fields": [
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "class_grade_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "subject_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "title",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 255,
+        "encoding": "utf8"
+      }
+    },
+    {
+      "fieldName": "description",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 5000,
+        "encoding": "utf8"
+      }
+    },
+    {
+      "fieldName": "due_at",
+      "dataType": "java.util.Date"
+    },
+    {
+      "fieldName": "max_mark",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "8,2"
+      }
+    },
+    {
+      "fieldName": "late_penalty_per_day",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "5,2"
+      }
+    },
+    {
+      "fieldName": "status",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 50,
+        "default": "draft"
+      }
+    },
+    {
+      "fieldName": "created_by",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date"
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "course_manager_assignment_classgrade",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_classgrade",
+      "joinColumns": [
         {
-            "fieldName": "id",
-            "dataType": "int",
-            "annotations": {
-                "isPrimary": true,
-                "autoIncrement": true
-            }
-        },
-        {
-            "fieldName": "class_grade_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "subject_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "title",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 255,
-                "encoding": "utf8"
-            }
-        },
-        {
-            "fieldName": "description",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 5000,
-                "encoding": "utf8"
-            }
-        },
-        {
-            "fieldName": "due_at",
-            "dataType": "java.util.Date"
-        },
-        {
-            "fieldName": "max_mark",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "8,2"
-            }
-        },
-        {
-            "fieldName": "late_penalty_per_day",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "5,2"
-            }
-        },
-        {
-            "fieldName": "status",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 50,
-                "default": "draft"
-            }
-        },
-        {
-            "fieldName": "created_by",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "created_at",
-            "dataType": "java.util.Date"
+          "sourceColumn": "class_grade_id",
+          "targetColumn": "id"
         }
-    ],
-    "relations": [
+      ]
+    },
+    {
+      "relationName": "course_manager_assignment_subject",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_subject",
+      "joinColumns": [
         {
-            "relationName": "course_manager_assignment_classgrade",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_classgrade",
-            "joinColumns": [
-                {
-                    "sourceColumn": "class_grade_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_assignment_subject",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_subject",
-            "joinColumns": [
-                {
-                    "sourceColumn": "subject_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_assignment_created_by_profile",
-            "relationType": "many-to-one",
-            "targetEntity": "profile",
-            "joinColumns": [
-                {
-                    "sourceColumn": "created_by",
-                    "targetColumn": "id"
-                }
-            ]
+          "sourceColumn": "subject_id",
+          "targetColumn": "id"
         }
-    ]
+      ]
+    },
+    {
+      "relationName": "course_manager_assignment_created_by_profile",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "created_by",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ],
+  "serviceOnly": true
 }

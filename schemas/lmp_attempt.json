@@ -1,0 +1,135 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "enrolment_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "attempt_number",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "version_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "snapshot_json",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2048,
+        "encoding": "utf8mb4"
+      }
+    },
+    {
+      "fieldName": "status",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 30
+      }
+    },
+    {
+      "fieldName": "transaction_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "decision_by",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "decision_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    },
+    {
+      "fieldName": "decision_reason",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2000
+      }
+    },
+    {
+      "fieldName": "internal_note",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 4000
+      }
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    },
+    {
+      "fieldName": "updated_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_lmp_attempt",
+      "unique": true,
+      "columns": [
+        "enrolment_id",
+        "attempt_number"
+      ]
+    },
+    {
+      "name": "idx_lmp_review",
+      "unique": false,
+      "columns": [
+        "status",
+        "created_at"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_attempt_enrolment_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_enrolment",
+      "joinColumns": [
+        {
+          "sourceColumn": "enrolment_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_attempt_version_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_version",
+      "joinColumns": [
+        {
+          "sourceColumn": "version_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_attempt_transaction_id",
+      "relationType": "many-to-one",
+      "targetEntity": "davvag_credit_transaction",
+      "joinColumns": [
+        {
+          "sourceColumn": "transaction_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

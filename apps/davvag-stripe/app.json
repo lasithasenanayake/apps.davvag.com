@@ -1,54 +1,56 @@
 {
-    "components": {
-        "charge-form": {
-            "type": "component",
-            "location": "apps"
-        },
-        "register-stripe": {
-            "type": "component",
-            "location": "apps"
-        },
-        "app-handler": {
-            "type": "service",
-            "location": "service"
-        }
+  "components": {
+    "charge-form": {
+      "type": "component",
+      "location": "apps"
     },
-    "description": {
-        "title": "Strip Payment Gatway App",
-        "author": "Davvag",
-        "version": "0.1",
-        "icon": "appicon.png"
+    "register-stripe": {
+      "type": "component",
+      "location": "apps"
     },
-    "tags": [
-        "showincms"
-    ],
-    "configuration": {
-        "webdock": {
-            "startupComponent": "charge-form",
-            "onLoad": [
-                "app-handler"
-            ],
-            "routes": {
-                "partials": {
-                    "/mapstripe": "register-stripe"
-                }
-            }
-        }
-    },
-    "dependencies": {
-        "apps": ["currency-configuration"],
-        "schemas": [
-            "currency_configuration",
-            "davvag_stripe"
-        ],
-        "workflows": [],
-        "plugins": [
-            "davvag-ipg",
-            "davvag-order",
-            "profile",
-            "sossdata",
-            "stripe"
-        ],
-        "php-extensions": []
+    "app-handler": {
+      "type": "service",
+      "location": "service"
     }
+  },
+  "description": {
+    "title": "Strip Payment Gatway App",
+    "author": "Davvag",
+    "version": "0.7",
+    "icon": "appicon.png"
+  },
+  "tags": [
+    "showincms"
+  ],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "charge-form",
+      "onLoad": [
+        "app-handler"
+      ],
+      "routes": {
+        "partials": {
+          "/mapstripe": "register-stripe"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "apps": [
+      "currency-configuration"
+    ],
+    "schemas": [
+      "currency_configuration",
+      "davvag_stripe"
+    ],
+    "workflows": [],
+    "plugins": [
+      "davvag-ipg",
+      "davvag-order",
+      "profile",
+      "sossdata",
+      "stripe"
+    ],
+    "php-extensions": []
+  }
 }

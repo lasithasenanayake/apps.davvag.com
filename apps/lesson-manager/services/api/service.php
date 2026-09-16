@@ -3,8 +3,8 @@ namespace lesson_manager;
 
 if (defined("PLUGIN_PATH")) {
     if (file_exists(PLUGIN_PATH . "/sossdata/SOSSData.php")) require_once(PLUGIN_PATH . "/sossdata/SOSSData.php");
-    if (file_exists(PLUGIN_PATH . "/auth/auth.php")) require_once(PLUGIN_PATH . "/auth/auth.php");
-    if (defined("PLUGIN_PATH_LOCAL") && file_exists(PLUGIN_PATH_LOCAL . "/profile/profile.php")) require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
+    if (!class_exists("Auth") && file_exists(PLUGIN_PATH . "/auth/auth.php")) require_once(PLUGIN_PATH . "/auth/auth.php");
+    if (!class_exists("Profile") && defined("PLUGIN_PATH_LOCAL") && file_exists(PLUGIN_PATH_LOCAL . "/profile/profile.php")) require_once(PLUGIN_PATH_LOCAL . "/profile/profile.php");
     if (file_exists(PLUGIN_PATH . "/davvag-flow/flow.php")) require_once(PLUGIN_PATH . "/davvag-flow/flow.php");
 }
 if (defined("TENANT_RESOURCE_LOCATION") && file_exists(TENANT_RESOURCE_LOCATION . "/apps/davvag-credit-points/lib/CreditLedgerService.php")) require_once(TENANT_RESOURCE_LOCATION . "/apps/davvag-credit-points/lib/CreditLedgerService.php");
@@ -60,7 +60,12 @@ class LessonRules {
     }
 }
 
+require_once dirname(__DIR__,2) . '/lib/LessonAccess.php';
+
 class ApiService {
+    private $accessResolver;
+    private function access() { if (!$this->accessResolver) $this->accessResolver=new LessonAccess(); return $this->accessResolver; }
+    private function canAccessLesson($lesson,$studentId) { return $lesson && ($this->isTeacher() ? $this->canManageLesson($lesson) : $this->access()->eligible($lesson,$studentId)); }
     private $lessonNs = "lesson_manager_lesson";
     private $contentNs = "lesson_manager_content";
     private $assetNs = "lesson_manager_asset";
@@ -343,7 +348,7 @@ class ApiService {
         if (!$this->isTeacher()) {
             if (empty($body->quiz_id)) return $this->error($res, "quiz_id is required.");
             $quiz = $this->byId($this->quizNs, $body->quiz_id); $lesson = $quiz ? $this->byId($this->lessonNs, $quiz->lesson_id) : null; $student = $this->currentProfile();
-            if (!$quiz || strtolower($quiz->status) !== "published" || !$lesson || !$this->canAccessCourse($lesson->course_id, $student->id) || !$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Quiz access denied.");
+            if (!$quiz || strtolower($quiz->status) !== "published" || !$lesson || !$this->canAccessLesson($lesson, $student->id) || !$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Quiz access denied.");
         }
         $rows = $this->visibleRows($this->listObject($body, $this->questionNs, array("id","quiz_id","question_type","difficulty","status"), array("question_text","explanation"), "asc"),$body);
         if ($this->isTeacher()) return $this->filterManagedQuestionRows($rows);
@@ -395,10 +400,11 @@ class ApiService {
             if ($this->isDeleted($lesson)) continue;
             if (isset($lesson->status) && strtolower($lesson->status) !== "published" && !$this->isTeacher()) continue;
             if (empty($lesson->subject_id)) continue;
+            if (!$this->canAccessLesson($lesson,$student->id)) continue;
             if ($activeSubjectId === null || strval($activeSubjectId) !== strval($lesson->subject_id)) { $activeSubjectId = $lesson->subject_id; $previousMet = true; }
             $p = isset($progressMap[strval($lesson->id)]) ? $progressMap[strval($lesson->id)] : null;
-            $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time();$progressionUnlocked=$previousMet&&$available;$paidUnlocked=$this->hasPaidLessonAccess($lesson,$student->id); $unlocked = $this->isTeacher() || ($progressionUnlocked && $paidUnlocked);
-            $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$previousMet) $reason = "Complete the previous lesson requirements.";elseif(!$paidUnlocked)$reason="Unlock for ".intval($lesson->required_credit_points)." credits.";
+            $available = empty($lesson->available_at) || strtotime($lesson->available_at) <= time();$progressionUnlocked=$this->progressionUnlockedFor($lesson,$student->id);$paidUnlocked=$this->hasPaidLessonAccess($lesson,$student->id); $unlocked = $this->isTeacher() || ($progressionUnlocked && $paidUnlocked);
+            $reason = ""; if (!$available) $reason = "Available on " . $lesson->available_at; elseif (!$progressionUnlocked) $reason = "Complete the previous lesson requirements.";elseif(!$paidUnlocked)$reason="Unlock for ".intval($lesson->required_credit_points)." credits.";
             $entry = clone $lesson; $entry->subject = isset($subjects[strval($lesson->subject_id)]) ? $subjects[strval($lesson->subject_id)] : null; $entry->progress = $p; $entry->unlocked = $unlocked; $entry->progression_unlocked=$progressionUnlocked;$entry->credit_locked=!$this->isTeacher()&&$progressionUnlocked&&!$paidUnlocked;$entry->lock_reason = $reason;
             $entry->content = $unlocked ? $this->safeContentRows($this->publishedRows($this->contentNs, "lesson_id:" . intval($lesson->id))) : array();
             $entry->videos = $unlocked ? $this->safeVideoRows($this->publishedRows($this->videoNs, "lesson_id:" . intval($lesson->id))) : array();
@@ -412,8 +418,9 @@ class ApiService {
     public function postStartLesson($req, $res) {
         $body=$this->body($req);$lesson=!empty($body->lesson_id)?$this->byId($this->lessonNs,$body->lesson_id):null;$student=$this->requestedStudent($body);
         if(!$lesson||$this->isDeleted($lesson)||!$this->validProfile($student))return$this->error($res,"A valid active lesson and learner profile are required.");
-        if(!$this->canAccessCourse($lesson->course_id,$student->id)||!$this->progressionUnlockedFor($lesson,$student->id))return$this->error($res,"Complete the previous lesson requirements before opening this lesson.");
+        if(!$this->canAccessLesson($lesson,$student->id)||!$this->progressionUnlockedFor($lesson,$student->id))return$this->error($res,"Complete the previous lesson requirements before opening this lesson.");
         if(!$this->isTeacher()&&!$this->hasPaidLessonAccess($lesson,$student->id)){try{$this->creditLedger()->unlockLesson($student->id,$lesson->id,intval($lesson->required_credit_points),array("description"=>"Unlock lesson: ".strval($lesson->title)));}catch(\Throwable$e){return$this->error($res,$e->getMessage());}}
+        $this->accessResolver=null;
         return $this->touchProgress($body,"viewed",$res);
     }
     public function postCompleteActivity($req, $res) {
@@ -426,7 +433,7 @@ class ApiService {
         $body=$this->body($req);if(empty($body->quiz_id))return $this->error($res,"quiz_id is required.");
         $quiz=$this->byId($this->quizNs,$body->quiz_id);if(!$quiz||strtolower(isset($quiz->status)?$quiz->status:"")!=="published")return $this->error($res,"Quiz is not available.");
         $lesson=$this->byId($this->lessonNs,$quiz->lesson_id);$student=$this->requestedStudent($body);if(!$lesson||!$this->validProfile($student))return $this->error($res,"An active learner profile is required.");
-        if(!$this->canAccessCourse($lesson->course_id,$student->id)||!$this->lessonUnlockedFor($lesson,$student->id))return $this->error($res,"Complete the previous lesson requirements before opening this quiz.");
+        if(!$this->canAccessLesson($lesson,$student->id)||!$this->lessonUnlockedFor($lesson,$student->id))return $this->error($res,"Complete the previous lesson requirements before opening this quiz.");
         $attempts=$this->rows($this->attemptNs,"quiz_id:".intval($quiz->id).",student_id:".intval($student->id),"desc");$active=null;foreach($attempts as $existing){if(isset($existing->status)&&$existing->status==="in_progress"){$limit=intval(isset($quiz->time_limit_minutes)?$quiz->time_limit_minutes:0);if($limit<=0||strtotime($existing->started_at)+($limit*60)>=time()){$active=$existing;break;}$existing->status="timed_out";$existing->completed_at=date("Y-m-d H:i:s");$this->persist($this->attemptNs,$existing,$res);}}
         if(!$active){if(intval(isset($quiz->attempt_limit)?$quiz->attempt_limit:0)>0&&count($attempts)>=intval($quiz->attempt_limit))return $this->error($res,"Attempt limit reached.");$active=new \stdClass();$active->quiz_id=$quiz->id;$active->lesson_id=$lesson->id;$active->course_id=$lesson->course_id;$active->student_id=$student->id;$active->student_name=$student->name;$active->attempt_number=count($attempts)+1;$active->answers=new \stdClass();$active->marks=0;$active->max_mark=$this->quizMaxMark($quiz->id);$active->percentage=0;$active->passed="false";$active->status="in_progress";$active->started_at=date("Y-m-d H:i:s");$active=$this->persist($this->attemptNs,$active,$res);}
         $progress=$this->progress($lesson->course_id,$lesson->id,$student);$progress->quiz_started="true";if(empty($progress->quiz_started_at))$progress->quiz_started_at=date("Y-m-d H:i:s");$this->finishProgress($lesson,$progress,$res);
@@ -437,7 +444,7 @@ class ApiService {
         $body = $this->body($req); if (empty($body->quiz_id)||empty($body->attempt_id)) return $this->error($res, "quiz_id and attempt_id are required.");
         $quiz = $this->byId($this->quizNs, $body->quiz_id); if (!$quiz || strtolower($quiz->status) !== "published") return $this->error($res, "Quiz is not available.");
         $lesson = $this->byId($this->lessonNs, $quiz->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found.");
-        $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied.");
+        $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessLesson($lesson, $student->id)) return $this->error($res, "Course access denied.");
         if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements before opening this quiz.");
         $attempt=$this->byId($this->attemptNs,$body->attempt_id);if(!$attempt||strval($attempt->quiz_id)!==strval($quiz->id)||strval($attempt->student_id)!==strval($student->id)||strtolower(isset($attempt->status)?$attempt->status:"")!=="in_progress")return $this->error($res,"The active quiz attempt is invalid or already submitted.");
         $timeLimit=intval(isset($quiz->time_limit_minutes)?$quiz->time_limit_minutes:0);if($timeLimit>0&&strtotime($attempt->started_at)+($timeLimit*60)<time()){$attempt->status="timed_out";$attempt->completed_at=date("Y-m-d H:i:s");$this->persist($this->attemptNs,$attempt,$res);return $this->error($res,"The quiz time limit has expired.");}
@@ -458,7 +465,7 @@ class ApiService {
     public function postOverrideLesson($req, $res) {
         if (!$this->requireTeacher($res)) return null; $body = $this->body($req); if (empty($body->lesson_id) || empty($body->student_id)) return $this->error($res, "Lesson and student are required.");
         $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson) return $this->error($res, "Lesson not found.");
-        $student = $this->profile($body->student_id); $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->override_unlocked = "true"; $progress->teacher_approved = "true"; return $this->finishProgress($lesson, $progress, $res);
+        if(!$this->canManageLesson($lesson))return $this->error($res,"Lesson is outside your teaching scope.");$student = $this->profile($body->student_id); $progress = $this->progress($lesson->course_id, $lesson->id, $student); $progress->override_unlocked = "true"; $progress->teacher_approved = "true"; return $this->finishProgress($lesson, $progress, $res);
     }
 
     public function postListAssignmentRules($req, $res) { if(!$this->requireTeacher($res))return null;$body=$this->body($req);return $this->filterManagedChildren($this->visibleRows($this->listObject($body,$this->ruleNs,array("id","lesson_id","assignment_id","status"),array("allowed_formats"),"desc"),$body),"lesson_id"); }
@@ -473,7 +480,7 @@ class ApiService {
     public function postSubmitAssignment($req, $res) {
         $body = $this->body($req); if (empty($body->assignment_id) || empty($body->lesson_id)) return $this->error($res, "Assignment and lesson are required."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id);
         if (!$lesson || $this->isDeleted($lesson)) return $this->error($res, "Active lesson not found.");
-        if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied.");
+        if (!$this->canAccessLesson($lesson, $student->id)) return $this->error($res, "Course access denied.");
         if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements before submitting this assignment.");
         $assignment=$this->byId($this->assignmentNs,$body->assignment_id);$rule=$this->findOne($this->ruleNs,"lesson_id:".intval($lesson->id).",assignment_id:".intval($body->assignment_id));if(!$assignment||!$rule||$this->isDeleted($rule)||strval($assignment->subject_id)!==strval($lesson->subject_id))return $this->error($res,"This assignment is not linked to the selected lesson.");if(isset($assignment->status)&&strtolower($assignment->status)!=="published")return $this->error($res,"Assignment is not available.");
         $existing = $this->rows($this->submissionNs, "assignment_id:" . intval($body->assignment_id) . ",lesson_id:".intval($lesson->id).",student_id:" . intval($student->id), "desc");
@@ -528,6 +535,29 @@ class ApiService {
         $content = new \stdClass(); $content->lesson_id = $lesson->id; $content->content_type = "article"; $content->title = "Getting started"; $content->body = "Welcome. Read this introduction, explore the resources, and mark the lesson as read when you are ready to continue."; $content->sort_order = 1; $content->is_required = "true"; $content->status = "published"; $this->persist($this->contentNs, $content, $res); return $this->postDashboard($req, $res);
     }
 
+
+    public function canReadMedia($store,$name,$profile) {
+        $suffix='/soss-uploader/service/get/'.$store.'/'.$name;
+        $matches=function($value)use($suffix){$text=is_string($value)?$value:json_encode($value,JSON_UNESCAPED_SLASHES);return preg_match('~'.preg_quote($suffix,'~').'(?=["\'\s<)>]|$)~',$text)===1;};
+        if($store==='lesson_assignment_submission') {
+            foreach($this->rows($this->submissionNs,'','desc') as $submission) {
+                if(!$matches($submission->files ?? []) && !$matches($submission->file_url ?? ''))continue;
+                $lesson=$this->byId($this->lessonNs,$submission->lesson_id ?? 0);
+                if($lesson && (($this->isTeacher() && $this->canManageLesson($lesson)) || ((int)$submission->student_id===(int)$profile && $this->lessonUnlockedFor($lesson,$profile))))return true;
+            }
+            return false;
+        }
+        foreach([$this->contentNs,$this->videoNs,$this->ruleNs] as $ns) foreach($this->rows($ns,'','desc') as $material) {
+            if($this->isDeleted($material))continue;
+            if(!$this->isTeacher() && isset($material->status) && !in_array(strtolower($material->status),['published','active'],true))continue;
+            $found=false;foreach(['url','embed_url','body','media_reference','video_url','supporting_files'] as $field)if(isset($material->$field) && $matches($material->$field))$found=true;
+            if(!$found)continue;$lesson=$this->byId($this->lessonNs,$material->lesson_id);
+            if($lesson && $this->lessonUnlockedFor($lesson,$profile))return true;
+        }
+        if($this->isTeacher() && $store==='lesson_manager_assets') foreach($this->rows($this->assetNs,'','desc') as $asset)if($matches($asset->media_reference ?? '') && ($this->isAdmin() || (int)($asset->created_by ?? 0)===(int)$profile))return true;
+        return false;
+    }
+
     private function studentCourses($body,$res=null) {
         $student = $this->requestedStudent($body); $out = array();
         if(!$this->validProfile($student)){if($res)$res->SetError("An active profile is required.");return array();}
@@ -537,12 +567,17 @@ class ApiService {
         }
         $enrollments = $this->rows($this->enrollmentNs, "student_id:" . intval($student->id), "desc"); $seen = array();
         foreach ($enrollments as $enrollment) { if (!$this->isActiveEnrollment($enrollment)) continue; $courseId = $this->courseIdForEnrollment($enrollment); if ($courseId <= 0 || isset($seen[strval($courseId)])) continue;if($this->isTeacher()&&!$this->canManageCourse($courseId))continue; $seen[strval($courseId)] = true; $course = $this->byId($this->courseNs, $courseId); if (!$course) continue; $out[] = $this->courseLearningSummary($course, $student, $enrollment); }
+        foreach ($this->access()->courseIds($student->id) as $courseId) {
+            if (isset($seen[(string)$courseId])) continue;
+            $course=$this->byId($this->courseNs,$courseId);
+            if ($course) $out[]=$this->courseLearningSummary($course,$student,null);
+        }
         return $out;
     }
 
     private function courseLearningSummary($course, $student, $enrollment) {
         $courseLessons = $this->publishedRows($this->lessonNs, "course_id:" . intval($course->id)); $lessons = array();
-        foreach ($courseLessons as $courseLesson) if (!empty($courseLesson->subject_id)) $lessons[] = $courseLesson;
+        foreach ($courseLessons as $courseLesson) if (!empty($courseLesson->subject_id) && $this->canAccessLesson($courseLesson,$student->id)) $lessons[] = $courseLesson;
         usort($lessons, array($this, "sortLessonsBySubject"));
         $progress = $this->rows($this->progressNs, "course_id:" . intval($course->id) . ",student_id:" . intval($student->id), "asc");
         $completed = 0; $quizPending = 0; $assignmentPending = 0; $current = null;
@@ -552,7 +587,7 @@ class ApiService {
         $item = clone $course; $item->enrollment = $enrollment;$item->student_id=isset($student->id)?$student->id:0;$item->student_name=isset($student->name)?$student->name:"Unknown learner"; $item->completion_percentage = LessonRules::completionPercent($completed, count($lessons)); $item->completed_lessons = $completed; $item->total_lessons = count($lessons); $item->current_lesson = $current; $item->pending_quizzes = $quizPending; $item->pending_assignments = $assignmentPending; $item->total_marks = $earned;$item->teacher_names=array_keys($teacherNames); $item->course_status = count($lessons)>0 && $completed===count($lessons)?"completed":($completed>0?"in_progress":"not_started"); return $item;
     }
 
-    private function touchProgress($body, $activity, $res) { if (empty($body->lesson_id)) return $this->error($res, "lesson_id is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson||$this->isDeleted($lesson)) return $this->error($res, "Active lesson not found."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessCourse($lesson->course_id, $student->id)) return $this->error($res, "Course access denied."); if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements first."); $progress = $this->progress($lesson->course_id, $lesson->id, $student); if ($activity === "viewed") { if (empty($progress->started_at)) $progress->started_at = date("Y-m-d H:i:s"); $progress->last_viewed_at = date("Y-m-d H:i:s"); } else $progress->{$activity} = "true"; return $this->finishProgress($lesson, $progress, $res); }
+    private function touchProgress($body, $activity, $res) { if (empty($body->lesson_id)) return $this->error($res, "lesson_id is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson||$this->isDeleted($lesson)) return $this->error($res, "Active lesson not found."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessLesson($lesson, $student->id)) return $this->error($res, "Course access denied."); if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements first."); $progress = $this->progress($lesson->course_id, $lesson->id, $student); if ($activity === "viewed") { if (empty($progress->started_at)) $progress->started_at = date("Y-m-d H:i:s"); $progress->last_viewed_at = date("Y-m-d H:i:s"); } else $progress->{$activity} = "true"; return $this->finishProgress($lesson, $progress, $res); }
     private function progress($courseId, $lessonId, $student) { $p = $this->findOne($this->progressNs, "lesson_id:" . intval($lessonId) . ",student_id:" . intval($student->id)); if ($p) return $p; $p = new \stdClass(); $p->course_id=$courseId; $p->lesson_id=$lessonId; $p->student_id=$student->id; $p->student_name=$student->name; $p->quiz_attempts=0; return $p; }
     private function finishProgress($lesson, $progress, $res) { $complete = LessonRules::requirementsMet($lesson, $progress); $wasComplete = LessonRules::truthy(isset($progress->lesson_completed)?$progress->lesson_completed:false); $progress->lesson_completed = $complete ? "true" : "false"; if ($complete && empty($progress->completed_at)) $progress->completed_at = date("Y-m-d H:i:s");if($complete&&!$wasComplete)$progress->next_unlocked_at=date("Y-m-d H:i:s"); $saved = $this->persist($this->progressNs, $progress, $res); if ($complete && !$wasComplete){$student=$this->profile($progress->student_id);$this->queueNotification($student, "next-lesson-unlocked", "Lesson completed. Your next lesson is now available.", "lesson", $lesson->id);if($this->courseCompletedFor($lesson->course_id,$progress->student_id))$this->queueNotification($student,"course-completed","Course completed.","course",$lesson->course_id);} return $saved; }
     private function saveQuizMark($quiz,$lesson,$student,$attempt,$res) { $mark = $this->findOne($this->markNs, "assessment_id:" . intval(isset($quiz->assessment_id)?$quiz->assessment_id:0) . ",student_id:" . intval($student->id)); if (!$mark) $mark = new \stdClass(); $mark->assessment_id=isset($quiz->assessment_id)?$quiz->assessment_id:0; $mark->assignment_id=0; $mark->submission_id=0; $mark->class_grade_id=0; $mark->subject_id=isset($lesson->subject_id)?$lesson->subject_id:0; $mark->student_id=$student->id; $mark->student_name=$student->name; $mark->marks=$attempt->marks; $mark->max_mark=$attempt->max_mark; $mark->weight=0; $mark->graded_by=0; $mark->graded_at=date("Y-m-d H:i:s"); $mark->note="Lesson quiz attempt " . $attempt->attempt_number; $this->persist($this->markNs,$mark,$res); }
@@ -561,8 +596,8 @@ class ApiService {
     private function teacherSave($req,$res,$ns,$required,$message) { if (!$this->requireTeacher($res)) return null; $item=$this->body($req); foreach($required as $field) if(empty($item->{$field})) return $this->error($res,$message); return $this->persist($ns,$item,$res); }
     private function listBody($req,$ns,$fields,$search,$sorting) { return $this->listObject($this->body($req),$ns,$fields,$search,$sorting); }
     private function listObject($body,$ns,$fields,$search,$sorting) { $parts=array(); foreach($fields as $field) if(isset($body->{$field}) && $body->{$field}!=="" && $body->{$field}!==null) $parts[]=$field.":".$this->clean($body->{$field}); $rows=$this->rows($ns,implode(",",$parts),$sorting); if(!isset($body->search)||trim($body->search)==="") return $rows; $needle=strtolower(trim($body->search)); $out=array(); foreach($rows as $row) foreach($search as $field) if(isset($row->{$field}) && strpos(strtolower($this->plainText($row->{$field})),$needle)!==false){$out[]=$row;break;} return $out; }
-    private function rows($ns,$query,$sorting="desc") { $result=\SOSSData::Query($ns,$query,null,$sorting,2000,0); return $result->success?$result->result:array(); }
-    private function persist($ns,$item,$res) { $update=isset($item->id)&&intval($item->id)>0; $result=$update?\SOSSData::Update($ns,$item):\SOSSData::Insert($ns,$item); if(!$result->success){$res->SetError(isset($result->message)?$result->message:"Save failed.");return null;} if(!$update&&isset($result->result->generatedId))$item->id=$result->result->generatedId; return $item; }
+    private function rows($ns,$query,$sorting="desc") { $result=\SOSSData::WithServiceNamespaces([$ns],function()use($ns,$query,$sorting){return \SOSSData::Query($ns,$query,null,$sorting,2000,0);}); return $result->success?$result->result:array(); }
+    private function persist($ns,$item,$res) { $update=isset($item->id)&&intval($item->id)>0; $result=\SOSSData::WithServiceNamespaces([$ns],function()use($update,$ns,$item){return $update?\SOSSData::Update($ns,$item):\SOSSData::Insert($ns,$item);}); if(!$result->success){$res->SetError(isset($result->message)?$result->message:"Save failed.");return null;} if(!$update&&isset($result->result->generatedId))$item->id=$result->result->generatedId; return $item; }
     private function softDelete($ns,$item,$res){if(!$this->requireTeacher($res))return null;if(empty($item->id))return $this->error($res,"id is required.");if($this->isDeleted($item))return $item;$item->status="deleted";return $this->persist($ns,$item,$res);}
     private function restore($ns,$item,$status,$res){if(!$this->requireTeacher($res))return null;if(empty($item->id)||!$this->isDeleted($item))return $this->error($res,"A deleted record is required.");$item->status=$status;return $this->persist($ns,$item,$res);}
     private function body($req){$data=$req->Body(true);return isset($data)?$data:new \stdClass();}
@@ -646,7 +681,7 @@ class ApiService {
 
     private function studentQuestionRows($quiz){$rows=$this->withoutDeleted($this->rows($this->questionNs,"quiz_id:".intval($quiz->id),"asc"));if(LessonRules::truthy(isset($quiz->random_questions)?$quiz->random_questions:false))shuffle($rows);foreach($rows as $row){if(LessonRules::truthy(isset($quiz->random_answers)?$quiz->random_answers:false)&&isset($row->options)&&is_array($row->options))shuffle($row->options);unset($row->correct_answer);unset($row->explanation);unset($row->negative_marks);}return $rows;}
 
-    private function validatedSubmissionFiles($files,$rule,$res){if(is_object($files))$files=get_object_vars($files);if(!is_array($files))return $this->error($res,"Uploaded files are invalid.");$allowed=array_filter(array_map('trim',explode(',',strtolower(strval(isset($rule->allowed_formats)?$rule->allowed_formats:"")))));$max=max(1,intval(isset($rule->max_file_size_mb)?$rule->max_file_size_mb:10))*1048576;$out=array();foreach($files as $file){if(is_array($file))$file=(object)$file;if(!is_object($file)||empty($file->media_reference)||empty($file->name))return $this->error($res,"Every upload requires a valid media reference and original name.");$reference=trim($file->media_reference);if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_assignment_submission/([A-Za-z0-9._-]+)$#',$reference,$match))return $this->error($res,"An uploaded file reference is invalid.");$extension=strtolower(pathinfo($file->name,PATHINFO_EXTENSION));if(!in_array($extension,$allowed,true))return $this->error($res,"File type .".$extension." is not allowed.");$path=$this->uploadedMediaPath("lesson_assignment_submission",$match[2]);if(!$path||!file_exists($path))return $this->error($res,"An uploaded file could not be verified.");$size=filesize($path);if($size>$max)return $this->error($res,"An uploaded file exceeds the maximum size.");$mime=function_exists('mime_content_type')?mime_content_type($path):"application/octet-stream";$entry=new \stdClass();$entry->name=basename($file->name);$entry->media_reference=$reference;$entry->mime_type=$mime;$entry->size_bytes=$size;$out[]=$entry;}return $out;}
+    private function validatedSubmissionFiles($files,$rule,$res){if(is_object($files))$files=get_object_vars($files);if(!is_array($files))return $this->error($res,"Uploaded files are invalid.");$allowed=array_filter(array_map('trim',explode(',',strtolower(strval(isset($rule->allowed_formats)?$rule->allowed_formats:"")))));$max=max(1,intval(isset($rule->max_file_size_mb)?$rule->max_file_size_mb:10))*1048576;$out=array();foreach($files as $file){if(is_array($file))$file=(object)$file;if(!is_object($file)||empty($file->media_reference)||empty($file->name))return $this->error($res,"Every upload requires a valid media reference and original name.");$reference=trim($file->media_reference);if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_assignment_submission/([A-Za-z0-9._-]+)$#',$reference,$match))return $this->error($res,"An uploaded file reference is invalid.");$extension=strtolower(pathinfo($file->name,PATHINFO_EXTENSION));if(!in_array($extension,$allowed,true))return $this->error($res,"File type .".$extension." is not allowed.");require_once dirname(__DIR__,2).'/lib/LessonMediaAccess.php';if(!LessonMediaAccess::ownsStaged('lesson_assignment_submission',$match[2],$this->currentProfile()->id))return $this->error($res,'Upload each attachment in your own session before submitting.');$path=$this->uploadedMediaPath("lesson_assignment_submission",$match[2]);if(!$path||!file_exists($path))return $this->error($res,"An uploaded file could not be verified.");$size=filesize($path);if($size>$max)return $this->error($res,"An uploaded file exceeds the maximum size.");$mime=function_exists('mime_content_type')?mime_content_type($path):"application/octet-stream";$entry=new \stdClass();$entry->name=basename($file->name);$entry->media_reference=$reference;$entry->mime_type=$mime;$entry->size_bytes=$size;$out[]=$entry;}return $out;}
     private function validatedSupportingFiles($files,$res){if(is_object($files))$files=get_object_vars($files);if(!is_array($files))return $this->error($res,"Assignment supporting files are invalid.");$out=array();foreach($files as $file){if(is_array($file))$file=(object)$file;if(!is_object($file)||empty($file->name)||empty($file->media_reference)||!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_assignment_support/([A-Za-z0-9._-]+)$#',$file->media_reference,$match))return $this->error($res,"An assignment supporting file is invalid.");$path=$this->uploadedMediaPath("lesson_assignment_support",$match[2]);if(!$path||!file_exists($path))return $this->error($res,"An assignment supporting file could not be verified.");$entry=new \stdClass();$entry->name=basename($file->name);$entry->media_reference=$file->media_reference;$entry->size_bytes=filesize($path);$out[]=$entry;}return $out;}
     private function uploadedMediaPath($namespace,$name){if(!defined("MEDIA_FOLDER")||!defined("DATASTORE_DOMAIN"))return null;if(!preg_match('/^[A-Za-z0-9_-]+$/',$namespace)||!preg_match('/^[A-Za-z0-9._-]+$/',$name))return null;$base=rtrim(MEDIA_FOLDER,"/\\").DIRECTORY_SEPARATOR.DATASTORE_DOMAIN.DIRECTORY_SEPARATOR.$namespace;$path=$base.DIRECTORY_SEPARATOR.$name;$baseReal=realpath($base);$pathReal=realpath($path);return $baseReal&&$pathReal&&strpos($pathReal,$baseReal.DIRECTORY_SEPARATOR)===0?$pathReal:null;}
     private function uploadedResourceText($reference){if(!preg_match('#^components/(dock|davvag-cms-v7)/soss-uploader/service/get/lesson_content_resource/([A-Za-z0-9._-]+)$#',trim(strval($reference)),$match))return "";$path=$this->uploadedMediaPath("lesson_content_resource",$match[2]);if(!$path||!file_exists($path)||filesize($path)>5242880)return "";$extension=strtolower(pathinfo($match[2],PATHINFO_EXTENSION));if(in_array($extension,array("txt","md","csv","json","xml","html","htm"),true))return substr($this->plainText(file_get_contents($path)),0,30000);if($extension==="docx"&&class_exists("ZipArchive")){$zip=new \ZipArchive();if($zip->open($path)===true){$xml=$zip->getFromName("word/document.xml");$zip->close();if($xml!==false)return substr($this->plainText(str_replace(array("</w:p>","</w:tr>")," ",$xml)),0,30000);}}if($extension==="pdf"){$raw=file_get_contents($path);preg_match_all('/\((?:\\.|[^\\()])*\)/s',$raw,$matches);$parts=array();foreach(array_slice($matches[0],0,3000) as $part){$part=substr($part,1,-1);$part=preg_replace_callback('/\\([0-7]{1,3})/',function($m){return chr(octdec($m[1]));},$part);$parts[]=str_replace(array('\\n','\\r','\\t','\\(', '\\)','\\\\'),array(' ',' ',' ','(',')','\\'),$part);}return substr($this->plainText(implode(" ",$parts)),0,30000);}return "";}
@@ -730,14 +765,14 @@ class ApiService {
 
     private function isActiveEnrollment($enrollment){return !isset($enrollment->status)||strtolower($enrollment->status)==="active";}
     private function courseIdForEnrollment($enrollment){if(isset($enrollment->course_id)&&intval($enrollment->course_id)>0)return intval($enrollment->course_id);if(!empty($enrollment->class_grade_id)){ $classGrade=$this->byId($this->classNs,$enrollment->class_grade_id); if($classGrade&&isset($classGrade->course_id))return intval($classGrade->course_id);}return 0;}
-    private function canAccessCourse($courseId,$studentId){if($this->isTeacher())return true;if(intval($studentId)<1)return false;$rows=$this->rows($this->enrollmentNs,"student_id:".intval($studentId),"desc");foreach($rows as $r)if($this->isActiveEnrollment($r)&&intval($this->courseIdForEnrollment($r))===intval($courseId))return true;return false;}
-    private function lessonUnlockedFor($target,$studentId){return$this->isTeacher()||($this->progressionUnlockedFor($target,$studentId)&&$this->hasPaidLessonAccess($target,$studentId));}
+    private function canAccessCourse($courseId,$studentId){return $this->isTeacher()?$this->canManageCourse($courseId):in_array((int)$courseId,$this->access()->courseIds($studentId),true);}
+    private function lessonUnlockedFor($target,$studentId){return $this->canAccessLesson($target,$studentId) && ($this->isTeacher() || ($this->progressionUnlockedFor($target,$studentId)&&$this->hasPaidLessonAccess($target,$studentId)));}
     private function progressionUnlockedFor($target,$studentId){if($this->isTeacher())return true;if(!$target||empty($target->subject_id))return false;if(isset($target->status)&&strtolower($target->status)!=="published")return false;$lessons=$this->rows($this->lessonNs,"subject_id:".intval($target->subject_id),"asc");usort($lessons,array($this,"sortLessons"));$previousMet=true;foreach($lessons as$lesson){if(isset($lesson->status)&&strtolower($lesson->status)!=="published")continue;$available=empty($lesson->available_at)||strtotime($lesson->available_at)<=time();if(strval($lesson->id)===strval($target->id))return$previousMet&&$available;$progress=$this->findOne($this->progressNs,"lesson_id:".intval($lesson->id).",student_id:".intval($studentId));$previousMet=!LessonRules::truthy(isset($lesson->progression_enabled)?$lesson->progression_enabled:true)||LessonRules::requirementsMet($lesson,$progress);}return false;}
-    private function hasPaidLessonAccess($lesson,$studentId){if($this->isTeacher()||!$lesson||!isset($lesson->is_free)||LessonRules::truthy($lesson->is_free)||intval(isset($lesson->required_credit_points)?$lesson->required_credit_points:0)<1)return true;try{return$this->creditLedger()->hasLessonUnlock($studentId,$lesson->id)!==null;}catch(\Throwable$e){return false;}}
+    private function hasPaidLessonAccess($lesson,$studentId){return $this->isTeacher()?$this->canManageLesson($lesson):$this->access()->financiallyCovered($lesson,$studentId);}
     private function creditLedger(){if(!class_exists("\\davvag_credit_points\\CreditLedgerService"))throw new \Exception("Credit Points is unavailable. Ask an administrator to install and configure it.");return new \davvag_credit_points\CreditLedgerService();}
     private function requestedStudent($body){if($this->isTeacher()&&isset($body->student_id)&&intval($body->student_id)>0)return $this->profile($body->student_id);return $this->currentProfile();}
     private function profile($id){$row=$this->byId("profile",$id);$out=new \stdClass();$out->id=intval($id);$out->name=$row&&isset($row->name)?$row->name:"Student #".$id;if($row&&isset($row->email))$out->email=$row->email;return $out;}
-    private function currentProfile(){ $out=new \stdClass();$out->id=0;$out->name="Current user";if(class_exists("\\Profile")){$stored=\Profile::getUserProfile();$profile=is_object($stored)&&isset($stored->profile)?$stored->profile:$stored;if(is_object($profile)&&isset($profile->id)&&intval($profile->id)>0)return $profile;}return $out; }
+    private function currentProfile(){ $out=new \stdClass();$out->id=0;$out->name="Current user";if($this->currentRole()==="anonymous")return $out;if(class_exists("\\Profile")){$stored=\Profile::getUserProfile();$profile=is_object($stored)&&isset($stored->profile)?$stored->profile:$stored;if(is_object($profile)&&isset($profile->id)&&intval($profile->id)>0)return $profile;}return $out; }
     private function currentRole(){if(defined("GROUPID")){$g=strtolower(GROUPID);if($g==="sysadmin")return "admin";if($g==="web_user")return "student";return $g;}if(class_exists("\\Auth")){$u=\Auth::Autendicate();if(isset($u->group))return strtolower($u->group);}return "anonymous";}
     private function isTeacher(){return in_array($this->currentRole(),array("admin","sysadmin","staff","teacher"),true);}
     private function isAdmin(){return in_array($this->currentRole(),array("admin","sysadmin"),true);}

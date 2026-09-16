@@ -1,0 +1,7 @@
+{
+  "anonymous": ["Catalog", "Package"],
+  "web_user": ["Catalog", "Package", "RequestEnrolment", "ConfirmEnrolment", "CancelEnrolment", "MyEnrolments"],
+  "sysuser": ["Catalog", "Package", "RequestEnrolment", "ConfirmEnrolment", "CancelEnrolment", "MyEnrolments"],
+  "teacher": ["Catalog", "Package", "RequestEnrolment", "ConfirmEnrolment", "CancelEnrolment", "MyEnrolments", "AdminEnrolments", "AdminPackages", "AdminPackage", "SavePackage", "PublishPackage", "SetPackageStatus", "Lookups", "CreateProduct", "CmsPages", "PlaceOnPage", "DecideEnrolment"],
+  "staff": ["Catalog", "Package", "RequestEnrolment", "ConfirmEnrolment", "CancelEnrolment", "MyEnrolments", "AdminEnrolments", "AdminPackages", "AdminPackage", "SavePackage", "PublishPackage", "SetPackageStatus", "Lookups", "CreateProduct", "CmsPages", "PlaceOnPage", "DecideEnrolment"]
+}

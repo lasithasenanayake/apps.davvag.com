@@ -1,0 +1,144 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "slug",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "product_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "owner_profile_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "status",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 30
+      }
+    },
+    {
+      "fieldName": "draft_json",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2048,
+        "encoding": "utf8mb4"
+      }
+    },
+    {
+      "fieldName": "draft_revision",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "published_version_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "name",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 200
+      }
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    },
+    {
+      "fieldName": "updated_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    },
+    {
+      "fieldName": "published_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_lmp_slug",
+      "unique": true,
+      "columns": [
+        "slug"
+      ]
+    },
+    {
+      "name": "uq_lmp_product",
+      "unique": true,
+      "columns": [
+        "product_id"
+      ]
+    },
+    {
+      "name": "idx_lmp_owner",
+      "unique": false,
+      "columns": [
+        "owner_profile_id",
+        "status"
+      ]
+    },
+    {
+      "name": "idx_lmp_catalog",
+      "unique": false,
+      "columns": [
+        "status",
+        "name"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_package_product_id",
+      "relationType": "many-to-one",
+      "targetEntity": "products",
+      "joinColumns": [
+        {
+          "sourceColumn": "product_id",
+          "targetColumn": "itemid"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_package_owner_profile_id",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "owner_profile_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_package_published_version_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_version",
+      "joinColumns": [
+        {
+          "sourceColumn": "published_version_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

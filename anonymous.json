@@ -1,1 +1,27 @@
-{"apps":{"travel-destinations":{"version":"latest"},"userapp":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}
+{
+  "apps": {
+    "travel-destinations": {
+      "version": "latest"
+    },
+    "userapp": {
+      "version": "latest"
+    },
+    "lesson-market-place": {
+      "version": "latest"
+    },
+    "davvag-tools": {
+      "version": "latest"
+    },
+    "davvag-cms-v7": {
+      "version": "latest"
+    }
+  },
+  "webdock": {
+    "events": {
+      "onStartup": {
+        "admin": "dock",
+        "default": "davvag-cms-v7"
+      }
+    }
+  }
+}

@@ -79,6 +79,10 @@
         "partial-404": {
             "type": "partial",
             "location": "partials"
+        },
+        "lifelesson": {
+            "type": "partial",
+            "location": "partials"
         }
     },
     "description": {
@@ -114,6 +118,7 @@
                 "partials": {
                     "/": "home",
                     "/home": "home",
+                    "/lifelesson": "lifelesson",
                     "/app/@appName/*appRoute": "partial-app",
                     "/not-found": "partial-404",
                     "/notFound": "partial-404"

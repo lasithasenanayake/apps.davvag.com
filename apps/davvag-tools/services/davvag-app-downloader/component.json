@@ -1,20 +1,21 @@
 {
-    "name" : "davvag-app-downloader",
-    "description":"Reusable app launcher and embedded component renderer",
-    "author":"DAVVAG",
-    "version" : "0.4",
-    "gitUrl" : "",
-    "resources": {
-        "files":[
-            {
-                "type" : "mainScript",
-                "location" : "script.js"
-            }
-        ],"css":[
-            {
-                "type":"css",
-                "location":"uploader.css"
-            }
-        ]
-    }
+  "name": "davvag-app-downloader",
+  "description": "Reusable app launcher and embedded component renderer",
+  "author": "DAVVAG",
+  "version": "0.5",
+  "gitUrl": "",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ],
+    "css": [
+      {
+        "type": "css",
+        "location": "uploader.css"
+      }
+    ]
+  }
 }

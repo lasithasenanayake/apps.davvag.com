@@ -1,0 +1,99 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "enrolment_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "attempt_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "actor_profile_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "previous_state",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 30
+      }
+    },
+    {
+      "fieldName": "new_state",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 30
+      }
+    },
+    {
+      "fieldName": "reason",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2000
+      }
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_lmp_history",
+      "unique": false,
+      "columns": [
+        "enrolment_id",
+        "attempt_id"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_audit_enrolment_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_enrolment",
+      "joinColumns": [
+        {
+          "sourceColumn": "enrolment_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_audit_attempt_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_attempt",
+      "joinColumns": [
+        {
+          "sourceColumn": "attempt_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_audit_actor_profile_id",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "actor_profile_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

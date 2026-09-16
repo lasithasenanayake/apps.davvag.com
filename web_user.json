@@ -1,48 +1,51 @@
 {
-    "apps":  {
-                 "youtube-growth-agent":  {
-                                                    "version":  "latest"
-                                                },
-                 "davvag-credit-points":  {
-                                                    "version":  "latest"
-                                                },
-                 "davvag-mesh":  {
-                                     "version":  "latest"
-                                 },
-                 "davvag-mesh-networks":  {
-                                              "version":  "latest"
-                                          },
-                 "davvag-cms-v7":  {
-                                       "version":  "latest"
-                                   },
-                 "davvag-viral-content-manager":  {
-                                                      "version":  "latest"
-                                                  },
-                 "davvag-mesh-devices":  {
-                                             "version":  "latest"
-                                         },
-                 "davvag-mesh-events":  {
-                                            "version":  "latest"
-                                        },
-                 "davvag-mesh-sync":  {
-                                          "version":  "latest"
-                                      },
-                 "lesson-manager":  {
-                                        "version":  "latest"
-                                    },
-                 "travel-destinations":  {
-                                             "version":  "latest"
-                                         },
-                 "davvag-tools":  {
-                                      "version":  "latest"
-                                  }
-             },
-    "webdock":  {
-                    "events":  {
-                                   "onStartup":  {
-                                                     "admin":  "dock",
-                                                     "default":  "davvag-cms-v7"
-                                                 }
-                               }
-                }
+  "apps": {
+    "youtube-growth-agent": {
+      "version": "latest"
+    },
+    "davvag-credit-points": {
+      "version": "latest"
+    },
+    "davvag-mesh": {
+      "version": "latest"
+    },
+    "davvag-mesh-networks": {
+      "version": "latest"
+    },
+    "davvag-cms-v7": {
+      "version": "latest"
+    },
+    "davvag-viral-content-manager": {
+      "version": "latest"
+    },
+    "davvag-mesh-devices": {
+      "version": "latest"
+    },
+    "davvag-mesh-events": {
+      "version": "latest"
+    },
+    "davvag-mesh-sync": {
+      "version": "latest"
+    },
+    "lesson-manager": {
+      "version": "latest"
+    },
+    "travel-destinations": {
+      "version": "latest"
+    },
+    "davvag-tools": {
+      "version": "latest"
+    },
+    "lesson-market-place": {
+      "version": "latest"
+    }
+  },
+  "webdock": {
+    "events": {
+      "onStartup": {
+        "admin": "dock",
+        "default": "davvag-cms-v7"
+      }
+    }
+  }
 }

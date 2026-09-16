@@ -1,0 +1,30 @@
+{
+  "lesson_content_resource": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lesson_content_image": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lesson_video": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lesson_assignment_support": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lesson_assignment_submission": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lesson_manager_assets": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "lmp_cover": {
+    "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
+    "class": "lesson_manager\\LessonMediaAccess"
+  }
+}

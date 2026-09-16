@@ -321,6 +321,7 @@ WEBDOCK.component().register(function(exports, scope){
             if (!instance)
                 return;
 
+            instance.dataObject = data_collected[id] == null ? null : JSON.parse(JSON.stringify(data_collected[id]));
             if (instance.onLoad)
                 instance.onLoad(instance);
             
@@ -340,10 +341,10 @@ WEBDOCK.component().register(function(exports, scope){
                         if (data_collected[id] && typeof data_collected[id] === "object") {
                             Object.assign(obj,data_collected[id]);
                         }
-                        instance.dataObject=data_collected[id];
+                        // dataObject is already cloned for this instance.
                         instance.Complete=completed[id];
                         instance.renderDiv=renderDiv;
-                        instance.vue.onReady(scope,{status:"internalcall",data:data_collected[id],completedEvent:completed,renderDiv:renderDiv});
+                        instance.vue.onReady(scope,{status:"internalcall",data:instance.dataObject,completedEvent:completed,renderDiv:renderDiv});
                     }else{
                         instance.Complete=function(data){
                             if (typeof instance.onStatusChange === "function") {

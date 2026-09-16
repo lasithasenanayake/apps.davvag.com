@@ -1,1 +1,9 @@
-{"apps":{"davvag-cms-v7":{"version":"latest"},"userapp":{"version":"latest"},"davvag-shop":{"version":"latest"}},"webdock":{"events":{"onStartup":{"admin":"dock","default":"davvag-cms-v7"}}}}
+{
+  "apps": {
+    "davvag-cms-v7": {"version": "latest"},
+    "userapp": {"version": "latest"},
+    "davvag-shop": {"version": "latest"},
+    "lesson-market-place": {"version": "latest"}
+  },
+  "webdock": {"events": {"onStartup": {"admin": "dock", "default": "davvag-cms-v7"}}}
+}

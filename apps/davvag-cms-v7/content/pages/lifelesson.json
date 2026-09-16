@@ -1,0 +1,21 @@
+{
+    "slug": "lifelesson",
+    "path": "/lifelesson",
+    "title": "New Page",
+    "status": "published",
+    "sections": [
+        {
+            "type": "html",
+            "animation": "fade-up",
+            "eyebrow": "",
+            "title": "",
+            "body": "",
+            "image": "",
+            "primaryLabel": "",
+            "primaryUrl": "",
+            "secondaryLabel": "",
+            "secondaryUrl": "",
+            "html": "<div webdock-component=\"package-card\" webdock-app=\"lesson-market-place\" webdock-data=\"{&quot;slug&quot;:&quot;test&quot;}\"></div>"
+        }
+    ]
+}

@@ -1,0 +1,76 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "profile_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "operation_key",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "payload_hash",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 64
+      }
+    },
+    {
+      "fieldName": "attempt_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_lmp_operation",
+      "unique": true,
+      "columns": [
+        "profile_id",
+        "operation_key"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_operation_profile_id",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "profile_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_operation_attempt_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_attempt",
+      "joinColumns": [
+        {
+          "sourceColumn": "attempt_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

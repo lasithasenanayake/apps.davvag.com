@@ -1,0 +1,73 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "order_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "session_id",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 190
+      }
+    },
+    {
+      "fieldName": "checkout_url",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2000
+      }
+    },
+    {
+      "fieldName": "return_route",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 600
+      }
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "credit_checkout_order",
+      "relationType": "many-to-one",
+      "targetEntity": "davvag_credit_purchase_order",
+      "joinColumns": [
+        {
+          "sourceColumn": "order_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_credit_checkout_order",
+      "unique": true,
+      "columns": [
+        "order_id"
+      ]
+    },
+    {
+      "name": "uq_credit_checkout_session",
+      "unique": true,
+      "columns": [
+        "session_id"
+      ]
+    }
+  ]
+}

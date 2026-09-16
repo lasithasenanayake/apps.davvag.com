@@ -1,0 +1,71 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "package_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "version_number",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "snapshot_json",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 2048,
+        "encoding": "utf8mb4"
+      }
+    },
+    {
+      "fieldName": "snapshot_hash",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 64
+      }
+    },
+    {
+      "fieldName": "created_by",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_lmp_version",
+      "unique": true,
+      "columns": [
+        "package_id",
+        "version_number"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_version_package_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_package",
+      "joinColumns": [
+        {
+          "sourceColumn": "package_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

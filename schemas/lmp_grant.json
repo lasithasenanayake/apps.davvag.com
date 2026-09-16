@@ -1,0 +1,167 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "enrolment_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "attempt_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "version_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "profile_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "lesson_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "course_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "subject_id",
+      "dataType": "int",
+      "annotations": {}
+    },
+    {
+      "fieldName": "status",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 20
+      }
+    },
+    {
+      "fieldName": "created_at",
+      "dataType": "java.util.Date",
+      "annotations": {}
+    }
+  ],
+  "indexes": [
+    {
+      "name": "uq_lmp_grant",
+      "unique": true,
+      "columns": [
+        "enrolment_id",
+        "lesson_id"
+      ]
+    },
+    {
+      "name": "idx_lmp_access",
+      "unique": false,
+      "columns": [
+        "profile_id",
+        "lesson_id",
+        "status"
+      ]
+    },
+    {
+      "name": "idx_lmp_courses",
+      "unique": false,
+      "columns": [
+        "profile_id",
+        "course_id",
+        "status"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "lmp_grant_enrolment_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_enrolment",
+      "joinColumns": [
+        {
+          "sourceColumn": "enrolment_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_attempt_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_attempt",
+      "joinColumns": [
+        {
+          "sourceColumn": "attempt_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_version_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lmp_version",
+      "joinColumns": [
+        {
+          "sourceColumn": "version_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_profile_id",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "profile_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_lesson_id",
+      "relationType": "many-to-one",
+      "targetEntity": "lesson_manager_lesson",
+      "joinColumns": [
+        {
+          "sourceColumn": "lesson_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_course_id",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_course",
+      "joinColumns": [
+        {
+          "sourceColumn": "course_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "lmp_grant_subject_id",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_subject",
+      "joinColumns": [
+        {
+          "sourceColumn": "subject_id",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

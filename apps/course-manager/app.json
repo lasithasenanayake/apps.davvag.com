@@ -1,160 +1,160 @@
 {
-    "components": {
-        "dashboard": {
-            "type": "component",
-            "location": "components"
-        },
-        "courses": {
-            "type": "component",
-            "location": "components"
-        },
-        "product-list-popup": {
-            "type": "component",
-            "location": "components"
-        },
-        "classroom-list-popup": {
-            "type": "component",
-            "location": "components"
-        },
-        "slot-popup": {
-            "type": "component",
-            "location": "components"
-        },
-        "timetable": {
-            "type": "component",
-            "location": "components"
-        },
-        "weekly-timetable": {
-            "type": "component",
-            "location": "components"
-        },
-        "attendance": {
-            "type": "component",
-            "location": "components"
-        },
-        "gradebook": {
-            "type": "component",
-            "location": "components"
-        },
-        "assignments": {
-            "type": "component",
-            "location": "components"
-        },
-        "profiles": {
-            "type": "component",
-            "location": "components"
-        },
-        "classrooms": {
-            "type": "component",
-            "location": "components"
-        },
-        "course-style": {
-            "type": "component",
-            "location": "components"
-        },
-        "api": {
-            "type": "service",
-            "location": "services"
-        }
+  "components": {
+    "dashboard": {
+      "type": "component",
+      "location": "components"
     },
-    "description": {
-        "title": "Course Manager",
-        "author": "DAVVAG",
-        "version": "1.1",
-        "icon": "appicon.png"
+    "courses": {
+      "type": "component",
+      "location": "components"
     },
-    "tags": [
-        "showincms",
-        "showindock"
-    ],
-    "configuration": {
-        "webdock": {
-            "startupComponent": "dashboard",
-            "onLoad": [
-                "course-style",
-                "api"
-            ],
-            "routes": {
-                "partials": {
-                    "/": "dashboard",
-                    "/dashboard": "dashboard",
-                    "/courses": "courses",
-                    "/timetable": "timetable",
-                    "/weekly-timetable": "weekly-timetable",
-                    "/attendance": "attendance",
-                    "/gradebook": "gradebook",
-                    "/assignments": "assignments",
-                    "/profiles": "profiles",
-                    "/classrooms": "classrooms"
-                }
-            }
-        },
-        "dock": {
-            "subapps": [
-                {
-                    "name": "Dashboard",
-                    "path": "dashboard"
-                },
-                {
-                    "name": "Courses",
-                    "path": "courses"
-                },
-                {
-                    "name": "Timetable",
-                    "path": "timetable"
-                },
-                {
-                    "name": "Weekly Timetable",
-                    "path": "weekly-timetable"
-                },
-                {
-                    "name": "Attendance",
-                    "path": "attendance"
-                },
-                {
-                    "name": "Gradebook",
-                    "path": "gradebook"
-                },
-                {
-                    "name": "Assignments",
-                    "path": "assignments"
-                },
-                {
-                    "name": "Classrooms",
-                    "path": "classrooms"
-                }
-            ]
-        }
+    "product-list-popup": {
+      "type": "component",
+      "location": "components"
     },
-    "dependencies": {
-        "apps": [
-            "currency-configuration",
-            "productapp-v2"
-        ],
-        "schemas": [
-            "currency_configuration",
-            "course_manager_course",
-            "course_manager_subject",
-            "course_manager_product",
-            "course_manager_classgrade",
-            "course_manager_enrollment",
-            "course_manager_timetable",
-            "course_manager_classroom",
-            "course_manager_attendance",
-            "course_manager_assignment",
-            "course_manager_submission",
-            "course_manager_assessment",
-            "course_manager_mark",
-            "course_manager_grading_scale",
-            "course_manager_notification",
-            "products",
-            "profile"
-        ],
-        "workflows": [],
-        "plugins": [
-            "auth",
-            "sossdata"
-        ],
-        "php-extensions": []
+    "classroom-list-popup": {
+      "type": "component",
+      "location": "components"
+    },
+    "slot-popup": {
+      "type": "component",
+      "location": "components"
+    },
+    "timetable": {
+      "type": "component",
+      "location": "components"
+    },
+    "weekly-timetable": {
+      "type": "component",
+      "location": "components"
+    },
+    "attendance": {
+      "type": "component",
+      "location": "components"
+    },
+    "gradebook": {
+      "type": "component",
+      "location": "components"
+    },
+    "assignments": {
+      "type": "component",
+      "location": "components"
+    },
+    "profiles": {
+      "type": "component",
+      "location": "components"
+    },
+    "classrooms": {
+      "type": "component",
+      "location": "components"
+    },
+    "course-style": {
+      "type": "component",
+      "location": "components"
+    },
+    "api": {
+      "type": "service",
+      "location": "services"
     }
+  },
+  "description": {
+    "title": "Course Manager",
+    "author": "DAVVAG",
+    "version": "1.2",
+    "icon": "appicon.png"
+  },
+  "tags": [
+    "showincms",
+    "showindock"
+  ],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "dashboard",
+      "onLoad": [
+        "course-style",
+        "api"
+      ],
+      "routes": {
+        "partials": {
+          "/": "dashboard",
+          "/dashboard": "dashboard",
+          "/courses": "courses",
+          "/timetable": "timetable",
+          "/weekly-timetable": "weekly-timetable",
+          "/attendance": "attendance",
+          "/gradebook": "gradebook",
+          "/assignments": "assignments",
+          "/profiles": "profiles",
+          "/classrooms": "classrooms"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {
+          "name": "Dashboard",
+          "path": "dashboard"
+        },
+        {
+          "name": "Courses",
+          "path": "courses"
+        },
+        {
+          "name": "Timetable",
+          "path": "timetable"
+        },
+        {
+          "name": "Weekly Timetable",
+          "path": "weekly-timetable"
+        },
+        {
+          "name": "Attendance",
+          "path": "attendance"
+        },
+        {
+          "name": "Gradebook",
+          "path": "gradebook"
+        },
+        {
+          "name": "Assignments",
+          "path": "assignments"
+        },
+        {
+          "name": "Classrooms",
+          "path": "classrooms"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": [
+      "currency-configuration",
+      "productapp-v2"
+    ],
+    "schemas": [
+      "currency_configuration",
+      "course_manager_course",
+      "course_manager_subject",
+      "course_manager_product",
+      "course_manager_classgrade",
+      "course_manager_enrollment",
+      "course_manager_timetable",
+      "course_manager_classroom",
+      "course_manager_attendance",
+      "course_manager_assignment",
+      "course_manager_submission",
+      "course_manager_assessment",
+      "course_manager_mark",
+      "course_manager_grading_scale",
+      "course_manager_notification",
+      "products",
+      "profile"
+    ],
+    "workflows": [],
+    "plugins": [
+      "auth",
+      "sossdata"
+    ],
+    "php-extensions": []
+  }
 }

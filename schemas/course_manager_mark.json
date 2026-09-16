@@ -1,174 +1,175 @@
 {
-    "fields": [
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "int",
+      "annotations": {
+        "isPrimary": true,
+        "autoIncrement": true
+      }
+    },
+    {
+      "fieldName": "assessment_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "assignment_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "submission_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "class_grade_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "subject_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "student_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "student_name",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 255,
+        "encoding": "utf8"
+      }
+    },
+    {
+      "fieldName": "marks",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "8,2"
+      }
+    },
+    {
+      "fieldName": "max_mark",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "8,2"
+      }
+    },
+    {
+      "fieldName": "weight",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "5,2"
+      }
+    },
+    {
+      "fieldName": "grade_letter",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 10
+      }
+    },
+    {
+      "fieldName": "grade_point",
+      "dataType": "decimal",
+      "annotations": {
+        "decimalPoints": "3,2"
+      }
+    },
+    {
+      "fieldName": "graded_by",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "graded_at",
+      "dataType": "java.util.Date"
+    },
+    {
+      "fieldName": "note",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 1000,
+        "encoding": "utf8"
+      }
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "course_manager_mark_assessment",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_assessment",
+      "joinColumns": [
         {
-            "fieldName": "id",
-            "dataType": "int",
-            "annotations": {
-                "isPrimary": true,
-                "autoIncrement": true
-            }
-        },
-        {
-            "fieldName": "assessment_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "assignment_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "submission_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "class_grade_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "subject_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "student_id",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "student_name",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 255,
-                "encoding": "utf8"
-            }
-        },
-        {
-            "fieldName": "marks",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "8,2"
-            }
-        },
-        {
-            "fieldName": "max_mark",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "8,2"
-            }
-        },
-        {
-            "fieldName": "weight",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "5,2"
-            }
-        },
-        {
-            "fieldName": "grade_letter",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 10
-            }
-        },
-        {
-            "fieldName": "grade_point",
-            "dataType": "decimal",
-            "annotations": {
-                "decimalPoints": "3,2"
-            }
-        },
-        {
-            "fieldName": "graded_by",
-            "dataType": "int"
-        },
-        {
-            "fieldName": "graded_at",
-            "dataType": "java.util.Date"
-        },
-        {
-            "fieldName": "note",
-            "dataType": "java.lang.String",
-            "annotations": {
-                "maxLen": 1000,
-                "encoding": "utf8"
-            }
+          "sourceColumn": "assessment_id",
+          "targetColumn": "id"
         }
-    ],
-    "relations": [
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_assignment",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_assignment",
+      "joinColumns": [
         {
-            "relationName": "course_manager_mark_assessment",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_assessment",
-            "joinColumns": [
-                {
-                    "sourceColumn": "assessment_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_assignment",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_assignment",
-            "joinColumns": [
-                {
-                    "sourceColumn": "assignment_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_submission",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_submission",
-            "joinColumns": [
-                {
-                    "sourceColumn": "submission_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_classgrade",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_classgrade",
-            "joinColumns": [
-                {
-                    "sourceColumn": "class_grade_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_subject",
-            "relationType": "many-to-one",
-            "targetEntity": "course_manager_subject",
-            "joinColumns": [
-                {
-                    "sourceColumn": "subject_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_student_profile",
-            "relationType": "many-to-one",
-            "targetEntity": "profile",
-            "joinColumns": [
-                {
-                    "sourceColumn": "student_id",
-                    "targetColumn": "id"
-                }
-            ]
-        },
-        {
-            "relationName": "course_manager_mark_graded_by_profile",
-            "relationType": "many-to-one",
-            "targetEntity": "profile",
-            "joinColumns": [
-                {
-                    "sourceColumn": "graded_by",
-                    "targetColumn": "id"
-                }
-            ]
+          "sourceColumn": "assignment_id",
+          "targetColumn": "id"
         }
-    ]
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_submission",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_submission",
+      "joinColumns": [
+        {
+          "sourceColumn": "submission_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_classgrade",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_classgrade",
+      "joinColumns": [
+        {
+          "sourceColumn": "class_grade_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_subject",
+      "relationType": "many-to-one",
+      "targetEntity": "course_manager_subject",
+      "joinColumns": [
+        {
+          "sourceColumn": "subject_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_student_profile",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "student_id",
+          "targetColumn": "id"
+        }
+      ]
+    },
+    {
+      "relationName": "course_manager_mark_graded_by_profile",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "graded_by",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ],
+  "serviceOnly": true
 }
