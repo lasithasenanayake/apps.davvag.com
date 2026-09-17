@@ -32,4 +32,11 @@ check(\davvag_stripe\CreditCheckoutAdapter::verify($session,$order,'cs_test_fixt
 foreach(['amount_total'=>501,'currency'=>'eur','client_reference_id'=>'other','id'=>'cs_test_other','mode'=>'subscription'] as $field=>$value){$bad=clone $session;$bad->$field=$value;rejects(function()use($bad,$order){\davvag_stripe\CreditCheckoutAdapter::verify($bad,$order,'cs_test_fixture','isolated');},'provider mismatch rejected');}
 rejects(function()use($session,$order){\davvag_stripe\CreditCheckoutAdapter::verify($session,$order,'cs_test_fixture','another-tenant');},'provider tenant mismatch rejected');
 foreach([['open','unpaid'],['complete','unpaid'],['expired','unpaid']] as $state){$pending=clone $session;$pending->status=$state[0];$pending->payment_status=$state[1];check(!\davvag_stripe\CreditCheckoutAdapter::verify($pending,$order,'cs_test_fixture','isolated'),'unsettled provider fixture grants nothing');}
+$service=file_get_contents(dirname(__DIR__).'/services/marketplace-api/service.php');
+check(strpos($service,'new MarketplaceData()')!==false,'marketplace API initializes the SOSSData persistence boundary');
+check(strpos($service,'MarketplaceSchema')===false,'marketplace API does not load or call the database schema migrator');
+check(strpos($service,'MarketplaceData::serviceNamespaces()')!==false,'marketplace API gets its service namespace scope from the SOSSData boundary');
+foreach(['CreditDatabase','$this->db','->transaction(','SELECT ','INSERT ','UPDATE ','DELETE '] as $direct) check(strpos($service,$direct)===false,'marketplace API contains no direct database access: '.$direct);
+$dataLayer=file_get_contents(dirname(__DIR__).'/lib/MarketplaceData.php');
+foreach(['\\SOSSData::Query','\\SOSSData::Insert','\\SOSSData::Update'] as $facade) check(strpos($dataLayer,$facade)!==false,'marketplace data layer uses '.$facade);
 echo "Marketplace business/provider rules: $checks checks passed.\n";

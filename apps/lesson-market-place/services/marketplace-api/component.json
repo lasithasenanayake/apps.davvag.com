@@ -1,6 +1,6 @@
 {
   "name": "marketplace-api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "resources": {
     "files": [
       {
@@ -64,7 +64,19 @@
       "PlaceOnPage": {
         "method": "POST"
       }
-    }
+    },
+    "serviceNamespaces": [
+      "lmp_package",
+      "lmp_version",
+      "lmp_version_lesson",
+      "lmp_enrolment",
+      "lmp_attempt",
+      "lmp_grant",
+      "lmp_operation",
+      "lmp_audit",
+      "lesson_manager_lesson",
+      "course_manager_notification"
+    ]
   },
   "transformers": {}
 }

@@ -2,6 +2,8 @@
 
 Lesson Marketplace packages existing Lesson Manager lessons under one DAVVAG product. It adds versioned terms, enrolment review, atomic credit payment, source-aware lesson grants, and CMS embeds while retaining Lesson Manager as the content and progress authority.
 
+All ordinary marketplace persistence goes through `SOSSData` using schema-checked advanced queries and `Insert`/`Update`. `MarketplaceData` is the app-local facade that keeps service-only namespace scopes narrow and preserves normal view-object filtering. The sole direct runtime business path is inside the callback owned by `CreditLedgerService::debit()`, where the debit, grants, enrolment activation, and audit event must share one transaction because the current public SOSSData API does not expose transaction handles. The administrator-run migration separately inspects physical table metadata and indexes.
+
 ## Routes
 
 - `#/app/lesson-market-place/` — published catalog

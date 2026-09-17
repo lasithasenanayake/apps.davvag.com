@@ -1,21 +1,21 @@
 <?php
 namespace lesson_market_place;
 require_once __DIR__ . '/MarketplaceRules.php';
+require_once __DIR__ . '/MarketplaceData.php';
 
-/** Ordinary reads keep SOSSData view-object filtering. Transaction checks use the ledger connection. */
+/** Catalog validation keeps SOSSData schema and view-object controls in force. */
 final class MarketplaceCatalog
 {
     private $actor;
     private $admin;
-    public function __construct($actor, $admin) { $this->actor=(int)$actor; $this->admin=(bool)$admin; }
+    private $data;
+    public function __construct($actor, $admin, $data = null) { $this->actor=(int)$actor; $this->admin=(bool)$admin; $this->data=$data ?: new MarketplaceData(); }
 
     public function rows($namespace, $conditions = [], $limit = 100, $offset = 0)
     {
-        $query = ['conditions'=>[], 'pageSize'=>$limit, 'pageFrom'=>$offset];
-        foreach ($conditions as $key=>$value) $query['conditions'][]=['column'=>$key,'operator'=>'=','value'=>$value];
-        $result = \SOSSData::WithServiceNamespaces([$namespace],function()use($namespace,$query){return \SOSSData::Query($namespace,$query);});
-        if (!$result || !$result->success) throw new MarketplaceException('The requested records could not be loaded.');
-        return $result;
+        $query = [];
+        foreach ($conditions as $key=>$value) $query[]=['column'=>$key,'operator'=>'=','value'=>$value];
+        return $this->data->query($namespace,$query,[],$limit,$offset);
     }
     public function one($namespace,$id,$key='id') { $rows=$this->rows($namespace,[$key=>(int)$id],1)->result; return $rows ? $rows[0] : null; }
 
@@ -45,7 +45,40 @@ final class MarketplaceCatalog
         return $draft;
     }
 
-    public function deliverable($snapshot,$db)
+    public function deliverable($snapshot)
+    {
+        $ids=MarketplaceRules::lessonIds($snapshot->lesson_ids ?? []);
+        $subjects=[];
+        foreach ($snapshot->lessons as $member) {
+            $lesson=$this->one('lesson_manager_lesson',(int)$member->id);
+            $subject=$this->one('course_manager_subject',(int)$member->subject_id);
+            $course=$this->one('course_manager_course',(int)$member->course_id);
+            if (!$lesson || !$subject || !$course || strtolower($lesson->status ?? '')!=='published'
+                || strtolower($subject->status ?? '')==='deleted' || strtolower($course->status ?? '')==='deleted'
+                || (int)$lesson->subject_id!==(int)$member->subject_id || (int)$lesson->course_id!==(int)$member->course_id
+                || (int)$subject->course_id!==(int)$member->course_id || (!empty($lesson->available_at) && strtotime($lesson->available_at)>time())) {
+                throw new MarketplaceException('An included lesson is unavailable or its course/subject changed. No credits were charged. Ask staff to update the package and submit a new request.');
+            }
+            $subjects[(int)$member->subject_id]=true;
+        }
+        foreach (array_keys($subjects) as $subjectId) {
+            $lessons=$this->data->rows('lesson_manager_lesson',[
+                ['column'=>'subject_id','operator'=>'=','value'=>(int)$subjectId]
+            ],[
+                ['column'=>'lesson_order','direction'=>'ASC'],
+                ['column'=>'id','direction'=>'ASC']
+            ],10000);
+            $missing=MarketplaceRules::prerequisites($ids,$lessons);
+            if ($missing) throw new MarketplaceException('Package is missing required preceding lesson IDs: '.implode(', ',$missing).'. Update the package before publication or enrolment.');
+        }
+    }
+
+    /**
+     * Recheck delivery inside CreditLedgerService's transaction. This is the
+     * documented narrow exception: SOSSData has no public transaction handle,
+     * and the debit plus grants must use the same connection.
+     */
+    public function deliverableInCreditTransaction($snapshot,$db)
     {
         $ids=MarketplaceRules::lessonIds($snapshot->lesson_ids ?? []);
         $subjects=[];

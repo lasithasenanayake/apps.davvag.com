@@ -87,6 +87,14 @@
         "wallclimbingbeginner2026": {
             "type": "partial",
             "location": "partials"
+        },
+        "lmp-fixture-17652de68f8974c3": {
+            "type": "partial",
+            "location": "partials"
+        },
+        "lmp-fixture-976b1ac858848126": {
+            "type": "partial",
+            "location": "partials"
         }
     },
     "description": {
