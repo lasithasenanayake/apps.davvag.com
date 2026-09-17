@@ -19,20 +19,18 @@ class MarketplaceApi
     private function call($req,$res,$callback,$authenticated=false,$staff=false)
     {
         try {
-            return \SOSSData::WithServiceNamespaces(MarketplaceData::serviceNamespaces(),function() use($req,$callback,$authenticated,$staff) {
-                $user=\Auth::Autendicate(); $role=strtolower(defined('GROUPID')?GROUPID:($user->group ?? 'anonymous'));
-                // A profile alone (including an anonymous auto-created profile) is not authentication.
-                if ($user && $role!=='anonymous') { $stored=\Profile::getUserProfile(); $this->profile=(int)(($stored->profile ?? $stored)->id ?? 0); }
-                $this->admin=in_array($role,['sysadmin','admin'],true);
-                $this->staff=$this->profile>0 && in_array($role,['sysadmin','admin','staff','teacher'],true);
-                if ($authenticated && $this->profile<1) throw new MarketplaceException('Sign in with an active profile to continue.');
-                if ($staff && !$this->staff) throw new MarketplaceException('Marketplace staff permission is required.');
-                $body=$req ? $req->Body(true) : new \stdClass();
-                if (!is_object($body)) throw new MarketplaceException('A JSON object is required.');
-                $this->data=new MarketplaceData();
-                $this->catalog=new MarketplaceCatalog($this->profile,$this->admin,$this->data);
-                return $callback($body);
-            });
+            $user=\Auth::Autendicate(); $role=strtolower(defined('GROUPID')?GROUPID:($user->group ?? 'anonymous'));
+            // A profile alone (including an anonymous auto-created profile) is not authentication.
+            if ($user && $role!=='anonymous') { $stored=\Profile::getUserProfile(); $this->profile=(int)(($stored->profile ?? $stored)->id ?? 0); }
+            $this->admin=in_array($role,['sysadmin','admin'],true);
+            $this->staff=$this->profile>0 && in_array($role,['sysadmin','admin','staff','teacher'],true);
+            if ($authenticated && $this->profile<1) throw new MarketplaceException('Sign in with an active profile to continue.');
+            if ($staff && !$this->staff) throw new MarketplaceException('Marketplace staff permission is required.');
+            $body=$req ? $req->Body(true) : new \stdClass();
+            if (!is_object($body)) throw new MarketplaceException('A JSON object is required.');
+            $this->data=new MarketplaceData();
+            $this->catalog=new MarketplaceCatalog($this->profile,$this->admin,$this->data);
+            return $callback($body);
         } catch (MarketplaceException $error) { $res->SetError($error->getMessage()); }
         catch (\davvag_credit_points\CreditException $error) {
             $known=['Insufficient available credit balance.','The credit wallet is unavailable.','Credit program is unavailable.','Credit lots do not cover the requested amount.'];

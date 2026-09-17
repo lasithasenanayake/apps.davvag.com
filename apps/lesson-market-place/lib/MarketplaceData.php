@@ -13,24 +13,6 @@ require_once __DIR__ . '/MarketplaceRules.php';
  */
 final class MarketplaceData
 {
-    private const SERVICE_NAMESPACES = [
-        'lmp_package',
-        'lmp_version',
-        'lmp_version_lesson',
-        'lmp_enrolment',
-        'lmp_attempt',
-        'lmp_grant',
-        'lmp_operation',
-        'lmp_audit',
-        'lesson_manager_lesson',
-        'course_manager_notification'
-    ];
-
-    public static function serviceNamespaces()
-    {
-        return self::SERVICE_NAMESPACES;
-    }
-
     public function query($namespace, array $conditions = [], array $sorting = [], $limit = 100, $offset = 0, $viewObject = true)
     {
         $query = [
@@ -42,9 +24,7 @@ final class MarketplaceData
             $query['sorting'] = array_values($sorting);
         }
 
-        $result = $this->inScope($namespace, function () use ($namespace, $query, $viewObject) {
-            return \SOSSData::Query($namespace, $query, null, 'DESC', $query['pageSize'], $query['pageFrom'], null, $viewObject);
-        });
+        $result = \SOSSData::Query($namespace, $query, null, 'DESC', $query['pageSize'], $query['pageFrom'], null, $viewObject);
 
         return $this->requireSuccess($result, 'The requested records could not be loaded.');
     }
@@ -70,9 +50,7 @@ final class MarketplaceData
     public function insert($namespace, $values)
     {
         $record = is_object($values) ? clone $values : (object)$values;
-        $result = $this->inScope($namespace, function () use ($namespace, $record) {
-            return \SOSSData::Insert($namespace, $record);
-        });
+        $result = \SOSSData::Insert($namespace, $record);
         $result = $this->requireSuccess($result, 'The record could not be created.');
         if (!isset($result->result->generatedId)) {
             throw new MarketplaceException('The datastore did not return the new record identifier.');
@@ -92,9 +70,7 @@ final class MarketplaceData
         foreach ($changes as $field => $value) {
             $save->$field = $value;
         }
-        $result = $this->inScope($namespace, function () use ($namespace, $save) {
-            return \SOSSData::Update($namespace, $save);
-        });
+        $result = \SOSSData::Update($namespace, $save);
         $this->requireSuccess($result, 'The record could not be updated.');
         return $save;
     }
@@ -102,14 +78,6 @@ final class MarketplaceData
     public function updateById($namespace, $id, array $changes, $viewObject = true)
     {
         return $this->update($namespace, $this->byId($namespace, $id, 'id', $viewObject), $changes);
-    }
-
-    private function inScope($namespace, $callback)
-    {
-        if (!in_array($namespace, self::SERVICE_NAMESPACES, true)) {
-            return $callback();
-        }
-        return \SOSSData::WithServiceNamespaces([$namespace], $callback);
     }
 
     private function requireSuccess($result, $message)

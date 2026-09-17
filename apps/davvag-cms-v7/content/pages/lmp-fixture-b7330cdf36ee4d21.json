@@ -1,0 +1,21 @@
+{
+    "slug": "lmp-fixture-b7330cdf36ee4d21",
+    "path": "/lmp-fixture-b7330cdf36ee4d21",
+    "title": "Fixture marketplace page",
+    "status": "draft",
+    "sections": [
+        {
+            "type": "html",
+            "animation": "fade-up",
+            "eyebrow": "",
+            "title": "",
+            "body": "",
+            "image": "",
+            "primaryLabel": "",
+            "primaryUrl": "",
+            "secondaryLabel": "",
+            "secondaryUrl": "",
+            "html": "<div webdock-component=\"package-card\" webdock-app=\"lesson-market-place\" webdock-data=\"{&quot;slug&quot;:&quot;package-7&quot;}\"></div>"
+        }
+    ]
+}

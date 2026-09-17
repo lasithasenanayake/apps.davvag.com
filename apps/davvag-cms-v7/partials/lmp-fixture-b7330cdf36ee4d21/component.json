@@ -1,0 +1,24 @@
+{
+    "name": "lmp-fixture-b7330cdf36ee4d21",
+    "description": "Davvag CMS v7 generated Fixture marketplace page partial",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "style.css"
+            }
+        ]
+    }
+}

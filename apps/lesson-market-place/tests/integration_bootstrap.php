@@ -14,4 +14,4 @@ require_once $tenant.'/apps/davvag-credit-points/lib/CreditLedgerService.php';
 require_once dirname(__DIR__).'/lib/MarketplaceSchema.php';
 require_once dirname(__DIR__).'/lib/MarketplaceCatalog.php';
 require_once dirname(__DIR__).'/lib/MarketplaceEnrolment.php';
-function scoped($fn){return SOSSData::WithServiceNamespaces(\lesson_market_place\MarketplaceSchema::namespaces(),$fn);}
+function scoped($fn){$descriptor=json_decode(file_get_contents(dirname(__DIR__).'/services/marketplace-api/component.json'));return SOSSData::WithServiceNamespaces($descriptor->serviceHandler->serviceNamespaces,$fn);}

@@ -95,6 +95,10 @@
         "lmp-fixture-976b1ac858848126": {
             "type": "partial",
             "location": "partials"
+        },
+        "lmp-fixture-b7330cdf36ee4d21": {
+            "type": "partial",
+            "location": "partials"
         }
     },
     "description": {

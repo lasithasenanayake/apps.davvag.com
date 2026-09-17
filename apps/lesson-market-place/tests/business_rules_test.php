@@ -35,8 +35,11 @@ foreach([['open','unpaid'],['complete','unpaid'],['expired','unpaid']] as $state
 $service=file_get_contents(dirname(__DIR__).'/services/marketplace-api/service.php');
 check(strpos($service,'new MarketplaceData()')!==false,'marketplace API initializes the SOSSData persistence boundary');
 check(strpos($service,'MarketplaceSchema')===false,'marketplace API does not load or call the database schema migrator');
-check(strpos($service,'MarketplaceData::serviceNamespaces()')!==false,'marketplace API gets its service namespace scope from the SOSSData boundary');
+check(strpos($service,'WithServiceNamespaces')===false,'marketplace API relies on framework service access management');
 foreach(['CreditDatabase','$this->db','->transaction(','SELECT ','INSERT ','UPDATE ','DELETE '] as $direct) check(strpos($service,$direct)===false,'marketplace API contains no direct database access: '.$direct);
 $dataLayer=file_get_contents(dirname(__DIR__).'/lib/MarketplaceData.php');
 foreach(['\\SOSSData::Query','\\SOSSData::Insert','\\SOSSData::Update'] as $facade) check(strpos($dataLayer,$facade)!==false,'marketplace data layer uses '.$facade);
+check(strpos($dataLayer,'WithServiceNamespaces')===false,'marketplace data layer relies on framework service access management');
+$descriptor=json_decode(file_get_contents(dirname(__DIR__).'/services/marketplace-api/component.json'));
+check(in_array('lmp_package',$descriptor->serviceHandler->serviceNamespaces ?? [],true),'marketplace descriptor declares protected service namespaces');
 echo "Marketplace business/provider rules: $checks checks passed.\n";
