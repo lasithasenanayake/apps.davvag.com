@@ -1,1 +1,3 @@
-WEBDOCK.component().register(function (exports) { exports.onReady = function () {}; });
+WEBDOCK.component().register(function (exports) {
+    exports.onReady = function () {};
+});

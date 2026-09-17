@@ -1,28 +1,538 @@
-WEBDOCK.component().register(function(exports){
- var api,router,timerHandle,selectedAssignmentFiles=[];var data={courses:[],coursesLoaded:false,courseId:'',course:null,lessons:[],subjectId:'',current:null,mobileStage:'choose',quiz:null,quizAttempt:null,quizQuestions:[],answers:{},quizResult:null,deadline:null,timeRemaining:'',assignmentForm:{content:'',file_url:''},assignmentFiles:[],uploading:false,busyLesson:0,errors:[],info:[],loading:false};
- exports.vue={data:data,methods:{go:go,loadCourse:loadCourse,selectSubject:selectSubject,subjectsForCourse:subjectsForCourse,lessonsForSubject:lessonsForSubject,openLesson:openLesson,backToSubjects:backToSubjects,backToLessons:backToLessons,previous:previous,next:next,canPrevious:canPrevious,canNext:canNext,markReading:markReading,markVideo:markVideo,startQuiz:startQuiz,submitQuiz:submitQuiz,chooseAssignmentFiles:chooseAssignmentFiles,submitAssignment:submitAssignment,options:options,toggleAnswer:toggleAnswer,isSelected:isSelected,videoEmbed:videoEmbed,isEmbeddable:isEmbeddable,statusClass:statusClass,courseProgress:courseProgress},onReady:init};exports.onReady=function(){};
- function init(){data.errors=[];data.info=[];try{api=exports.getComponent('api');router=exports.getShellComponent('soss-routes');}catch(e){fail('Lesson Manager could not start. Reload the page and try again.');return;}if(!api||!api.services||typeof api.services.StudentCourses!=='function'){fail('Lesson Manager services are unavailable. Reload the page and try again.');return;}if(!timerHandle)timerHandle=setInterval(updateTimer,1000);api.services.StudentCourses({}).then(function(r){data.coursesLoaded=true;if(!r.success)return fail(msg(r,'Assigned courses could not be loaded.'));data.courses=r.result||[];var query=new URLSearchParams(location.hash.split('?')[1]||'');var course=query.get('course_id');if(course){data.courseId=course;loadCourse();}}).error(function(){data.coursesLoaded=true;fail('Assigned courses could not be loaded.');});}
- function resetLessonState(){data.current=null;data.quiz=null;data.quizAttempt=null;data.quizQuestions=[];data.quizResult=null;data.deadline=null;data.timeRemaining='';data.answers={};data.assignmentForm={content:'',file_url:''};selectedAssignmentFiles=[];data.assignmentFiles=[];}
- function loadCourse(){data.subjectId='';data.mobileStage='choose';data.course=null;data.lessons=[];resetLessonState();if(!data.courseId)return;data.loading=true;api.services.LearningCourse({course_id:data.courseId}).then(function(r){data.loading=false;if(!r.success)return fail(msg(r,'Course could not be opened.'));applyCourse(r.result||{});var wanted=new URLSearchParams(location.hash.split('?')[1]||'').get('lesson_id');if(wanted){var selected=data.lessons.filter(function(l){return String(l.id)===wanted;})[0];if(selected){selectSubject(selected.subject_id);openLesson(selected);}}if(!data.lessons.length)ok('This assigned course has no published lessons yet.');}).error(function(){data.loading=false;fail('Course could not be opened.');});}
- function applyCourse(x){data.course=x.course||null;data.lessons=x.lessons||[];data.lessons.forEach(normalizeLesson);}
- function subjectsForCourse(){var seen={},subjects=[];data.lessons.forEach(function(l){var id=String(l.subject_id||'');if(!id||seen[id])return;seen[id]=true;subjects.push(l.subject||{id:l.subject_id,code:'Subject',title:'Subject'});});return subjects;}
- function lessonsForSubject(){return data.lessons.filter(function(l){return String(l.subject_id)===String(data.subjectId);});}
- function selectSubject(subject){data.subjectId=subject&&subject.id!==undefined?subject.id:subject;resetLessonState();data.mobileStage='lessons';}
- function backToSubjects(){data.subjectId='';resetLessonState();data.mobileStage='choose';}
- function backToLessons(){data.quiz=null;data.quizAttempt=null;data.mobileStage='lessons';}
- function openLesson(l){if(!l||(!l.unlocked&&!l.credit_locked)||data.busyLesson)return;if(l.credit_locked&&!window.confirm('Unlock this lesson for '+l.required_credit_points+' credits? This purchase is permanent and cannot be repeated.'))return;data.busyLesson=l.id;api.services.StartLesson({lesson_id:l.id}).then(function(r){data.busyLesson=0;if(!r.success)return fail(msg(r,'Lesson could not be opened.'));if(l.credit_locked){ok('Lesson unlocked for '+l.required_credit_points+' credits.');return reloadUnlockedLesson(l);}showLesson(l,r.result);}).error(function(){data.busyLesson=0;fail('Lesson could not be opened.');});}
- function reloadUnlockedLesson(lesson){api.services.LearningCourse({course_id:data.courseId}).then(function(r){if(!r.success)return fail(msg(r,'The unlocked lesson could not be refreshed.'));applyCourse(r.result||{});var refreshed=null;data.lessons.forEach(function(x){if(String(x.id)===String(lesson.id))refreshed=x;});if(refreshed)showLesson(refreshed,refreshed.progress);else fail('The unlocked lesson is not available.');});}
- function showLesson(lesson,progress){data.current=lesson;if(progress)data.current.progress=progress;data.mobileStage='content';data.quiz=null;data.quizAttempt=null;data.quizQuestions=[];data.quizResult=null;data.deadline=null;data.answers={};data.assignmentForm={content:'',file_url:''};selectedAssignmentFiles=[];data.assignmentFiles=[];}
- function currentIndex(){return lessonsForSubject().indexOf(data.current);}function canPrevious(){return currentIndex()>0;}function canNext(){var list=lessonsForSubject(),i=currentIndex();return i>=0&&i<list.length-1&&list[i+1].unlocked;}function previous(){var list=lessonsForSubject(),i=currentIndex();if(i>0&&list[i-1].unlocked)openLesson(list[i-1]);}function next(){var list=lessonsForSubject(),i=currentIndex();if(i>=0&&i<list.length-1&&list[i+1].unlocked)openLesson(list[i+1]);}
- function markReading(){complete('reading','Reading marked complete.');}function markVideo(){complete('video','Video marked complete.');}function complete(activity,text){api.services.CompleteActivity({lesson_id:data.current.id,activity:activity}).then(function(r){if(r.success){data.current.progress=r.result;ok(text);refreshCurrent();}else fail(msg(r,'Progress could not be saved.'));});}
- function refreshCurrent(){var id=data.current.id;api.services.LearningCourse({course_id:data.courseId}).then(function(r){if(!r.success)return;data.lessons=r.result.lessons||[];data.lessons.forEach(normalizeLesson);data.lessons.forEach(function(x){if(String(x.id)===String(id))data.current=x;});});}
- function startQuiz(q){data.quiz=q;data.quizAttempt=null;data.answers={};data.quizResult=null;api.services.StartQuiz({quiz_id:q.id}).then(function(r){if(!r.success)return fail(msg(r,'Quiz could not be started.'));var x=r.result||{};data.quizAttempt=x.attempt;data.deadline=x.deadline;data.quizQuestions=x.questions||[];data.quizQuestions.forEach(function(question){data.answers[String(question.id)]=question.question_type==='multiple_answer'?[]:'';});updateTimer();});}
- function submitQuiz(){if(!data.quizAttempt)return fail('Start a quiz attempt first.');api.services.SubmitQuiz({quiz_id:data.quiz.id,attempt_id:data.quizAttempt.id,answers:data.answers}).then(function(r){if(!r.success)return fail(msg(r,'Quiz could not be submitted.'));data.quizResult=r.result;ok(r.result.manual_marking?'Quiz submitted for teacher marking.':(r.result.passed?'Quiz passed. The next requirement is available.':'Attempt saved. Review the result and retry if allowed.'));refreshCurrent();});}
- function updateTimer(){if(!data.deadline){data.timeRemaining='';return;}var seconds=Math.max(0,Math.floor((new Date(data.deadline).getTime()-Date.now())/1000)),remainder=String(seconds%60);data.timeRemaining=Math.floor(seconds/60)+':'+(remainder.length<2?'0'+remainder:remainder);}
- function chooseAssignmentFiles(event,rule){var allowed=String(rule.allowed_formats||'').toLowerCase().split(',').map(function(x){return x.trim();});var max=Number(rule.max_file_size_mb||10)*1048576;selectedAssignmentFiles=Array.prototype.slice.call(event.target.files||[]).filter(function(file){var ext=file.name.toLowerCase().split('.').pop();return allowed.indexOf(ext)>=0&&file.size<=max;});data.assignmentFiles=selectedAssignmentFiles.map(function(file){return{name:file.name,size:file.size};});if(selectedAssignmentFiles.length!==(event.target.files||[]).length)fail('Some files were skipped because their type or size is not allowed.');}
- function submitAssignment(rule){if(data.uploading)return;var payload={lesson_id:data.current.id,assignment_id:rule.assignment_id,content:data.assignmentForm.content,file_url:data.assignmentForm.file_url,files:[]};if(!selectedAssignmentFiles.length)return saveAssignment(payload);data.uploading=true;var token='lm-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);selectedAssignmentFiles.forEach(function(file,index){file.uploadName=token+'-'+index+'-'+file.name.replace(/[^A-Za-z0-9._-]/g,'_');});exports.getAppComponent('davvag-tools','davvag-file-uploader',function(uploader){uploader.initialize();uploader.upload_uncompressed(selectedAssignmentFiles,'lesson_assignment_submission',null,function(){data.uploading=false;var failed=selectedAssignmentFiles.some(function(file){return file.status!==true;});if(failed)return fail('One or more files failed to upload.');payload.files=selectedAssignmentFiles.map(function(file){return{name:file.name,media_reference:'components/dock/soss-uploader/service/get/lesson_assignment_submission/'+file.uploadName};});saveAssignment(payload);});});}
- function saveAssignment(payload){api.services.SubmitAssignment(payload).then(function(r){if(r.success){ok('Assignment submitted for teacher review.');data.assignmentForm={content:'',file_url:''};selectedAssignmentFiles=[];data.assignmentFiles=[];refreshCurrent();}else fail(msg(r,'Assignment could not be submitted.'));});}
- function toggleAnswer(q,o){var key=String(q.id),arr=data.answers[key]||[],i=arr.indexOf(o);if(i>=0)arr.splice(i,1);else arr.push(o);data.answers[key]=arr;}function isSelected(q,o){return(data.answers[String(q.id)]||[]).indexOf(o)>=0;}function options(q){return Array.isArray(q.options)?q.options:String(q.options||'').split(',');}
- function isEmbeddable(v){return['youtube','cloudflare'].indexOf(String(v.provider).toLowerCase())>=0;}function videoEmbed(v){var u=String(v.video_url||'');if(String(v.provider).toLowerCase()==='youtube'){var id='';if(u.indexOf('youtu.be/')>=0)id=u.split('youtu.be/')[1].split(/[?&]/)[0];else if(u.indexOf('v=')>=0)id=u.split('v=')[1].split('&')[0];else if(u.indexOf('/embed/')>=0)id=u.split('/embed/')[1].split(/[?&]/)[0];return'https://www.youtube.com/embed/'+id;}return u;}
- function normalizeLesson(l){['require_reading','require_video','require_quiz','require_assignment','require_teacher_approval','progression_enabled'].forEach(function(k){l[k]=truthy(l[k]);});if(l.progress)['lesson_completed','reading_completed','video_completed','quiz_completed','quiz_passed','assignment_submitted','assignment_passed','teacher_approved','override_unlocked'].forEach(function(k){l.progress[k]=truthy(l.progress[k]);});}function courseProgress(){var value=0;data.courses.forEach(function(c){if(String(c.id)===String(data.courseId))value=c.completion_percentage||0;});return value;}function statusClass(v){return'lm-badge '+String(v||'locked').toLowerCase();}function go(p){if(router&&router.appNavigate)router.appNavigate('/'+p);else location.hash='#/app/lesson-manager/'+p;}function truthy(v){return v===true||v===1||v==='1'||v==='true';}function msg(r,d){return r.result&&r.result.message?r.result.message:d;}function fail(x){data.errors=[x];data.info=[];}function ok(x){data.info=[x];data.errors=[];}
+WEBDOCK.component().register(function (exports) {
+    var api,
+        router,
+        timerHandle,
+        selectedAssignmentFiles = [];
+    // Reactive state used by partial.html.
+    var data = {
+        courses: [],
+        coursesLoaded: false,
+        courseId: '',
+        course: null,
+        lessons: [],
+        subjectId: '',
+        current: null,
+        mobileStage: 'choose',
+        quiz: null,
+        quizAttempt: null,
+        quizQuestions: [],
+        answers: {},
+        quizResult: null,
+        deadline: null,
+        timeRemaining: '',
+        assignmentForm: { content: '', file_url: '' },
+        assignmentFiles: [],
+        uploading: false,
+        busyLesson: 0,
+        errors: [],
+        info: [],
+        loading: false
+    };
+
+    // Public methods referenced by the Vue template.
+    exports.vue = {
+        data: data,
+        methods: {
+            go: go,
+            loadCourse: loadCourse,
+            selectSubject: selectSubject,
+            subjectsForCourse: subjectsForCourse,
+            lessonsForSubject: lessonsForSubject,
+            openLesson: openLesson,
+            backToSubjects: backToSubjects,
+            backToLessons: backToLessons,
+            previous: previous,
+            next: next,
+            canPrevious: canPrevious,
+            canNext: canNext,
+            markReading: markReading,
+            markVideo: markVideo,
+            startQuiz: startQuiz,
+            submitQuiz: submitQuiz,
+            chooseAssignmentFiles: chooseAssignmentFiles,
+            submitAssignment: submitAssignment,
+            options: options,
+            toggleAnswer: toggleAnswer,
+            isSelected: isSelected,
+            videoEmbed: videoEmbed,
+            isEmbeddable: isEmbeddable,
+            statusClass: statusClass,
+            courseProgress: courseProgress
+        },
+        onReady: init
+    };
+    exports.onReady = function () {};
+
+    // Connect framework services and load the initial page data.
+    function init() {
+        data.errors = [];
+        data.info = [];
+        try {
+            api = exports.getComponent('api');
+            router = exports.getShellComponent('soss-routes');
+        } catch (e) {
+            fail('Lesson Manager could not start. Reload the page and try again.');
+            return;
+        }
+        if (!api || !api.services || typeof api.services.StudentCourses !== 'function') {
+            fail('Lesson Manager services are unavailable. Reload the page and try again.');
+            return;
+        }
+        if (!timerHandle) timerHandle = setInterval(updateTimer, 1000);
+        api.services
+            .StudentCourses({})
+            .then(function (r) {
+                data.coursesLoaded = true;
+                if (!r.success) return fail(msg(r, 'Assigned courses could not be loaded.'));
+                data.courses = r.result || [];
+                var query = new URLSearchParams(location.hash.split('?')[1] || '');
+                var course = query.get('course_id');
+                if (course) {
+                    data.courseId = course;
+                    loadCourse();
+                }
+            })
+            .error(function () {
+                data.coursesLoaded = true;
+                fail('Assigned courses could not be loaded.');
+            });
+    }
+
+    // Clear lesson-specific progress, quiz, and assignment state.
+    function resetLessonState() {
+        data.current = null;
+        data.quiz = null;
+        data.quizAttempt = null;
+        data.quizQuestions = [];
+        data.quizResult = null;
+        data.deadline = null;
+        data.timeRemaining = '';
+        data.answers = {};
+        data.assignmentForm = { content: '', file_url: '' };
+        selectedAssignmentFiles = [];
+        data.assignmentFiles = [];
+    }
+
+    function loadCourse() {
+        data.subjectId = '';
+        data.mobileStage = 'choose';
+        data.course = null;
+        data.lessons = [];
+        resetLessonState();
+        if (!data.courseId) return;
+        data.loading = true;
+        api.services
+            .LearningCourse({ course_id: data.courseId })
+            .then(function (r) {
+                data.loading = false;
+                if (!r.success) return fail(msg(r, 'Course could not be opened.'));
+                applyCourse(r.result || {});
+                var wanted = new URLSearchParams(location.hash.split('?')[1] || '').get(
+                    'lesson_id'
+                );
+                if (wanted) {
+                    var selected = data.lessons.filter(function (l) {
+                        return String(l.id) === wanted;
+                    })[0];
+                    if (selected) {
+                        selectSubject(selected.subject_id);
+                        openLesson(selected);
+                    }
+                }
+                if (!data.lessons.length) ok('This assigned course has no published lessons yet.');
+            })
+            .error(function () {
+                data.loading = false;
+                fail('Course could not be opened.');
+            });
+    }
+
+    function applyCourse(x) {
+        data.course = x.course || null;
+        data.lessons = x.lessons || [];
+        data.lessons.forEach(normalizeLesson);
+    }
+
+    // Build the subject picker from the lessons available to the learner.
+    function subjectsForCourse() {
+        var seen = {},
+            subjects = [];
+        data.lessons.forEach(function (l) {
+            var id = String(l.subject_id || '');
+            if (!id || seen[id]) return;
+            seen[id] = true;
+            subjects.push(l.subject || { id: l.subject_id, code: 'Subject', title: 'Subject' });
+        });
+        return subjects;
+    }
+
+    function lessonsForSubject() {
+        return data.lessons.filter(function (l) {
+            return String(l.subject_id) === String(data.subjectId);
+        });
+    }
+
+    function selectSubject(subject) {
+        data.subjectId = subject && subject.id !== undefined ? subject.id : subject;
+        resetLessonState();
+        data.mobileStage = 'lessons';
+    }
+
+    function backToSubjects() {
+        data.subjectId = '';
+        resetLessonState();
+        data.mobileStage = 'choose';
+    }
+
+    function backToLessons() {
+        data.quiz = null;
+        data.quizAttempt = null;
+        data.mobileStage = 'lessons';
+    }
+
+    // Open lessons and refresh access after unlocking.
+    function openLesson(l) {
+        if (!l || (!l.unlocked && !l.credit_locked) || data.busyLesson) return;
+        if (
+            l.credit_locked &&
+            !window.confirm(
+                'Unlock this lesson for ' +
+                    l.required_credit_points +
+                    ' credits? This purchase is permanent and cannot be repeated.'
+            )
+        )
+            return;
+        data.busyLesson = l.id;
+        api.services
+            .StartLesson({ lesson_id: l.id })
+            .then(function (r) {
+                data.busyLesson = 0;
+                if (!r.success) return fail(msg(r, 'Lesson could not be opened.'));
+                if (l.credit_locked) {
+                    ok('Lesson unlocked for ' + l.required_credit_points + ' credits.');
+                    return reloadUnlockedLesson(l);
+                }
+                showLesson(l, r.result);
+            })
+            .error(function () {
+                data.busyLesson = 0;
+                fail('Lesson could not be opened.');
+            });
+    }
+
+    function reloadUnlockedLesson(lesson) {
+        api.services.LearningCourse({ course_id: data.courseId }).then(function (r) {
+            if (!r.success) return fail(msg(r, 'The unlocked lesson could not be refreshed.'));
+            applyCourse(r.result || {});
+            var refreshed = null;
+            data.lessons.forEach(function (x) {
+                if (String(x.id) === String(lesson.id)) refreshed = x;
+            });
+            if (refreshed) showLesson(refreshed, refreshed.progress);
+            else fail('The unlocked lesson is not available.');
+        });
+    }
+
+    function showLesson(lesson, progress) {
+        data.current = lesson;
+        if (progress) data.current.progress = progress;
+        data.mobileStage = 'content';
+        data.quiz = null;
+        data.quizAttempt = null;
+        data.quizQuestions = [];
+        data.quizResult = null;
+        data.deadline = null;
+        data.answers = {};
+        data.assignmentForm = { content: '', file_url: '' };
+        selectedAssignmentFiles = [];
+        data.assignmentFiles = [];
+    }
+
+    // Navigate through the current subject sequence.
+    function currentIndex() {
+        return lessonsForSubject().indexOf(data.current);
+    }
+
+    function canPrevious() {
+        return currentIndex() > 0;
+    }
+
+    function canNext() {
+        var list = lessonsForSubject(),
+            i = currentIndex();
+        return i >= 0 && i < list.length - 1 && list[i + 1].unlocked;
+    }
+
+    function previous() {
+        var list = lessonsForSubject(),
+            i = currentIndex();
+        if (i > 0 && list[i - 1].unlocked) openLesson(list[i - 1]);
+    }
+
+    function next() {
+        var list = lessonsForSubject(),
+            i = currentIndex();
+        if (i >= 0 && i < list.length - 1 && list[i + 1].unlocked) openLesson(list[i + 1]);
+    }
+
+    // Record completion of reading and video requirements.
+    function markReading() {
+        complete('reading', 'Reading marked complete.');
+    }
+
+    function markVideo() {
+        complete('video', 'Video marked complete.');
+    }
+
+    function complete(activity, text) {
+        api.services
+            .CompleteActivity({ lesson_id: data.current.id, activity: activity })
+            .then(function (r) {
+                if (r.success) {
+                    data.current.progress = r.result;
+                    ok(text);
+                    refreshCurrent();
+                } else fail(msg(r, 'Progress could not be saved.'));
+            });
+    }
+
+    function refreshCurrent() {
+        var id = data.current.id;
+        api.services.LearningCourse({ course_id: data.courseId }).then(function (r) {
+            if (!r.success) return;
+            data.lessons = r.result.lessons || [];
+            data.lessons.forEach(normalizeLesson);
+            data.lessons.forEach(function (x) {
+                if (String(x.id) === String(id)) data.current = x;
+            });
+        });
+    }
+
+    // Quiz attempts, answers, and the countdown timer.
+    function startQuiz(q) {
+        data.quiz = q;
+        data.quizAttempt = null;
+        data.answers = {};
+        data.quizResult = null;
+        api.services.StartQuiz({ quiz_id: q.id }).then(function (r) {
+            if (!r.success) return fail(msg(r, 'Quiz could not be started.'));
+            var x = r.result || {};
+            data.quizAttempt = x.attempt;
+            data.deadline = x.deadline;
+            data.quizQuestions = x.questions || [];
+            data.quizQuestions.forEach(function (question) {
+                data.answers[String(question.id)] =
+                    question.question_type === 'multiple_answer' ? [] : '';
+            });
+            updateTimer();
+        });
+    }
+
+    function submitQuiz() {
+        if (!data.quizAttempt) return fail('Start a quiz attempt first.');
+        api.services
+            .SubmitQuiz({
+                quiz_id: data.quiz.id,
+                attempt_id: data.quizAttempt.id,
+                answers: data.answers
+            })
+            .then(function (r) {
+                if (!r.success) return fail(msg(r, 'Quiz could not be submitted.'));
+                data.quizResult = r.result;
+                ok(
+                    r.result.manual_marking
+                        ? 'Quiz submitted for teacher marking.'
+                        : r.result.passed
+                          ? 'Quiz passed. The next requirement is available.'
+                          : 'Attempt saved. Review the result and retry if allowed.'
+                );
+                refreshCurrent();
+            });
+    }
+
+    function updateTimer() {
+        if (!data.deadline) {
+            data.timeRemaining = '';
+            return;
+        }
+        var seconds = Math.max(
+                0,
+                Math.floor((new Date(data.deadline).getTime() - Date.now()) / 1000)
+            ),
+            remainder = String(seconds % 60);
+        data.timeRemaining =
+            Math.floor(seconds / 60) + ':' + (remainder.length < 2 ? '0' + remainder : remainder);
+    }
+
+    // Assignment uploads and submission.
+    function chooseAssignmentFiles(event, rule) {
+        var allowed = String(rule.allowed_formats || '')
+            .toLowerCase()
+            .split(',')
+            .map(function (x) {
+                return x.trim();
+            });
+        var max = Number(rule.max_file_size_mb || 10) * 1048576;
+        selectedAssignmentFiles = Array.prototype.slice
+            .call(event.target.files || [])
+            .filter(function (file) {
+                var ext = file.name.toLowerCase().split('.').pop();
+                return allowed.indexOf(ext) >= 0 && file.size <= max;
+            });
+        data.assignmentFiles = selectedAssignmentFiles.map(function (file) {
+            return { name: file.name, size: file.size };
+        });
+        if (selectedAssignmentFiles.length !== (event.target.files || []).length)
+            fail('Some files were skipped because their type or size is not allowed.');
+    }
+
+    function submitAssignment(rule) {
+        if (data.uploading) return;
+        var payload = {
+            lesson_id: data.current.id,
+            assignment_id: rule.assignment_id,
+            content: data.assignmentForm.content,
+            file_url: data.assignmentForm.file_url,
+            files: []
+        };
+        if (!selectedAssignmentFiles.length) return saveAssignment(payload);
+        data.uploading = true;
+        var token = 'lm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+        selectedAssignmentFiles.forEach(function (file, index) {
+            file.uploadName =
+                token + '-' + index + '-' + file.name.replace(/[^A-Za-z0-9._-]/g, '_');
+        });
+        exports.getAppComponent('davvag-tools', 'davvag-file-uploader', function (uploader) {
+            uploader.initialize();
+            uploader.upload_uncompressed(
+                selectedAssignmentFiles,
+                'lesson_assignment_submission',
+                null,
+                function () {
+                    data.uploading = false;
+                    var failed = selectedAssignmentFiles.some(function (file) {
+                        return file.status !== true;
+                    });
+                    if (failed) return fail('One or more files failed to upload.');
+                    payload.files = selectedAssignmentFiles.map(function (file) {
+                        return {
+                            name: file.name,
+                            media_reference:
+                                'components/dock/soss-uploader/service/get/lesson_assignment_submission/' +
+                                file.uploadName
+                        };
+                    });
+                    saveAssignment(payload);
+                }
+            );
+        });
+    }
+
+    function saveAssignment(payload) {
+        api.services.SubmitAssignment(payload).then(function (r) {
+            if (r.success) {
+                ok('Assignment submitted for teacher review.');
+                data.assignmentForm = { content: '', file_url: '' };
+                selectedAssignmentFiles = [];
+                data.assignmentFiles = [];
+                refreshCurrent();
+            } else fail(msg(r, 'Assignment could not be submitted.'));
+        });
+    }
+
+    // Answer selection, media display, and shared helpers.
+    function toggleAnswer(q, o) {
+        var key = String(q.id),
+            arr = data.answers[key] || [],
+            i = arr.indexOf(o);
+        if (i >= 0) arr.splice(i, 1);
+        else arr.push(o);
+        data.answers[key] = arr;
+    }
+
+    function isSelected(q, o) {
+        return (data.answers[String(q.id)] || []).indexOf(o) >= 0;
+    }
+
+    function options(q) {
+        return Array.isArray(q.options) ? q.options : String(q.options || '').split(',');
+    }
+
+    function isEmbeddable(v) {
+        return ['youtube', 'cloudflare'].indexOf(String(v.provider).toLowerCase()) >= 0;
+    }
+
+    function videoEmbed(v) {
+        var u = String(v.video_url || '');
+        if (String(v.provider).toLowerCase() === 'youtube') {
+            var id = '';
+            if (u.indexOf('youtu.be/') >= 0) id = u.split('youtu.be/')[1].split(/[?&]/)[0];
+            else if (u.indexOf('v=') >= 0) id = u.split('v=')[1].split('&')[0];
+            else if (u.indexOf('/embed/') >= 0) id = u.split('/embed/')[1].split(/[?&]/)[0];
+            return 'https://www.youtube.com/embed/' + id;
+        }
+        return u;
+    }
+
+    function normalizeLesson(l) {
+        [
+            'require_reading',
+            'require_video',
+            'require_quiz',
+            'require_assignment',
+            'require_teacher_approval',
+            'progression_enabled'
+        ].forEach(function (k) {
+            l[k] = truthy(l[k]);
+        });
+        if (l.progress)
+            [
+                'lesson_completed',
+                'reading_completed',
+                'video_completed',
+                'quiz_completed',
+                'quiz_passed',
+                'assignment_submitted',
+                'assignment_passed',
+                'teacher_approved',
+                'override_unlocked'
+            ].forEach(function (k) {
+                l.progress[k] = truthy(l.progress[k]);
+            });
+    }
+
+    function courseProgress() {
+        var value = 0;
+        data.courses.forEach(function (c) {
+            if (String(c.id) === String(data.courseId)) value = c.completion_percentage || 0;
+        });
+        return value;
+    }
+
+    function statusClass(v) {
+        return 'lm-badge ' + String(v || 'locked').toLowerCase();
+    }
+
+    function go(p) {
+        if (router && router.appNavigate) router.appNavigate('/' + p);
+        else location.hash = '#/app/lesson-manager/' + p;
+    }
+
+    function truthy(v) {
+        return v === true || v === 1 || v === '1' || v === 'true';
+    }
+
+    function msg(r, d) {
+        return r.result && r.result.message ? r.result.message : d;
+    }
+
+    function fail(x) {
+        data.errors = [x];
+        data.info = [];
+    }
+
+    function ok(x) {
+        data.info = [x];
+        data.errors = [];
+    }
 });

@@ -1,42 +1,759 @@
-WEBDOCK.component().register(function(exports){
- var api,router,metadataTimer;var richEditorReady=false;var videoDirty={title:false,thumbnail_url:false,transcript:false};var data={courses:[],subjects:[],assignments:[],lessons:[],content:[],videos:[],rules:[],courseId:'',subjectId:'',selected:null,tab:'lesson',showDeleted:false,errors:[],info:[],metadataLoading:false,assetUploading:false,metadataMessages:[],materialModalOpen:false,lessonForm:newLesson(),contentForm:newContent(),videoForm:newVideo(),ruleForm:newRule()};
- exports.vue={data:data,methods:{go:go,onCourseChange:onCourseChange,loadLessons:loadLessons,subjectsForCourse:subjectsForCourse,newLesson:clearLesson,selectLesson:selectLesson,saveLesson:saveLesson,removeLesson:removeLesson,restoreLesson:restoreLesson,move:move,setTab:setTab,newContent:openNewContent,closeContentModal:closeContentModal,saveContent:saveContent,editContent:editContent,removeContent:removeContent,restoreContent:restoreContent,saveVideo:saveVideo,editVideo:editVideo,removeVideo:removeVideo,restoreVideo:restoreVideo,saveRule:saveRule,editRule:editRule,removeRule:removeRule,restoreRule:restoreRule,courseTitle:courseTitle,subjectTitle:subjectTitle,statusClass:statusClass,lessonAccessLabel:lessonAccessLabel,richCommand:richCommand,syncRichText:syncRichText,uploadContentFile:uploadContentFile,uploadRichImage:uploadRichImage,uploadLocalVideo:uploadLocalVideo,uploadAssignmentSupport:uploadAssignmentSupport,scheduleMetadata:scheduleMetadata,fetchVideoMetadata:fetchVideoMetadata,markVideoField:markVideoField,onProviderChange:onProviderChange,isDeleted:isDeleted,activeLessonCount:activeLessonCount},onReady:init};exports.onReady=function(){};
- function init(){api=exports.getComponent('api');router=exports.getShellComponent('soss-routes');api.services.Bootstrap({}).then(function(r){if(!r.success)return fail('Could not load Course Manager data.');var x=r.result||{};data.courses=x.courses||[];data.subjects=x.subjects||[];data.assignments=x.assignments||[];if(data.courses.length){data.courseId=data.courses[0].id;onCourseChange();}});}
- function newLesson(){return{subject_id:'',title:'',description:'',lesson_order:1,passing_mark:70,status:'draft',available_at:'',progression_enabled:true,is_free:true,required_credit_points:0,require_reading:true,require_video:false,require_quiz:false,require_assignment:false,require_teacher_approval:false};}
- function newContent(){return{lesson_id:'',content_type:'article',title:'',body:'',url:'',embed_url:'',file_name:'',sort_order:1,is_required:true,status:'published'};}
- function newVideo(){return{lesson_id:'',title:'',provider:'youtube',video_url:'',media_reference:'',thumbnail_url:'',duration_seconds:0,transcript:'',caption_url:'',sort_order:1,is_required:true,status:'published'};}
- function newRule(){return{lesson_id:'',assignment_id:'',submission_type:'file_and_text',passing_mark:50,allowed_formats:'pdf,doc,docx,jpg,png,mp4,mp3,zip',max_file_size_mb:50,max_submissions:3,allow_resubmission:true,allow_late:true,requires_approval:true,supporting_files:[],status:'active',assignment:{title:'',description:'',due_at:'',max_mark:100,late_penalty_per_day:0,status:'published'}};}
- function isDeleted(x){return!!x&&String(x.status||'').toLowerCase()==='deleted';}
- function activeLessonCount(){return data.lessons.filter(function(x){return!isDeleted(x);}).length;}
- function subjectsForCourse(){return data.subjects.filter(function(x){return String(x.course_id)===String(data.courseId);});}
- function onCourseChange(){var available=subjectsForCourse();data.subjectId=available.length?available[0].id:'';loadLessons();}
- function loadLessons(){closeContentModal();data.selected=null;data.lessonForm=newLesson();data.lessonForm.subject_id=data.subjectId;if(!data.subjectId){data.lessons=[];return;}api.services.ListLessons({subject_id:data.subjectId,include_deleted:data.showDeleted}).then(function(r){data.lessons=r.success?(r.result||[]):[];data.lessons.sort(function(a,b){return Number(a.lesson_order)-Number(b.lesson_order);});});}
- function clearLesson(){data.selected=null;data.lessonForm=newLesson();data.lessonForm.subject_id=data.subjectId;data.lessonForm.lesson_order=activeLessonCount()+1;data.tab='lesson';}
- function selectLesson(x){closeContentModal();data.selected=x;data.lessonForm=clone(x);data.lessonForm.is_free=x.is_free===undefined||x.is_free===null?true:truthy(x.is_free);data.lessonForm.required_credit_points=Number(x.required_credit_points||0);data.courseId=x.course_id;data.subjectId=x.subject_id;data.tab='lesson';loadChildren(x.id);}
- function loadChildren(id){var request={lesson_id:id,include_deleted:data.showDeleted};api.services.ListContent(request).then(function(r){data.content=r.success?(r.result||[]):[];data.content.sort(function(a,b){return Number(a.sort_order)-Number(b.sort_order);});});api.services.ListVideos(request).then(function(r){data.videos=r.success?(r.result||[]):[];});api.services.ListAssignmentRules(request).then(function(r){data.rules=r.success?(r.result||[]):[];});data.contentForm=newContent();data.contentForm.lesson_id=id;data.videoForm=newVideo();data.videoForm.lesson_id=id;videoDirty={title:false,thumbnail_url:false,transcript:false};data.metadataMessages=[];data.ruleForm=newRule();data.ruleForm.lesson_id=id;}
- function saveLesson(){data.lessonForm.subject_id=data.subjectId;delete data.lessonForm.course_id;api.services.SaveLesson(clone(data.lessonForm)).then(function(r){if(!r.success)return fail(message(r,'Lesson could not be saved.'));ok('Lesson saved under '+subjectTitle(data.subjectId)+'.');data.selected=r.result;data.lessonForm=clone(r.result);loadLessonsAndReselect(r.result.id);});}
- function loadLessonsAndReselect(id){api.services.ListLessons({subject_id:data.subjectId,include_deleted:data.showDeleted}).then(function(r){data.lessons=r.result||[];data.lessons.sort(function(a,b){return Number(a.lesson_order)-Number(b.lesson_order);});data.lessons.forEach(function(x){if(String(x.id)===String(id)){data.selected=x;data.lessonForm=clone(x);loadChildren(x.id);}});});}
- function removeLesson(x){if(!confirm('Delete this lesson? It will be hidden from learners and Studio, but its record and child items will be kept for recovery.'))return;api.services.DeleteLesson({id:x.id}).then(function(r){if(r.success){ok('Lesson moved to deleted items.');loadLessons();}else fail(message(r,'Lesson could not be deleted.'));});}
- function restoreLesson(x){api.services.RestoreLesson({id:x.id}).then(function(r){if(r.success){ok('Lesson restored as a draft.');loadLessons();}else fail(message(r,'Lesson could not be restored.'));});}
- function move(x,offset){var i=data.lessons.indexOf(x),j=i+offset;if(j<0||j>=data.lessons.length)return;var tmp=data.lessons[i];data.lessons.splice(i,1);data.lessons.splice(j,0,tmp);api.services.ReorderLessons({lessons:data.lessons}).then(function(r){if(r.success){ok('Lesson order updated.');loadLessonsAndReselect(x.id);}else fail('Order could not be updated.');});}
- function setTab(v){data.tab=v;if(v!=='content')closeContentModal();}
- function openNewContent(){if(!data.selected)return;data.contentForm=newContent();data.contentForm.lesson_id=data.selected.id;data.contentForm.sort_order=data.content.length?Math.max.apply(null,data.content.map(function(x){return Number(x.sort_order)||0;}))+1:1;openContentModal();}
- function openContentModal(){data.materialModalOpen=true;richEditorReady=false;setTimeout(function(){initializeRichEditor(data.contentForm.body||'');var modal=document.getElementById('lessonMaterialModal');if(modal)modal.focus();},0);}
- function closeContentModal(){data.materialModalOpen=false;richEditorReady=false;}
- function saveContent(){if(!data.selected||data.assetUploading)return;syncRichText();data.contentForm.lesson_id=data.selected.id;api.services.SaveContent(clone(data.contentForm)).then(function(r){if(r.success){ok('Material saved.');closeContentModal();loadChildren(data.selected.id);}else fail(message(r,'Material could not be saved.'));});}function editContent(x){data.contentForm=clone(x);data.tab='content';openContentModal();}function removeContent(x){if(!confirm('Delete this material? It will be hidden, marked deleted, and kept for recovery.'))return;api.services.DeleteContent({id:x.id}).then(function(r){if(r.success){ok('Material moved to deleted items.');loadChildren(data.selected.id);}else fail(message(r,'Material could not be deleted.'));});}function restoreContent(x){api.services.RestoreContent({id:x.id}).then(function(r){if(r.success){ok('Material restored.');loadChildren(data.selected.id);}else fail(message(r,'Material could not be restored.'));});}
- function saveVideo(){if(data.metadataLoading)return;data.videoForm.lesson_id=data.selected.id;api.services.SaveVideo(clone(data.videoForm)).then(function(r){if(r.success){ok('Video saved.');loadChildren(data.selected.id);}else fail(message(r,'Video could not be saved.'));});}function editVideo(x){data.videoForm=clone(x);videoDirty={title:true,thumbnail_url:true,transcript:true};data.metadataMessages=[];data.tab='video';}function removeVideo(x){if(!confirm('Delete this video? It will be hidden, marked deleted, and kept for recovery.'))return;api.services.DeleteVideo({id:x.id}).then(function(r){if(r.success){ok('Video moved to deleted items.');loadChildren(data.selected.id);}else fail(message(r,'Video could not be deleted.'));});}function restoreVideo(x){api.services.RestoreVideo({id:x.id}).then(function(r){if(r.success){ok('Video restored.');loadChildren(data.selected.id);}else fail(message(r,'Video could not be restored.'));});}
- function saveRule(){data.ruleForm.lesson_id=data.selected.id;if(data.ruleForm.assignment_id)delete data.ruleForm.assignment;api.services.SaveAssignmentRule(clone(data.ruleForm)).then(function(r){if(r.success){ok('Assignment linked to lesson.');loadChildren(data.selected.id);}else fail(message(r,'Assignment rule could not be saved.'));});}function editRule(x){data.ruleForm=clone(x);data.ruleForm.assignment={title:'',description:'',due_at:'',max_mark:100,status:'published'};data.tab='assignment';}function removeRule(x){if(!confirm('Delete this lesson assignment link? It will be hidden and kept for recovery; submissions and the assignment record will remain.'))return;api.services.DeleteAssignmentRule({id:x.id}).then(function(r){if(r.success){ok('Assignment link moved to deleted items.');loadChildren(data.selected.id);}else fail(message(r,'Assignment link could not be deleted.'));});}function restoreRule(x){api.services.RestoreAssignmentRule({id:x.id}).then(function(r){if(r.success){ok('Assignment link restored.');loadChildren(data.selected.id);}else fail(message(r,'Assignment link could not be restored.'));});}
- function initializeRichEditor(value){var editor=document.getElementById('lessonRichTextEditor');if(!editor)return;richEditorReady=true;editor.innerHTML=value||'';syncRichText();}
- function syncRichText(){var editor=document.getElementById('lessonRichTextEditor');if(editor&&richEditorReady)data.contentForm.body=editor.innerHTML;}
- function richCommand(command,value){var editor=document.getElementById('lessonRichTextEditor');if(!editor)return;editor.focus();if(command==='createLink'){value=window.prompt('Link URL','https://');if(!value)return;}if(command==='insertImage'){value=window.prompt('Image URL','https://');if(!value)return;}document.execCommand(command,false,value||null);syncRichText();}
- function uploadContentFile(event){var file=event.target.files&&event.target.files[0];if(!file)return;if(data.contentForm.content_type==='pdf_embed'){if(String(file.type||'')!=='application/pdf'&&!/\.pdf$/i.test(file.name))return fail('Select a PDF file.');uploadAsset(file,'lesson_manager_assets',function(reference){data.assetUploading=true;api.services.RegisterReusableAsset({asset_kind:'pdf',file_name:file.name,media_reference:reference,source_name:file.name}).then(function(r){data.assetUploading=false;if(!r.success)return fail(message(r,'The reusable PDF could not be registered.'));var asset=r.result||{};data.contentForm.url=asset.media_reference||reference;data.contentForm.embed_url=data.contentForm.url;data.contentForm.file_name=file.name;data.contentForm.mime_type='application/pdf';if(!data.contentForm.title)data.contentForm.title=file.name;ok('Reusable PDF uploaded and verified. Save the material to publish it.');}).error(function(){data.assetUploading=false;fail('The reusable PDF could not be registered.');});});return;}uploadAsset(file,'lesson_content_resource',function(reference){data.contentForm.url=reference;data.contentForm.file_name=file.name;if(!data.contentForm.title)data.contentForm.title=file.name;ok('Resource uploaded. Save the material to publish it.');});}
- function uploadRichImage(event){var file=event.target.files&&event.target.files[0];if(!file)return;if(String(file.type||'').indexOf('image/')!==0)return fail('Select an image file.');uploadAsset(file,'lesson_content_image',function(reference){var editor=document.getElementById('lessonRichTextEditor');if(editor){editor.focus();document.execCommand('insertImage',false,reference);syncRichText();ok('Image inserted. Save the material to publish it.');}});}
- function uploadLocalVideo(event){var file=event.target.files&&event.target.files[0];if(!file)return;if(String(file.type||'').indexOf('video/')!==0)return fail('Select a video file.');uploadAsset(file,'lesson_video',function(reference){data.videoForm.provider='local';data.videoForm.video_url='';data.videoForm.media_reference=reference;if(!data.videoForm.title)data.videoForm.title=file.name;ok('Video uploaded. Add its details and save it.');});}
- function uploadAssignmentSupport(event){var file=event.target.files&&event.target.files[0];if(!file)return;uploadAsset(file,'lesson_assignment_support',function(reference){var files=Array.isArray(data.ruleForm.supporting_files)?data.ruleForm.supporting_files.slice():[];files.push({name:file.name,media_reference:reference});data.ruleForm.supporting_files=files;ok('Supporting file uploaded. Save the assignment rule to publish it.');});}
- function uploadAsset(file,namespace,done){if(data.assetUploading)return;data.assetUploading=true;file.uploadName='lm-'+Date.now()+'-'+file.name.replace(/[^A-Za-z0-9._-]/g,'_');exports.getAppComponent('davvag-tools','davvag-file-uploader',function(uploader){uploader.initialize();uploader.upload_uncompressed([file],namespace,null,function(){data.assetUploading=false;if(file.status!==true)return fail('The file upload failed.');done('components/dock/soss-uploader/service/get/'+namespace+'/'+file.uploadName);});});}
- function markVideoField(field){videoDirty[field]=true;}
- function onProviderChange(){data.metadataMessages=[];if(data.videoForm.video_url)scheduleMetadata();}
- function scheduleMetadata(){if(metadataTimer)clearTimeout(metadataTimer);if(['youtube','facebook'].indexOf(String(data.videoForm.provider).toLowerCase())<0||!data.videoForm.video_url)return;metadataTimer=setTimeout(function(){fetchVideoMetadata(false);},800);}
- function fetchVideoMetadata(force){if(data.metadataLoading)return;var provider=String(data.videoForm.provider||'').toLowerCase(),url=String(data.videoForm.video_url||'').trim();if(['youtube','facebook'].indexOf(provider)<0)return fail('Automatic metadata is available for YouTube and Facebook only.');if(!url)return fail('Enter a video URL first.');if(force&&(videoDirty.title||videoDirty.thumbnail_url||videoDirty.transcript)&&!confirm('Refresh metadata and replace fields you have edited where provider data is available?'))return;data.metadataLoading=true;data.metadataMessages=[];api.services.FetchVideoMetadata({provider:provider,video_url:url}).then(function(r){data.metadataLoading=false;if(!r.success)return fail(message(r,'Video metadata could not be fetched.'));var x=r.result||{};if(x.title&&(force||!videoDirty.title||!data.videoForm.title))data.videoForm.title=x.title;if(x.thumbnail_url&&(force||!videoDirty.thumbnail_url||!data.videoForm.thumbnail_url))data.videoForm.thumbnail_url=x.thumbnail_url;if(x.transcript&&(force||!videoDirty.transcript||!data.videoForm.transcript))data.videoForm.transcript=x.transcript;if(x.duration_seconds&&(!data.videoForm.duration_seconds||force))data.videoForm.duration_seconds=x.duration_seconds;data.metadataMessages=x.messages||[];ok('Available '+(provider==='youtube'?'YouTube':'Facebook')+' metadata loaded. Review it before saving.');}).error(function(){data.metadataLoading=false;fail('Video metadata could not be fetched.');});}
- function courseTitle(id){var t=id;data.courses.forEach(function(x){if(String(x.id)===String(id))t=x.code+' · '+x.title;});return t;}function subjectTitle(id){var t='';data.subjects.forEach(function(x){if(String(x.id)===String(id))t=x.code+' · '+x.title;});return t||'selected subject';}function statusClass(v){return'lm-badge '+String(v||'draft').toLowerCase();}function lessonAccessLabel(lesson){return lesson.is_free===undefined||lesson.is_free===null||truthy(lesson.is_free)?'Free':String(Number(lesson.required_credit_points||0))+' credit points';}function go(p){if(router&&router.appNavigate)router.appNavigate('/'+p);else location.hash='#/app/lesson-manager/'+p;}function clone(x){return JSON.parse(JSON.stringify(x||{}));}function truthy(v){return v===true||v===1||v==='1'||String(v).toLowerCase()==='true'||String(v).toLowerCase()==='yes';}function message(r,d){return r.result&&r.result.message?r.result.message:d;}function fail(x){data.errors=[x];data.info=[];}function ok(x){data.info=[x];data.errors=[];}
+WEBDOCK.component().register(function (exports) {
+    var api, router, metadataTimer;
+    var richEditorReady = false;
+    var videoDirty = { title: false, thumbnail_url: false, transcript: false };
+    // Reactive state used by partial.html.
+    var data = {
+        courses: [],
+        subjects: [],
+        assignments: [],
+        lessons: [],
+        content: [],
+        videos: [],
+        rules: [],
+        courseId: '',
+        subjectId: '',
+        selected: null,
+        tab: 'lesson',
+        showDeleted: false,
+        errors: [],
+        info: [],
+        metadataLoading: false,
+        assetUploading: false,
+        metadataMessages: [],
+        materialModalOpen: false,
+        lessonForm: newLesson(),
+        contentForm: newContent(),
+        videoForm: newVideo(),
+        ruleForm: newRule()
+    };
+
+    // Public methods referenced by the Vue template.
+    exports.vue = {
+        data: data,
+        methods: {
+            go: go,
+            onCourseChange: onCourseChange,
+            loadLessons: loadLessons,
+            subjectsForCourse: subjectsForCourse,
+            newLesson: clearLesson,
+            selectLesson: selectLesson,
+            saveLesson: saveLesson,
+            removeLesson: removeLesson,
+            restoreLesson: restoreLesson,
+            move: move,
+            setTab: setTab,
+            newContent: openNewContent,
+            closeContentModal: closeContentModal,
+            saveContent: saveContent,
+            editContent: editContent,
+            removeContent: removeContent,
+            restoreContent: restoreContent,
+            saveVideo: saveVideo,
+            editVideo: editVideo,
+            removeVideo: removeVideo,
+            restoreVideo: restoreVideo,
+            saveRule: saveRule,
+            editRule: editRule,
+            removeRule: removeRule,
+            restoreRule: restoreRule,
+            courseTitle: courseTitle,
+            subjectTitle: subjectTitle,
+            statusClass: statusClass,
+            lessonAccessLabel: lessonAccessLabel,
+            richCommand: richCommand,
+            syncRichText: syncRichText,
+            uploadContentFile: uploadContentFile,
+            uploadRichImage: uploadRichImage,
+            uploadLocalVideo: uploadLocalVideo,
+            uploadAssignmentSupport: uploadAssignmentSupport,
+            scheduleMetadata: scheduleMetadata,
+            fetchVideoMetadata: fetchVideoMetadata,
+            markVideoField: markVideoField,
+            onProviderChange: onProviderChange,
+            isDeleted: isDeleted,
+            activeLessonCount: activeLessonCount
+        },
+        onReady: init
+    };
+    exports.onReady = function () {};
+
+    // Connect framework services and load the initial page data.
+    function init() {
+        api = exports.getComponent('api');
+        router = exports.getShellComponent('soss-routes');
+        api.services.Bootstrap({}).then(function (r) {
+            if (!r.success) return fail('Could not load Course Manager data.');
+            var x = r.result || {};
+            data.courses = x.courses || [];
+            data.subjects = x.subjects || [];
+            data.assignments = x.assignments || [];
+            if (data.courses.length) {
+                data.courseId = data.courses[0].id;
+                onCourseChange();
+            }
+        });
+    }
+
+    // Default values for the lesson, material, video, and assignment forms.
+    function newLesson() {
+        return {
+            subject_id: '',
+            title: '',
+            description: '',
+            lesson_order: 1,
+            passing_mark: 70,
+            status: 'draft',
+            available_at: '',
+            progression_enabled: true,
+            is_free: true,
+            required_credit_points: 0,
+            require_reading: true,
+            require_video: false,
+            require_quiz: false,
+            require_assignment: false,
+            require_teacher_approval: false
+        };
+    }
+
+    function newContent() {
+        return {
+            lesson_id: '',
+            content_type: 'article',
+            title: '',
+            body: '',
+            url: '',
+            embed_url: '',
+            file_name: '',
+            sort_order: 1,
+            is_required: true,
+            status: 'published'
+        };
+    }
+
+    function newVideo() {
+        return {
+            lesson_id: '',
+            title: '',
+            provider: 'youtube',
+            video_url: '',
+            media_reference: '',
+            thumbnail_url: '',
+            duration_seconds: 0,
+            transcript: '',
+            caption_url: '',
+            sort_order: 1,
+            is_required: true,
+            status: 'published'
+        };
+    }
+
+    function newRule() {
+        return {
+            lesson_id: '',
+            assignment_id: '',
+            submission_type: 'file_and_text',
+            passing_mark: 50,
+            allowed_formats: 'pdf,doc,docx,jpg,png,mp4,mp3,zip',
+            max_file_size_mb: 50,
+            max_submissions: 3,
+            allow_resubmission: true,
+            allow_late: true,
+            requires_approval: true,
+            supporting_files: [],
+            status: 'active',
+            assignment: {
+                title: '',
+                description: '',
+                due_at: '',
+                max_mark: 100,
+                late_penalty_per_day: 0,
+                status: 'published'
+            }
+        };
+    }
+
+    function isDeleted(x) {
+        return !!x && String(x.status || '').toLowerCase() === 'deleted';
+    }
+
+    function activeLessonCount() {
+        return data.lessons.filter(function (x) {
+            return !isDeleted(x);
+        }).length;
+    }
+
+    // Course selection limits the subject list; subject selection loads its lessons.
+    function subjectsForCourse() {
+        return data.subjects.filter(function (x) {
+            return String(x.course_id) === String(data.courseId);
+        });
+    }
+
+    function onCourseChange() {
+        var available = subjectsForCourse();
+        data.subjectId = available.length ? available[0].id : '';
+        loadLessons();
+    }
+
+    function loadLessons() {
+        closeContentModal();
+        data.selected = null;
+        data.lessonForm = newLesson();
+        data.lessonForm.subject_id = data.subjectId;
+        if (!data.subjectId) {
+            data.lessons = [];
+            return;
+        }
+        api.services
+            .ListLessons({ subject_id: data.subjectId, include_deleted: data.showDeleted })
+            .then(function (r) {
+                data.lessons = r.success ? r.result || [] : [];
+                data.lessons.sort(function (a, b) {
+                    return Number(a.lesson_order) - Number(b.lesson_order);
+                });
+            });
+    }
+
+    // Lesson selection, saving, deletion, recovery, and ordering.
+    function clearLesson() {
+        data.selected = null;
+        data.lessonForm = newLesson();
+        data.lessonForm.subject_id = data.subjectId;
+        data.lessonForm.lesson_order = activeLessonCount() + 1;
+        data.tab = 'lesson';
+    }
+
+    function selectLesson(x) {
+        closeContentModal();
+        data.selected = x;
+        data.lessonForm = clone(x);
+        data.lessonForm.is_free =
+            x.is_free === undefined || x.is_free === null ? true : truthy(x.is_free);
+        data.lessonForm.required_credit_points = Number(x.required_credit_points || 0);
+        data.courseId = x.course_id;
+        data.subjectId = x.subject_id;
+        data.tab = 'lesson';
+        loadChildren(x.id);
+    }
+
+    function loadChildren(id) {
+        var request = { lesson_id: id, include_deleted: data.showDeleted };
+        api.services.ListContent(request).then(function (r) {
+            data.content = r.success ? r.result || [] : [];
+            data.content.sort(function (a, b) {
+                return Number(a.sort_order) - Number(b.sort_order);
+            });
+        });
+        api.services.ListVideos(request).then(function (r) {
+            data.videos = r.success ? r.result || [] : [];
+        });
+        api.services.ListAssignmentRules(request).then(function (r) {
+            data.rules = r.success ? r.result || [] : [];
+        });
+        data.contentForm = newContent();
+        data.contentForm.lesson_id = id;
+        data.videoForm = newVideo();
+        data.videoForm.lesson_id = id;
+        videoDirty = { title: false, thumbnail_url: false, transcript: false };
+        data.metadataMessages = [];
+        data.ruleForm = newRule();
+        data.ruleForm.lesson_id = id;
+    }
+
+    function saveLesson() {
+        data.lessonForm.subject_id = data.subjectId;
+        delete data.lessonForm.course_id;
+        api.services.SaveLesson(clone(data.lessonForm)).then(function (r) {
+            if (!r.success) return fail(message(r, 'Lesson could not be saved.'));
+            ok('Lesson saved under ' + subjectTitle(data.subjectId) + '.');
+            data.selected = r.result;
+            data.lessonForm = clone(r.result);
+            loadLessonsAndReselect(r.result.id);
+        });
+    }
+
+    function loadLessonsAndReselect(id) {
+        api.services
+            .ListLessons({ subject_id: data.subjectId, include_deleted: data.showDeleted })
+            .then(function (r) {
+                data.lessons = r.result || [];
+                data.lessons.sort(function (a, b) {
+                    return Number(a.lesson_order) - Number(b.lesson_order);
+                });
+                data.lessons.forEach(function (x) {
+                    if (String(x.id) === String(id)) {
+                        data.selected = x;
+                        data.lessonForm = clone(x);
+                        loadChildren(x.id);
+                    }
+                });
+            });
+    }
+
+    function removeLesson(x) {
+        if (
+            !confirm(
+                'Delete this lesson? It will be hidden from learners and Studio, but its record and child items will be kept for recovery.'
+            )
+        )
+            return;
+        api.services.DeleteLesson({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Lesson moved to deleted items.');
+                loadLessons();
+            } else fail(message(r, 'Lesson could not be deleted.'));
+        });
+    }
+
+    function restoreLesson(x) {
+        api.services.RestoreLesson({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Lesson restored as a draft.');
+                loadLessons();
+            } else fail(message(r, 'Lesson could not be restored.'));
+        });
+    }
+
+    function move(x, offset) {
+        var i = data.lessons.indexOf(x),
+            j = i + offset;
+        if (j < 0 || j >= data.lessons.length) return;
+        var tmp = data.lessons[i];
+        data.lessons.splice(i, 1);
+        data.lessons.splice(j, 0, tmp);
+        api.services.ReorderLessons({ lessons: data.lessons }).then(function (r) {
+            if (r.success) {
+                ok('Lesson order updated.');
+                loadLessonsAndReselect(x.id);
+            } else fail('Order could not be updated.');
+        });
+    }
+
+    // Material tabs and the editor modal.
+    function setTab(v) {
+        data.tab = v;
+        if (v !== 'content') closeContentModal();
+    }
+
+    function openNewContent() {
+        if (!data.selected) return;
+        data.contentForm = newContent();
+        data.contentForm.lesson_id = data.selected.id;
+        data.contentForm.sort_order = data.content.length
+            ? Math.max.apply(
+                  null,
+                  data.content.map(function (x) {
+                      return Number(x.sort_order) || 0;
+                  })
+              ) + 1
+            : 1;
+        openContentModal();
+    }
+
+    function openContentModal() {
+        data.materialModalOpen = true;
+        richEditorReady = false;
+        setTimeout(function () {
+            initializeRichEditor(data.contentForm.body || '');
+            var modal = document.getElementById('lessonMaterialModal');
+            if (modal) modal.focus();
+        }, 0);
+    }
+
+    function closeContentModal() {
+        data.materialModalOpen = false;
+        richEditorReady = false;
+    }
+
+    function saveContent() {
+        if (!data.selected || data.assetUploading) return;
+        syncRichText();
+        data.contentForm.lesson_id = data.selected.id;
+        api.services.SaveContent(clone(data.contentForm)).then(function (r) {
+            if (r.success) {
+                ok('Material saved.');
+                closeContentModal();
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Material could not be saved.'));
+        });
+    }
+
+    function editContent(x) {
+        data.contentForm = clone(x);
+        data.tab = 'content';
+        openContentModal();
+    }
+
+    function removeContent(x) {
+        if (
+            !confirm(
+                'Delete this material? It will be hidden, marked deleted, and kept for recovery.'
+            )
+        )
+            return;
+        api.services.DeleteContent({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Material moved to deleted items.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Material could not be deleted.'));
+        });
+    }
+
+    function restoreContent(x) {
+        api.services.RestoreContent({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Material restored.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Material could not be restored.'));
+        });
+    }
+
+    // Video records and recovery.
+    function saveVideo() {
+        if (data.metadataLoading) return;
+        data.videoForm.lesson_id = data.selected.id;
+        api.services.SaveVideo(clone(data.videoForm)).then(function (r) {
+            if (r.success) {
+                ok('Video saved.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Video could not be saved.'));
+        });
+    }
+
+    function editVideo(x) {
+        data.videoForm = clone(x);
+        videoDirty = { title: true, thumbnail_url: true, transcript: true };
+        data.metadataMessages = [];
+        data.tab = 'video';
+    }
+
+    function removeVideo(x) {
+        if (
+            !confirm('Delete this video? It will be hidden, marked deleted, and kept for recovery.')
+        )
+            return;
+        api.services.DeleteVideo({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Video moved to deleted items.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Video could not be deleted.'));
+        });
+    }
+
+    function restoreVideo(x) {
+        api.services.RestoreVideo({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Video restored.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Video could not be restored.'));
+        });
+    }
+
+    // Assignment links and their submission requirements.
+    function saveRule() {
+        data.ruleForm.lesson_id = data.selected.id;
+        if (data.ruleForm.assignment_id) delete data.ruleForm.assignment;
+        api.services.SaveAssignmentRule(clone(data.ruleForm)).then(function (r) {
+            if (r.success) {
+                ok('Assignment linked to lesson.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Assignment rule could not be saved.'));
+        });
+    }
+
+    function editRule(x) {
+        data.ruleForm = clone(x);
+        data.ruleForm.assignment = {
+            title: '',
+            description: '',
+            due_at: '',
+            max_mark: 100,
+            status: 'published'
+        };
+        data.tab = 'assignment';
+    }
+
+    function removeRule(x) {
+        if (
+            !confirm(
+                'Delete this lesson assignment link? It will be hidden and kept for recovery; submissions and the assignment record will remain.'
+            )
+        )
+            return;
+        api.services.DeleteAssignmentRule({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Assignment link moved to deleted items.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Assignment link could not be deleted.'));
+        });
+    }
+
+    function restoreRule(x) {
+        api.services.RestoreAssignmentRule({ id: x.id }).then(function (r) {
+            if (r.success) {
+                ok('Assignment link restored.');
+                loadChildren(data.selected.id);
+            } else fail(message(r, 'Assignment link could not be restored.'));
+        });
+    }
+
+    // Synchronize the contenteditable editor with the material form.
+    function initializeRichEditor(value) {
+        var editor = document.getElementById('lessonRichTextEditor');
+        if (!editor) return;
+        richEditorReady = true;
+        editor.innerHTML = value || '';
+        syncRichText();
+    }
+
+    function syncRichText() {
+        var editor = document.getElementById('lessonRichTextEditor');
+        if (editor && richEditorReady) data.contentForm.body = editor.innerHTML;
+    }
+
+    function richCommand(command, value) {
+        var editor = document.getElementById('lessonRichTextEditor');
+        if (!editor) return;
+        editor.focus();
+        if (command === 'createLink') {
+            value = window.prompt('Link URL', 'https://');
+            if (!value) return;
+        }
+        if (command === 'insertImage') {
+            value = window.prompt('Image URL', 'https://');
+            if (!value) return;
+        }
+        document.execCommand(command, false, value || null);
+        syncRichText();
+    }
+
+    // Upload files and store the returned references in the current form.
+    function uploadContentFile(event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (data.contentForm.content_type === 'pdf_embed') {
+            if (String(file.type || '') !== 'application/pdf' && !/\.pdf$/i.test(file.name))
+                return fail('Select a PDF file.');
+            uploadAsset(file, 'lesson_manager_assets', function (reference) {
+                data.assetUploading = true;
+                api.services
+                    .RegisterReusableAsset({
+                        asset_kind: 'pdf',
+                        file_name: file.name,
+                        media_reference: reference,
+                        source_name: file.name
+                    })
+                    .then(function (r) {
+                        data.assetUploading = false;
+                        if (!r.success)
+                            return fail(message(r, 'The reusable PDF could not be registered.'));
+                        var asset = r.result || {};
+                        data.contentForm.url = asset.media_reference || reference;
+                        data.contentForm.embed_url = data.contentForm.url;
+                        data.contentForm.file_name = file.name;
+                        data.contentForm.mime_type = 'application/pdf';
+                        if (!data.contentForm.title) data.contentForm.title = file.name;
+                        ok('Reusable PDF uploaded and verified. Save the material to publish it.');
+                    })
+                    .error(function () {
+                        data.assetUploading = false;
+                        fail('The reusable PDF could not be registered.');
+                    });
+            });
+            return;
+        }
+        uploadAsset(file, 'lesson_content_resource', function (reference) {
+            data.contentForm.url = reference;
+            data.contentForm.file_name = file.name;
+            if (!data.contentForm.title) data.contentForm.title = file.name;
+            ok('Resource uploaded. Save the material to publish it.');
+        });
+    }
+
+    function uploadRichImage(event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (String(file.type || '').indexOf('image/') !== 0) return fail('Select an image file.');
+        uploadAsset(file, 'lesson_content_image', function (reference) {
+            var editor = document.getElementById('lessonRichTextEditor');
+            if (editor) {
+                editor.focus();
+                document.execCommand('insertImage', false, reference);
+                syncRichText();
+                ok('Image inserted. Save the material to publish it.');
+            }
+        });
+    }
+
+    function uploadLocalVideo(event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (String(file.type || '').indexOf('video/') !== 0) return fail('Select a video file.');
+        uploadAsset(file, 'lesson_video', function (reference) {
+            data.videoForm.provider = 'local';
+            data.videoForm.video_url = '';
+            data.videoForm.media_reference = reference;
+            if (!data.videoForm.title) data.videoForm.title = file.name;
+            ok('Video uploaded. Add its details and save it.');
+        });
+    }
+
+    function uploadAssignmentSupport(event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        uploadAsset(file, 'lesson_assignment_support', function (reference) {
+            var files = Array.isArray(data.ruleForm.supporting_files)
+                ? data.ruleForm.supporting_files.slice()
+                : [];
+            files.push({ name: file.name, media_reference: reference });
+            data.ruleForm.supporting_files = files;
+            ok('Supporting file uploaded. Save the assignment rule to publish it.');
+        });
+    }
+
+    function uploadAsset(file, namespace, done) {
+        if (data.assetUploading) return;
+        data.assetUploading = true;
+        file.uploadName = 'lm-' + Date.now() + '-' + file.name.replace(/[^A-Za-z0-9._-]/g, '_');
+        exports.getAppComponent('davvag-tools', 'davvag-file-uploader', function (uploader) {
+            uploader.initialize();
+            uploader.upload_uncompressed([file], namespace, null, function () {
+                data.assetUploading = false;
+                if (file.status !== true) return fail('The file upload failed.');
+                done(
+                    'components/dock/soss-uploader/service/get/' + namespace + '/' + file.uploadName
+                );
+            });
+        });
+    }
+
+    // Track manual edits so automatic metadata does not overwrite them.
+    function markVideoField(field) {
+        videoDirty[field] = true;
+    }
+
+    function onProviderChange() {
+        data.metadataMessages = [];
+        if (data.videoForm.video_url) scheduleMetadata();
+    }
+
+    function scheduleMetadata() {
+        if (metadataTimer) clearTimeout(metadataTimer);
+        if (
+            ['youtube', 'facebook'].indexOf(String(data.videoForm.provider).toLowerCase()) < 0 ||
+            !data.videoForm.video_url
+        )
+            return;
+        metadataTimer = setTimeout(function () {
+            fetchVideoMetadata(false);
+        }, 800);
+    }
+
+    function fetchVideoMetadata(force) {
+        if (data.metadataLoading) return;
+        var provider = String(data.videoForm.provider || '').toLowerCase(),
+            url = String(data.videoForm.video_url || '').trim();
+        if (['youtube', 'facebook'].indexOf(provider) < 0)
+            return fail('Automatic metadata is available for YouTube and Facebook only.');
+        if (!url) return fail('Enter a video URL first.');
+        if (
+            force &&
+            (videoDirty.title || videoDirty.thumbnail_url || videoDirty.transcript) &&
+            !confirm(
+                'Refresh metadata and replace fields you have edited where provider data is available?'
+            )
+        )
+            return;
+        data.metadataLoading = true;
+        data.metadataMessages = [];
+        api.services
+            .FetchVideoMetadata({ provider: provider, video_url: url })
+            .then(function (r) {
+                data.metadataLoading = false;
+                if (!r.success) return fail(message(r, 'Video metadata could not be fetched.'));
+                var x = r.result || {};
+                if (x.title && (force || !videoDirty.title || !data.videoForm.title))
+                    data.videoForm.title = x.title;
+                if (
+                    x.thumbnail_url &&
+                    (force || !videoDirty.thumbnail_url || !data.videoForm.thumbnail_url)
+                )
+                    data.videoForm.thumbnail_url = x.thumbnail_url;
+                if (x.transcript && (force || !videoDirty.transcript || !data.videoForm.transcript))
+                    data.videoForm.transcript = x.transcript;
+                if (x.duration_seconds && (!data.videoForm.duration_seconds || force))
+                    data.videoForm.duration_seconds = x.duration_seconds;
+                data.metadataMessages = x.messages || [];
+                ok(
+                    'Available ' +
+                        (provider === 'youtube' ? 'YouTube' : 'Facebook') +
+                        ' metadata loaded. Review it before saving.'
+                );
+            })
+            .error(function () {
+                data.metadataLoading = false;
+                fail('Video metadata could not be fetched.');
+            });
+    }
+
+    // Display labels, navigation, and shared helpers.
+    function courseTitle(id) {
+        var t = id;
+        data.courses.forEach(function (x) {
+            if (String(x.id) === String(id)) t = x.code + ' · ' + x.title;
+        });
+        return t;
+    }
+
+    function subjectTitle(id) {
+        var t = '';
+        data.subjects.forEach(function (x) {
+            if (String(x.id) === String(id)) t = x.code + ' · ' + x.title;
+        });
+        return t || 'selected subject';
+    }
+
+    function statusClass(v) {
+        return 'lm-badge ' + String(v || 'draft').toLowerCase();
+    }
+
+    function lessonAccessLabel(lesson) {
+        return lesson.is_free === undefined || lesson.is_free === null || truthy(lesson.is_free)
+            ? 'Free'
+            : String(Number(lesson.required_credit_points || 0)) + ' credit points';
+    }
+
+    function go(p) {
+        if (router && router.appNavigate) router.appNavigate('/' + p);
+        else location.hash = '#/app/lesson-manager/' + p;
+    }
+
+    function clone(x) {
+        return JSON.parse(JSON.stringify(x || {}));
+    }
+
+    function truthy(v) {
+        return (
+            v === true ||
+            v === 1 ||
+            v === '1' ||
+            String(v).toLowerCase() === 'true' ||
+            String(v).toLowerCase() === 'yes'
+        );
+    }
+
+    function message(r, d) {
+        return r.result && r.result.message ? r.result.message : d;
+    }
+
+    function fail(x) {
+        data.errors = [x];
+        data.info = [];
+    }
+
+    function ok(x) {
+        data.info = [x];
+        data.errors = [];
+    }
 });

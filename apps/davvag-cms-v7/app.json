@@ -83,6 +83,10 @@
         "lifelesson": {
             "type": "partial",
             "location": "partials"
+        },
+        "wallclimbingbeginner2026": {
+            "type": "partial",
+            "location": "partials"
         }
     },
     "description": {
@@ -119,6 +123,7 @@
                     "/": "home",
                     "/home": "home",
                     "/lifelesson": "lifelesson",
+                    "/wallclimbingbeginner2026": "wallclimbingbeginner2026",
                     "/app/@appName/*appRoute": "partial-app",
                     "/not-found": "partial-404",
                     "/notFound": "partial-404"
