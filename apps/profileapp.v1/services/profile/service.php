@@ -67,6 +67,10 @@ class ProfileService{
     }
 
     private function updateLedger($ledgertran){
+        $ledgertran->tranDate = $this->normalizeMySqlDateTime(
+            isset($ledgertran->tranDate) ? $ledgertran->tranDate : null,
+            "tranDate"
+        );
         $Transaction=$ledgertran;
         $result=SOSSData::Insert ("ledger", $ledgertran,$tenantId = null);
         $result = SOSSData::Query ("profilestatus", urlencode("profileid:".$Transaction->profileid.""));
@@ -137,6 +141,46 @@ class ProfileService{
             return 0;
         }
         return floatval($value);
+    }
+
+    private function normalizeMySqlDateTime($value,$fieldName){
+        if($value instanceof DateTimeInterface){
+            return $value->format('Y-m-d H:i:s');
+        }
+        if(!is_string($value) && !is_numeric($value)){
+            throw new InvalidArgumentException($fieldName." must be a valid date and time.");
+        }
+
+        $dateValue = trim((string)$value);
+        if($dateValue === ""){
+            throw new InvalidArgumentException($fieldName." is required.");
+        }
+
+        $formats = array(
+            'Y-m-d H:i:s',
+            'Y-m-d H:i',
+            'Y-m-d',
+            'm-d-Y H:i:s',
+            'm-d-Y H:i',
+            'm-d-Y',
+            'm/d/Y H:i:s',
+            'm/d/Y H:i',
+            'm/d/Y',
+            'Y-m-d\\TH:i:s.uP',
+            'Y-m-d\\TH:i:sP',
+            'Y-m-d\\TH:i:s',
+            'Y-m-d\\TH:i'
+        );
+
+        foreach($formats as $format){
+            $date = DateTime::createFromFormat('!'.$format,$dateValue);
+            $errors = DateTime::getLastErrors();
+            if($date !== false && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))){
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        throw new InvalidArgumentException($fieldName." has an unsupported date format.");
     }
 
     private function isCancelledStatus($status){
@@ -604,6 +648,15 @@ class ProfileService{
         
         $Transaction=$req->Body(true);
         $user= Auth::Autendicate("profile","postInvoiceSave",$res);
+        try{
+            $Transaction->invoiceDate = $this->normalizeMySqlDateTime(
+                isset($Transaction->invoiceDate) ? $Transaction->invoiceDate : null,
+                "invoiceDate"
+            );
+        }catch(InvalidArgumentException $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
         if(!isset($Transaction->email)){
             $res->SetError ("provide email");
             return;
@@ -723,6 +776,19 @@ class ProfileService{
         
         $Transaction=$req->Body(true);
         $user= Auth::Autendicate("profile","postInvoiceSave",$res);
+        try{
+            $Transaction->invoiceDate = $this->normalizeMySqlDateTime(
+                isset($Transaction->invoiceDate) ? $Transaction->invoiceDate : null,
+                "invoiceDate"
+            );
+            $Transaction->invoiceDueDate = $this->normalizeMySqlDateTime(
+                isset($Transaction->invoiceDueDate) ? $Transaction->invoiceDueDate : null,
+                "invoiceDueDate"
+            );
+        }catch(InvalidArgumentException $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
         if(!isset($Transaction->email)){
             $res->SetError ("provide email");
             return;
@@ -980,6 +1046,15 @@ class ProfileService{
     public function postPaymentSave($req,$res){
         $payment=$req->Body(true);
         $user= Auth::Autendicate("profile","postPaymentSave",$res);
+        try{
+            $payment->receiptDate = $this->normalizeMySqlDateTime(
+                isset($payment->receiptDate) ? $payment->receiptDate : null,
+                "receiptDate"
+            );
+        }catch(InvalidArgumentException $ex){
+            $res->SetError($ex->getMessage());
+            return null;
+        }
         if(!isset($payment->email)){
             $res->SetError ("provide email");
             return;

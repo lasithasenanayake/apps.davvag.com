@@ -458,9 +458,9 @@ WEBDOCK.component().register(function(exports){
 
     function fDate(d){
         var normalizedDate = normalizeDateValue(d);
-        return padNumber(normalizedDate.getMonth()+1) + "-" +
-            padNumber(normalizedDate.getDate()) + "-" +
-            normalizedDate.getFullYear() + " " +
+        return normalizedDate.getFullYear() + "-" +
+            padNumber(normalizedDate.getMonth()+1) + "-" +
+            padNumber(normalizedDate.getDate()) + " " +
             padNumber(normalizedDate.getHours()) + ":" +
             padNumber(normalizedDate.getMinutes()) + ":" +
             padNumber(normalizedDate.getSeconds());
