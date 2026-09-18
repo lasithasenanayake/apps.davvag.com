@@ -36,7 +36,7 @@
   "description": {
     "title": "Lesson Marketplace",
     "author": "DAVVAG",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "icon": "appicon.svg"
   },
   "tags": [
@@ -108,6 +108,8 @@
       "lesson_manager_lesson",
       "course_manager_course",
       "course_manager_subject",
+      "course_manager_classgrade",
+      "course_manager_enrollment",
       "course_manager_notification",
       "davvag_credit_program",
       "davvag_credit_lesson_unlock"

@@ -94,11 +94,20 @@
             Require staff approval before enrolment
         </label>
 
+        <label>
+            Course Manager cohort
+            <select required v-model="form.class_grade_id">
+                <option :value="0">Select a cohort</option>
+                <option v-for="cohort in cohorts" :key="cohort.id" :value="cohort.id">{{cohort.name}} (course #{{cohort.course_id}})</option>
+            </select>
+        </label>
+        <p>When enrolment becomes active, the learner is added to this cohort for assignments and timetable attendance.</p>
+
         <h2>Choose lessons</h2>
-        <p>Include all required preceding lessons. Package order affects display only.</p>
+        <p>Choose lessons from the cohort's course and include all required preceding lessons. Package order affects display only.</p>
         <div v-for="lesson in lessons" :key="lesson.id">
             <label>
-                <input type="checkbox" :checked="form.lesson_ids.indexOf(lesson.id)>=0" @change="toggle(lesson.id)">
+                <input type="checkbox" :disabled="!lessonAllowed(lesson)" :checked="form.lesson_ids.indexOf(lesson.id)>=0" @change="toggle(lesson.id)">
                 Course #{{lesson.course_id}} / {{lesson.subject}} / {{lesson.name}} ({{lesson.status}})
             </label>
         </div>

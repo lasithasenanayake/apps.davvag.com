@@ -1,6 +1,6 @@
 {
   "name": "marketplace-api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "resources": {
     "files": [
       {
@@ -75,6 +75,7 @@
       "lmp_operation",
       "lmp_audit",
       "lesson_manager_lesson",
+      "course_manager_enrollment",
       "course_manager_notification"
     ]
   },

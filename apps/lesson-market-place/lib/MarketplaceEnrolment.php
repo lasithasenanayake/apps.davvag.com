@@ -263,8 +263,52 @@ final class MarketplaceEnrolment
                 ]);
             }
         }
+        $this->syncCohortWithSossData($enrolment,$snapshot);
         $this->data->update('lmp_attempt',$attempt,['status'=>'active','transaction_id'=>(int)$transactionId,'updated_at'=>$this->now()]);
         $this->data->update('lmp_enrolment',$enrolment,['status'=>'active','activated_at'=>$this->now()]);
+    }
+
+    private function syncCohortWithSossData($enrolment,$snapshot)
+    {
+        $classGradeId=(int)($snapshot->class_grade_id ?? 0);
+        $courseId=(int)($snapshot->course_id ?? 0);
+        $cohort=$this->data->byId('course_manager_classgrade',$classGradeId,'id',false);
+        if (!$cohort || strtolower($cohort->status ?? '')!=='active' || (int)$cohort->course_id!==$courseId) {
+            throw new MarketplaceException('The selected cohort is no longer available. The enrolment was not activated.');
+        }
+
+        $rows=$this->data->rows('course_manager_enrollment',[
+            ['column'=>'class_grade_id','operator'=>'=','value'=>$classGradeId]
+        ],[],10000,0,false);
+        $owned=null;
+        $activeCount=0;
+        foreach ($rows as $row) {
+            if (strtolower($row->status ?? '')==='active') {
+                $activeCount++;
+                if ((int)$row->student_id===(int)$enrolment->profile_id) return;
+            }
+            if (($row->source_app ?? '')==='lesson-market-place' && (int)($row->source_ref_id ?? 0)===(int)$enrolment->id) $owned=$row;
+        }
+        $capacity=(int)($cohort->capacity ?? 0);
+        if ($capacity>0 && $activeCount>=$capacity) throw new MarketplaceException('The selected cohort has reached capacity. The enrolment was not activated.');
+
+        if ($owned) {
+            $this->data->update('course_manager_enrollment',$owned,['status'=>'active','enrolled_at'=>$this->now()]);
+            return;
+        }
+        $profile=$this->data->byId('profile',(int)$enrolment->profile_id,'id',false);
+        $this->data->insert('course_manager_enrollment',[
+            'class_grade_id'=>$classGradeId,
+            'course_id'=>$courseId,
+            'student_id'=>(int)$enrolment->profile_id,
+            'student_name'=>$profile->name ?? '',
+            'student_email'=>$profile->email ?? '',
+            'enrolled_at'=>$this->now(),
+            'status'=>'active',
+            'source_app'=>'lesson-market-place',
+            'source_ref_id'=>(int)$enrolment->id,
+            'access_scope'=>'package_lessons'
+        ]);
     }
 
     private function recordEventWithSossData($enrolment,$attempt,$actor,$from,$to,$reason,$recipients)
@@ -323,8 +367,42 @@ final class MarketplaceEnrolment
             'status'=>'active',
             'created_at'=>$this->now()
         ]);
+        $this->syncCohortInCreditTransaction($db,$enrolment,$snapshot);
         $db->updateById('lmp_attempt',$attempt->id,['status'=>'active','transaction_id'=>$transactionId,'updated_at'=>$this->now()]);
         $db->updateById('lmp_enrolment',$enrolment->id,['status'=>'active','activated_at'=>$this->now()]);
+    }
+
+    private function syncCohortInCreditTransaction($db,$enrolment,$snapshot)
+    {
+        $classGradeId=(int)($snapshot->class_grade_id ?? 0);
+        $courseId=(int)($snapshot->course_id ?? 0);
+        $cohort=$db->one('SELECT * FROM course_manager_classgrade WHERE id=? FOR UPDATE','i',[$classGradeId]);
+        if (!$cohort || strtolower($cohort->status ?? '')!=='active' || (int)$cohort->course_id!==$courseId) {
+            throw new MarketplaceException('The selected cohort is no longer available. No credits were charged.');
+        }
+        $existing=$db->one('SELECT * FROM course_manager_enrollment WHERE class_grade_id=? AND student_id=? AND status=? LIMIT 1 FOR UPDATE','iis',[$classGradeId,(int)$enrolment->profile_id,'active']);
+        if ($existing) return;
+        $owned=$db->one('SELECT * FROM course_manager_enrollment WHERE source_app=? AND source_ref_id=? LIMIT 1 FOR UPDATE','si',['lesson-market-place',(int)$enrolment->id]);
+        $count=$db->one('SELECT COUNT(*) AS total FROM course_manager_enrollment WHERE class_grade_id=? AND status=?','is',[$classGradeId,'active']);
+        $capacity=(int)($cohort->capacity ?? 0);
+        if ($capacity>0 && (int)($count->total ?? 0)>=$capacity) throw new MarketplaceException('The selected cohort has reached capacity. No credits were charged.');
+        if ($owned) {
+            $db->updateById('course_manager_enrollment',$owned->id,['status'=>'active','enrolled_at'=>$this->now()]);
+            return;
+        }
+        $profile=$db->one('SELECT name,email FROM profile WHERE id=?','i',[(int)$enrolment->profile_id]);
+        $db->insert('course_manager_enrollment',[
+            'class_grade_id'=>$classGradeId,
+            'course_id'=>$courseId,
+            'student_id'=>(int)$enrolment->profile_id,
+            'student_name'=>$profile->name ?? '',
+            'student_email'=>$profile->email ?? '',
+            'enrolled_at'=>$this->now(),
+            'status'=>'active',
+            'source_app'=>'lesson-market-place',
+            'source_ref_id'=>(int)$enrolment->id,
+            'access_scope'=>'package_lessons'
+        ]);
     }
 
     private function auditInCreditTransaction($db,$enrolment,$attempt,$actor,$from,$to,$reason)

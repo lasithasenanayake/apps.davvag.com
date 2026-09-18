@@ -2,7 +2,7 @@
   "name": "api",
   "description": "Lesson Manager service handlers",
   "author": "DAVVAG",
-  "version": "2.3",
+  "version": "2.4",
   "resources": {
     "files": [
       {

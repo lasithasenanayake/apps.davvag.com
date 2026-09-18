@@ -20,6 +20,10 @@ final class LessonAccess
         $out=['courses'=>[],'standalone'=>[],'packages'=>[]];
         foreach($this->rows('course_manager_enrollment',['student_id'=>$profile]) as $row) {
             if(isset($row->status)&&strtolower($row->status)!=='active')continue;
+            // Marketplace cohort membership is used by Course Manager rosters,
+            // timetables, and assignments. Lesson access remains limited to the
+            // immutable lmp_grant rows from the purchased package.
+            if(strtolower($row->access_scope ?? '')==='package_lessons')continue;
             $course=(int)($row->course_id ?? 0);
             if(!$course && !empty($row->class_grade_id)) { $classes=$this->rows('course_manager_classgrade',['id'=>(int)$row->class_grade_id]);$course=(int)($classes[0]->course_id ?? 0); }
             if($course)$out['courses'][$course]=true;

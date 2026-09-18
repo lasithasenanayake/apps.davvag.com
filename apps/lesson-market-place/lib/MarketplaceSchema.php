@@ -6,13 +6,13 @@ final class MarketplaceSchema
 {
     public static function namespaces()
     {
-        return ['lmp_package','lmp_version','lmp_version_lesson','lmp_enrolment','lmp_attempt','lmp_grant','lmp_operation','lmp_audit'];
+        return ['lmp_package','lmp_version','lmp_version_lesson','lmp_enrolment','lmp_attempt','lmp_grant','lmp_operation','lmp_audit','course_manager_enrollment'];
     }
 
     /** Must run BEFORE entering any ledger transaction. Never creates business data. */
     public static function ensure($db)
     {
-        foreach (['course_manager_notification','lesson_manager_lesson','course_manager_subject','course_manager_course'] as $dependency) {
+        foreach (['course_manager_notification','lesson_manager_lesson','course_manager_subject','course_manager_course','course_manager_classgrade','profile'] as $dependency) {
             $result=\SOSSData::WithServiceNamespaces([$dependency],function()use($dependency){return \SOSSData::Query($dependency,'',null,'asc',1,0,null,false);});
             if (!$result || !$result->success) throw new MarketplaceException('Required learning schemas could not be initialized.');
         }
@@ -21,7 +21,7 @@ final class MarketplaceSchema
             if (!$result || !$result->success) throw new MarketplaceException('Marketplace schema initialization failed. Ask an administrator to run the migration.');
             $schema = json_decode(file_get_contents(SCHEMA_PATH . '/' . $namespace . '.json'));
             self::columns($db,$namespace,$schema);
-            foreach ($schema->indexes as $index) {
+            foreach (($schema->indexes ?? []) as $index) {
                 $existing = $db->all('SELECT COLUMN_NAME, NON_UNIQUE FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name=? AND index_name=? ORDER BY SEQ_IN_INDEX', 'ss', [$namespace,$index->name]);
                 if ($existing) {
                     $columns = array_map(function($row){return $row->COLUMN_NAME;}, $existing);

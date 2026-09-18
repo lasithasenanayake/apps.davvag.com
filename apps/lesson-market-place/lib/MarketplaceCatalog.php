@@ -32,6 +32,12 @@ final class MarketplaceCatalog
         $product=$this->one('products',$draft->product_id,'itemid');
         if (!$product || strtolower($product->status ?? '')==='deleted') throw new MarketplaceException('Select an existing product visible in your product management scope.');
         // Productapp delegates record scope to Auth::ViewObjects; retain that filter above.
+        $draft->class_grade_id=MarketplaceRules::integer($body->class_grade_id ?? 0,'Cohort');
+        $cohort=$this->one('course_manager_classgrade',$draft->class_grade_id);
+        if (!$cohort || strtolower($cohort->status ?? '')!=='active') throw new MarketplaceException('Select an active Course Manager cohort.');
+        $draft->course_id=(int)($cohort->course_id ?? 0);
+        $draft->cohort_name=$cohort->name ?? ('Cohort #'.$draft->class_grade_id);
+        if ($draft->course_id<1) throw new MarketplaceException('The selected cohort is not assigned to a course.');
         $draft->lesson_ids=MarketplaceRules::lessonIds($body->lesson_ids ?? []);
         $draft->lessons=[];
         foreach ($draft->lesson_ids as $id) {
@@ -40,6 +46,7 @@ final class MarketplaceCatalog
             $course=$subject ? $this->one('course_manager_course',$subject->course_id) : null;
             if (!$lesson || !$subject || !$course || strtolower($lesson->status ?? '')==='deleted'
                 || (int)$lesson->course_id!==(int)$subject->course_id || (!$this->admin && (int)($subject->teacher_id ?? 0)!==$this->actor)) throw new MarketplaceException('Every lesson must be active, visible, and assigned to a subject you manage.');
+            if ((int)$subject->course_id!==$draft->course_id) throw new MarketplaceException('Every package lesson must belong to the selected cohort course.');
             $draft->lessons[]=(object)['id'=>$id,'title'=>$lesson->title,'course_id'=>(int)$subject->course_id,'course_title'=>$course->title ?? $course->name ?? 'Course','subject_id'=>(int)$subject->id,'subject_title'=>$subject->title ?? $subject->name ?? 'Subject'];
         }
         return $draft;
@@ -47,6 +54,10 @@ final class MarketplaceCatalog
 
     public function deliverable($snapshot)
     {
+        $cohort=$this->one('course_manager_classgrade',(int)($snapshot->class_grade_id ?? 0));
+        if (!$cohort || strtolower($cohort->status ?? '')!=='active' || (int)$cohort->course_id!==(int)($snapshot->course_id ?? 0)) {
+            throw new MarketplaceException('The package cohort is unavailable or its course changed. No credits were charged. Ask staff to update the package.');
+        }
         $ids=MarketplaceRules::lessonIds($snapshot->lesson_ids ?? []);
         $subjects=[];
         foreach ($snapshot->lessons as $member) {
@@ -56,6 +67,7 @@ final class MarketplaceCatalog
             if (!$lesson || !$subject || !$course || strtolower($lesson->status ?? '')!=='published'
                 || strtolower($subject->status ?? '')==='deleted' || strtolower($course->status ?? '')==='deleted'
                 || (int)$lesson->subject_id!==(int)$member->subject_id || (int)$lesson->course_id!==(int)$member->course_id
+                || (int)$member->course_id!==(int)$cohort->course_id
                 || (int)$subject->course_id!==(int)$member->course_id || (!empty($lesson->available_at) && strtotime($lesson->available_at)>time())) {
                 throw new MarketplaceException('An included lesson is unavailable or its course/subject changed. No credits were charged. Ask staff to update the package and submit a new request.');
             }
@@ -80,6 +92,10 @@ final class MarketplaceCatalog
      */
     public function deliverableInCreditTransaction($snapshot,$db)
     {
+        $cohort=$db->one('SELECT * FROM course_manager_classgrade WHERE id=? FOR UPDATE','i',[(int)($snapshot->class_grade_id ?? 0)]);
+        if (!$cohort || strtolower($cohort->status ?? '')!=='active' || (int)$cohort->course_id!==(int)($snapshot->course_id ?? 0)) {
+            throw new MarketplaceException('The package cohort is unavailable or its course changed. No credits were charged. Ask staff to update the package.');
+        }
         $ids=MarketplaceRules::lessonIds($snapshot->lesson_ids ?? []);
         $subjects=[];
         foreach ($snapshot->lessons as $member) {
@@ -89,6 +105,7 @@ final class MarketplaceCatalog
             if (!$lesson || !$subject || !$course || strtolower($lesson->status ?? '')!=='published'
                 || strtolower($subject->status ?? '')==='deleted' || strtolower($course->status ?? '')==='deleted'
                 || (int)$lesson->subject_id!==(int)$member->subject_id || (int)$lesson->course_id!==(int)$member->course_id
+                || (int)$member->course_id!==(int)$cohort->course_id
                 || (int)$subject->course_id!==(int)$member->course_id || (!empty($lesson->available_at) && strtotime($lesson->available_at)>time())) {
                 throw new MarketplaceException('An included lesson is unavailable or its course/subject changed. No credits were charged. Ask staff to update the package and submit a new request.');
             }

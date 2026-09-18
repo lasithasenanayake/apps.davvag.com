@@ -1,6 +1,7 @@
 <?php
 // Included by the isolated integration runner; uses only its freshly created database.
 require_once TENANT_RESOURCE_LOCATION.'/apps/lesson-manager/services/api/service.php';
+require_once TENANT_RESOURCE_LOCATION.'/apps/course-manager/services/api/service.php';
 require_once dirname(__DIR__).'/services/marketplace-api/service.php';
 require_once TENANT_RESOURCE_LOCATION.'/apps/davvag-credit-points/lib/CreditCheckoutService.php';
 class EndpointRequest {private $data;function __construct($data){$this->data=(object)$data;}function Body($decode=true){return $this->data;}}
@@ -9,6 +10,9 @@ function endpoint($class,$method,$body=[]){$response=new EndpointResponse();$val
 $market='lesson_market_place\\MarketplaceApi';$lessonApi='lesson_manager\\ApiService';
 [$boundary,$bv,$boundaryTerms]=$make(0,false);$engine->request(3,$boundary,$bv,'boundary-free-request');
 Auth::$role='web_user';Profile::$id=3;
+$courseDescriptor=json_decode(file_get_contents(TENANT_RESOURCE_LOCATION.'/apps/course-manager/services/api/component.json'));
+$roster=SOSSData::WithServiceNamespaces($courseDescriptor->serviceHandler->serviceNamespaces,function()use($cohort,$subject){return endpoint('course_manager\\ApiService','postAttendanceRoster',['class_grade_id'=>$cohort,'subject_id'=>$subject]);});
+check(!$roster[1] && count($roster[0]->students)===2 && in_array(3,array_map(function($student){return (int)$student->student_id;},$roster[0]->students),true),'Course Manager attendance roster includes activated marketplace learner');
 foreach(['lesson_manager_content','lesson_manager_quiz','lesson_manager_question','lesson_manager_progress','course_manager_assignment','course_manager_submission'] as $ns)SOSSData::WithServiceNamespaces([$ns],function()use($ns){SOSSData::Query($ns,'',null,'asc',1,0,null,false);});
 $db->updateById('lesson_manager_lesson',1,['require_reading'=>'true']);
 $db->updateById('lesson_manager_lesson',3,['is_free'=>'true']);

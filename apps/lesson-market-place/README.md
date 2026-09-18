@@ -1,6 +1,6 @@
 # Lesson Marketplace
 
-Lesson Marketplace packages existing Lesson Manager lessons under one DAVVAG product. It adds versioned terms, enrolment review, atomic credit payment, source-aware lesson grants, and CMS embeds while retaining Lesson Manager as the content and progress authority.
+Lesson Marketplace packages existing Lesson Manager lessons under one DAVVAG product. It adds versioned terms, enrolment review, atomic credit payment, source-aware lesson grants, Course Manager cohort synchronization, and CMS embeds while retaining Lesson Manager as the content and progress authority.
 
 All ordinary marketplace persistence goes through `SOSSData` using schema-checked advanced queries and `Insert`/`Update`. `MarketplaceData` is the app-local facade that keeps service-only namespace scopes narrow and preserves normal view-object filtering. The sole direct runtime business path is inside the callback owned by `CreditLedgerService::debit()`, where the debit, grants, enrolment activation, and audit event must share one transaction because the current public SOSSData API does not expose transaction handles. The administrator-run migration separately inspects physical table metadata and indexes.
 
@@ -19,14 +19,16 @@ All ordinary marketplace persistence goes through `SOSSData` using schema-checke
 
 | Price | Approval | Request result | Activation |
 | --- | --- | --- | --- |
-| Free | No | `active` | One transaction creates the enrolment and every grant; no wallet is needed. |
-| Free | Yes | `pending_approval` | Staff approval creates all grants. |
-| Credits | No | `awaiting_payment` | Learner confirmation atomically debits and creates all grants. |
-| Credits | Yes | `pending_approval` | Approval changes to `awaiting_payment`; only later learner confirmation debits. |
+| Free | No | `active` | Creates the lesson grants and Course Manager cohort membership; no wallet is needed. |
+| Free | Yes | `pending_approval` | Staff approval creates the grants and cohort membership. |
+| Credits | No | `awaiting_payment` | Learner confirmation atomically debits and creates the grants and cohort membership. |
+| Credits | Yes | `pending_approval` | Approval changes to `awaiting_payment`; confirmation later performs the atomic activation. |
 
 Rejected or cancelled requests remain in history. Applying again names the previous attempt and creates a new attempt. A unique learner/package record and deterministic debit key protect repeated clicks, simultaneous tabs, and lost responses. Published versions and accepted snapshots are immutable. Archiving stops new enrolments and retains active grants.
 
-Package grants cover the included lessons' financial requirement, including paid lessons in a free package. They do not create broad course enrolments and do not bypass publication, availability, or subject progression. Existing course assignments and standalone lesson unlocks remain separate entitlement sources.
+Each package is tied to one active Course Manager cohort, and all included lessons must belong to that cohort's course. Activation creates an idempotent, source-tagged cohort membership. It makes the learner available to cohort assignments and every timetable-slot attendance roster; attendance records are created only when staff save the roster, so activation does not falsely mark a learner present.
+
+Package grants cover the included lessons' financial requirement, including paid lessons in a free package. The synchronized cohort membership has `access_scope=package_lessons`, so it does not grant broad Lesson Manager course access or bypass publication, availability, or subject progression. Existing manual course enrolments and standalone lesson unlocks remain separate entitlement sources.
 
 ## Installation and migration
 
@@ -36,7 +38,7 @@ Install this app and the accompanying focused changes to Lesson Manager, Credit 
 C:\xampp\php\php.exe C:\xampp\htdocs\apps.davvag.com\apps\lesson-market-place\bin\migrate.php localhost C:\xampp\htdocs\davvag-core
 ```
 
-The repeatable migration creates eight `lmp_*` tables and `davvag_credit_checkout`, installs the narrow group/operation permission manifest, verifies InnoDB and exact unique/index definitions, adds missing nullable marketplace columns, and only widens compatible text columns. It stops for incompatible primary keys, types, or indexes. Back up the tenant database before a production migration.
+The repeatable migration creates eight `lmp_*` tables and `davvag_credit_checkout`, extends `course_manager_enrollment` with source/scope metadata, installs the narrow group/operation permission manifest, verifies InnoDB and exact unique/index definitions, adds missing nullable columns, and only widens compatible text columns. It stops for incompatible primary keys, types, or indexes. Back up the tenant database before a production migration.
 
 The new `serviceOnly` schema flag prevents generic SOSS CRUD from reading or mutating marketplace, lesson, submission/mark, and credit records. Installed application services receive narrow capabilities in PHP. Protected uploader namespaces use `global/config/media-access.json` and Lesson Manager's entitlement resolver.
 
@@ -72,7 +74,7 @@ The downloader parses and clones `webdock-data` for each mount. Multiple cards t
 
 ## Validation
 
-The isolated integration runner generates a random `lmp_test_<hex>` database, proves it did not exist, and drops only that exact database. It covers all state combinations, replay/concurrency, rollback injection, source-aware API access, immutable versions, protected resources, provider verification/expiry/replay, CMS placement, and repeatable migrations.
+The isolated integration runner generates a random `lmp_test_<hex>` database, proves it did not exist, and drops only that exact database. It covers all state combinations, replay/concurrency, cohort synchronization, rollback injection, source-aware API access, immutable versions, protected resources, provider verification/expiry/replay, CMS placement, and repeatable migrations.
 
 ```powershell
 python .tmp/lmp-build/prepare_tests.py

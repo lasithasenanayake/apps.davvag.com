@@ -140,7 +140,7 @@ class MarketplaceApi
     },true,true); }
 
     public function postSavePackage($req,$res) { return $this->call($req,$res,function($body) {
-        $this->only($body,['id','revision','slug','name','summary','description','cover_image','outcomes','audience','prerequisites','product_id','lesson_ids','pricing_mode','credit_price','approval_required']);
+        $this->only($body,['id','revision','slug','name','summary','description','cover_image','outcomes','audience','prerequisites','product_id','class_grade_id','lesson_ids','pricing_mode','credit_price','approval_required']);
         $draft=$this->catalog->validateDraft($body); $slug=MarketplaceRules::slug($body->slug ?? ''); $id=MarketplaceRules::integer($body->id ?? 0,'Package ID',0); $revision=MarketplaceRules::integer($body->revision ?? 0,'Revision',0);
         $now=date('Y-m-d H:i:s');
         if ($id) {
@@ -181,6 +181,16 @@ class MarketplaceApi
     public function postLookups($req,$res) { return $this->call($req,$res,function($body) {
         [$limit,$offset]=$this->page($body); $kind=$body->kind ?? 'lessons';
         if($kind==='products') { $result=$this->catalog->rows('products',[],$limit,$offset); $items=[];foreach($result->result as $p)$items[]=['id'=>(int)$p->itemid,'name'=>$p->name]; return ['items'=>$items,'total'=>$result->numberOfRecords]; }
+        if($kind==='cohorts') {
+            $allowedCourses=[];
+            if(!$this->admin) foreach($this->catalog->rows('course_manager_subject',['teacher_id'=>$this->profile],1000)->result as $subject) $allowedCourses[(int)$subject->course_id]=true;
+            $result=$this->catalog->rows('course_manager_classgrade',[],$limit,$offset); $items=[];
+            foreach($result->result as $cohort) {
+                if(strtolower($cohort->status ?? '')!=='active' || (!$this->admin && !isset($allowedCourses[(int)$cohort->course_id]))) continue;
+                $items[]=['id'=>(int)$cohort->id,'name'=>$cohort->name ?? ('Cohort #'.$cohort->id),'course_id'=>(int)$cohort->course_id];
+            }
+            return ['items'=>$items,'total'=>count($items)];
+        }
         $conditions=[]; if(!$this->admin)$conditions['teacher_id']=$this->profile; $subjects=$this->catalog->rows('course_manager_subject',$conditions,$limit,$offset); $items=[];
         foreach($subjects->result as $subject) { $lessons=$this->catalog->rows('lesson_manager_lesson',['subject_id'=>(int)$subject->id],1000)->result; foreach($lessons as $lesson) if(strtolower($lesson->status ?? '')!=='deleted') $items[]=['id'=>(int)$lesson->id,'name'=>$lesson->title,'status'=>$lesson->status,'subject'=>$subject->name ?? $subject->title ?? ('Subject #'.$subject->id),'course_id'=>(int)$subject->course_id]; }
         return ['items'=>$items,'total'=>$subjects->numberOfRecords];

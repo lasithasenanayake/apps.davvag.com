@@ -1,13 +1,13 @@
 WEBDOCK.component().register(function(exports) {
     'use strict';
     var api, host, d= {
-        busy: false, error: '', info: '', id: 0, revision: 0, status: 'draft', preview: false, savedDescription: '', products: [], lessons: [], pages: [], pageSlug: '', pageTitle: '', pageLink: '', lessonOffset: 0, productOffset: 0, form: {
-            slug: '', name: '', summary: '', description: '', cover_image: '', outcomes: '', audience: '', prerequisites: '', product_id: 0, lesson_ids: [], pricing_mode: 'free', credit_price: 0, approval_required: false
+        busy: false, error: '', info: '', id: 0, revision: 0, status: 'draft', preview: false, savedDescription: '', products: [], cohorts: [], lessons: [], pages: [], pageSlug: '', pageTitle: '', pageLink: '', lessonOffset: 0, productOffset: 0, form: {
+            slug: '', name: '', summary: '', description: '', cover_image: '', outcomes: '', audience: '', prerequisites: '', product_id: 0, class_grade_id: 0, lesson_ids: [], pricing_mode: 'free', credit_price: 0, approval_required: false
         }
     };
     exports.vue= {
         data: d, methods: {
-            save: save, publish: publish, setStatus: setStatus, load: load, toggle: toggle, move: move, createProduct: createProduct, upload: upload, rich: rich, sync: sync, showPreview: showPreview, loadPages: loadPages, place: place, moreLessons: moreLessons, moreProducts: moreProducts
+            save: save, publish: publish, setStatus: setStatus, load: load, toggle: toggle, move: move, createProduct: createProduct, upload: upload, rich: rich, sync: sync, showPreview: showPreview, loadPages: loadPages, place: place, moreLessons: moreLessons, moreProducts: moreProducts, lessonAllowed: lessonAllowed
         }
         , onReady: function(s, context) {
             api=exports.getComponent('marketplace-api');
@@ -44,6 +44,7 @@ WEBDOCK.component().register(function(exports) {
         }
         , function(x) {
             d.form=x.draft;
+            d.form.class_grade_id=Number(d.form.class_grade_id||0);
             d.savedDescription=x.draft.description;
             d.form.slug=x.slug;
             d.revision=Number(x.draft_revision);
@@ -64,10 +65,17 @@ WEBDOCK.component().register(function(exports) {
         , function(r) {
             d.products=r.items;
             call('Lookups', {
-                kind: 'lessons', limit: 100, offset: d.lessonOffset
+                kind: 'cohorts', limit: 100, offset: 0
             }
             , function(r) {
-                d.lessons=r.items;
+                d.cohorts=r.items;
+                call('Lookups', {
+                    kind: 'lessons', limit: 100, offset: d.lessonOffset
+                }
+                , function(r) {
+                    d.lessons=r.items;
+                }
+                );
             }
             );
         }
@@ -111,6 +119,7 @@ WEBDOCK.component().register(function(exports) {
         payload.id=d.id;
         payload.revision=d.revision;
         payload.product_id=Number(payload.product_id);
+        payload.class_grade_id=Number(payload.class_grade_id);
         payload.credit_price=d.form.pricing_mode==='free'?0: Number(payload.credit_price);
         call('SavePackage', payload, function(r) {
             d.id=Number(r.id);
@@ -142,9 +151,16 @@ WEBDOCK.component().register(function(exports) {
         );
     }
     function toggle(id) {
+        var lesson=d.lessons.filter(function(item) { return Number(item.id)===Number(id); })[0];
+        if(lesson && !lessonAllowed(lesson))return;
         var i=d.form.lesson_ids.indexOf(id);
         if(i<0)d.form.lesson_ids.push(id);
         else d.form.lesson_ids.splice(i, 1);
+    }
+    function lessonAllowed(lesson) {
+        if(!Number(d.form.class_grade_id))return false;
+        var cohort=d.cohorts.filter(function(item) { return Number(item.id)===Number(d.form.class_grade_id); })[0];
+        return !!cohort && Number(cohort.course_id)===Number(lesson.course_id);
     }
     function move(index, direction) {
         var next=index+direction;

@@ -46,6 +46,24 @@
         "maxLen": 50,
         "default": "active"
       }
+    },
+    {
+      "fieldName": "source_app",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "source_ref_id",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "access_scope",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 50
+      }
     }
   ],
   "relations": [
