@@ -123,8 +123,7 @@
                     <div class="lm-actions">
                         <span
                             v-bind:class="statusClass(current.progress&&current.progress.lesson_completed?'completed':'in_progress')"
-                            >{{current.progress&amp;&amp;current.progress.lesson_completed?'completed':'in
-                            progress'}}</span
+                            >{{current.progress&amp;&amp;current.progress.lesson_completed?'completed':'in progress'}}</span
                         ><span class="lm-badge" v-if="current.require_quiz"
                             >Quiz required · {{current.passing_mark||70}}%</span
                         ><span class="lm-badge" v-if="current.require_assignment"
@@ -141,8 +140,7 @@
                             </div>
                             <span
                                 v-bind:class="statusClass(current.progress&&current.progress.lesson_completed?'completed':'in_progress')"
-                                >{{current.progress&amp;&amp;current.progress.lesson_completed?'All
-                                done':'In progress'}}</span
+                                >{{current.progress&amp;&amp;current.progress.lesson_completed?'All done':'In progress'}}</span
                             >
                         </div>
                         <div class="lm-requirement-grid">
@@ -157,8 +155,7 @@
                                 <div>
                                     <strong>Read the material</strong
                                     ><small
-                                        >{{current.progress&amp;&amp;current.progress.reading_completed?'Completed':'Read
-                                        the lesson content below'}}</small
+                                        >{{current.progress&amp;&amp;current.progress.reading_completed?'Completed':'Read the lesson content below'}}</small
                                     >
                                 </div>
                             </div>
@@ -173,8 +170,7 @@
                                 <div>
                                     <strong>Watch the video</strong
                                     ><small
-                                        >{{current.progress&amp;&amp;current.progress.video_completed?'Completed':'Watch
-                                        the required lesson video'}}</small
+                                        >{{current.progress&amp;&amp;current.progress.video_completed?'Completed':'Watch the required lesson video'}}</small
                                     >
                                 </div>
                             </div>
@@ -189,8 +185,7 @@
                                 <div>
                                     <strong>Pass the quiz</strong
                                     ><small
-                                        >{{current.progress&amp;&amp;current.progress.quiz_passed?'Passed':'Score
-                                        at least '+(current.passing_mark||70)+'%'}}</small
+                                        >{{current.progress&amp;&amp;current.progress.quiz_passed?'Passed':'Score at least '+(current.passing_mark||70)+'%'}}</small
                                     >
                                 </div>
                             </div>
@@ -205,8 +200,7 @@
                                 <div>
                                     <strong>Pass the assignment</strong
                                     ><small
-                                        >{{current.progress&amp;&amp;current.progress.assignment_passed?'Passed':'Submit
-                                        work and receive a passing mark'}}</small
+                                        >{{current.progress&amp;&amp;current.progress.assignment_passed?'Passed':'Submit work and receive a passing mark'}}</small
                                     >
                                 </div>
                             </div>
@@ -221,8 +215,7 @@
                                 <div>
                                     <strong>Teacher approval</strong
                                     ><small
-                                        >{{current.progress&amp;&amp;current.progress.teacher_approved?'Approved':'Wait
-                                        for your teacher to approve completion'}}</small
+                                        >{{current.progress&amp;&amp;current.progress.teacher_approved?'Approved':'Wait for your teacher to approve completion'}}</small
                                     >
                                 </div>
                             </div>
@@ -283,8 +276,7 @@
                             v-bind:disabled="current.progress&&current.progress.reading_completed"
                         >
                             <span class="glyphicon glyphicon-ok"></span>
-                            {{current.progress&amp;&amp;current.progress.reading_completed?'Reading
-                            complete':'Mark reading complete'}}
+                            {{current.progress&amp;&amp;current.progress.reading_completed?'Reading complete':'Mark reading complete'}}
                         </button>
                     </div>
                     <section v-if="current.videos.length">
@@ -318,8 +310,7 @@
                             v-bind:disabled="current.progress&&current.progress.video_completed"
                         >
                             <span class="glyphicon glyphicon-ok"></span>
-                            {{current.progress&amp;&amp;current.progress.video_completed?'Video
-                            complete':'Mark required video complete'}}
+                            {{current.progress&amp;&amp;current.progress.video_completed?'Video complete':'Mark required video complete'}}
                         </button>
                     </section>
                     <section class="lm-quiz-box" v-for="q in current.quizzes">
@@ -349,8 +340,7 @@
                                 v-on:click="startQuiz(q)"
                                 v-bind:disabled="!!q.attempt_limit&&q.attempts_used>=q.attempt_limit&&(!q.latest_attempt||q.latest_attempt.status!=='in_progress')"
                             >
-                                {{q.latest_attempt&&q.latest_attempt.status==='in_progress'?'Resume
-                                quiz':'Start quiz'}}
+                                {{q.latest_attempt&&q.latest_attempt.status==='in_progress'?'Resume quiz':'Start quiz'}}
                             </button>
                         </div>
                     </section>
@@ -416,8 +406,7 @@
                     <section class="lm-assignment-box" v-for="rule in current.assignmentRules">
                         <span class="lm-eyebrow" style="color: #0c715d">Assignment</span>
                         <h3>
-                            {{rule.assignment ? rule.assignment.title : 'Required assignment
-                            #'+rule.assignment_id}}
+                            {{rule.assignment ? rule.assignment.title : 'Required assignment #'+rule.assignment_id}}
                         </h3>
                         <p class="lm-muted" v-if="rule.assignment">
                             {{rule.assignment.description}}

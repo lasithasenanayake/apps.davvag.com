@@ -23,13 +23,10 @@
             <div>
                 <span class="lm-eyebrow">Learning operations</span>
                 <h1>
-                    {{ role === 'student' ? 'Continue where you left off.' : 'Make every lesson
-                    count.' }}
+                    {{ role === 'student' ? 'Continue where you left off.' : 'Make every lesson count.' }}
                 </h1>
                 <p>
-                    {{ role === 'student' ? 'Your assigned courses, next activities, feedback, and
-                    results are all in one place.' : 'Publish structured lessons, generate knowledge
-                    checks, review work, and spot students who need support.' }}
+                    {{ role === 'student' ? 'Your assigned courses, next activities, feedback, and results are all in one place.' : 'Publish structured lessons, generate knowledge checks, review work, and spot students who need support.' }}
                 </p>
             </div>
             <div class="lm-hero-actions">
@@ -132,8 +129,7 @@
                     <h3>{{course.title}}</h3>
                     <p class="lm-muted" v-if="course.description">{{course.description}}</p>
                     <p class="lm-muted">
-                        {{course.current_lesson ? 'Next: '+course.current_lesson.title : 'All
-                        lessons complete'}}
+                        {{course.current_lesson ? 'Next: '+course.current_lesson.title : 'All lessons complete'}}
                     </p>
                     <p class="lm-muted" v-if="course.teacher_names&&course.teacher_names.length">
                         Teachers: {{course.teacher_names.join(', ')}}

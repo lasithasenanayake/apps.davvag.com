@@ -2,7 +2,7 @@
     "name": "studio",
     "description": "Lesson authoring studio",
     "author": "DAVVAG",
-    "version": "1.7",
+    "version": "1.8",
     "resources": {
         "files": [
             { "type": "mainScript", "location": "script.js" },

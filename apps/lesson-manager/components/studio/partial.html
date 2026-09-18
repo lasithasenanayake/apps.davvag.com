@@ -413,8 +413,7 @@
                                         v-on:click="fetchVideoMetadata(true)"
                                         v-bind:disabled="metadataLoading"
                                     >
-                                        {{metadataLoading?'Fetching metadata…':'Refresh title,
-                                        thumbnail & transcript'}}</button
+                                        {{metadataLoading?'Fetching metadata…':'Refresh title, thumbnail & transcript'}}</button
                                     ><button
                                         class="lm-btn lm-btn-small lm-btn-ghost"
                                         v-on:click="go('settings')"
@@ -647,8 +646,7 @@
                     </div>
                 </div>
                 <p class="lm-muted">
-                    {{assetUploading?'Uploading media…':'Uploaded references are saved when you save
-                    the current video or assignment rule.'}}
+                    {{assetUploading?'Uploading media…':'Uploaded references are saved when you save the current video or assignment rule.'}}
                 </p>
             </div>
         </div>
@@ -831,8 +829,8 @@
                         v-on:click="saveContent"
                         v-bind:disabled="assetUploading"
                     >
-                        <span class="glyphicon glyphicon-ok"></span> {{contentForm.id?'Save
-                        changes':'Create material'}}
+                        <span class="glyphicon glyphicon-ok"></span>
+                        {{contentForm.id?'Save changes':'Create material'}}
                     </button>
                 </div>
             </div>
