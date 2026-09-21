@@ -26,6 +26,52 @@
                         <p class="td-eyebrow" style="color:var(--td-leaf)">Field notes</p>
                         <label v-if="translations.length">Language<select class="td-select" v-model="language" @change="changeLanguage"><option value="">Original</option><option v-for="translation in translations" :key="translation.language_code" :value="translation.language_code">{{ translation.language_code.toUpperCase() }}</option></select></label>
                         <div class="td-prose td-markdown" v-html="descriptionHtml"></div>
+                        <details class="td-more-information">
+                            <summary>
+                                <span>More information</span>
+                                <small>Location, access, safety and amenities</small>
+                            </summary>
+                            <div class="td-more-information-body">
+                                <section class="td-information-section">
+                                    <div class="td-information-heading"><span>1</span><h4>Location details</h4></div>
+                                    <dl class="td-information-grid">
+                                        <div><dt>Province</dt><dd>{{ destination.province || "Not provided" }}</dd></div>
+                                        <div><dt>District</dt><dd>{{ destination.district || "Not provided" }}</dd></div>
+                                        <div><dt>Nearest town</dt><dd>{{ destination.nearest_town || "Not provided" }}</dd></div>
+                                        <div><dt>Village</dt><dd>{{ destination.village || "Not provided" }}</dd></div>
+                                        <div class="full"><dt>Location description</dt><dd>{{ destination.location_description || "Not provided" }}</dd></div>
+                                    </dl>
+                                </section>
+                                <section class="td-information-section">
+                                    <div class="td-information-heading"><span>2</span><h4>Getting there</h4></div>
+                                    <dl class="td-information-grid">
+                                        <div class="full"><dt>Road and access notes</dt><dd>{{ destination.access_road_description || "Not provided" }}</dd></div>
+                                        <div><dt>Distance from town</dt><dd>{{ destination.distance_from_town_km !== undefined && destination.distance_from_town_km !== null && destination.distance_from_town_km !== "" ? destination.distance_from_town_km + " km" : "Not provided" }}</dd></div>
+                                        <div><dt>Walk from parking</dt><dd>{{ destination.walking_distance_km !== undefined && destination.walking_distance_km !== null && destination.walking_distance_km !== "" ? destination.walking_distance_km + " km" : "Not provided" }}</dd></div>
+                                        <div class="full"><dt>Public transport instructions</dt><dd>{{ destination.public_transport_instructions || "Not provided" }}</dd></div>
+                                    </dl>
+                                </section>
+                                <section class="td-information-section">
+                                    <div class="td-information-heading"><span>3</span><h4>Safety &amp; responsible travel</h4></div>
+                                    <dl class="td-information-grid td-information-guidance">
+                                        <div><dt>Safety warnings</dt><dd>{{ destination.safety_warnings || "No destination-specific warnings have been provided." }}</dd></div>
+                                        <div><dt>Responsible travel guidance</dt><dd>{{ destination.responsible_travel_markdown || "Follow local guidance, leave no waste and respect communities and wildlife." }}</dd></div>
+                                    </dl>
+                                </section>
+                                <section class="td-information-section">
+                                    <div class="td-information-heading"><span>4</span><h4>Amenities &amp; practical details</h4></div>
+                                    <dl class="td-information-grid">
+                                        <div><dt>Road condition</dt><dd>{{ destination.road_condition || "Not provided" }}</dd></div>
+                                        <div><dt>Vehicle access</dt><dd>{{ destination.requires_4wd ? "Four-wheel drive recommended" : "Standard road access" }}</dd></div>
+                                        <div class="full"><dt>Parking information</dt><dd>{{ destination.parking_information || "Not provided" }}</dd></div>
+                                    </dl>
+                                    <div class="td-amenity-list" aria-label="Available amenities">
+                                        <span class="td-check" v-for="amenity in destination.amenities" :key="amenity.id">{{ amenity.name }}</span>
+                                        <span v-if="!destination.amenities.length" class="td-information-empty">No amenities have been listed.</span>
+                                    </div>
+                                </section>
+                            </div>
+                        </details>
                     </section>
                     <section class="td-panel" style="margin-top:18px">
                         <div class="td-section-head"><div><h2>Routes &amp; verified visits</h2><p>{{ visitSummary.verifiedVisits || 0 }} verified visits</p></div></div>
@@ -46,6 +92,7 @@
                             </form>
                         </div>
                     </section>
+                    
                     <section class="td-panel" style="margin-top:18px">
                         <div class="td-section-head"><div><h2>Traveler reviews</h2><p>Approved, first-hand reports</p></div></div>
                         <div v-if="!reviews.length" class="td-empty">No approved reviews yet.</div>
@@ -89,8 +136,7 @@
                         <p v-else class="td-alert">Exact coordinates are restricted to protect this place.</p>
                         <div v-if="mapConfig.enabled && destination.latitude !== undefined && !mapError" class="td-google-map td-google-detail" data-google-detail-map :aria-label="'Map of '+destination.name"></div>
                         <p v-if="mapError" class="td-alert error">{{ mapError }}</p>
-                        <h3>Amenities</h3>
-                        <div class="td-checks"><span class="td-check" v-for="amenity in destination.amenities" :key="amenity.id">{{ amenity.name }}</span></div>
+                        
                     </section>
                     <section v-if="capabilities.authenticated" class="td-panel" style="margin-top:18px"><h3>Add to your plans</h3><button class="td-button secondary td-form-trigger" type="button" :aria-expanded="openForm === 'plans'" aria-controls="td-plans-form" @click="toggleForm('plans')">{{ openForm === 'plans' ? 'Hide planning options' : 'Choose a list or trip' }}</button><div v-show="openForm === 'plans'" id="td-plans-form" class="td-collapsible-form"><div class="td-inline-control"><select class="td-select" v-model="selectedListId"><option value="">Choose a list</option><option v-for="list in lists" :key="list.id" :value="list.id">{{ list.name }}</option></select><button class="td-button secondary" @click="addToList">Add</button></div><div class="td-inline-control"><select class="td-select" v-model="selectedTripId"><option value="">Choose a trip</option><option v-for="trip in trips" :key="trip.id" :value="trip.id">{{ trip.name }}</option></select><button class="td-button secondary" @click="addToTrip">Add</button></div></div></section>
                     <section v-if="availability.length" class="td-panel" style="margin-top:18px"><h3>Availability &amp; booking</h3><article class="td-plan-row" v-for="slot in availability" :key="slot.id"><div><strong>{{ slot.availability_status }}</strong><small>{{ slot.inventory_summary }}</small><span v-if="slot.price_from">From {{ slot.currency_code }} {{ slot.price_from }}</span></div><a v-if="slot.booking_url" class="td-button secondary" :href="slot.booking_url" target="_blank" rel="noopener noreferrer">Continue to provider</a></article><small>Availability and payment are handled by the listed provider. DAVVAG does not duplicate provider payments.</small></section>
