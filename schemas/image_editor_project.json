@@ -1,0 +1,19 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"owner_profile_id","dataType":"int"},
+    {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":2000,"encoding":"utf8"}},
+    {"fieldName":"design_type","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"width_px","dataType":"int"},
+    {"fieldName":"height_px","dataType":"int"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"active"}},
+    {"fieldName":"source_template_id","dataType":"int"},
+    {"fieldName":"current_revision_id","dataType":"int"},
+    {"fieldName":"preview_media_reference","dataType":"java.lang.String","annotations":{"maxLen":500}}
+  ],
+  "relations": [
+    {"relationName":"image_editor_project_owner","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"owner_profile_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

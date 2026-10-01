@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"revision_id","dataType":"int"},
+    {"fieldName":"page_uuid","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"page_number","dataType":"int"},
+    {"fieldName":"width_px","dataType":"int"},
+    {"fieldName":"height_px","dataType":"int"},
+    {"fieldName":"background_json","dataType":"object"}
+  ],
+  "relations": [
+    {"relationName":"image_editor_page_revision","relationType":"many-to-one","targetEntity":"image_editor_revision","joinColumns":[{"sourceColumn":"revision_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

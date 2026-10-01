@@ -1,0 +1,23 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"owner_profile_id","dataType":"int"},
+    {"fieldName":"project_id","dataType":"int"},
+    {"fieldName":"media_reference","dataType":"java.lang.String","annotations":{"maxLen":500}},
+    {"fieldName":"original_name","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"mime_type","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"extension","dataType":"java.lang.String","annotations":{"maxLen":16}},
+    {"fieldName":"byte_size","dataType":"long"},
+    {"fieldName":"width_px","dataType":"int"},
+    {"fieldName":"height_px","dataType":"int"},
+    {"fieldName":"asset_type","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"checksum","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"alternative_text","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30,"default":"active"}}
+  ],
+  "relations": [
+    {"relationName":"image_editor_asset_owner","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"owner_profile_id","targetColumn":"id"}]},
+    {"relationName":"image_editor_asset_project","relationType":"many-to-one","targetEntity":"image_editor_project","joinColumns":[{"sourceColumn":"project_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

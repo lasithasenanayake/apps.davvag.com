@@ -1,0 +1,57 @@
+<section class="ie-app ie-editor" v-on:keydown="handleKeydown" tabindex="-1">
+  <header class="ie-editor-topbar">
+    <button type="button" class="ie-icon-btn" v-on:click="goBack" aria-label="Back to designs">←</button>
+    <input class="ie-title-input" v-model.trim="project.title" maxlength="255" v-on:change="rename" aria-label="Design title">
+    <span class="ie-save-state" :class="'is-'+saveState.toLowerCase().replace(' ','-')" aria-live="polite">{{saveState}}</span>
+    <div class="ie-topbar-spacer"></div>
+    <button class="ie-btn ie-btn-secondary" type="button" v-on:click="undo" :disabled="!ready">Undo</button>
+    <button class="ie-btn ie-btn-secondary" type="button" v-on:click="redo" :disabled="!ready">Redo</button>
+    <button class="ie-btn ie-btn-secondary" type="button" v-on:click="save('manual')" :disabled="saving||!dirty">{{saving?'Saving…':'Save'}}</button>
+    <button class="ie-btn ie-btn-primary" type="button" v-on:click="openExport" :disabled="!ready">Export</button>
+  </header>
+
+  <div class="ie-alert ie-alert-error" v-if="error" role="alert">{{error}}</div>
+  <div class="ie-editor-layout" v-if="project.id">
+    <aside class="ie-tool-panel" aria-label="Add content">
+      <h2>Tools</h2>
+      <button type="button" class="ie-tool-btn" v-on:click="addText" :disabled="!ready"><span>T</span>Text</button>
+      <button type="button" class="ie-tool-btn" v-on:click="addShape('rect')" :disabled="!ready"><span>▭</span>Rectangle</button>
+      <button type="button" class="ie-tool-btn" v-on:click="addShape('ellipse')" :disabled="!ready"><span>○</span>Ellipse</button>
+      <button type="button" class="ie-tool-btn" v-on:click="addShape('triangle')" :disabled="!ready"><span>△</span>Triangle</button>
+      <button type="button" class="ie-tool-btn" v-on:click="addShape('line')" :disabled="!ready"><span>╱</span>Line</button>
+      <label class="ie-tool-btn ie-upload-label"><span>＋</span>Upload image<input type="file" accept="image/png,image/jpeg,image/webp" v-on:change="uploadImage" :disabled="uploading"></label>
+      <button type="button" class="ie-tool-btn" v-on:click="goFonts"><span>Aa</span>Fonts</button>
+      <hr>
+      <label class="ie-field">Background<input type="color" v-model="background" v-on:input="changeBackground"></label>
+    </aside>
+
+    <main class="ie-stage-wrap">
+      <div class="ie-stage-scroll"><div class="ie-canvas-frame"><canvas id="ie-design-canvas"></canvas></div></div>
+      <div class="ie-zoom-bar"><button type="button" v-on:click="changeZoom(-0.1)" :disabled="!ready">−</button><input type="range" min="0.1" max="2" step="0.05" v-model.number="zoom" v-on:input="applyZoom" aria-label="Canvas zoom" :disabled="!ready"><button type="button" v-on:click="changeZoom(0.1)" :disabled="!ready">+</button><button type="button" v-on:click="fitZoom" :disabled="!ready">Fit</button><button type="button" v-on:click="actualSize" :disabled="!ready">100%</button><span>{{Math.round(zoom*100)}}%</span></div>
+    </main>
+
+    <aside class="ie-properties-panel" aria-label="Properties">
+      <template v-if="selection">
+        <div class="ie-section-heading"><div><h2>{{selection.name}}</h2><p>{{selection.type}}</p></div><button type="button" class="ie-icon-btn ie-danger" v-on:click="deleteSelected" aria-label="Delete selected element">×</button></div>
+        <label class="ie-field" v-if="selection.type==='text'">Text<textarea v-model="selection.text" v-on:input="updateSelection('text',selection.text)" maxlength="5000"></textarea></label>
+        <label class="ie-field" v-if="selection.type==='text'">Font<select v-model="selection.fontId" v-on:change="applyFont"><option :value="null">Arial</option><option v-for="font in fonts" :value="font.id">{{font.display_family}} {{font.subfamily}}</option></select></label>
+        <div class="ie-two-cols" v-if="selection.type==='text'"><label class="ie-field">Size<input type="number" min="6" max="512" v-model.number="selection.fontSize" v-on:input="updateSelection('fontSize',selection.fontSize)"></label><label class="ie-field">Weight<select v-model="selection.fontWeight" v-on:change="updateSelection('fontWeight',selection.fontWeight)"><option>300</option><option>400</option><option>500</option><option>600</option><option>700</option><option>800</option><option>900</option></select></label></div>
+        <div class="ie-two-cols" v-if="selection.type==='text'"><label class="ie-field">Style<select v-model="selection.fontStyle" v-on:change="updateSelection('fontStyle',selection.fontStyle)"><option value="normal">Normal</option><option value="italic">Italic</option><option value="oblique">Oblique</option></select></label><label class="ie-field">Align<select v-model="selection.textAlign" v-on:change="updateSelection('textAlign',selection.textAlign)"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option><option value="justify">Justify</option></select></label></div>
+        <div class="ie-two-cols" v-if="selection.type==='text'"><label class="ie-field">Line height<input type="number" min="0.5" max="4" step="0.05" v-model.number="selection.lineHeight" v-on:input="updateSelection('lineHeight',selection.lineHeight)"></label><label class="ie-field">Letter spacing<input type="number" min="-1000" max="5000" step="10" v-model.number="selection.charSpacing" v-on:input="updateSelection('charSpacing',selection.charSpacing)"></label></div>
+        <label class="ie-field" v-if="selection.type!=='image'">Fill<input type="color" v-model="selection.fill" v-on:input="updateSelection('fill',selection.fill)"></label>
+        <div class="ie-two-cols" v-if="selection.type!=='text'&&selection.type!=='image'"><label class="ie-field">Stroke<input type="color" v-model="selection.stroke" v-on:input="updateSelection('stroke',selection.stroke)"></label><label class="ie-field">Stroke width<input type="number" min="0" max="100" v-model.number="selection.strokeWidth" v-on:input="updateSelection('strokeWidth',selection.strokeWidth)"></label></div>
+        <label class="ie-field" v-if="selection.type==='rect'">Corner radius<input type="number" min="0" max="2048" v-model.number="selection.cornerRadius" v-on:input="updateSelection('cornerRadius',selection.cornerRadius)"></label>
+        <template v-if="selection.type==='image'"><label class="ie-upload-inline">Replace image<input type="file" accept="image/png,image/jpeg,image/webp" v-on:change="uploadImage($event,true)" :disabled="uploading"></label><div class="ie-action-grid"><button type="button" v-on:click="fitImage('fit')">Fit canvas</button><button type="button" v-on:click="fitImage('fill')">Fill canvas</button><button type="button" v-on:click="flipImage('flipX')">Flip H</button><button type="button" v-on:click="flipImage('flipY')">Flip V</button></div><div class="ie-two-cols"><label class="ie-field">Crop X<input type="number" min="0" max="32768" v-model.number="selection.cropX" v-on:input="updateSelection('cropX',selection.cropX)"></label><label class="ie-field">Crop Y<input type="number" min="0" max="32768" v-model.number="selection.cropY" v-on:input="updateSelection('cropY',selection.cropY)"></label></div><label class="ie-field">Brightness<input type="range" min="-1" max="1" step="0.05" v-model.number="selection.brightness" v-on:input="updateSelection('brightness',selection.brightness)"></label><label class="ie-field ie-checkbox"><input type="checkbox" v-model="selection.grayscale" v-on:change="updateSelection('grayscale',selection.grayscale)">Grayscale</label></template>
+        <label class="ie-field">Opacity<input type="range" min="0" max="1" step="0.05" v-model.number="selection.opacity" v-on:input="updateSelection('opacity',selection.opacity)"></label>
+        <label class="ie-field">Rotation<input type="number" min="-360" max="360" v-model.number="selection.rotation" v-on:input="updateSelection('rotation',selection.rotation)"></label>
+        <div class="ie-action-grid"><button type="button" v-on:click="duplicateSelected">Duplicate</button><button type="button" v-on:click="toggleLock">{{selection.locked?'Unlock':'Lock'}}</button><button type="button" v-on:click="toggleHidden">{{selection.hidden?'Show':'Hide'}}</button><button type="button" v-on:click="layer('front')">Forward</button><button type="button" v-on:click="layer('back')">Backward</button><button type="button" v-on:click="align('horizontal')">Center H</button><button type="button" v-on:click="align('vertical')">Center V</button></div>
+      </template>
+      <div class="ie-empty ie-compact" v-else><strong>Select an element</strong><span>Its properties will appear here.</span></div>
+    </aside>
+  </div>
+  <div class="ie-loading ie-full" v-else>Loading editor…</div>
+
+  <div class="ie-modal" v-if="exportOpen" role="dialog" aria-modal="true" aria-labelledby="ie-export-title">
+    <div class="ie-modal-card"><h2 id="ie-export-title">Export design</h2><label class="ie-field">Format<select v-model="exportForm.format"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select></label><label class="ie-field">Scale<select v-model.number="exportForm.scale"><option :value="1">1×</option><option :value="2">2×</option></select></label><label class="ie-field" v-if="exportForm.format!=='png'">Quality<input type="range" min="0.5" max="1" step="0.05" v-model.number="exportForm.quality"></label><div class="ie-modal-actions"><button class="ie-btn ie-btn-secondary" type="button" v-on:click="exportOpen=false">Cancel</button><button class="ie-btn ie-btn-primary" type="button" v-on:click="exportDesign" :disabled="exporting">{{exporting?'Exporting…':'Download'}}</button></div></div>
+  </div>
+</section>

@@ -1,0 +1,61 @@
+{
+  "name": "api",
+  "description": "Validated Image Editor application services",
+  "author": "DAVVAG",
+  "version": "0.1.1",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "dependency": {
+    "plugins": [
+      {"type": "php", "plugin_location": "global", "location": "/sossdata/SOSSData.php"},
+      {"type": "php", "plugin_location": "global", "location": "/phpcache/cache.php"},
+      {"type": "php", "plugin_location": "global", "location": "/auth/auth.php"},
+      {"type": "php", "plugin_location": "local", "location": "/profile/profile.php"}
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "image_editor\\ApiService",
+    "methods": {
+      "Capabilities": {"method": "GET"},
+      "Presets": {"method": "GET"},
+      "ListProjects": {"method": "POST"},
+      "CreateProject": {"method": "POST"},
+      "GetProject": {"method": "POST"},
+      "RenameProject": {"method": "POST"},
+      "DuplicateProject": {"method": "POST"},
+      "ChangeProjectStatus": {"method": "POST"},
+      "SaveRevision": {"method": "POST"},
+      "ListProjectRevisions": {"method": "POST"},
+      "RestoreRevision": {"method": "POST"},
+      "RegisterAsset": {"method": "POST"},
+      "ListAssets": {"method": "POST"},
+      "ChangeAssetStatus": {"method": "POST"},
+      "RegisterFont": {"method": "POST"},
+      "ListFonts": {"method": "POST"},
+      "GetFont": {"method": "POST"},
+      "UpdateFontMetadata": {"method": "POST"},
+      "RequestTenantFontApproval": {"method": "POST"},
+      "ApproveFont": {"method": "POST"},
+      "RejectFont": {"method": "POST"},
+      "ArchiveFont": {"method": "POST"},
+      "ListTemplates": {"method": "POST"},
+      "GetTemplate": {"method": "POST"},
+      "CreateProjectFromTemplate": {"method": "POST"},
+      "CreateTemplateDraft": {"method": "POST"},
+      "UpdateTemplateMetadata": {"method": "POST"},
+      "PublishTemplate": {"method": "POST"},
+      "UnpublishTemplate": {"method": "POST"},
+      "ArchiveTemplate": {"method": "POST"}
+    },
+    "serviceNamespaces": [
+      "image_editor_project",
+      "image_editor_revision",
+      "image_editor_page",
+      "image_editor_element",
+      "image_editor_asset",
+      "image_editor_font",
+      "image_editor_template"
+    ]
+  },
+  "transformers": {}
+}

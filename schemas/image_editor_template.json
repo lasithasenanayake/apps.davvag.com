@@ -1,0 +1,24 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"source_project_id","dataType":"int"},
+    {"fieldName":"published_revision_id","dataType":"int"},
+    {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":2000,"encoding":"utf8"}},
+    {"fieldName":"category","dataType":"java.lang.String","annotations":{"maxLen":80,"encoding":"utf8"}},
+    {"fieldName":"tags_json","dataType":"object"},
+    {"fieldName":"width_px","dataType":"int"},
+    {"fieldName":"height_px","dataType":"int"},
+    {"fieldName":"preview_media_reference","dataType":"java.lang.String","annotations":{"maxLen":500}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"visibility","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"created_by_profile_id","dataType":"int"},
+    {"fieldName":"published_by_profile_id","dataType":"int"},
+    {"fieldName":"published_at","dataType":"java.util.Date"}
+  ],
+  "relations": [
+    {"relationName":"image_editor_template_project","relationType":"many-to-one","targetEntity":"image_editor_project","joinColumns":[{"sourceColumn":"source_project_id","targetColumn":"id"}]},
+    {"relationName":"image_editor_template_creator","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"created_by_profile_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

@@ -1,0 +1,7 @@
+WEBDOCK.component().register(function (exports) {
+    var api, routes; var data={items:[],search:'',loading:false,busy:false,error:''};
+    exports.vue={data:data,computed:{filtered:function(){var q=data.search.toLowerCase();return data.items.filter(function(x){return !q||String(x.title||'').toLowerCase().indexOf(q)>=0;});}},methods:{load:load,useTemplate:useTemplate,goBack:function(){navigate('..');}},onReady:function(){api=exports.getComponent('api');routes=exports.getShellComponent('soss-routes');load();}};
+    function unwrap(r){return r&&r.result!==undefined?r.result:r;} function request(call){return new Promise(function(resolve,reject){try{call.then(resolve,reject);if(typeof call.error==='function')call.error(reject);}catch(error){reject(error);}});} function navigate(p){if(routes&&routes.appNavigate)routes.appNavigate(p);}
+    function load(){if(data.loading)return;data.loading=true;data.error='';request(api.services.ListTemplates({status:'published',pageSize:100})).then(function(r){data.items=unwrap(r).items||[];}).catch(function(e){data.error=e.message||'Templates could not be loaded.';}).finally(function(){data.loading=false;});}
+    function useTemplate(item){if(data.busy)return;data.busy=true;request(api.services.CreateProjectFromTemplate({templateId:item.id})).then(function(r){navigate('../editor?id='+encodeURIComponent(unwrap(r).project.id));}).catch(function(e){data.error=e.message||'The template could not be used.';}).finally(function(){data.busy=false;});}
+});

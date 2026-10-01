@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"project_id","dataType":"int"},
+    {"fieldName":"revision_number","dataType":"int"},
+    {"fieldName":"revision_type","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"state","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"client_save_key","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"base_revision_id","dataType":"int"},
+    {"fieldName":"document_version","dataType":"int"},
+    {"fieldName":"renderer_version","dataType":"java.lang.String","annotations":{"maxLen":50}},
+    {"fieldName":"label","dataType":"java.lang.String","annotations":{"maxLen":120,"encoding":"utf8"}},
+    {"fieldName":"checksum","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"saved_by_profile_id","dataType":"int"}
+  ],
+  "relations": [
+    {"relationName":"image_editor_revision_project","relationType":"many-to-one","targetEntity":"image_editor_project","joinColumns":[{"sourceColumn":"project_id","targetColumn":"id"}]},
+    {"relationName":"image_editor_revision_saved_by","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"saved_by_profile_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

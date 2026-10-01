@@ -26,5 +26,17 @@
   "lmp_cover": {
     "file": "apps/lesson-manager/lib/LessonMediaAccess.php",
     "class": "lesson_manager\\LessonMediaAccess"
+  },
+  "image_editor_asset": {
+    "file": "apps/image-editor/lib/ImageEditorMediaAccess.php",
+    "class": "image_editor\\ImageEditorMediaAccess"
+  },
+  "image_editor_font": {
+    "file": "apps/image-editor/lib/ImageEditorMediaAccess.php",
+    "class": "image_editor\\ImageEditorMediaAccess"
+  },
+  "image_editor_font_license": {
+    "file": "apps/image-editor/lib/ImageEditorMediaAccess.php",
+    "class": "image_editor\\ImageEditorMediaAccess"
   }
 }

@@ -1,5 +1,8 @@
 {
   "apps": {
+    "image-editor": {
+      "version": "latest"
+    },
     "youtube-growth-agent": {
       "version": "latest"
     },

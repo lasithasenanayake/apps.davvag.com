@@ -1,0 +1,18 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"page_id","dataType":"int"},
+    {"fieldName":"element_uuid","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"parent_uuid","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"element_type","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"name","dataType":"java.lang.String","annotations":{"maxLen":120,"encoding":"utf8"}},
+    {"fieldName":"z_index","dataType":"int"},
+    {"fieldName":"is_locked","dataType":"boolean"},
+    {"fieldName":"is_hidden","dataType":"boolean"},
+    {"fieldName":"properties_json","dataType":"object"}
+  ],
+  "relations": [
+    {"relationName":"image_editor_element_page","relationType":"many-to-one","targetEntity":"image_editor_page","joinColumns":[{"sourceColumn":"page_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

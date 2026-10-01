@@ -1,0 +1,1 @@
+{"name":"template-manager","description":"Tenant template administration","author":"DAVVAG","version":"0.1.2","resources":{"files":[{"type":"mainScript","location":"script.js"},{"type":"mainView","location":"partial.html"}]}}

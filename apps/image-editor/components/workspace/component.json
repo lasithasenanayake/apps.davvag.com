@@ -1,0 +1,12 @@
+{
+  "name": "workspace",
+  "description": "Image Editor project workspace",
+  "author": "DAVVAG",
+  "version": "0.1.6",
+  "resources": {
+    "files": [
+      {"type": "mainScript", "location": "script.js"},
+      {"type": "mainView", "location": "partial.html"}
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "components": {
+    "workspace": {"type": "component", "location": "components"},
+    "editor": {"type": "component", "location": "components"},
+    "template-gallery": {"type": "component", "location": "components"},
+    "template-manager": {"type": "component", "location": "components"},
+    "font-manager": {"type": "component", "location": "components"},
+    "editor-runtime": {"type": "service", "location": "components"},
+    "image-editor-style": {"type": "component", "location": "components"},
+    "api": {"type": "service", "location": "services"}
+  },
+  "description": {
+    "title": "Image Editor",
+    "author": "DAVVAG",
+    "version": "0.1.6",
+    "icon": "appicon.svg"
+  },
+  "tags": ["showindock","showincms"],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "workspace",
+      "onLoad": ["image-editor-style", "editor-runtime", "api"],
+      "routes": {
+        "partials": {
+          "/": "workspace",
+          "/editor": "editor",
+          "/templates": "template-gallery",
+          "/fonts": "font-manager",
+          "/admin/templates": "template-manager",
+          "/admin/fonts": "font-manager"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {"name": "My designs", "path": "#/app/image-editor"},
+        {"name": "Templates", "path": "#/app/image-editor/templates"},
+        {"name": "Fonts", "path": "#/app/image-editor/fonts"},
+        {"name": "Template administration", "path": "#/app/image-editor/admin/templates"},
+        {"name": "Font administration", "path": "#/app/image-editor/admin/fonts"}
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": ["davvag-tools"],
+    "schemas": [
+      "profile",
+      "image_editor_project",
+      "image_editor_revision",
+      "image_editor_page",
+      "image_editor_element",
+      "image_editor_asset",
+      "image_editor_font",
+      "image_editor_template"
+    ],
+    "workflows": [],
+    "plugins": ["auth", "phpcache", "profile", "sossdata"],
+    "php-extensions": ["fileinfo", "iconv"]
+  }
+}

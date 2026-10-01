@@ -1,0 +1,36 @@
+{
+  "fields": [
+    {"fieldName":"id","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"owner_profile_id","dataType":"int"},
+    {"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"display_family","dataType":"java.lang.String","annotations":{"maxLen":160,"encoding":"utf8"}},
+    {"fieldName":"normalized_family","dataType":"java.lang.String","annotations":{"maxLen":180}},
+    {"fieldName":"subfamily","dataType":"java.lang.String","annotations":{"maxLen":120,"encoding":"utf8"}},
+    {"fieldName":"postscript_name","dataType":"java.lang.String","annotations":{"maxLen":160}},
+    {"fieldName":"internal_family","dataType":"java.lang.String","annotations":{"maxLen":180}},
+    {"fieldName":"font_weight","dataType":"int"},
+    {"fieldName":"font_style","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"font_stretch","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"format","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"mime_type","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"byte_size","dataType":"long"},
+    {"fieldName":"checksum","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"media_reference","dataType":"java.lang.String","annotations":{"maxLen":500}},
+    {"fieldName":"visibility","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"license_type","dataType":"java.lang.String","annotations":{"maxLen":50}},
+    {"fieldName":"license_name","dataType":"java.lang.String","annotations":{"maxLen":160,"encoding":"utf8"}},
+    {"fieldName":"license_url","dataType":"java.lang.String","annotations":{"maxLen":500}},
+    {"fieldName":"license_media_reference","dataType":"java.lang.String","annotations":{"maxLen":500}},
+    {"fieldName":"attested_by_profile_id","dataType":"int"},
+    {"fieldName":"attested_at","dataType":"java.util.Date"},
+    {"fieldName":"approved_by_profile_id","dataType":"int"},
+    {"fieldName":"approved_at","dataType":"java.util.Date"},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"rejection_reason","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},
+    {"fieldName":"embedding_flags","dataType":"int"}
+  ],
+  "relations": [
+    {"relationName":"image_editor_font_owner","relationType":"many-to-one","targetEntity":"profile","joinColumns":[{"sourceColumn":"owner_profile_id","targetColumn":"id"}]}
+  ],
+  "serviceOnly": true
+}

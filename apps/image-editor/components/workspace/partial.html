@@ -1,0 +1,41 @@
+<section class="ie-app ie-workspace">
+  <header class="ie-page-header">
+    <div><p class="ie-kicker">DAVVAG Creative</p><h1>Image Editor</h1><p>Create thumbnails, posters, and reusable designs.</p></div>
+    <nav class="ie-header-actions" aria-label="Image Editor sections">
+      <button type="button" class="ie-btn ie-btn-secondary" v-on:click="goTemplates">Templates</button>
+      <button type="button" class="ie-btn ie-btn-secondary" v-on:click="goFonts">Fonts</button>
+    </nav>
+  </header>
+
+  <div class="ie-alert ie-alert-error" v-if="error" role="alert">{{error}}</div>
+  <section class="ie-panel" aria-labelledby="ie-create-title">
+    <div class="ie-section-heading"><div><h2 id="ie-create-title">Create a design</h2><p>Choose a preset or enter custom pixel dimensions.</p></div></div>
+    <div class="ie-preset-grid">
+      <button type="button" class="ie-preset-card" v-for="preset in presets" v-on:click="createFromPreset(preset)" :disabled="creating">
+        <span class="ie-preset-ratio" :style="presetStyle(preset)"></span>
+        <strong>{{preset.name}}</strong><small>{{preset.width}} × {{preset.height}} px</small>
+      </button>
+    </div>
+    <form class="ie-custom-size" v-on:submit.prevent="createCustom">
+      <label>Title<input v-model.trim="createForm.title" maxlength="255" required></label>
+      <label>Width (px)<input v-model.number="createForm.width" type="number" min="64" max="8192" required></label>
+      <label>Height (px)<input v-model.number="createForm.height" type="number" min="64" max="8192" required></label>
+      <button class="ie-btn ie-btn-primary" type="submit" :disabled="creating">{{creating?'Creating…':'Create custom design'}}</button>
+    </form>
+  </section>
+
+  <section class="ie-panel" aria-labelledby="ie-projects-title">
+    <div class="ie-section-heading"><div><h2 id="ie-projects-title">My designs</h2><p>Your recent active and archived projects.</p></div>
+      <div class="ie-filter-row"><input v-model.trim="filters.search" type="search" placeholder="Search designs" aria-label="Search designs"><select v-model="filters.status" aria-label="Project status"><option value="active">Active</option><option value="archived">Archived</option><option value="deleted">Deleted</option></select><button type="button" class="ie-btn ie-btn-secondary" v-on:click="loadProjects" :disabled="loading">Refresh</button></div>
+    </div>
+    <div class="ie-loading" v-if="loading">Loading designs…</div>
+    <div class="ie-empty" v-else-if="filteredProjects.length===0"><strong>No designs found.</strong><span>Create your first design above.</span></div>
+    <div class="ie-project-grid" v-else>
+      <article class="ie-project-card" v-for="project in filteredProjects" :key="project.id">
+        <button type="button" class="ie-project-preview" v-on:click="openProject(project)" :aria-label="'Open '+project.title"><img v-if="project.preview_media_reference" :src="project.preview_media_reference" alt=""><span v-else :style="projectRatio(project)"><b>{{project.width_px}} × {{project.height_px}}</b></span></button>
+        <div class="ie-project-meta"><h3>{{project.title}}</h3><p>{{project.design_type}} · {{project.width_px}} × {{project.height_px}}</p></div>
+        <div class="ie-card-actions"><button class="ie-link-btn" type="button" v-on:click="openProject(project)" v-if="project.status!=='deleted'">Open</button><button class="ie-link-btn" type="button" v-on:click="duplicateProject(project)" :disabled="busyId===project.id" v-if="project.status!=='deleted'">Duplicate</button><button class="ie-link-btn" type="button" v-on:click="renameProject(project)" v-if="project.status!=='deleted'">Rename</button><button class="ie-link-btn" type="button" v-on:click="toggleArchive(project)" :disabled="busyId===project.id">{{project.status==='active'?'Archive':'Restore'}}</button><button class="ie-link-btn ie-danger" type="button" v-on:click="deleteProject(project)" :disabled="busyId===project.id" v-if="project.status!=='deleted'">Delete</button></div>
+      </article>
+    </div>
+  </section>
+</section>

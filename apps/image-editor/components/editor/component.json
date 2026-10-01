@@ -1,0 +1,12 @@
+{
+  "name": "editor",
+  "description": "Layered thumbnail and poster editor",
+  "author": "DAVVAG",
+  "version": "0.1.4",
+  "resources": {
+    "files": [
+      {"type": "mainScript", "location": "script.js"},
+      {"type": "mainView", "location": "partial.html"}
+    ]
+  }
+}
