@@ -6,7 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
-**Implementation baseline:** app version 0.3; Phase 0/1 plus the read-only advisory portions of Phase 2/3 implemented on 2026-08-25
+**Implementation baseline:** app version 0.7; Phase 0/1 plus the read-only advisory portions of Phase 2/3 and enhanced competitor growth analysis implemented on 2026-10-15
 
 ---
 
@@ -708,6 +708,9 @@ Implementation status (2026-08-25):
 - Implemented SEO/video briefs without unsupported keyword-volume claims.
 - Implemented public competitor workspaces using channels, uploads playlists, and videos; `search.list` and scraping are not used.
 - Implemented content ideas and channel-timezone-labelled calendar records.
+- Competitor channels can now be added by `/channel/` URL, `@handle` URL, legacy `/user/` URL, bare handle, or channel ID. The newest public uploads are ranked into a transparent shortlist using raw views or, when the derived-metrics policy flag is enabled, labelled views-per-day and views-to-subscriber product calculations.
+- Competitor public titles, descriptions, tags, hashtags, publish dates, durations, and statistics are retained for evidence. Competitor transcripts are not downloaded or represented as available.
+- A mapped specialist pipeline turns the shortlist and the selected owned video's authorized transcript into competitor-pattern, keyword, title, description, hashtag, and original video-idea suggestions. Each accepted item must cite a supplied public competitor video ID.
 - Every saved-agent prompt carries the channel language so configured agents can return Sinhala or English.
 - Direct YouTube caption-track download is implemented with a separate owner-triggered incremental `youtube.force-ssl` consent flow. After consent, selecting a video without a stored transcript automatically runs `captions.list` and `captions.download`, parses WebVTT cues into validated millisecond timestamps, records provenance, and retains manual transcript import as fallback. Existing base OAuth connections are not silently widened.
 
@@ -740,6 +743,8 @@ Implementation status (2026-08-25):
 Phase 2/3 generation reuses `ai-agent-creator` through `CreatorService::interactWithAgent()`. Provider calls, model settings, secrets, sessions, skills, and agent configuration remain owned by the shared runtime.
 
 Default specialist codes are `transcript-analyzer-agent` for transcript/Shorts work and `seo-suggestion-agent` for briefs and packaging. Protected `YTG_*_AGENT_CODE` overrides may select other saved agents for transcript, SEO, packaging, community, and strategy work.
+
+System administrators can select saved agents from `ai-agent-creator` for transcript, SEO, keyword, title, description, hashtag, packaging, competitor analysis, video ideas, community, and strategy tasks in Settings & Privacy. The protected `YTG_*_AGENT_CODE` values remain the runtime source of truth.
 
 Opening Growth Studio does not call a provider. Each generation action requires an explicit `confirmAgentDataShare=true` after the UI discloses that the selected video context may be sent to the saved agent's configured provider. The service authorizes the channel, loads trusted channel-scoped data, calls the shared agent runtime, validates strict JSON, records the run, and returns a deterministic fallback when the agent is unavailable or rejected.
 

@@ -13,7 +13,7 @@ This tenant app implements the read-only DAVVAG command centre, content-intellig
 - Official-metric command centre, video library, video inspector, recommendation inbox, and weekly plan.
 - Automatic timestamped YouTube caption downloads after separate owner consent, plus user-provided transcripts with provenance and validated timestamps.
 - Per-video audience-retention imports from the YouTube Analytics API.
-- Timestamped Shorts candidates, SEO/video briefs, public competitor workspaces, and a content calendar.
+- Timestamped Shorts candidates, SEO/video briefs, URL-based public competitor workspaces, a performing-video shortlist, and a content calendar.
 - Packaging variants, native A/B test preparation, community themes, manual reply drafts, experiment journals, and session-path proposals.
 - Saved-agent reuse through `ai-agent-creator`, strict JSON/evidence validation, auditable runs, and deterministic fallbacks.
 - Sinhala/English generation requests based on channel settings.
@@ -52,7 +52,28 @@ YTG_SEO_AGENT_CODE
 YTG_PACKAGING_AGENT_CODE
 YTG_COMMUNITY_AGENT_CODE
 YTG_STRATEGIST_AGENT_CODE
+YTG_KEYWORD_AGENT_CODE
+YTG_TITLE_AGENT_CODE
+YTG_DESCRIPTION_AGENT_CODE
+YTG_HASHTAG_AGENT_CODE
+YTG_COMPETITOR_AGENT_CODE
+YTG_VIDEO_IDEA_AGENT_CODE
 ```
+
+System administrators can map these tasks to any saved agent directly in **Settings & Privacy**. The selector is populated from `ai-agent-creator`; provider credentials and prompts remain owned by that app. Missing agents or rejected JSON use a deterministic, channel-scoped fallback.
+
+## Competitor growth analysis
+
+In **Growth Studio > Research**, add a competitor using a public YouTube `/channel/UC...` URL, `@handle` URL, bare `@handle`, legacy `/user/` URL, or bare `UC...` ID. The app resolves supported references with the documented `channels.list` parameters and imports the newest 20 uploads from the public uploads playlist. It does not use `search.list`, scrape YouTube, or download competitor transcripts.
+
+The shortlist retains public titles, descriptions, tags, hashtags, publish dates, view counts, likes, comments, durations, and the channel's current public subscriber count. When `YTG_DERIVED_METRICS_ENABLED` is enabled, it labels and calculates:
+
+```text
+views per day = public views / days since publication
+views-to-subscriber ratio = public views / current public subscriber count
+```
+
+These are DAVVAG product calculations, not YouTube metrics. A system administrator can enable them in Settings & Privacy only after accepting the applicable YouTube derived-metrics requirements. If the policy flag is disabled or a channel hides its subscriber count, unavailable ratios are not invented. The AI action then runs separately mapped competitor, keyword, title, description, hashtag, and video-idea tasks against the shortlist plus the selected owned video's metadata and authorized transcript. Every accepted suggestion must cite one of the supplied public competitor video IDs.
 
 Invalid, unavailable, or unsupported agent JSON is rejected. The app then returns deterministic output based on authorized workspace data.
 

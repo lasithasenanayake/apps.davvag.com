@@ -2,7 +2,7 @@
   "name": "workspace",
   "description": "Image Editor project workspace",
   "author": "DAVVAG",
-  "version": "0.1.6",
+  "version": "0.2.1",
   "resources": {
     "files": [
       {"type": "mainScript", "location": "script.js"},

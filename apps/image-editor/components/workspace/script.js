@@ -38,10 +38,10 @@ WEBDOCK.component().register(function (exports) {
             presetStyle: function (preset) { return { aspectRatio: preset.width + '/' + preset.height }; },
             projectRatio: function (project) { return { aspectRatio: project.width_px + '/' + project.height_px }; }
         },
-        onReady: function (scope, element) {
+        onReady: function (scope, element, instance) {
             mountedData = scope || data;
             var node = element && element.jquery ? element[0] : element;
-            vueApp = node && node.__vue__ ? node.__vue__ : null;
+            vueApp = instance || (node && node.__vue__ ? node.__vue__ : null);
             api = exports.getComponent('api');
             routes = exports.getShellComponent('soss-routes');
             loadPresets();

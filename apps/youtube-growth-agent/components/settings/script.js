@@ -12,13 +12,16 @@ WEBDOCK.component().register(function (exports) {
         channels: [],
         showClientSecret: false,
         showEncryptionKey: false,
+        agentTasks: ["TRANSCRIPT", "SEO", "KEYWORD", "TITLE", "DESCRIPTION", "HASHTAG", "PACKAGING", "COMPETITOR", "VIDEO_IDEA", "COMMUNITY", "STRATEGIST"],
         form: {
             googleClientId: "",
             googleClientSecret: "",
             oauthRedirectUri: "",
             encryptionKey: "",
             privacyPolicyUrl: "",
-            termsUrl: ""
+            termsUrl: "",
+            derivedMetricsEnabled: false,
+            agentMappings: {}
         }
     };
 
@@ -30,6 +33,8 @@ WEBDOCK.component().register(function (exports) {
             generateEncryptionKey: generateEncryptionKey,
             copyRedirectUri: copyRedirectUri,
             copyCronUrl: copyCronUrl,
+            agentLabel: agentLabel,
+            agentMappingMissing: agentMappingMissing,
             connectChannel: connectChannel,
             disconnect: disconnect,
             deleteData: deleteData,
@@ -76,6 +81,13 @@ WEBDOCK.component().register(function (exports) {
         state.form.encryptionKey = "";
         state.form.privacyPolicyUrl = values.privacyPolicyUrl || "";
         state.form.termsUrl = values.termsUrl || "";
+        state.form.derivedMetricsEnabled = !!values.derivedMetricsEnabled;
+        state.form.agentMappings = {};
+        var mappings = values.agentMappings || configuration.agentMappings || {};
+        for (var index = 0; index < state.agentTasks.length; index++) {
+            var task = state.agentTasks[index];
+            state.form.agentMappings[task] = mappings[task] || "";
+        }
     }
 
     function saveConfiguration() {
@@ -87,7 +99,9 @@ WEBDOCK.component().register(function (exports) {
             googleClientSecret: state.form.googleClientSecret,
             encryptionKey: state.form.encryptionKey,
             privacyPolicyUrl: state.form.privacyPolicyUrl,
-            termsUrl: state.form.termsUrl
+            termsUrl: state.form.termsUrl,
+            derivedMetricsEnabled: state.form.derivedMetricsEnabled,
+            agentMappings: state.form.agentMappings
         }).then(function (response) {
             state.saving = false;
             if (response.success) {
@@ -229,6 +243,24 @@ WEBDOCK.component().register(function (exports) {
     function clearMessages() {
         state.error = "";
         state.info = "";
+    }
+
+    function agentLabel(task) {
+        var labels = {
+            TRANSCRIPT: "Transcript and Shorts", SEO: "SEO brief", KEYWORD: "Keyword themes",
+            TITLE: "Title suggestions", DESCRIPTION: "Description suggestions", HASHTAG: "Hashtag suggestions",
+            PACKAGING: "Packaging tests", COMPETITOR: "Competitor analysis", VIDEO_IDEA: "Competitor video ideas",
+            COMMUNITY: "Community analysis", STRATEGIST: "Session and channel strategy"
+        };
+        return labels[task] || task;
+    }
+
+    function agentMappingMissing(code) {
+        var agents = state.configuration && state.configuration.availableAgents ? state.configuration.availableAgents : [];
+        for (var index = 0; index < agents.length; index++) {
+            if (agents[index].agentCode === code) { return false; }
+        }
+        return !!code;
     }
 
     function navigate(path) {

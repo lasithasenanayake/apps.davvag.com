@@ -25,7 +25,7 @@ class ApiService
     {
         $profileId = $this->requireProfile($res); if (!$profileId) return null;
         $this->ensureBuiltInFonts();
-        return array("authenticated" => true, "profileId" => $profileId, "administrator" => $this->isAdmin(), "templatePublisher" => $this->isAdmin(), "limits" => array("maxSide" => 8192, "maxElements" => 500, "maxAssetBytes" => 15728640, "maxFontBytes" => 10485760));
+        return array("authenticated" => true, "profileId" => $profileId, "administrator" => $this->isAdmin(), "templatePublisher" => $this->isAdmin(), "limits" => array("maxSide" => 8192, "maxPages" => ImageEditorDocument::MAX_PAGES, "maxElements" => ImageEditorDocument::MAX_ELEMENTS, "maxTotalElements" => ImageEditorDocument::MAX_TOTAL_ELEMENTS, "maxAssetBytes" => 15728640, "maxFontBytes" => 10485760));
     }
 
     public function getPresets($req, $res)
@@ -118,7 +118,8 @@ class ApiService
         $current = intval(isset($project->current_revision_id) ? $project->current_revision_id : 0);
         if ($baseRevisionId !== $current) return $this->fail($res, "This design changed in another editor. Reload before saving again.");
         $type = $this->enum($this->value($body, "revisionType", "manual"), array("manual", "autosave", "restore"), "revision type");
-        return $this->saveDocument($project, $document, $type, $clientSaveKey, $baseRevisionId, $profileId, $res);
+        $label = $type === "manual" ? $this->plain($this->value($body, "label", ""), 120) : "";
+        return $this->saveDocument($project, $document, $type, $clientSaveKey, $baseRevisionId, $profileId, $res, $label);
     }
 
     public function postListProjectRevisions($req, $res)
@@ -137,7 +138,8 @@ class ApiService
         $revision = $this->first($this->revisionNs, "id:" . $this->id($body, "revisionId"));
         if (!$revision || intval($revision->project_id) !== intval($project->id) || $revision->state !== "complete") return $this->fail($res, "The revision was not found.");
         $document = $this->documentFromRevision(intval($revision->id));
-        return $this->saveDocument($project, $document, "restore", $this->uuid(), intval($project->current_revision_id), $profileId, $res);
+        $label = "Restored " . $this->plain(isset($revision->label) ? $revision->label : "revision " . intval($revision->revision_number), 100);
+        return $this->saveDocument($project, $document, "restore", $this->uuid(), intval($project->current_revision_id), $profileId, $res, $label);
     }
 
     public function postRegisterAsset($req, $res)
@@ -225,25 +227,31 @@ class ApiService
 
     private function templateStatus($req,$res,$status){$admin=$this->requireAdmin($res);if(!$admin)return null;$template=$this->first($this->templateNs,"id:".$this->id($this->body($req),"templateId"));if(!$template)return $this->fail($res,"The template was not found.");$template->status=$status;return array("template"=>$this->update($this->templateNs,$template,$res));}
 
-    private function saveDocument($project, $input, $type, $saveKey, $baseRevisionId, $profileId, $res)
+    private function saveDocument($project, $input, $type, $saveKey, $baseRevisionId, $profileId, $res, $label = "")
     {
         try { $document = ImageEditorDocument::normalize($input, $project); } catch (\Throwable $e) { return $this->fail($res, $e->getMessage()); }
         if (!$this->validateDocumentReferences($document, $profileId, $res, false)) return null;
         $revisions = $this->rows($this->revisionNs, "project_id:" . intval($project->id), 1000); $number = 1;
         foreach ($revisions as $row) $number = max($number, intval($row->revision_number) + 1);
-        $revision = (object) array("project_id" => intval($project->id), "revision_number" => $number, "revision_type" => $type, "state" => "writing", "client_save_key" => $saveKey, "base_revision_id" => intval($baseRevisionId), "document_version" => ImageEditorDocument::VERSION, "renderer_version" => "fabric-7.4.0", "label" => $type === "manual" ? "Manual save" : ucfirst($type), "checksum" => ImageEditorDocument::checksum($document), "saved_by_profile_id" => $profileId);
+        $defaultLabel = $type === "manual" ? "Manual save" : ucfirst($type);
+        $revision = (object) array("project_id" => intval($project->id), "revision_number" => $number, "revision_type" => $type, "state" => "writing", "client_save_key" => $saveKey, "base_revision_id" => intval($baseRevisionId), "document_version" => ImageEditorDocument::VERSION, "renderer_version" => "fabric-7.4.0", "label" => $label !== "" ? $this->plain($label, 120) : $defaultLabel, "checksum" => ImageEditorDocument::checksum($document), "saved_by_profile_id" => $profileId);
         $revision = $this->insert($this->revisionNs, $revision, $res); if (!$revision) return null;
         try {
-            $page = $document->pages[0];
-            $pageRow = (object) array("revision_id" => intval($revision->id), "page_uuid" => $page->pageUuid, "page_number" => 1, "width_px" => $page->width, "height_px" => $page->height, "background_json" => $page->background);
-            $pageRow = $this->insert($this->pageNs, $pageRow, $res); if (!$pageRow) throw new \RuntimeException("The design page could not be saved.");
-            foreach ($page->elements as $element) {
-                $row = (object) array("page_id" => intval($pageRow->id), "element_uuid" => $element->elementUuid, "parent_uuid" => "", "element_type" => $element->type, "name" => $element->name, "z_index" => intval($element->zIndex), "is_locked" => $element->locked, "is_hidden" => $element->hidden, "properties_json" => $element->properties);
-                if (!$this->insert($this->elementNs, $row, $res)) throw new \RuntimeException("A design element could not be saved.");
+            $storedElementCount = 0;
+            foreach ($document->pages as $pageIndex => $page) {
+                $pageRow = (object) array("revision_id" => intval($revision->id), "page_uuid" => $page->pageUuid, "page_number" => $pageIndex + 1, "width_px" => $page->width, "height_px" => $page->height, "background_json" => $page->background);
+                $pageRow = $this->insert($this->pageNs, $pageRow, $res); if (!$pageRow) throw new \RuntimeException("A design page could not be saved.");
+                foreach ($page->elements as $element) {
+                    $row = (object) array("page_id" => intval($pageRow->id), "element_uuid" => $element->elementUuid, "parent_uuid" => "", "element_type" => $element->type, "name" => $element->name, "z_index" => intval($element->zIndex), "is_locked" => $element->locked, "is_hidden" => $element->hidden, "properties_json" => $element->properties);
+                    if (!$this->insert($this->elementNs, $row, $res)) throw new \RuntimeException("A design element could not be saved.");
+                }
+                $storedElements = $this->rows($this->elementNs, "page_id:" . intval($pageRow->id), ImageEditorDocument::MAX_ELEMENTS + 1);
+                if (count($storedElements) !== count($page->elements)) throw new \RuntimeException("A saved page failed its integrity check.");
+                $storedElementCount += count($storedElements);
             }
-            $storedPages = $this->rows($this->pageNs, "revision_id:" . intval($revision->id), 10);
-            $storedElements = $this->rows($this->elementNs, "page_id:" . intval($pageRow->id), ImageEditorDocument::MAX_ELEMENTS + 1);
-            if (count($storedPages) !== 1 || count($storedElements) !== count($page->elements)) throw new \RuntimeException("The saved design failed its integrity check.");
+            $storedPages = $this->rows($this->pageNs, "revision_id:" . intval($revision->id), ImageEditorDocument::MAX_PAGES + 1);
+            $expectedElementCount = array_sum(array_map(function ($page) { return count($page->elements); }, $document->pages));
+            if (count($storedPages) !== count($document->pages) || $storedElementCount !== $expectedElementCount) throw new \RuntimeException("The saved design failed its integrity check.");
             $revision->state = "complete"; if (!$this->update($this->revisionNs, $revision, $res)) throw new \RuntimeException("The design revision could not be finalized.");
             $project->current_revision_id = intval($revision->id); if (!$this->update($this->projectNs, $project, $res)) throw new \RuntimeException("The project could not point to its completed revision.");
             return array("revisionId" => intval($revision->id), "revisionNumber" => $number, "checksum" => $revision->checksum, "idempotent" => false);
@@ -271,13 +279,17 @@ class ApiService
             $copy=(object)array("owner_profile_id"=>intval($newOwner),"project_id"=>intval($projectId),"media_reference"=>$asset->media_reference,"original_name"=>$asset->original_name,"mime_type"=>$asset->mime_type,"extension"=>$asset->extension,"byte_size"=>intval($asset->byte_size),"width_px"=>intval($asset->width_px),"height_px"=>intval($asset->height_px),"asset_type"=>$asset->asset_type,"checksum"=>$asset->checksum,"alternative_text"=>isset($asset->alternative_text)?$asset->alternative_text:"","status"=>"active");
             $copy=$this->insert($this->assetNs,$copy,$res);if(!$copy)return null;$mapped[intval($assetId)]=intval($copy->id);
         }
-        foreach($document->pages[0]->elements as $element)if($element->type==="image")$element->properties->assetId=$mapped[intval($element->properties->assetId)];
+        foreach($document->pages as $page)foreach($page->elements as $element)if($element->type==="image")$element->properties->assetId=$mapped[intval($element->properties->assetId)];
         return $document;
     }
 
     private function documentFromRevision($revisionId)
     {
-        $revision=$this->first($this->revisionNs,"id:".intval($revisionId));if(!$revision||$revision->state!=="complete")return null;$pages=$this->rows($this->pageNs,"revision_id:".intval($revisionId),10);if(!$pages)return null;$page=$pages[0];$elements=$this->rows($this->elementNs,"page_id:".intval($page->id),600);usort($elements,function($a,$b){return intval($a->z_index)-intval($b->z_index);});$out=array();foreach($elements as $element)$out[]=(object)array("elementUuid"=>$element->element_uuid,"type"=>$element->element_type,"name"=>$element->name,"zIndex"=>intval($element->z_index),"locked"=>$this->truth(isset($element->is_locked)?$element->is_locked:false),"hidden"=>$this->truth(isset($element->is_hidden)?$element->is_hidden:false),"properties"=>$this->decodeObject($element->properties_json));return (object)array("documentVersion"=>intval($revision->document_version),"pages"=>array((object)array("pageUuid"=>$page->page_uuid,"width"=>intval($page->width_px),"height"=>intval($page->height_px),"background"=>$this->decodeObject($page->background_json),"elements"=>$out)));
+        $revision=$this->first($this->revisionNs,"id:".intval($revisionId));if(!$revision||$revision->state!=="complete")return null;
+        $pages=$this->rows($this->pageNs,"revision_id:".intval($revisionId),ImageEditorDocument::MAX_PAGES+1);if(!$pages)return null;
+        usort($pages,function($a,$b){return intval($a->page_number)-intval($b->page_number);});$outPages=array();
+        foreach($pages as $page){$elements=$this->rows($this->elementNs,"page_id:".intval($page->id),ImageEditorDocument::MAX_ELEMENTS+1);usort($elements,function($a,$b){return intval($a->z_index)-intval($b->z_index);});$out=array();foreach($elements as $element)$out[]=(object)array("elementUuid"=>$element->element_uuid,"type"=>$element->element_type,"name"=>$element->name,"zIndex"=>intval($element->z_index),"locked"=>$this->truth(isset($element->is_locked)?$element->is_locked:false),"hidden"=>$this->truth(isset($element->is_hidden)?$element->is_hidden:false),"properties"=>$this->decodeObject($element->properties_json));$outPages[]=(object)array("pageUuid"=>$page->page_uuid,"width"=>intval($page->width_px),"height"=>intval($page->height_px),"background"=>$this->decodeObject($page->background_json),"elements"=>$out);}
+        return (object)array("documentVersion"=>intval($revision->document_version),"pages"=>$outPages);
     }
 
     private function blankDocument($width,$height){return (object)array("documentVersion"=>1,"pages"=>array((object)array("pageUuid"=>$this->uuid(),"width"=>$width,"height"=>$height,"background"=>(object)array("type"=>"solid","color"=>"#ffffff"),"elements"=>array())));}

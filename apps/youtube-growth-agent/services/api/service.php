@@ -13,7 +13,7 @@ class ApiService extends \YtgServiceBase {
         if ($this->requireProfile($res) === null) {
             return null;
         }
-        return \YtgConfig::status();
+        return $this->configurationWithAgents();
     }
 
     public function postSaveConfiguration($req, $res) {
@@ -30,6 +30,11 @@ class ApiService extends \YtgServiceBase {
         $encryptionKey = $this->configurationText($body, "encryptionKey", 4096);
         $privacyUrl = $this->configurationText($body, "privacyPolicyUrl", 2048);
         $termsUrl = $this->configurationText($body, "termsUrl", 2048);
+        $derivedMetricsEnabled = isset($body->derivedMetricsEnabled) && filter_var($body->derivedMetricsEnabled, FILTER_VALIDATE_BOOLEAN);
+        $agentMappings = $this->configurationAgentMappings($body);
+        if ($agentMappings === null) {
+            return $this->fail($res, "Each AI task must map to a valid saved-agent code.");
+        }
 
         if ($clientSecret === "") {
             $clientSecret = \YtgConfig::clientSecret();
@@ -57,19 +62,24 @@ class ApiService extends \YtgServiceBase {
 
         $before = \YtgConfig::status();
         try {
-            \YtgConfig::save(array(
+            $values = array(
                 "YTG_GOOGLE_CLIENT_ID" => $clientId,
                 "YTG_GOOGLE_CLIENT_SECRET" => $clientSecret,
                 "YTG_OAUTH_REDIRECT_URI" => \YtgConfig::currentServiceRedirectUri(),
                 "YTG_ENCRYPTION_KEY" => $encryptionKey,
                 "YTG_PRIVACY_POLICY_URL" => $privacyUrl,
-                "YTG_TERMS_URL" => $termsUrl
-            ));
+                "YTG_TERMS_URL" => $termsUrl,
+                "YTG_DERIVED_METRICS_ENABLED" => $derivedMetricsEnabled ? "true" : "false"
+            );
+            foreach ($agentMappings as $task => $agentCode) {
+                $values["YTG_" . $task . "_AGENT_CODE"] = $agentCode;
+            }
+            \YtgConfig::save($values);
         } catch (\Throwable $error) {
             return $this->fail($res, "Configuration could not be saved: " . $error->getMessage());
         }
 
-        $configuration = \YtgConfig::status();
+        $configuration = $this->configurationWithAgents();
         $this->audit("CONFIGURATION_SAVED", "", "youtube-growth-agent:configuration", array(
             "ready" => $before->ready,
             "checks" => $before->checks
@@ -114,7 +124,7 @@ class ApiService extends \YtgServiceBase {
 
         return (object)array(
             "channels" => $channels,
-            "configuration" => \YtgConfig::status(),
+            "configuration" => $this->configurationWithAgents(),
             "selectedChannelRequired" => true,
             "crossChannelTotalsAvailable" => false
         );
@@ -469,6 +479,60 @@ class ApiService extends \YtgServiceBase {
             return "";
         }
         return substr(trim((string)$body->$name), 0, $maxLength);
+    }
+
+    private function configurationAgentMappings($body) {
+        $current = \YtgConfig::agentMappings();
+        if (!is_object($body) || !isset($body->agentMappings)) {
+            return $current;
+        }
+        $incoming = is_object($body->agentMappings) ? (array)$body->agentMappings : $body->agentMappings;
+        if (!is_array($incoming)) {
+            return null;
+        }
+        foreach ($current as $task => $existing) {
+            $value = isset($incoming[$task]) ? trim((string)$incoming[$task]) : $existing;
+            if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $value)) {
+                return null;
+            }
+            $current[$task] = $value;
+        }
+        return $current;
+    }
+
+    private function configurationWithAgents() {
+        $configuration = \YtgConfig::status();
+        $configuration->availableAgents = array();
+        if (!$configuration->canManageConfiguration) {
+            return $configuration;
+        }
+        $path = TENANT_RESOURCE_LOCATION . "/apps/ai-agent-creator/services/creator-api/service.php";
+        if (!is_file($path)) {
+            $configuration->agentCatalogWarning = "AI Agent Creator is not installed.";
+            return $configuration;
+        }
+        try {
+            require_once($path);
+            if (!class_exists("\\ai_agent_creator\\CreatorService")) {
+                throw new \RuntimeException("Saved-agent runtime is unavailable.");
+            }
+            $creator = new \ai_agent_creator\CreatorService();
+            $result = $creator->getListAgents(null, null);
+            foreach (isset($result->agents) && is_array($result->agents) ? $result->agents : array() as $agent) {
+                $item = is_object($agent) ? $agent : (object)$agent;
+                $code = isset($item->agentCode) ? trim((string)$item->agentCode) : "";
+                if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $code)) { continue; }
+                $configuration->availableAgents[] = (object)array(
+                    "agentCode" => $code,
+                    "name" => isset($item->name) ? substr((string)$item->name, 0, 255) : $code,
+                    "description" => isset($item->description) ? substr((string)$item->description, 0, 1000) : "",
+                    "capabilities" => isset($item->capabilities) && is_array($item->capabilities) ? array_slice($item->capabilities, 0, 20) : array()
+                );
+            }
+        } catch (\Throwable $error) {
+            $configuration->agentCatalogWarning = "Saved agents could not be listed. Existing mappings remain active.";
+        }
+        return $configuration;
     }
 
     private function validConfigurationUrl($value) {

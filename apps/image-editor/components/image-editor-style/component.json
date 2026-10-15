@@ -2,7 +2,7 @@
   "name": "image-editor-style",
   "description": "Shared scoped Image Editor styles",
   "author": "DAVVAG",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "resources": {
     "files": [{"type": "mainScript", "location": "script.js"}],
     "css": [{"type": "css", "location": "image-editor.css"}]

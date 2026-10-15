@@ -4,7 +4,7 @@ WEBDOCK.component().register(function (exports) {
         channelId: "", videoId: "", loading: false, busy: "", error: "", info: "", activeTab: "transcript",
         data: null, aiConsent: false, transcriptText: "", transcriptLanguage: "English", captionLanguage: "", aiResult: null,
         autoTranscriptAttempts: {},
-        competitor: {youtubeChannelId: "", label: ""},
+        competitor: {reference: "", label: ""},
         calendar: {title: "", format: "VIDEO", plannedAt: "", notes: ""},
         experiment: {name: "", type: "PACKAGING", hypothesis: "", variantsText: "Variant A\nVariant B", primaryMetric: "thumbnailImpressionsCtr"}
     };
@@ -13,10 +13,10 @@ WEBDOCK.component().register(function (exports) {
         importTranscript: importTranscript, requestCaptionAccess: requestCaptionAccess, downloadYouTubeTranscript: function () { downloadYouTubeTranscript(false); },
         exportTranscript: exportTranscript, transcriptPreview: transcriptPreview, transcriptSource: transcriptSource,
         syncRetention: syncRetention, generateShorts: function () { generate("GenerateShortCandidates"); },
-        generateBrief: function () { generate("GenerateVideoBrief"); }, addCompetitor: addCompetitor, refreshCompetitors: refreshCompetitors,
+        generateBrief: function () { generate("GenerateVideoBrief"); }, generateCompetitorIdeas: function () { generate("GenerateCompetitorIdeas"); }, addCompetitor: addCompetitor, refreshCompetitors: refreshCompetitors,
         saveCalendar: saveCalendar, generatePackaging: function () { generate("GeneratePackagingVariants"); }, syncComments: syncComments,
         analyzeCommunity: function () { generate("AnalyzeCommunity"); }, generateSession: function () { generate("GenerateSessionRecommendations"); },
-        createExperiment: createExperiment, updateExperiment: updateExperiment, formatDate: formatDate, formatTime: formatTime,
+        createExperiment: createExperiment, updateExperiment: updateExperiment, formatDate: formatDate, formatTime: formatTime, formatNumber: formatNumber, formatRatio: formatRatio,
         retentionHeight: function (point) { return Math.max(3, Math.min(100, Number(point.audienceWatchRatio || 0) * 100)) + "%"; },
         back: function () { navigate("dashboard"); }
     }, onReady: initialize};
@@ -107,7 +107,21 @@ WEBDOCK.component().register(function (exports) {
     }
     function syncRetention() { call(workbench, "SyncRetention", {channelId: state.channelId, videoId: state.videoId}, "Retention refreshed."); }
     function syncComments() { call(workbench, "SyncComments", {channelId: state.channelId, videoId: state.videoId}, "Comments refreshed."); }
-    function addCompetitor() { call(workbench, "AddCompetitor", {channelId: state.channelId, youtubeChannelId: state.competitor.youtubeChannelId, label: state.competitor.label}, "Comparison channel added.", function () { state.competitor.youtubeChannelId = ""; state.competitor.label = ""; }); }
+    function addCompetitor() {
+        if (state.busy || !state.competitor.reference) { return; }
+        state.busy = "AddCompetitor"; state.error = ""; state.info = "";
+        workbench.services.AddCompetitor({channelId: state.channelId, competitorReference: state.competitor.reference, label: state.competitor.label}).then(function (response) {
+            if (!response.success) { state.busy = ""; state.error = message(response, "Comparison channel could not be added."); return; }
+            var competitorId = response.result && response.result.competitor ? response.result.competitor.competitorId : 0;
+            state.busy = "RefreshCompetitors";
+            return workbench.services.RefreshCompetitors({channelId: state.channelId, competitorId: competitorId}).then(function (refreshResponse) {
+                state.busy = "";
+                if (!refreshResponse.success) { state.error = message(refreshResponse, "Channel was added, but its latest videos could not be analyzed."); load(); return; }
+                state.competitor.reference = ""; state.competitor.label = "";
+                state.info = refreshResponse.result.message || "Comparison channel added and analyzed."; load();
+            }).error(function () { state.busy = ""; state.error = "Channel was added, but its latest videos could not be analyzed."; load(); });
+        }).error(function () { state.busy = ""; state.error = "Comparison channel could not be added."; });
+    }
     function refreshCompetitors() { call(workbench, "RefreshCompetitors", {channelId: state.channelId}, "Comparison channels refreshed."); }
     function saveCalendar() { call(workbench, "SaveCalendarItem", {channelId: state.channelId, title: state.calendar.title, format: state.calendar.format, plannedAt: state.calendar.plannedAt, notes: state.calendar.notes}, "Calendar item saved.", function () { state.calendar.title = ""; state.calendar.notes = ""; }); }
     function createExperiment() {
@@ -136,4 +150,6 @@ WEBDOCK.component().register(function (exports) {
     function message(response, fallback) { return response && response.result && response.result.message ? response.result.message : fallback; }
     function formatDate(value) { if (!value) { return "Not set"; } var date = new Date(String(value).replace(" ", "T")); return isNaN(date.getTime()) ? value : date.toLocaleString(); }
     function formatTime(value) { var seconds = Math.max(0, Math.floor(Number(value || 0) / 1000)); var minutes = Math.floor(seconds / 60); var rest = seconds % 60; return minutes + ":" + (rest < 10 ? "0" : "") + rest; }
+    function formatNumber(value) { return Number(value || 0).toLocaleString(); }
+    function formatRatio(value) { return value === null || typeof value === "undefined" ? "Unavailable" : (Number(value) * 100).toFixed(2) + "%"; }
 });

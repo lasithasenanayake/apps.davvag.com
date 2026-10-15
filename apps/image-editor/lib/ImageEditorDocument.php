@@ -4,7 +4,9 @@ namespace image_editor;
 final class ImageEditorDocument
 {
     const VERSION = 1;
+    const MAX_PAGES = 30;
     const MAX_ELEMENTS = 500;
+    const MAX_TOTAL_ELEMENTS = 2000;
     const MAX_SIDE = 8192;
 
     public static function normalize($input, $project)
@@ -16,54 +18,69 @@ final class ImageEditorDocument
         }
         self::rejectUnsafeKeys($document, 0);
         $pages = self::arrayValue($document, "pages");
-        if (count($pages) !== 1) {
-            throw new \InvalidArgumentException("Phase 1 designs require exactly one page.");
+        if (count($pages) < 1 || count($pages) > self::MAX_PAGES) {
+            throw new \InvalidArgumentException("Designs require between 1 and " . self::MAX_PAGES . " pages.");
         }
-        $page = self::objectFrom($pages[0]);
-        $width = self::boundedInt($page, "width", 64, self::MAX_SIDE);
-        $height = self::boundedInt($page, "height", 64, self::MAX_SIDE);
-        if ($width !== intval($project->width_px) || $height !== intval($project->height_px)) {
-            throw new \InvalidArgumentException("Page dimensions do not match the project.");
-        }
-        $background = self::objectValue($page, "background");
-        if (self::string($background, "type", 20) !== "solid") {
-            throw new \InvalidArgumentException("Only solid backgrounds are supported.");
-        }
-        $elements = self::arrayValue($page, "elements");
-        if (count($elements) > self::MAX_ELEMENTS) {
-            throw new \InvalidArgumentException("The design contains too many elements.");
-        }
-        $seen = array();
-        $normalized = array();
-        foreach ($elements as $index => $rawElement) {
-            $element = self::objectFrom($rawElement);
-            $uuid = self::uuid(self::string($element, "elementUuid", 64));
-            if (isset($seen[$uuid])) {
-                throw new \InvalidArgumentException("Element identifiers must be unique.");
+        $seenPages = array();
+        $seenElements = array();
+        $totalElements = 0;
+        $normalizedPages = array();
+        foreach ($pages as $pageIndex => $rawPage) {
+            $page = self::objectFrom($rawPage);
+            $pageUuid = self::uuid(self::string($page, "pageUuid", 64));
+            if (isset($seenPages[$pageUuid])) {
+                throw new \InvalidArgumentException("Page identifiers must be unique.");
             }
-            $seen[$uuid] = true;
-            $type = self::enum(self::string($element, "type", 20), array("text", "image", "rect", "ellipse", "triangle", "line"), "element type");
-            $properties = self::objectValue($element, "properties");
-            self::assertAllowedProperties($type, $properties);
-            $normalized[] = (object) array(
-                "elementUuid" => $uuid,
-                "type" => $type,
-                "name" => self::plain(self::string($element, "name", 120, ucfirst($type)), 120),
-                "zIndex" => intval($index),
-                "locked" => self::boolean($element, "locked"),
-                "hidden" => self::boolean($element, "hidden"),
-                "properties" => self::normalizeProperties($type, $properties)
+            $seenPages[$pageUuid] = true;
+            $width = self::boundedInt($page, "width", 64, self::MAX_SIDE);
+            $height = self::boundedInt($page, "height", 64, self::MAX_SIDE);
+            if ($width !== intval($project->width_px) || $height !== intval($project->height_px)) {
+                throw new \InvalidArgumentException("Page dimensions do not match the project.");
+            }
+            $background = self::objectValue($page, "background");
+            if (self::string($background, "type", 20) !== "solid") {
+                throw new \InvalidArgumentException("Only solid backgrounds are supported.");
+            }
+            $elements = self::arrayValue($page, "elements");
+            if (count($elements) > self::MAX_ELEMENTS) {
+                throw new \InvalidArgumentException("A page contains too many elements.");
+            }
+            $totalElements += count($elements);
+            if ($totalElements > self::MAX_TOTAL_ELEMENTS) {
+                throw new \InvalidArgumentException("The design contains too many elements.");
+            }
+            $normalizedElements = array();
+            foreach ($elements as $index => $rawElement) {
+                $element = self::objectFrom($rawElement);
+                $uuid = self::uuid(self::string($element, "elementUuid", 64));
+                if (isset($seenElements[$uuid])) {
+                    throw new \InvalidArgumentException("Element identifiers must be unique across pages.");
+                }
+                $seenElements[$uuid] = true;
+                $type = self::enum(self::string($element, "type", 20), array("text", "image", "rect", "ellipse", "triangle", "line"), "element type");
+                $properties = self::objectValue($element, "properties");
+                self::assertAllowedProperties($type, $properties);
+                $normalizedElements[] = (object) array(
+                    "elementUuid" => $uuid,
+                    "type" => $type,
+                    "name" => self::plain(self::string($element, "name", 120, ucfirst($type)), 120),
+                    "zIndex" => intval($index),
+                    "locked" => self::boolean($element, "locked"),
+                    "hidden" => self::boolean($element, "hidden"),
+                    "properties" => self::normalizeProperties($type, $properties)
+                );
+            }
+            $normalizedPages[] = (object) array(
+                "pageUuid" => $pageUuid,
+                "width" => $width,
+                "height" => $height,
+                "background" => (object) array("type" => "solid", "color" => self::color(self::string($background, "color", 32, "#ffffff"))),
+                "elements" => $normalizedElements
             );
         }
         return (object) array(
             "documentVersion" => self::VERSION,
-            "pages" => array((object) array(
-                "pageUuid" => self::uuid(self::string($page, "pageUuid", 64)),
-                "width" => $width,
-                "height" => $height,
-                "background" => (object) array("type" => "solid", "color" => self::color(self::string($background, "color", 32, "#ffffff"))),
-                "elements" => $normalized
-            ))
+            "pages" => $normalizedPages
         );
     }
 
@@ -75,9 +92,11 @@ final class ImageEditorDocument
     public static function assetIds($document)
     {
         $ids = array();
-        foreach ($document->pages[0]->elements as $element) {
-            if ($element->type === "image") {
-                $ids[intval($element->properties->assetId)] = true;
+        foreach ($document->pages as $page) {
+            foreach ($page->elements as $element) {
+                if ($element->type === "image") {
+                    $ids[intval($element->properties->assetId)] = true;
+                }
             }
         }
         return array_keys($ids);
@@ -86,9 +105,11 @@ final class ImageEditorDocument
     public static function fontIds($document)
     {
         $ids = array();
-        foreach ($document->pages[0]->elements as $element) {
-            if ($element->type === "text" && !empty($element->properties->fontId)) {
-                $ids[intval($element->properties->fontId)] = true;
+        foreach ($document->pages as $page) {
+            foreach ($page->elements as $element) {
+                if ($element->type === "text" && !empty($element->properties->fontId)) {
+                    $ids[intval($element->properties->fontId)] = true;
+                }
             }
         }
         return array_keys($ids);

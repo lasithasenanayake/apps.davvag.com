@@ -46,6 +46,52 @@ check($normalized->pages[0]->elements[0]->properties->text === "Hello", "Markup 
 check(ImageEditorDocument::fontIds($normalized) === array(7), "Font references were not collected.");
 check(strlen(ImageEditorDocument::checksum($normalized)) === 64, "Checksum must be SHA-256.");
 
+$multiPage = json_decode(json_encode($document));
+$multiPage->pages[] = (object) array(
+    "pageUuid" => "page-0002",
+    "width" => 1280,
+    "height" => 720,
+    "background" => (object) array("type" => "solid", "color" => "#112233"),
+    "elements" => array(
+        (object) array(
+            "elementUuid" => "text-0002",
+            "type" => "text",
+            "name" => "Caption",
+            "properties" => (object) array("text" => "Second page", "fontId" => 9)
+        ),
+        (object) array(
+            "elementUuid" => "image-0001",
+            "type" => "image",
+            "name" => "Photo",
+            "properties" => (object) array(
+                "assetId" => 42,
+                "mediaReference" => "components/dock/soss-uploader/service/get/image_editor_asset/photo.png"
+            )
+        )
+    )
+);
+$normalizedMultiPage = ImageEditorDocument::normalize($multiPage, $project);
+check(count($normalizedMultiPage->pages) === 2, "Multiple pages were not retained.");
+check(ImageEditorDocument::fontIds($normalizedMultiPage) === array(7, 9), "Font references were not collected across pages.");
+check(ImageEditorDocument::assetIds($normalizedMultiPage) === array(42), "Asset references were not collected across pages.");
+
+$duplicatePage = json_decode(json_encode($multiPage));
+$duplicatePage->pages[1]->pageUuid = "page-0001";
+expectInvalid($duplicatePage, $project, "Page identifiers");
+
+$duplicateElement = json_decode(json_encode($multiPage));
+$duplicateElement->pages[1]->elements[0]->elementUuid = "text-0001";
+expectInvalid($duplicateElement, $project, "across pages");
+
+$tooManyPages = json_decode(json_encode($document));
+for ($pageNumber = 2; $pageNumber <= ImageEditorDocument::MAX_PAGES + 1; $pageNumber++) {
+    $page = json_decode(json_encode($document->pages[0]));
+    $page->pageUuid = "page-" . str_pad(strval($pageNumber), 4, "0", STR_PAD_LEFT);
+    $page->elements = array();
+    $tooManyPages->pages[] = $page;
+}
+expectInvalid($tooManyPages, $project, "between 1 and");
+
 $wrongSize = json_decode(json_encode($document));
 $wrongSize->pages[0]->width = 100;
 expectInvalid($wrongSize, $project, "dimensions");

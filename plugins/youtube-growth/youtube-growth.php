@@ -49,6 +49,32 @@ class YtgConfig {
     public static function privacyUrl() { return self::value("YTG_PRIVACY_POLICY_URL"); }
     public static function termsUrl() { return self::value("YTG_TERMS_URL"); }
     public static function agentCode() { return self::value("YTG_AI_AGENT_CODE", "youtube-growth-strategist"); }
+    public static function agentMappings() {
+        $defaults = array(
+            "TRANSCRIPT" => "transcript-analyzer-agent",
+            "SEO" => "seo-suggestion-agent",
+            "KEYWORD" => "seo-suggestion-agent",
+            "TITLE" => "seo-suggestion-agent",
+            "DESCRIPTION" => "seo-suggestion-agent",
+            "HASHTAG" => "seo-suggestion-agent",
+            "PACKAGING" => "seo-suggestion-agent",
+            "COMPETITOR" => self::agentCode(),
+            "VIDEO_IDEA" => self::agentCode(),
+            "COMMUNITY" => self::agentCode(),
+            "STRATEGIST" => self::agentCode()
+        );
+        $out = array();
+        foreach ($defaults as $task => $default) {
+            $out[$task] = self::value("YTG_" . $task . "_AGENT_CODE", $default);
+        }
+        return $out;
+    }
+    public static function agentCodeForTask($task, $default = "") {
+        $task = strtoupper(trim((string)$task));
+        $mappings = self::agentMappings();
+        $value = isset($mappings[$task]) ? trim((string)$mappings[$task]) : trim((string)$default);
+        return preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $value) ? $value : "";
+    }
     public static function derivedMetricsEnabled() { return self::boolean("YTG_DERIVED_METRICS_ENABLED", false); }
     public static function dailyQuotaLimit() { return self::integer("YTG_DAILY_QUOTA_LIMIT", 9500, 100, 10000); }
 
@@ -113,7 +139,19 @@ class YtgConfig {
             "YTG_OAUTH_REDIRECT_URI",
             "YTG_ENCRYPTION_KEY",
             "YTG_PRIVACY_POLICY_URL",
-            "YTG_TERMS_URL"
+            "YTG_TERMS_URL",
+            "YTG_DERIVED_METRICS_ENABLED",
+            "YTG_TRANSCRIPT_AGENT_CODE",
+            "YTG_SEO_AGENT_CODE",
+            "YTG_KEYWORD_AGENT_CODE",
+            "YTG_TITLE_AGENT_CODE",
+            "YTG_DESCRIPTION_AGENT_CODE",
+            "YTG_HASHTAG_AGENT_CODE",
+            "YTG_PACKAGING_AGENT_CODE",
+            "YTG_COMPETITOR_AGENT_CODE",
+            "YTG_VIDEO_IDEA_AGENT_CODE",
+            "YTG_COMMUNITY_AGENT_CODE",
+            "YTG_STRATEGIST_AGENT_CODE"
         );
         $stored = array();
         foreach ($allowed as $name) {
@@ -205,6 +243,7 @@ class YtgConfig {
             "canManageConfiguration" => $canManageConfiguration,
             "cronUrl" => $canManageConfiguration ? self::dailyCronUrl() : "",
             "configurationLocation" => "data/youtube-growth-agent/configuration.php",
+            "agentMappings" => (object)self::agentMappings(),
             "values" => (object)array(
                 "googleClientId" => self::clientId(),
                 "googleClientSecret" => "",
@@ -213,7 +252,9 @@ class YtgConfig {
                 "encryptionKey" => "",
                 "encryptionKeySaved" => strlen(self::encryptionKey()) >= 32,
                 "privacyPolicyUrl" => self::privacyUrl(),
-                "termsUrl" => self::termsUrl()
+                "termsUrl" => self::termsUrl(),
+                "derivedMetricsEnabled" => self::derivedMetricsEnabled(),
+                "agentMappings" => (object)self::agentMappings()
             ),
             "writeBackEnabled" => false
         );

@@ -6,6 +6,7 @@
     <div class="ie-topbar-spacer"></div>
     <button class="ie-btn ie-btn-secondary" type="button" v-on:click="undo" :disabled="!ready">Undo</button>
     <button class="ie-btn ie-btn-secondary" type="button" v-on:click="redo" :disabled="!ready">Redo</button>
+    <button class="ie-btn ie-btn-secondary" type="button" v-on:click="openRevisionHistory" :disabled="!ready">Versions</button>
     <button class="ie-btn ie-btn-secondary" type="button" v-on:click="save('manual')" :disabled="saving||!dirty">{{saving?'Saving…':'Save'}}</button>
     <button class="ie-btn ie-btn-primary" type="button" v-on:click="openExport" :disabled="!ready">Export</button>
   </header>
@@ -27,11 +28,24 @@
 
     <main class="ie-stage-wrap">
       <div class="ie-stage-scroll"><div class="ie-canvas-frame"><canvas id="ie-design-canvas"></canvas></div></div>
+      <nav class="ie-page-bar" aria-label="Design pages">
+        <div class="ie-page-tabs">
+          <button type="button" v-for="page in pages" :key="page.pageUuid" class="ie-page-tab" :class="{'is-active':page.index===currentPage}" v-on:click="switchPage(page.index)" :aria-current="page.index===currentPage?'page':null">Page {{page.number}}</button>
+        </div>
+        <div class="ie-page-actions">
+          <button type="button" v-on:click="movePage(-1)" :disabled="currentPage===0" aria-label="Move current page left">Left</button>
+          <button type="button" v-on:click="movePage(1)" :disabled="currentPage>=pages.length-1" aria-label="Move current page right">Right</button>
+          <button type="button" v-on:click="addPage(true)" :disabled="pages.length>=maxPages">Duplicate</button>
+          <button type="button" v-on:click="addPage(false)" :disabled="pages.length>=maxPages">Add page</button>
+          <button type="button" class="ie-danger" v-on:click="deletePage" :disabled="pages.length<=1">Delete</button>
+        </div>
+      </nav>
       <div class="ie-zoom-bar"><button type="button" v-on:click="changeZoom(-0.1)" :disabled="!ready">−</button><input type="range" min="0.1" max="2" step="0.05" v-model.number="zoom" v-on:input="applyZoom" aria-label="Canvas zoom" :disabled="!ready"><button type="button" v-on:click="changeZoom(0.1)" :disabled="!ready">+</button><button type="button" v-on:click="fitZoom" :disabled="!ready">Fit</button><button type="button" v-on:click="actualSize" :disabled="!ready">100%</button><span>{{Math.round(zoom*100)}}%</span></div>
     </main>
 
     <aside class="ie-properties-panel" aria-label="Properties">
       <template v-if="selection">
+      <template v-if="selection.type!=='multi'">
         <div class="ie-section-heading"><div><h2>{{selection.name}}</h2><p>{{selection.type}}</p></div><button type="button" class="ie-icon-btn ie-danger" v-on:click="deleteSelected" aria-label="Delete selected element">×</button></div>
         <label class="ie-field" v-if="selection.type==='text'">Text<textarea v-model="selection.text" v-on:input="updateSelection('text',selection.text)" maxlength="5000"></textarea></label>
         <label class="ie-field" v-if="selection.type==='text'">Font<select v-model="selection.fontId" v-on:change="applyFont"><option :value="null">Arial</option><option v-for="font in fonts" :value="font.id">{{font.display_family}} {{font.subfamily}}</option></select></label>
@@ -46,10 +60,26 @@
         <label class="ie-field">Rotation<input type="number" min="-360" max="360" v-model.number="selection.rotation" v-on:input="updateSelection('rotation',selection.rotation)"></label>
         <div class="ie-action-grid"><button type="button" v-on:click="duplicateSelected">Duplicate</button><button type="button" v-on:click="toggleLock">{{selection.locked?'Unlock':'Lock'}}</button><button type="button" v-on:click="toggleHidden">{{selection.hidden?'Show':'Hide'}}</button><button type="button" v-on:click="layer('front')">Forward</button><button type="button" v-on:click="layer('back')">Backward</button><button type="button" v-on:click="align('horizontal')">Center H</button><button type="button" v-on:click="align('vertical')">Center V</button></div>
       </template>
+      <div class="ie-empty ie-compact" v-else><strong>{{selection.count}} elements selected</strong><span>Move or resize the selection together. Press Delete to remove unlocked elements.</span><button type="button" class="ie-btn ie-btn-secondary" v-on:click="deleteSelected">Delete selection</button></div>
+      </template>
       <div class="ie-empty ie-compact" v-else><strong>Select an element</strong><span>Its properties will appear here.</span></div>
     </aside>
   </div>
   <div class="ie-loading ie-full" v-else>Loading editor…</div>
+
+  <div class="ie-modal" v-if="revisionOpen" role="dialog" aria-modal="true" aria-labelledby="ie-revision-title">
+    <div class="ie-modal-card ie-revision-card">
+      <div class="ie-section-heading"><div><h2 id="ie-revision-title">Version history</h2><p>Name important milestones and restore earlier work safely.</p></div><button type="button" class="ie-icon-btn" v-on:click="revisionOpen=false" aria-label="Close version history">Close</button></div>
+      <div class="ie-revision-create"><label class="ie-field">Version name<input type="text" maxlength="120" v-model.trim="revisionLabel" placeholder="e.g. Client-approved layout"></label><button type="button" class="ie-btn ie-btn-primary" v-on:click="saveNamedRevision" :disabled="saving||!revisionLabel">Save version</button></div>
+      <div class="ie-loading" v-if="revisionLoading">Loading versions...</div>
+      <template v-else>
+      <div class="ie-revision-list" v-if="revisions.length">
+        <article class="ie-revision-row" v-for="revision in revisions" :key="revision.id"><div><strong>{{revision.label||('Revision '+revision.revision_number)}}</strong><span>#{{revision.revision_number}} - {{revision.revision_type}} <template v-if="revision.syscreated">- {{revision.syscreated}}</template></span></div><span class="ie-badge" v-if="Number(revision.id)===Number(revisionId)">Current</span><button type="button" class="ie-btn ie-btn-secondary" v-else v-on:click="restoreRevision(revision)" :disabled="restoringRevisionId||saving">{{Number(restoringRevisionId)===Number(revision.id)?'Restoring...':'Restore'}}</button></article>
+      </div>
+      <div class="ie-empty ie-compact" v-else>No saved versions yet.</div>
+      </template>
+    </div>
+  </div>
 
   <div class="ie-modal" v-if="exportOpen" role="dialog" aria-modal="true" aria-labelledby="ie-export-title">
     <div class="ie-modal-card"><h2 id="ie-export-title">Export design</h2><label class="ie-field">Format<select v-model="exportForm.format"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select></label><label class="ie-field">Scale<select v-model.number="exportForm.scale"><option :value="1">1×</option><option :value="2">2×</option></select></label><label class="ie-field" v-if="exportForm.format!=='png'">Quality<input type="range" min="0.5" max="1" step="0.05" v-model.number="exportForm.quality"></label><div class="ie-modal-actions"><button class="ie-btn ie-btn-secondary" type="button" v-on:click="exportOpen=false">Cancel</button><button class="ie-btn ie-btn-primary" type="button" v-on:click="exportDesign" :disabled="exporting">{{exporting?'Exporting…':'Download'}}</button></div></div>

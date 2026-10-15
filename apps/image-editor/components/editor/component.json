@@ -2,7 +2,7 @@
   "name": "editor",
   "description": "Layered thumbnail and poster editor",
   "author": "DAVVAG",
-  "version": "0.1.4",
+  "version": "0.2.1",
   "resources": {
     "files": [
       {"type": "mainScript", "location": "script.js"},

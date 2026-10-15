@@ -29,7 +29,8 @@
       <div class="ie-filter-row"><input v-model.trim="filters.search" type="search" placeholder="Search designs" aria-label="Search designs"><select v-model="filters.status" aria-label="Project status"><option value="active">Active</option><option value="archived">Archived</option><option value="deleted">Deleted</option></select><button type="button" class="ie-btn ie-btn-secondary" v-on:click="loadProjects" :disabled="loading">Refresh</button></div>
     </div>
     <div class="ie-loading" v-if="loading">Loading designs…</div>
-    <div class="ie-empty" v-else-if="filteredProjects.length===0"><strong>No designs found.</strong><span>Create your first design above.</span></div>
+    <template v-else>
+    <div class="ie-empty" v-if="filteredProjects.length===0"><strong>No designs found.</strong><span>Create your first design above.</span></div>
     <div class="ie-project-grid" v-else>
       <article class="ie-project-card" v-for="project in filteredProjects" :key="project.id">
         <button type="button" class="ie-project-preview" v-on:click="openProject(project)" :aria-label="'Open '+project.title"><img v-if="project.preview_media_reference" :src="project.preview_media_reference" alt=""><span v-else :style="projectRatio(project)"><b>{{project.width_px}} × {{project.height_px}}</b></span></button>
@@ -37,5 +38,6 @@
         <div class="ie-card-actions"><button class="ie-link-btn" type="button" v-on:click="openProject(project)" v-if="project.status!=='deleted'">Open</button><button class="ie-link-btn" type="button" v-on:click="duplicateProject(project)" :disabled="busyId===project.id" v-if="project.status!=='deleted'">Duplicate</button><button class="ie-link-btn" type="button" v-on:click="renameProject(project)" v-if="project.status!=='deleted'">Rename</button><button class="ie-link-btn" type="button" v-on:click="toggleArchive(project)" :disabled="busyId===project.id">{{project.status==='active'?'Archive':'Restore'}}</button><button class="ie-link-btn ie-danger" type="button" v-on:click="deleteProject(project)" :disabled="busyId===project.id" v-if="project.status!=='deleted'">Delete</button></div>
       </article>
     </div>
+    </template>
   </section>
 </section>

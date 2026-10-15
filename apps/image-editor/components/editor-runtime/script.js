@@ -49,17 +49,24 @@ function initializeImageEditorRuntime(exports) {
         this.height = finite(options.height, 720);
         this.zoom = 1;
         this.background = '#ffffff';
+        this.pages = [];
+        this.currentPageIndex = 0;
+        this.pageUuid = null;
         this.history = [];
         this.historyIndex = -1;
         this.suspendHistory = false;
         this.disposed = false;
         this.onChange = options.onChange || function () {};
         this.onSelection = options.onSelection || function () {};
+        this.onPage = options.onPage || function () {};
         this.canvas.setDimensions({ width: this.width, height: this.height });
         this.applyDisplaySize();
         this.canvas.backgroundColor = this.background;
+        this.pages = [this.blankPage()];
+        this.pageUuid = this.pages[0].pageUuid;
         this.bind();
         this.captureHistory();
+        this.notifyPage();
     }
 
     EditorAdapter.prototype.bind = function () {
@@ -73,7 +80,7 @@ function initializeImageEditorRuntime(exports) {
             });
         });
         ['selection:created', 'selection:updated'].forEach(function (eventName) {
-            self.canvas.on(eventName, function (event) { self.onSelection(self.describe(event.selected && event.selected[0])); });
+            self.canvas.on(eventName, function () { self.onSelection(self.describe(self.canvas.getActiveObject())); });
         });
         this.canvas.on('selection:cleared', function () { self.onSelection(null); });
     };
@@ -110,6 +117,49 @@ function initializeImageEditorRuntime(exports) {
 
     EditorAdapter.prototype.refreshLayout = function () {
         this.applyDisplaySize();
+    };
+
+    EditorAdapter.prototype.blankPage = function () {
+        return {
+            pageUuid: uuid(),
+            width: this.width,
+            height: this.height,
+            background: { type: 'solid', color: '#ffffff' },
+            elements: []
+        };
+    };
+
+    EditorAdapter.prototype.cloneData = function (value) {
+        return JSON.parse(JSON.stringify(value));
+    };
+
+    EditorAdapter.prototype.currentPageData = function () {
+        var self = this;
+        return {
+            pageUuid: this.pageUuid || uuid(),
+            width: this.width,
+            height: this.height,
+            background: { type: 'solid', color: this.background },
+            elements: this.canvas.getObjects().map(function (object, index) {
+                return self.serializeElement(object, index);
+            })
+        };
+    };
+
+    EditorAdapter.prototype.storeCurrentPage = function () {
+        if (!this.pages.length) this.pages = [this.blankPage()];
+        this.pages[this.currentPageIndex] = this.currentPageData();
+    };
+
+    EditorAdapter.prototype.notifyPage = function () {
+        this.onPage({
+            index: this.currentPageIndex,
+            count: this.pages.length,
+            background: this.background,
+            pages: this.pages.map(function (page, index) {
+                return { index: index, pageUuid: page.pageUuid, number: index + 1 };
+            })
+        });
     };
 
     EditorAdapter.prototype.decorate = function (object, type, values) {
@@ -195,6 +245,9 @@ function initializeImageEditorRuntime(exports) {
 
     EditorAdapter.prototype.describe = function (object) {
         if (!object) return null;
+        if (fabric.ActiveSelection && object instanceof fabric.ActiveSelection) {
+            return { type: 'multi', name: object.size ? object.size() + ' elements' : 'Multiple elements', count: object.size ? object.size() : this.canvas.getActiveObjects().length };
+        }
         var description = {
             cornerRadius: finite(object.rx, 0), flipX: !!object.flipX, flipY: !!object.flipY,
             cropX: finite(object.cropX, 0), cropY: finite(object.cropY, 0),
@@ -212,7 +265,7 @@ function initializeImageEditorRuntime(exports) {
 
     EditorAdapter.prototype.updateSelected = function (changes) {
         var object = this.canvas.getActiveObject();
-        if (!object) return;
+        if (!object || fabric.ActiveSelection && object instanceof fabric.ActiveSelection) return;
         var map = {
             fill: 'fill', stroke: 'stroke', strokeWidth: 'strokeWidth', opacity: 'opacity', rotation: 'angle', text: 'text',
             fontFamily: 'fontFamily', fontId: 'fontId', fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle',
@@ -281,7 +334,7 @@ function initializeImageEditorRuntime(exports) {
 
     EditorAdapter.prototype.duplicateSelected = function () {
         var self = this, object = this.canvas.getActiveObject();
-        if (!object) return Promise.resolve(null);
+        if (!object || fabric.ActiveSelection && object instanceof fabric.ActiveSelection) return Promise.resolve(null);
         return Promise.resolve(object.clone()).then(function (clone) {
             var values = self.serializeElement(object, 0).properties;
             values.x = finite(object.left, 0) + 24; values.y = finite(object.top, 0) + 24; values.name = object.elementName + ' copy';
@@ -323,8 +376,8 @@ function initializeImageEditorRuntime(exports) {
     };
 
     EditorAdapter.prototype.serialize = function () {
-        var self = this;
-        return { documentVersion: Number(VERSION), pages: [{ pageUuid: this.pageUuid || (this.pageUuid = uuid()), width: this.width, height: this.height, background: { type: 'solid', color: this.background }, elements: this.canvas.getObjects().map(function (object, index) { return self.serializeElement(object, index); }) }] };
+        this.storeCurrentPage();
+        return { documentVersion: Number(VERSION), pages: this.cloneData(this.pages) };
     };
 
     EditorAdapter.prototype.createFromElement = function (element) {
@@ -335,8 +388,8 @@ function initializeImageEditorRuntime(exports) {
         return Promise.resolve(this.addShape(element.type, values));
     };
 
-    EditorAdapter.prototype.load = function (documentData, preserveHistory) {
-        var self = this, page = documentData && documentData.pages && documentData.pages[0];
+    EditorAdapter.prototype.renderPage = function (page) {
+        var self = this;
         if (!page) return Promise.resolve();
         this.suspendHistory = true;
         this.canvas.clear();
@@ -348,13 +401,66 @@ function initializeImageEditorRuntime(exports) {
         (page.elements || []).sort(function (a, b) { return a.zIndex - b.zIndex; }).forEach(function (element) { chain = chain.then(function () { return self.createFromElement(element); }); });
         return chain.then(function () {
             self.canvas.discardActiveObject(); self.canvas.requestRenderAll(); self.suspendHistory = false;
-            if (!preserveHistory) { self.history = []; self.historyIndex = -1; self.captureHistory(); }
+            self.onSelection(null); self.notifyPage();
         }).catch(function (error) { self.suspendHistory = false; throw error; });
+    };
+
+    EditorAdapter.prototype.load = function (documentData, preserveHistory, pageIndex) {
+        var sourcePages = documentData && documentData.pages;
+        if (!sourcePages || !sourcePages.length) return Promise.resolve();
+        this.pages = this.cloneData(sourcePages);
+        this.currentPageIndex = Math.max(0, Math.min(this.pages.length - 1, Number(pageIndex) || 0));
+        var self = this;
+        return this.renderPage(this.pages[this.currentPageIndex]).then(function () {
+            if (!preserveHistory) { self.history = []; self.historyIndex = -1; self.captureHistory(); }
+        });
+    };
+
+    EditorAdapter.prototype.switchPage = function (index) {
+        index = Number(index);
+        if (index < 0 || index >= this.pages.length || index === this.currentPageIndex) return Promise.resolve(false);
+        this.storeCurrentPage();
+        this.currentPageIndex = index;
+        return this.renderPage(this.pages[index]).then(function () { return true; });
+    };
+
+    EditorAdapter.prototype.addPage = function (duplicate) {
+        this.storeCurrentPage();
+        var page = duplicate ? this.cloneData(this.pages[this.currentPageIndex]) : this.blankPage();
+        page.pageUuid = uuid();
+        (page.elements || []).forEach(function (element) { element.elementUuid = uuid(); });
+        this.pages.splice(this.currentPageIndex + 1, 0, page);
+        this.currentPageIndex += 1;
+        var self = this;
+        return this.renderPage(page).then(function () {
+            self.captureHistory(); self.onChange(); self.notifyPage(); return self.currentPageIndex;
+        });
+    };
+
+    EditorAdapter.prototype.deletePage = function () {
+        if (this.pages.length <= 1) return Promise.resolve(false);
+        this.storeCurrentPage();
+        this.pages.splice(this.currentPageIndex, 1);
+        this.currentPageIndex = Math.min(this.currentPageIndex, this.pages.length - 1);
+        var self = this;
+        return this.renderPage(this.pages[this.currentPageIndex]).then(function () {
+            self.captureHistory(); self.onChange(); self.notifyPage(); return true;
+        });
+    };
+
+    EditorAdapter.prototype.movePage = function (direction) {
+        this.storeCurrentPage();
+        var target = this.currentPageIndex + Number(direction);
+        if (target < 0 || target >= this.pages.length) return false;
+        var page = this.pages.splice(this.currentPageIndex, 1)[0];
+        this.pages.splice(target, 0, page); this.currentPageIndex = target;
+        this.captureHistory(); this.onChange(); this.notifyPage();
+        return true;
     };
 
     EditorAdapter.prototype.captureHistory = function () {
         if (this.suspendHistory) return;
-        var snapshot = JSON.stringify(this.serialize());
+        var snapshot = JSON.stringify({ document: this.serialize(), pageIndex: this.currentPageIndex });
         if (this.history[this.historyIndex] === snapshot) return;
         this.history = this.history.slice(0, this.historyIndex + 1);
         this.history.push(snapshot);
@@ -365,7 +471,9 @@ function initializeImageEditorRuntime(exports) {
     EditorAdapter.prototype.restoreHistory = function (index) {
         if (index < 0 || index >= this.history.length) return Promise.resolve(false);
         var self = this, snapshot = JSON.parse(this.history[index]);
-        return this.load(snapshot, true).then(function () { self.historyIndex = index; return true; });
+        var documentData = snapshot.document || snapshot;
+        var pageIndex = snapshot.document ? snapshot.pageIndex : 0;
+        return this.load(documentData, true, pageIndex).then(function () { self.historyIndex = index; return true; });
     };
     EditorAdapter.prototype.undo = function () { return this.restoreHistory(this.historyIndex - 1); };
     EditorAdapter.prototype.redo = function () { return this.restoreHistory(this.historyIndex + 1); };

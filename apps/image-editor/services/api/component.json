@@ -2,7 +2,7 @@
   "name": "api",
   "description": "Validated Image Editor application services",
   "author": "DAVVAG",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
   "dependency": {
     "plugins": [

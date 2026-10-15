@@ -29,6 +29,21 @@
             </label>
             <label class="ytg-field">Privacy policy URL<input type="url" v-model.trim="form.privacyPolicyUrl" placeholder="https://example.com/privacy" required></label>
             <label class="ytg-field">Terms URL<input type="url" v-model.trim="form.termsUrl" placeholder="https://example.com/terms" required></label>
+            <div class="ytg-field-wide"><label class="ytg-consent"><input type="checkbox" v-model="form.derivedMetricsEnabled"> Enable labelled competitor views-per-day and views-to-subscriber product calculations.</label><small class="ytg-muted">Enable only after the administrator has accepted the applicable YouTube derived-metrics policy requirements. Turning this off keeps raw public metrics and removes the calculated ratios.</small></div>
+            <div class="ytg-field-wide ytg-agent-mapping">
+                <div class="ytg-panel-head"><div><h3>AI Agent Creator task mapping</h3><p class="ytg-muted">Choose a saved agent for each job. The growth app sends only authorized, channel-scoped context and validates every JSON response.</p></div><span class="ytg-badge">{{configuration.availableAgents.length}} saved agents</span></div>
+                <div class="ytg-alert warning" v-if="configuration.agentCatalogWarning">{{configuration.agentCatalogWarning}}</div>
+                <div class="ytg-form-grid">
+                    <label v-for="task in agentTasks" class="ytg-col-6">{{agentLabel(task)}}
+                        <select v-model="form.agentMappings[task]" required>
+                            <option value="" disabled>Select a saved agent</option>
+                            <option v-for="agent in configuration.availableAgents" v-bind:value="agent.agentCode">{{agent.name || agent.agentCode}} ({{agent.agentCode}})</option>
+                            <option v-if="agentMappingMissing(form.agentMappings[task])" v-bind:value="form.agentMappings[task]">{{form.agentMappings[task]}} (currently mapped)</option>
+                        </select>
+                    </label>
+                </div>
+                <small class="ytg-muted">Create or edit specialists in AI Agent Creator, then reload this page. A missing or invalid saved agent causes a validated rule-based fallback; it never bypasses the selected channel's permissions.</small>
+            </div>
             <div class="ytg-field-wide ytg-actions"><button type="submit" class="ytg-button" v-bind:disabled="saving">{{saving ? "Saving..." : "Save configuration"}}</button><span class="ytg-muted">Only system administrators can save these values.</span></div>
         </form>
     </div>

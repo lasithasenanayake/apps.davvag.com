@@ -2,7 +2,7 @@
   "name": "editor-runtime",
   "description": "Pinned Fabric.js runtime and DAVVAG document adapter",
   "author": "DAVVAG",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "sequencialResourceDownload": true,
   "resources": {
     "js": [{"type": "script", "tag": "fabric-7.4.0", "version": "7.4.0", "location": "vendor/fabric-7.4.0.min.js"}],

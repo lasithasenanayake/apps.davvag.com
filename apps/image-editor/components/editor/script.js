@@ -1,10 +1,10 @@
 WEBDOCK.component().register(function (exports) {
     var api, runtime, routes, adapter, autosaveTimer, changeVersion = 0, saveQueued = false;
-    var data = { project: {}, revisionId: null, ready: false, dirty: false, saving: false, saveState: 'Loading', error: '', selection: null, fonts: [], assets: [], uploading: false, zoom: 1, background: '#ffffff', exportOpen: false, exporting: false, exportForm: { format: 'png', scale: 1, quality: 0.92 } };
+    var data = { project: {}, revisionId: null, ready: false, dirty: false, saving: false, saveState: 'Loading', error: '', selection: null, fonts: [], assets: [], uploading: false, zoom: 1, background: '#ffffff', pages: [], currentPage: 0, maxPages: 30, revisionOpen: false, revisionLoading: false, revisions: [], revisionLabel: '', restoringRevisionId: null, exportOpen: false, exporting: false, exportForm: { format: 'png', scale: 1, quality: 0.92 } };
 
     exports.vue = {
         data: data,
-        methods: { goBack: goBack, goFonts: goFonts, rename: rename, save: save, addText: addText, addShape: addShape, uploadImage: uploadImage, updateSelection: updateSelection, applyFont: applyFont, deleteSelected: deleteSelected, duplicateSelected: duplicateSelected, toggleLock: toggleLock, toggleHidden: toggleHidden, layer: function (d) { adapter.layer(d); }, align: function (a) { adapter.align(a); }, fitImage: function (mode) { adapter.fitSelectedImage(mode); }, flipImage: flipImage, undo: undo, redo: redo, changeBackground: changeBackground, applyZoom: applyZoom, changeZoom: changeZoom, actualSize: function () { data.zoom = 1; applyZoom(); }, fitZoom: fitZoom, openExport: function () { data.exportOpen = true; }, exportDesign: exportDesign, handleKeydown: handleKeydown },
+        methods: { goBack: goBack, goFonts: goFonts, rename: rename, save: save, addText: addText, addShape: addShape, uploadImage: uploadImage, updateSelection: updateSelection, applyFont: applyFont, deleteSelected: deleteSelected, duplicateSelected: duplicateSelected, toggleLock: toggleLock, toggleHidden: toggleHidden, layer: function (d) { adapter.layer(d); }, align: function (a) { adapter.align(a); }, fitImage: function (mode) { adapter.fitSelectedImage(mode); }, flipImage: flipImage, undo: undo, redo: redo, changeBackground: changeBackground, switchPage: switchPage, addPage: addPage, deletePage: deletePage, movePage: movePage, openRevisionHistory: openRevisionHistory, saveNamedRevision: saveNamedRevision, restoreRevision: restoreRevision, applyZoom: applyZoom, changeZoom: changeZoom, actualSize: function () { data.zoom = 1; applyZoom(); }, fitZoom: fitZoom, openExport: function () { data.exportOpen = true; }, exportDesign: exportDesign, handleKeydown: handleKeydown },
         onReady: init
     };
 
@@ -13,11 +13,12 @@ WEBDOCK.component().register(function (exports) {
         if (!runtime || typeof runtime.create !== 'function') runtime = window.DAVVAGImageEditorRuntime;
         if (!runtime || typeof runtime.create !== 'function') { data.error = 'The canvas runtime could not be initialized.'; data.saveState = 'Load failed'; return; }
         var id = projectId(); if (!id) { data.error = 'A project ID is required.'; return; }
-        Promise.all([request(api.services.GetProject({ projectId: id })), request(api.services.ListFonts({ pageSize: 200 }))]).then(function (responses) {
+        Promise.all([request(api.services.GetProject({ projectId: id })), request(api.services.ListFonts({ pageSize: 200 })), request(api.services.Capabilities())]).then(function (responses) {
             var payload = unwrap(responses[0]); data.project = payload.project; data.revisionId = payload.revisionId || null; data.fonts = unwrap(responses[1]).items || [];
+            var capabilities = unwrap(responses[2]) || {}; data.maxPages = capabilities.limits && capabilities.limits.maxPages || 30;
             data.background = payload.document.pages[0].background.color;
             return waitForCanvas(60).then(function () {
-                adapter = runtime.create('ie-design-canvas', { width: data.project.width_px, height: data.project.height_px, onChange: markDirty, onSelection: function (selection) { data.selection = selection; } });
+                adapter = runtime.create('ie-design-canvas', { width: data.project.width_px, height: data.project.height_px, onChange: markDirty, onSelection: function (selection) { data.selection = selection; }, onPage: syncPageState });
                 return loadDocumentFonts(payload.document).then(function () { return adapter.load(payload.document); });
             });
         }).then(function () {
@@ -47,22 +48,72 @@ WEBDOCK.component().register(function (exports) {
     function fail(error) { data.error = error && error.message ? error.message : 'The request could not be completed.'; data.saveState = data.dirty ? 'Save failed' : data.saveState; }
     function markDirty() { if (!data.ready) return; changeVersion += 1; data.dirty = true; data.saveState = 'Unsaved'; if (data.saving) saveQueued = true; window.clearTimeout(autosaveTimer); autosaveTimer = window.setTimeout(function () { save('autosave'); }, 1800); }
     function rename() { if (!data.project.title || data.saving) return; request(api.services.RenameProject({ projectId: data.project.id, title: data.project.title })).catch(fail); }
-    function save(type) {
-        if (!adapter || !data.dirty) return;
+    function save(type, label, force) {
+        if (!adapter || !data.dirty && !force) return Promise.resolve(null);
         if (data.saving) { saveQueued = true; return; }
         data.saving = true; data.saveState = 'Saving'; data.error = '';
         var savedVersion = changeVersion; saveQueued = false;
         var documentData = adapter.serialize(); documentData.projectId = data.project.id; documentData.baseRevisionId = data.revisionId; documentData.clientSaveKey = uuid();
-        request(api.services.SaveRevision({ projectId: data.project.id, revisionType: type || 'manual', document: documentData })).then(function (response) {
+        return request(api.services.SaveRevision({ projectId: data.project.id, revisionType: type || 'manual', label: label || '', document: documentData })).then(function (response) {
             var saved = unwrap(response); data.revisionId = saved.revisionId;
             data.dirty = changeVersion !== savedVersion; data.saveState = data.dirty ? 'Unsaved' : 'Saved';
+            return saved;
         }).catch(function (error) {
             var message = error && error.message || '';
             data.saveState = message.indexOf('another editor') >= 0 ? 'Conflict' : 'Save failed'; fail(error);
+            return null;
         }).finally(function () {
             data.saving = false;
             if (saveQueued) { window.clearTimeout(autosaveTimer); autosaveTimer = window.setTimeout(function () { save('autosave'); }, 250); }
         });
+    }
+    function syncPageState(state) {
+        data.pages = state.pages || [];
+        data.currentPage = Number(state.index) || 0;
+        data.background = state.background || '#ffffff';
+        data.selection = null;
+    }
+    function switchPage(index) {
+        if (!adapter || !data.ready) return;
+        adapter.switchPage(index).then(function (changed) { if (changed) window.requestAnimationFrame(fitZoom); }).catch(fail);
+    }
+    function addPage(duplicate) {
+        if (!adapter || data.pages.length >= data.maxPages) { data.error = 'A design can contain up to ' + data.maxPages + ' pages.'; return; }
+        adapter.addPage(!!duplicate).then(function () { window.requestAnimationFrame(fitZoom); }).catch(fail);
+    }
+    function deletePage() {
+        if (!adapter || data.pages.length <= 1) return;
+        if (!window.confirm('Delete this page? You can undo this action during the current session.')) return;
+        adapter.deletePage().then(function () { window.requestAnimationFrame(fitZoom); }).catch(fail);
+    }
+    function movePage(direction) { if (adapter) adapter.movePage(direction); }
+    function openRevisionHistory() {
+        data.revisionOpen = true; data.revisionLoading = true; data.error = '';
+        request(api.services.ListProjectRevisions({ projectId: data.project.id, page: 0, pageSize: 100 })).then(function (response) {
+            data.revisions = unwrap(response).items || [];
+        }).catch(fail).finally(function () { data.revisionLoading = false; });
+    }
+    function saveNamedRevision() {
+        var label = String(data.revisionLabel || '').trim();
+        if (!label) { data.error = 'Enter a name for this version.'; return; }
+        save('manual', label, true).then(function (saved) {
+            if (!saved) return; data.revisionLabel = ''; openRevisionHistory();
+        });
+    }
+    function restoreRevision(revision) {
+        if (!revision || data.restoringRevisionId || data.saving) return;
+        if (data.dirty && !window.confirm('Restore this version and replace your unsaved changes?')) return;
+        if (!data.dirty && !window.confirm('Restore “' + (revision.label || 'this version') + '” as the current design?')) return;
+        data.restoringRevisionId = revision.id; data.error = '';
+        request(api.services.RestoreRevision({ projectId: data.project.id, revisionId: revision.id })).then(function (response) {
+            var restored = unwrap(response); data.revisionId = restored.revisionId;
+            return request(api.services.GetProject({ projectId: data.project.id }));
+        }).then(function (response) {
+            var payload = unwrap(response); data.revisionId = payload.revisionId;
+            return loadDocumentFonts(payload.document).then(function () { return adapter.load(payload.document); });
+        }).then(function () {
+            changeVersion += 1; data.dirty = false; data.saveState = 'Saved'; data.revisionOpen = false; window.requestAnimationFrame(fitZoom);
+        }).catch(fail).finally(function () { data.restoringRevisionId = null; });
     }
     function addText() { if (adapter && data.ready) adapter.addText({ x: 100, y: 100 }); }
     function addShape(type) { if (adapter && data.ready) adapter.addShape(type, { x: 120, y: 120 }); }
@@ -104,7 +155,9 @@ WEBDOCK.component().register(function (exports) {
     }
     function loadDocumentFonts(documentData) {
         var ids = {}, jobs = [];
-        (documentData.pages[0].elements || []).forEach(function (element) { var id = element.properties && element.properties.fontId; if (id) ids[id] = true; });
+        (documentData.pages || []).forEach(function (page) {
+            (page.elements || []).forEach(function (element) { var id = element.properties && element.properties.fontId; if (id) ids[id] = true; });
+        });
         Object.keys(ids).forEach(function (id) { var font = data.fonts.find(function (item) { return Number(item.id) === Number(id); }); if (font) jobs.push(runtime.loadFont(font)); });
         return Promise.all(jobs);
     }
@@ -112,7 +165,8 @@ WEBDOCK.component().register(function (exports) {
     function exportDesign() {
         if (data.exporting) return; data.exporting = true; data.error = '';
         loadDocumentFonts(adapter.serialize()).then(function () { return adapter.exportDataUrl(data.exportForm.format, data.exportForm.scale, data.exportForm.quality); }).then(function (url) {
-            var link = document.createElement('a'); link.href = url; link.download = String(data.project.title || 'design').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-|-$/g, '') + '.' + (data.exportForm.format === 'jpeg' ? 'jpg' : data.exportForm.format); document.body.appendChild(link); link.click(); link.remove(); data.exportOpen = false;
+            var suffix = data.pages.length > 1 ? '-page-' + (data.currentPage + 1) : '';
+            var link = document.createElement('a'); link.href = url; link.download = String(data.project.title || 'design').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-|-$/g, '') + suffix + '.' + (data.exportForm.format === 'jpeg' ? 'jpg' : data.exportForm.format); document.body.appendChild(link); link.click(); link.remove(); data.exportOpen = false;
         }).catch(function (error) { data.error = 'Export failed: ' + (error.message || 'required assets or fonts did not load.'); }).finally(function () { data.exporting = false; });
     }
     function handleKeydown(event) {

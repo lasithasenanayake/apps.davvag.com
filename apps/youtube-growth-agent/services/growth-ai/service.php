@@ -50,6 +50,62 @@ class GrowthAiService extends \YtgServiceBase {
         return (object)array("source" => $source, "brief" => $brief, "ideaId" => $row->ideaId, "message" => "Video brief created without external keyword-volume claims.");
     }
 
+    public function postGenerateCompetitorIdeas($req, $res) {
+        $context = $this->videoContext($req, $res, array("Owner", "Manager", "Editor"), false);
+        if ($context === null) { return null; }
+        $competitors = $this->query("ytg_competitors", array(array("column" => "channelId", "operator" => "=", "value" => $context->channel->channelId), array("column" => "active", "operator" => "=", "value" => true)), array(array("column" => "competitorId", "direction" => "DESC")), 25, 0);
+        $videoRows = $this->query("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $context->channel->channelId), array("column" => "shortlisted", "operator" => "=", "value" => true)), array(array("column" => "performanceRank", "direction" => "ASC")), 15, 0);
+        if (!$videoRows->success || !count($videoRows->result)) {
+            $videoRows = $this->query("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $context->channel->channelId)), array(array("column" => "views", "direction" => "DESC")), 15, 0);
+        }
+        if (!$videoRows->success || !count($videoRows->result)) { return $this->fail($res, "Add and refresh at least one competitor channel before generating competitor-led ideas."); }
+        $labels = array(); foreach ($competitors->success ? $competitors->result : array() as $competitor) { $labels[intval($competitor->competitorId)] = $competitor->label; }
+        $publicVideos = array(); $allowedIds = array();
+        foreach (array_slice($videoRows->result, 0, 10) as $video) {
+            $id = (string)$video->youtubeVideoId; $allowedIds[$id] = true;
+            $publicVideos[] = array(
+                "videoId" => $id, "channel" => isset($labels[intval($video->competitorId)]) ? $labels[intval($video->competitorId)] : "Competitor",
+                "title" => $video->title, "description" => substr((string)$video->description, 0, 2500),
+                "tags" => $this->decodeJson(isset($video->tags) ? $video->tags : array()), "hashtags" => $this->decodeJson(isset($video->hashtags) ? $video->hashtags : array()),
+                "publishedAt" => $video->publishedAt, "views" => intval($video->views), "subscriberCountSnapshot" => intval(isset($video->subscriberCountSnapshot) ? $video->subscriberCountSnapshot : 0),
+                "ageDays" => intval(isset($video->ageDays) ? $video->ageDays : 0), "viewsPerDay" => \YtgConfig::derivedMetricsEnabled() ? floatval(isset($video->viewsPerDay) ? $video->viewsPerDay : 0) : null,
+                "viewsToSubscriberRatio" => \YtgConfig::derivedMetricsEnabled() && isset($video->viewsToSubscriberRatio) ? floatval($video->viewsToSubscriberRatio) : null,
+                "performanceRank" => intval(isset($video->performanceRank) ? $video->performanceRank : 0), "source" => "YOUTUBE_DATA"
+            );
+        }
+        $payload = array(
+            "selectedChannelVideo" => $context->safeVideo,
+            "selectedChannelTranscript" => $context->transcript === null ? null : substr((string)$context->transcript->plainText, 0, 30000),
+            "competitorShortlist" => $publicVideos,
+            "language" => $context->language,
+            "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "Derived ratios are enabled and labelled product calculations." : "Use raw public views, subscriber counts, and publish dates only; derived ratios are unavailable.",
+            "competitorTranscriptPolicy" => "Competitor transcripts are not available through the documented API and were not downloaded. Do not claim to have analyzed them."
+        );
+        $specs = array(
+            "COMPETITOR" => "Return strict JSON with observations. Each observations item must contain text and evidenceVideoIds. Identify repeatable patterns without copying a competitor and do not claim access to competitor transcripts.",
+            "KEYWORD" => "Return strict JSON with suggestions. Each suggestions item must contain text and evidenceVideoIds. Suggest keyword and search-intent themes from supplied titles, descriptions, tags, hashtags, and the selected owned-video transcript. Exact search volume is unknown.",
+            "TITLE" => "Return strict JSON with suggestions. Each suggestions item must contain text and evidenceVideoIds. Provide accurate title angles for the selected channel, not copied competitor titles, and keep each proposed title under 100 characters.",
+            "DESCRIPTION" => "Return strict JSON with suggestions. Each suggestions item must contain text and evidenceVideoIds. Suggest a description structure, opening lines, and natural keyword placement grounded in supplied evidence.",
+            "HASHTAG" => "Return strict JSON with suggestions. Each suggestions item must contain text and evidenceVideoIds. Suggest a small relevant hashtag set; do not present hashtags as a primary ranking mechanism.",
+            "VIDEO_IDEA" => "Return strict JSON with suggestions. Each suggestions item must contain text and evidenceVideoIds, plus optional promise, format, and outline. Propose distinct videos for this channel based on validated competitor patterns and the selected channel context."
+        );
+        $results = array(); $sources = array(); $agents = array();
+        foreach ($specs as $task => $message) {
+            $agentCode = $this->agentCode($task, $task === "VIDEO_IDEA" || $task === "COMPETITOR" ? \YtgConfig::agentCode() : "seo-suggestion-agent");
+            $run = $this->agentJson($context, $task, $agentCode, $message . " Use " . $context->language . ". Never promise growth or invent metrics.", $payload, "competitor-" . strtolower(str_replace("_", "-", $task)) . "-v1");
+            $validated = $run->valid ? $this->validateCompetitorTask($task, $run->data, $allowedIds) : null;
+            if ($validated === null) { $validated = $this->fallbackCompetitorTask($task, $publicVideos, $context); $sources[$task] = "RULE_BASED"; }
+            else { $sources[$task] = "SAVED_AGENT"; }
+            $agents[$task] = $agentCode;
+            $results[$task] = $validated;
+        }
+        foreach (isset($results["VIDEO_IDEA"]->suggestions) ? array_slice($results["VIDEO_IDEA"]->suggestions, 0, 10) : array() as $idea) {
+            \SOSSData::Insert("ytg_content_ideas", (object)array("channelId" => $context->channel->channelId, "videoId" => $context->video->youtubeVideoId, "pillar" => "Competitor opportunity", "idea" => substr((string)$idea->text, 0, 1000), "intent" => "Evidence-led competitor response", "evidence" => array((object)array("source" => "YOUTUBE_DATA", "metric" => "video metadata", "value" => implode(",", $idea->evidenceVideoIds), "dateRange" => date("Y-m-d") . "/" . date("Y-m-d"))), "brief" => $idea, "language" => $context->language, "status" => "Idea", "createdAt" => $this->now(), "updatedAt" => $this->now()));
+        }
+        $this->audit("COMPETITOR_IDEAS_GENERATED", $context->channel->channelId, "video:" . $context->video->youtubeVideoId, null, array("tasks" => array_keys($results), "competitorVideos" => array_keys($allowedIds)));
+        return (object)array("analysis" => (object)$results, "sources" => (object)$sources, "agentMappings" => (object)$agents, "competitorVideos" => $publicVideos, "message" => "Competitor patterns were converted into channel-specific keyword, title, description, hashtag, and video suggestions. Competitor transcripts were not accessed.");
+    }
+
     public function postGeneratePackagingVariants($req, $res) {
         $context = $this->videoContext($req, $res, array("Owner", "Manager", "Editor"), false);
         if ($context === null) { return null; }
@@ -160,6 +216,46 @@ class GrowthAiService extends \YtgServiceBase {
         return (object)array("audiencePromise" => "Deliver the promise stated by the current video topic with clearer structure and evidence.", "primaryTopic" => substr($topic, 0, 160), "searchIntent" => "Use the channel's actual search and traffic evidence when available; keyword volume is unknown.", "titleAngles" => array(substr($topic, 0, 100), substr("What viewers should know about " . $topic, 0, 100)), "outline" => array("Open with the audience problem", "Deliver the core explanation", "Show a concrete example", "Close with the next useful step"), "evidence" => $evidence, "language" => $context->language);
     }
 
+    private function validateCompetitorTask($task, $data, $allowedIds) {
+        $field = $task === "COMPETITOR" ? "observations" : "suggestions";
+        if (!isset($data->{$field}) || !is_array($data->{$field})) { return null; }
+        $items = array();
+        foreach (array_slice($data->{$field}, 0, 12) as $value) {
+            $item = is_object($value) ? $value : (object)$value;
+            $text = substr(trim(isset($item->text) ? (string)$item->text : ""), 0, 3000);
+            $ids = isset($item->evidenceVideoIds) && is_array($item->evidenceVideoIds) ? $item->evidenceVideoIds : array();
+            $validIds = array(); foreach ($ids as $id) { $id = (string)$id; if (isset($allowedIds[$id])) { $validIds[] = $id; } }
+            if ($text === "" || !count($validIds)) { continue; }
+            if ($task === "TITLE" && strlen($text) > 100) { continue; }
+            $out = (object)array("text" => $text, "evidenceVideoIds" => array_values(array_unique($validIds)));
+            if (isset($item->promise)) { $out->promise = substr(trim((string)$item->promise), 0, 1000); }
+            if (isset($item->format)) { $out->format = substr(trim((string)$item->format), 0, 40); }
+            if (isset($item->outline) && is_array($item->outline)) { $out->outline = $this->strings($item->outline, 12, 1000); }
+            $items[] = $out;
+        }
+        if (!count($items)) { return null; }
+        return (object)array($field => $items, "task" => $task, "dataSource" => "PUBLIC_YOUTUBE_METADATA_AND_AUTHORIZED_CHANNEL_CONTEXT");
+    }
+
+    private function fallbackCompetitorTask($task, $videos, $context) {
+        $top = count($videos) ? $videos[0] : array("videoId" => "", "title" => "the leading competitor topic", "tags" => array(), "hashtags" => array());
+        $id = isset($top["videoId"]) ? $top["videoId"] : "";
+        $title = trim(isset($top["title"]) ? (string)$top["title"] : "");
+        $items = array();
+        if ($task === "COMPETITOR") { $items[] = (object)array("text" => "Review the topic and packaging pattern behind '" . substr($title, 0, 180) . "' while creating a distinct promise for this channel.", "evidenceVideoIds" => array($id)); }
+        elseif ($task === "KEYWORD") {
+            $terms = array_merge(isset($top["tags"]) && is_array($top["tags"]) ? $top["tags"] : array(), isset($top["hashtags"]) && is_array($top["hashtags"]) ? $top["hashtags"] : array());
+            $items[] = (object)array("text" => count($terms) ? "Validate these public metadata themes against channel search terms: " . implode(", ", array_slice($terms, 0, 8)) : "Use the leading video's topic words as seeds and validate them against this channel's actual search terms; exact search volume is unknown.", "evidenceVideoIds" => array($id));
+        } elseif ($task === "TITLE") { $items[] = (object)array("text" => substr("A distinct channel-specific guide to " . $title, 0, 100), "evidenceVideoIds" => array($id)); }
+        elseif ($task === "DESCRIPTION") { $items[] = (object)array("text" => "Open with the viewer problem, explain this channel's distinct promise, summarize the practical steps, and link to a relevant owned playlist.", "evidenceVideoIds" => array($id)); }
+        elseif ($task === "HASHTAG") {
+            $hashtags = isset($top["hashtags"]) && is_array($top["hashtags"]) ? array_slice($top["hashtags"], 0, 3) : array();
+            $items[] = (object)array("text" => count($hashtags) ? "Consider only directly relevant public hashtags: " . implode(" ", $hashtags) : "Use one to three specific, accurate topic hashtags; hashtags are not treated as the primary discovery lever.", "evidenceVideoIds" => array($id));
+        } else { $items[] = (object)array("text" => "Create an original follow-up that addresses the same audience need as '" . substr($title, 0, 180) . "' with this channel's own evidence and perspective.", "evidenceVideoIds" => array($id), "promise" => "Give the audience a clearly differentiated and useful answer.", "format" => isset($context->video->contentType) ? $context->video->contentType : "Long-form", "outline" => array("State the audience problem", "Explain the channel's distinct answer", "Show a concrete example", "Offer the next useful step")); }
+        $field = $task === "COMPETITOR" ? "observations" : "suggestions";
+        return (object)array($field => $items, "task" => $task, "dataSource" => "RULE_BASED_PUBLIC_METADATA");
+    }
+
     private function validatePackaging($data) {
         $titles = $this->strings(isset($data->titles) ? $data->titles : array(), 5, 100); if (count($titles) < 2 || !isset($data->thumbnails) || !is_array($data->thumbnails) || !isset($data->testPlan)) { return null; }
         $thumbnails = array(); foreach (array_slice($data->thumbnails, 0, 4) as $value) { $item = is_object($value) ? $value : (object)$value; if (!isset($item->concept) || trim((string)$item->concept) === "") { continue; } $thumbnails[] = (object)array("concept" => substr((string)$item->concept, 0, 1000), "onImageText" => substr(isset($item->onImageText) ? (string)$item->onImageText : "", 0, 80), "visualDirection" => substr(isset($item->visualDirection) ? (string)$item->visualDirection : "", 0, 1500)); }
@@ -204,7 +300,7 @@ class GrowthAiService extends \YtgServiceBase {
     private function strings($value, $maxItems, $maxLength) { if (!is_array($value)) { return array(); } $out = array(); foreach ($value as $item) { if (!is_scalar($item)) { continue; } $item = substr(trim((string)$item), 0, $maxLength); if ($item !== "") { $out[] = $item; } if (count($out) >= $maxItems) { break; } } return array_values(array_unique($out)); }
     private function forbidden($value) { return preg_match('/\b(guarantee(?:d)?|will go viral|viral score|certain to grow)\b/i', json_encode($value)) === 1; }
     private function decodeAgentJson($text) { $text = trim((string)$text); $text = preg_replace('/^```(?:json)?\s*/i', '', $text); $text = preg_replace('/\s*```$/', '', $text); return json_decode($text); }
-    private function agentCode($type, $default) { $name = "YTG_" . strtoupper($type) . "_AGENT_CODE"; $value = getenv($name); if (($value === false || trim($value) === "") && defined($name)) { $value = constant($name); } $value = trim((string)$value); return preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $value) ? $value : (preg_match('/^[a-z][a-z0-9_-]{1,63}$/', (string)$default) ? (string)$default : ""); }
+    private function agentCode($type, $default) { return \YtgConfig::agentCodeForTask($type, $default); }
     private function recordRun($context, $agentType, $model, $promptVersion, $input, $output, $status, $tokens) { \SOSSData::Insert("ytg_agent_runs", (object)array("channelId" => $context->channel->channelId, "videoId" => $context->video->youtubeVideoId, "agentType" => $agentType, "model" => $model, "promptVersion" => $promptVersion, "inputRefs" => array("payloadHash" => hash("sha256", json_encode($input)), "videoId" => $context->video->youtubeVideoId), "output" => $output, "validationStatus" => $status, "tokenUsage" => max(0, intval($tokens)), "createdAt" => $this->now())); }
 }
 ?>
