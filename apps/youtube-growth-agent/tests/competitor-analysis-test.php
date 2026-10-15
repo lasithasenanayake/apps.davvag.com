@@ -54,6 +54,14 @@ foreach (array("COMPETITOR", "KEYWORD", "TITLE", "DESCRIPTION", "HASHTAG", "VIDE
     expectCompetitor(strpos($growthAiSource, '"' . $task . '"') !== false, "the " . $task . " specialist task should be mapped");
 }
 
+$studioPartial = file_get_contents(dirname(__DIR__) . "/components/growth-studio/partial.html");
+$studioScript = file_get_contents(dirname(__DIR__) . "/components/growth-studio/script.js");
+expectCompetitor(strpos($studioPartial, "JSON.stringify") === false, "AI suggestions should not be printed as raw JSON");
+expectCompetitor(strpos($studioPartial, "resultBlocks(") !== false, "AI suggestions should render as organized result blocks");
+expectCompetitor(strpos($studioPartial, 'v-html="markdownHtml(') !== false, "plain-text agent output should use the Markdown renderer");
+expectCompetitor(strpos($studioScript, "function parseJsonValue") !== false, "string responses should be checked for JSON before rendering");
+expectCompetitor(strpos($studioScript, "function escapeHtml") !== false, "Markdown rendering should escape raw HTML before formatting");
+
 $videoSchema = json_decode(file_get_contents($tenantRoot . "/schemas/ytg_competitor_videos.json"), true);
 $fields = array_map(function($field) { return $field["fieldName"]; }, $videoSchema["fields"]);
 foreach (array("tags", "hashtags", "viewsPerDay", "viewsToSubscriberRatio", "performanceRank", "shortlisted") as $field) {

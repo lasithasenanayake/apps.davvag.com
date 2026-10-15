@@ -17,6 +17,7 @@ WEBDOCK.component().register(function (exports) {
         saveCalendar: saveCalendar, generatePackaging: function () { generate("GeneratePackagingVariants"); }, syncComments: syncComments,
         analyzeCommunity: function () { generate("AnalyzeCommunity"); }, generateSession: function () { generate("GenerateSessionRecommendations"); },
         createExperiment: createExperiment, updateExperiment: updateExperiment, formatDate: formatDate, formatTime: formatTime, formatNumber: formatNumber, formatRatio: formatRatio,
+        resultBlocks: resultBlocks, markdownHtml: markdownHtml, fieldLabel: fieldLabel, youtubeVideoUrl: youtubeVideoUrl,
         retentionHeight: function (point) { return Math.max(3, Math.min(100, Number(point.audienceWatchRatio || 0) * 100)) + "%"; },
         back: function () { navigate("dashboard"); }
     }, onReady: initialize};
@@ -152,4 +153,130 @@ WEBDOCK.component().register(function (exports) {
     function formatTime(value) { var seconds = Math.max(0, Math.floor(Number(value || 0) / 1000)); var minutes = Math.floor(seconds / 60); var rest = seconds % 60; return minutes + ":" + (rest < 10 ? "0" : "") + rest; }
     function formatNumber(value) { return Number(value || 0).toLocaleString(); }
     function formatRatio(value) { return value === null || typeof value === "undefined" ? "Unavailable" : (Number(value) * 100).toFixed(2) + "%"; }
+
+    function resultBlocks(value) {
+        value = parseJsonValue(value);
+        if (value === null || typeof value === "undefined" || value === "") { return []; }
+        if (typeof value !== "object") { return [{title: "Suggestion", subtitle: "", items: [resultItem(value)]}]; }
+        if (Array.isArray(value)) { return [{title: "Suggestions", subtitle: "", items: resultItems(value)}]; }
+        var blocks = [];
+        Object.keys(value).forEach(function (key) {
+            if (key === "task" || key === "dataSource" || key === "source") { return; }
+            var sectionValue = parseJsonValue(value[key]);
+            var subtitle = value.dataSource ? fieldLabel(value.dataSource) : "";
+            if (sectionValue && typeof sectionValue === "object" && !Array.isArray(sectionValue)) {
+                var collection = sectionValue.observations || sectionValue.suggestions || sectionValue.items;
+                if (Array.isArray(collection)) {
+                    blocks.push({title: fieldLabel(key), subtitle: sectionValue.dataSource ? fieldLabel(sectionValue.dataSource) : subtitle, items: resultItems(collection)});
+                    return;
+                }
+            }
+            blocks.push({title: fieldLabel(key), subtitle: subtitle, items: Array.isArray(sectionValue) ? resultItems(sectionValue) : [resultItem(sectionValue)]});
+        });
+        return blocks.length ? blocks : [{title: "Suggestion", subtitle: "", items: [resultItem(value)]}];
+    }
+
+    function resultItems(values) {
+        var items = [];
+        for (var index = 0; index < values.length; index++) { items.push(resultItem(parseJsonValue(values[index]))); }
+        return items;
+    }
+
+    function resultItem(value) {
+        if (value === null || typeof value === "undefined") { return {heading: "", text: "Not available", details: [], videoIds: []}; }
+        if (typeof value !== "object") { return {heading: "", text: String(value), details: [], videoIds: []}; }
+        if (Array.isArray(value)) { return {heading: "", text: value.map(displayValue).join("\n"), details: [], videoIds: []}; }
+        var headingKeys = ["title", "name", "primaryTopic", "theme"];
+        var textKeys = ["text", "reasoning", "hook", "concept", "draft", "audiencePromise", "hypothesis", "promise", "description"];
+        var heading = firstValue(value, headingKeys);
+        var text = firstValue(value, textKeys);
+        if (!text && heading) { text = heading; heading = ""; }
+        var used = {};
+        headingKeys.concat(textKeys).forEach(function (key) { if (value[key] !== null && typeof value[key] !== "undefined" && value[key] !== "") { used[key] = true; } });
+        var videoIds = [];
+        ["evidenceVideoIds", "videoIds"].forEach(function (key) {
+            if (Array.isArray(value[key])) { value[key].forEach(function (id) { addVideoId(videoIds, id); }); used[key] = true; }
+        });
+        if (value.targetVideoId) { addVideoId(videoIds, value.targetVideoId); used.targetVideoId = true; }
+        var details = [];
+        Object.keys(value).forEach(function (key) {
+            if (used[key] || key === "task" || key === "dataSource" || key === "source") { return; }
+            var detailValue = displayValue(value[key]);
+            if (detailValue !== "") { details.push({label: fieldLabel(key), value: detailValue}); }
+        });
+        if (!text && !heading && details.length) { text = details.shift().value; }
+        return {heading: heading, text: text || "Suggestion", details: details, videoIds: videoIds};
+    }
+
+    function firstValue(value, keys) {
+        for (var index = 0; index < keys.length; index++) {
+            var item = value[keys[index]];
+            if (item !== null && typeof item !== "undefined" && item !== "") { return displayValue(item); }
+        }
+        return "";
+    }
+
+    function addVideoId(items, value) {
+        var id = String(value || "").trim();
+        if (/^[A-Za-z0-9_-]{6,80}$/.test(id) && items.indexOf(id) < 0) { items.push(id); }
+    }
+
+    function displayValue(value) {
+        value = parseJsonValue(value);
+        if (value === null || typeof value === "undefined") { return ""; }
+        if (value === true) { return "Yes"; }
+        if (value === false) { return "No"; }
+        if (Array.isArray(value)) {
+            return value.map(function (item) { return displayValue(item); }).filter(function (item) { return item !== ""; }).join("\n");
+        }
+        if (typeof value === "object") {
+            return Object.keys(value).map(function (key) { var item = displayValue(value[key]); return item === "" ? "" : "**" + fieldLabel(key) + ":** " + item; }).filter(function (item) { return item !== ""; }).join("\n");
+        }
+        return String(value);
+    }
+
+    function parseJsonValue(value) {
+        if (typeof value !== "string") { return value; }
+        var trimmed = value.trim();
+        if (!trimmed || ((trimmed.charAt(0) !== "{" || trimmed.charAt(trimmed.length - 1) !== "}") && (trimmed.charAt(0) !== "[" || trimmed.charAt(trimmed.length - 1) !== "]"))) { return value; }
+        try { return JSON.parse(trimmed); } catch (error) { return value; }
+    }
+
+    function fieldLabel(value) {
+        var text = String(value || "").replace(/_/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
+        if (!text) { return "Details"; }
+        return text.toLowerCase().replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+    }
+
+    function markdownHtml(value) {
+        var lines = String(value === null || typeof value === "undefined" ? "" : value).replace(/\r\n?/g, "\n").split("\n");
+        var html = []; var listType = "";
+        function closeList() { if (listType) { html.push("</" + listType + ">"); listType = ""; } }
+        lines.forEach(function (line) {
+            var trimmed = line.trim(); var match;
+            if ((match = /^[-*]\s+(.+)$/.exec(trimmed))) { if (listType !== "ul") { closeList(); listType = "ul"; html.push("<ul>"); } html.push("<li>" + inlineMarkdown(match[1]) + "</li>"); return; }
+            if ((match = /^\d+[.)]\s+(.+)$/.exec(trimmed))) { if (listType !== "ol") { closeList(); listType = "ol"; html.push("<ol>"); } html.push("<li>" + inlineMarkdown(match[1]) + "</li>"); return; }
+            closeList();
+            if (!trimmed) { return; }
+            if ((match = /^(#{1,4})\s+(.+)$/.exec(trimmed))) { var level = Math.min(6, match[1].length + 3); html.push("<h" + level + ">" + inlineMarkdown(match[2]) + "</h" + level + ">"); return; }
+            if ((match = /^>\s?(.+)$/.exec(trimmed))) { html.push("<blockquote>" + inlineMarkdown(match[1]) + "</blockquote>"); return; }
+            html.push("<p>" + inlineMarkdown(trimmed) + "</p>");
+        });
+        closeList();
+        return html.join("");
+    }
+
+    function inlineMarkdown(value) {
+        var escaped = escapeHtml(value);
+        escaped = escaped.replace(/`([^`]+)`/g, "<code>$1</code>");
+        escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        escaped = escaped.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+        escaped = escaped.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (match, label, url) { return '<a href="' + escapeAttribute(url) + '" target="_blank" rel="noopener noreferrer">' + label + '</a>'; });
+        return escaped;
+    }
+
+    function escapeHtml(value) { return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+    function escapeAttribute(value) { return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function youtubeVideoUrl(videoId) { return "https://www.youtube.com/watch?v=" + encodeURIComponent(String(videoId || "")); }
 });

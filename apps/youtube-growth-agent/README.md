@@ -35,6 +35,8 @@ Select a video before importing a transcript, refreshing retention/comments, or 
 
 The app calls `CreatorService::interactWithAgent()` and does not duplicate provider, model, key, session, or skill logic.
 
+AI results are presented as readable sections and suggestion cards rather than raw JSON. Object/JSON responses are organized by task and field, while non-JSON text is shown in one sanitized Markdown block. Markdown HTML is escaped before the supported headings, lists, emphasis, code, quotes, and HTTP(S) links are rendered.
+
 Defaults:
 
 ```text
