@@ -190,7 +190,29 @@ final class ImageEditorDocument
     private static function boolean($object, $key) { $value = isset($object->{$key}) ? $object->{$key} : false; return $value === true || $value === 1 || $value === "1" || $value === "true"; }
     private static function enum($value, $allowed, $label) { if (!in_array($value, $allowed, true)) throw new \InvalidArgumentException("Invalid " . $label . "."); return $value; }
     private static function uuid($value) { if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$/D', $value)) throw new \InvalidArgumentException("Invalid identifier."); return $value; }
-    private static function color($value, $emptyAllowed = false) { if ($emptyAllowed && $value === "") return ""; if (!preg_match('/^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/D', $value)) throw new \InvalidArgumentException("Invalid color."); return strtolower($value); }
+    private static function color($value, $emptyAllowed = false)
+    {
+        $value = strtolower(trim(strval($value)));
+        if ($emptyAllowed && $value === "") return "";
+        if ($value === "transparent") return "#00000000";
+        if (preg_match('/^#([0-9a-f]{3}|[0-9a-f]{4})$/D', $value, $short)) {
+            return "#" . implode("", array_map(function ($part) { return $part . $part; }, str_split($short[1])));
+        }
+        if (preg_match('/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/D', $value)) return $value;
+        if (preg_match('/^rgba?\(\s*([0-9]+(?:\.[0-9]+)?)\s*,\s*([0-9]+(?:\.[0-9]+)?)\s*,\s*([0-9]+(?:\.[0-9]+)?)\s*(?:,\s*([0-9]+(?:\.[0-9]+)?)\s*)?\)$/D', $value, $rgb)) {
+            $red = floatval($rgb[1]); $green = floatval($rgb[2]); $blue = floatval($rgb[3]);
+            if ($red <= 255 && $green <= 255 && $blue <= 255) {
+                $color = sprintf("#%02x%02x%02x", round($red), round($green), round($blue));
+                if (isset($rgb[4]) && $rgb[4] !== "") {
+                    $alpha = floatval($rgb[4]);
+                    if ($alpha < 0 || $alpha > 1) throw new \InvalidArgumentException("Invalid color.");
+                    $color .= sprintf("%02x", round($alpha * 255));
+                }
+                return $color;
+            }
+        }
+        throw new \InvalidArgumentException("Invalid color.");
+    }
     private static function mediaReference($value) { if (!preg_match('#^components/(?:dock|davvag-cms-v7)/soss-uploader/service/get/image_editor_asset/[A-Za-z0-9][A-Za-z0-9._-]*$#D', $value)) throw new \InvalidArgumentException("Invalid image media reference."); return $value; }
     private static function plain($value, $max, $keepLines = false) { $value = str_replace("\0", "", strip_tags($value)); if (!$keepLines) $value = preg_replace('/\s+/u', ' ', $value); return trim(self::slice($value, $max)); }
     private static function slice($value, $max) { return function_exists("mb_substr") ? mb_substr($value, 0, $max, "UTF-8") : substr($value, 0, $max); }
