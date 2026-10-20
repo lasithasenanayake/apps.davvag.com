@@ -37,6 +37,43 @@ function initializeImageEditorRuntime(exports) {
         return Number.isFinite(value) ? value : fallback;
     }
 
+    function colorByte(value) {
+        return Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0');
+    }
+
+    function normalizeColor(value, fallback, emptyAllowed) {
+        if (value === '' && emptyAllowed) return '';
+        if (typeof value !== 'string') return fallback;
+        var color = value.trim().toLowerCase();
+        if (color === '' && emptyAllowed) return '';
+        if (color === 'transparent') return '#00000000';
+        var hex = color.match(/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/);
+        if (hex) {
+            if (hex[1].length === 3 || hex[1].length === 4) {
+                return '#' + hex[1].split('').map(function (part) { return part + part; }).join('');
+            }
+            return '#' + hex[1];
+        }
+        var rgb = color.match(/^rgba?\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,\)]+)\s*(?:,\s*([^\)]+)\s*)?\)$/);
+        if (rgb) {
+            var components = rgb.slice(1, 4).map(function (part) {
+                part = part.trim();
+                return part.endsWith('%') ? Number(part.slice(0, -1)) * 2.55 : Number(part);
+            });
+            if (components.every(Number.isFinite)) {
+                var result = '#' + components.map(colorByte).join('');
+                if (rgb[4] !== undefined) {
+                    var alphaText = rgb[4].trim();
+                    var alpha = alphaText.endsWith('%') ? Number(alphaText.slice(0, -1)) / 100 : Number(alphaText);
+                    if (Number.isFinite(alpha)) return result + colorByte(alpha * 255);
+                } else {
+                    return result;
+                }
+            }
+        }
+        return fallback;
+    }
+
     function EditorAdapter(canvasId, options) {
         this.options = options;
         this.canvas = new fabric.Canvas(canvasId, {
@@ -139,7 +176,7 @@ function initializeImageEditorRuntime(exports) {
             pageUuid: this.pageUuid || uuid(),
             width: this.width,
             height: this.height,
-            background: { type: 'solid', color: this.background },
+            background: { type: 'solid', color: normalizeColor(this.background, '#ffffff', false) },
             elements: this.canvas.getObjects().map(function (object, index) {
                 return self.serializeElement(object, index);
             })
@@ -255,7 +292,7 @@ function initializeImageEditorRuntime(exports) {
         };
         return Object.assign(description, {
             uuid: object.elementUuid, type: object.elementType, name: object.elementName,
-            fill: typeof object.fill === 'string' ? object.fill : '#000000', stroke: typeof object.stroke === 'string' && object.stroke ? object.stroke : '#000000',
+            fill: normalizeColor(object.fill, '#000000', false), stroke: normalizeColor(object.stroke, '#000000', false),
             strokeWidth: finite(object.strokeWidth, 0), opacity: finite(object.opacity, 1), rotation: finite(object.angle, 0),
             locked: !!object.lockMovementX, hidden: object.visible === false, text: object.text || '', fontFamily: object.fontFamily || 'Arial',
             fontId: object.fontId || null, fontSize: finite(object.fontSize, 48), fontWeight: object.fontWeight || 400, fontStyle: object.fontStyle || 'normal',
@@ -359,7 +396,7 @@ function initializeImageEditorRuntime(exports) {
     };
 
     EditorAdapter.prototype.setBackground = function (color) {
-        this.background = color || '#ffffff'; this.canvas.backgroundColor = this.background;
+        this.background = normalizeColor(color, '#ffffff', false); this.canvas.backgroundColor = this.background;
         this.canvas.requestRenderAll(); this.captureHistory(); this.onChange();
     };
 
@@ -367,8 +404,8 @@ function initializeImageEditorRuntime(exports) {
         var values = {
             x: finite(object.left, 0), y: finite(object.top, 0), width: finite(object.width, 1), height: finite(object.height, 1),
             scaleX: finite(object.scaleX, 1), scaleY: finite(object.scaleY, 1), rotation: finite(object.angle, 0), opacity: finite(object.opacity, 1),
-            flipX: !!object.flipX, flipY: !!object.flipY, fill: typeof object.fill === 'string' ? object.fill : '#000000',
-            stroke: typeof object.stroke === 'string' ? object.stroke : '', strokeWidth: finite(object.strokeWidth, 0), cornerRadius: finite(object.rx, 0)
+            flipX: !!object.flipX, flipY: !!object.flipY, fill: normalizeColor(object.fill, '#000000', false),
+            stroke: normalizeColor(object.stroke, '', true), strokeWidth: finite(object.strokeWidth, 0), cornerRadius: finite(object.rx, 0)
         };
         if (object.elementType === 'text') Object.assign(values, { text: String(object.text || ''), fontId: object.fontId || null, fontFamily: object.fontFamily || 'Arial', fontSize: finite(object.fontSize, 48), fontWeight: String(object.fontWeight || 400), fontStyle: object.fontStyle || 'normal', textAlign: object.textAlign || 'left', lineHeight: finite(object.lineHeight, 1.16), charSpacing: finite(object.charSpacing, 0) });
         if (object.elementType === 'image') Object.assign(values, { assetId: Number(object.assetId), mediaReference: object.mediaReference || '', cropX: finite(object.cropX, 0), cropY: finite(object.cropY, 0), brightness: finite(object.imageBrightness, 0), grayscale: !!object.imageGrayscale });
