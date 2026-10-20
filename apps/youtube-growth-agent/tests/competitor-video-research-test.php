@@ -38,17 +38,31 @@ $validate = $aiReflection->getMethod("validateCompetitorVideoResearch"); $valida
 $language = (object)array("name" => "English", "code" => "en", "confidence" => "high", "source" => "owned_video_transcript");
 $allowed = array("19qCPrr5Xhg" => true);
 $sources = array((object)array("videoId" => "19qCPrr5Xhg", "transcriptStatus" => "unavailable"));
-$pair = function($suffix) { return (object)array("title" => "Accurate title " . $suffix, "angle" => "Distinct angle " . $suffix, "imagePrompt" => "One clear subject, authentic emotion, cinematic lighting, high contrast, safe negative space, 16:9, no logos, no watermark, no misleading imagery, no unreadable text.", "onImageText" => "Clear idea", "rationale" => "Supported by the public metadata pattern.", "evidenceVideoIds" => array("19qCPrr5Xhg")); };
+$currentTitle = "Existing uploaded video title";
+$ownedTranscript = "The transcript explains topic keyword through a verified public event and describes why the decision matters to viewers. It includes enough original context for evidence-grounded title generation.";
+$pair = function($suffix) { return (object)array("title" => "Topic keyword explained for viewers " . $suffix, "angle" => "Distinct angle " . $suffix, "transcriptEvidenceExcerpt" => "The transcript explains topic keyword through a verified public event", "usedKeywords" => array("topic keyword"), "usedHashtags" => array("#topic"), "imagePrompt" => "One clear subject, authentic emotion, cinematic lighting, high contrast, safe negative space, 16:9, no logos, no watermark, no misleading imagery, no unreadable text.", "onImageText" => "Clear idea", "rationale" => "Supported by the transcript and public metadata pattern.", "evidenceVideoIds" => array("19qCPrr5Xhg")); };
 $payload = (object)array(
     "keywords" => array((object)array("text" => "topic keyword", "rationale" => "Present in public metadata.", "evidenceVideoIds" => array("19qCPrr5Xhg"), "evidenceType" => "metadata")),
     "hashtags" => array((object)array("text" => "#topic", "rationale" => "Present in public metadata.", "evidenceVideoIds" => array("19qCPrr5Xhg"), "evidenceType" => "metadata")),
     "description" => "Accurate recommended description.", "tags" => array("topic keyword"),
     "titlePromptPairs" => array($pair("A"), $pair("B"), $pair("C")), "limitations" => array("No guaranteed outcome.")
 );
-$validated = $validate->invoke($ai, $payload, $allowed, $language, $sources);
+$validated = $validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript);
 expectResearch($validated !== null && count($validated->titlePromptPairs) === 3, "exactly three valid title/prompt pairs should be accepted");
 $payload->titlePromptPairs = array($pair("A"), $pair("B"));
-expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources) === null, "a response with fewer than three title/prompt pairs must be rejected");
+expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "a response with fewer than three title/prompt pairs must be rejected");
+$payload->titlePromptPairs = array($pair("A"), $pair("B"), $pair("C"));
+$payload->titlePromptPairs[0]->title = $currentTitle;
+expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "the current uploaded title must be rejected");
+$payload->titlePromptPairs = array($pair("A"), $pair("B"), $pair("C"));
+$payload->titlePromptPairs[0]->title = $currentTitle . " - Complete guide";
+expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "a trivial suffix added to the current title must be rejected");
+$payload->titlePromptPairs = array($pair("A"), $pair("B"), $pair("C"));
+$payload->titlePromptPairs[0]->transcriptEvidenceExcerpt = "This sentence does not exist in the owned transcript";
+expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "uncited transcript grounding must be rejected");
+$payload->titlePromptPairs = array($pair("A"), $pair("B"), $pair("C"));
+$payload->titlePromptPairs[0]->title = "A compelling title with no ranked term";
+expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "every title must use a ranked keyword naturally");
 
 $appRoot = dirname(__DIR__);
 $workbenchDescriptor = json_decode(file_get_contents($appRoot . "/services/growth-workbench/component.json"), true);
@@ -59,6 +73,9 @@ $app = json_decode(file_get_contents($appRoot . "/app.json"), true);
 foreach (array("ytg_competitor_transcripts", "ytg_competitor_research") as $schema) { expectResearch(in_array($schema, $app["dependencies"]["schemas"], true), "app should depend on " . $schema); }
 $partial = file_get_contents($appRoot . "/components/video-inspector/partial.html");
 expectResearch(strpos($partial, "Competitor video research") !== false && strpos($partial, "Research and generate") !== false, "video inspector should expose the competitor research workflow");
+$aiSource = file_get_contents($appRoot . "/services/growth-ai/service.php");
+expectResearch(strpos($aiSource, "competitor-video-research-v2") !== false, "the transcript-grounded prompt contract should use version 2");
+expectResearch(strpos($aiSource, "No low-quality fallback titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;
 ?>

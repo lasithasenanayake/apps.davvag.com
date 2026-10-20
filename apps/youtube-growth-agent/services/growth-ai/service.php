@@ -107,8 +107,10 @@ class GrowthAiService extends \YtgServiceBase {
     }
 
     public function postGenerateCompetitorVideoResearch($req, $res) {
-        $context = $this->videoContext($req, $res, array("Owner", "Manager", "Editor"), false);
+        $context = $this->videoContext($req, $res, array("Owner", "Manager", "Editor"), true);
         if ($context === null) { return null; }
+        $ownedTranscript = trim(isset($context->transcript->plainText) ? (string)$context->transcript->plainText : "");
+        if ($this->textLength($ownedTranscript) < 100) { return $this->fail($res, "The selected video's transcript must contain at least 100 characters before title research can run."); }
         $body = $this->body($req);
         $query = $this->query("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $context->channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $context->video->youtubeVideoId)), array(array("column" => "performanceRank", "direction" => "ASC")), 20, 0);
         if (!$query->success || !count($query->result)) { return $this->fail($res, "Add at least one competitor video URL before researching it."); }
@@ -125,12 +127,13 @@ class GrowthAiService extends \YtgServiceBase {
         }
         if (!count($videos)) { return $this->fail($res, "None of the selected competitor video IDs belong to this video workspace."); }
         $language = $this->detectGenerationLanguage($context, isset($body->languageOverride) ? $body->languageOverride : ""); $context->language = $language->name;
-        $payload = array("selectedOwnedVideo" => $context->safeVideo, "selectedOwnedVideoTranscript" => $context->transcript === null ? null : substr((string)$context->transcript->plainText, 0, 30000), "competitorVideos" => $videos, "generationLanguage" => $language, "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "viewsPerDay is a labelled product estimate" : "Use raw public metrics only", "outputRule" => "Return exactly three titlePromptPairs and cite only supplied competitor video IDs.");
-        $message = "Return strict JSON with keywords, hashtags, description, tags, titlePromptPairs, and limitations. keywords and hashtags must be ranked arrays with text, rationale, evidenceVideoIds, evidenceType, and estimated=true. Return exactly three materially different titlePromptPairs. Every pair needs title under 100 characters, angle, a detailed 16:9 imagePrompt, onImageText of five words or fewer, rationale, and evidenceVideoIds. The image prompt must describe subject, composition, focal point, emotion, setting, lighting, colour/contrast, safe negative space, and exclusions for logos, watermarks, misleading imagery, and unreadable text. Generate all viewer-facing text in " . $language->name . ". Do not copy competitor titles, invent metrics, claim search volume, or promise performance.";
-        $run = $this->agentJson($context, "COMPETITOR_VIDEO_RESEARCH", $this->agentCode("COMPETITOR", \YtgConfig::agentCode()), $message, $payload, "competitor-video-research-v1");
-        $research = $run->valid ? $this->validateCompetitorVideoResearch($run->data, $allowedIds, $language, $sources) : null; $source = "SAVED_AGENT";
-        if ($research === null) { $research = $this->fallbackCompetitorVideoResearch($context, $videos, $allowedIds, $language, $sources); $source = "RULE_BASED"; }
-        $row = (object)array("channelId" => $context->channel->channelId, "contextVideoId" => $context->video->youtubeVideoId, "sourceVideoIds" => array_keys($allowedIds), "detectedLanguage" => $language->name, "languageCode" => $language->code, "languageConfidence" => $language->confidence, "languageSource" => $language->source, "rankedKeywords" => $research->keywords, "rankedHashtags" => $research->hashtags, "description" => $research->description, "tags" => $research->tags, "titlePromptPairs" => $research->titlePromptPairs, "limitations" => $research->limitations, "resultSource" => $source, "modelVersion" => "competitor-video-research-v1", "createdAt" => $this->now());
+        $payload = array("selectedOwnedVideo" => $context->safeVideo, "selectedOwnedVideoTranscript" => $this->safeText($ownedTranscript, 50000), "competitorVideos" => $videos, "generationLanguage" => $language, "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "viewsPerDay is a labelled product estimate" : "Use raw public metrics only", "titlePolicy" => array("primaryTruthSource" => "selectedOwnedVideoTranscript", "currentTitleMustNotBeReused" => (string)$context->video->title, "keywordUse" => "Use one or two high-relevance ranked keywords naturally in each title; never append a keyword list.", "hashtagUse" => "Hashtags guide topic relevance and belong in the hashtag output, not as a stuffed title suffix.", "pairCount" => 3));
+        $message = "Return strict JSON with keywords, hashtags, description, tags, titlePromptPairs, and limitations. First understand the selected owned-video transcript: its central subject, key event or claim, people/organizations involved, viewer value, tone, and factual boundaries. The transcript is the primary truth source for every title; competitor data is secondary SEO and packaging evidence only. Rank only keywords and hashtags that are both relevant to the transcript and supported by supplied competitor evidence. Each keyword/hashtag item needs text, rationale, evidenceVideoIds, evidenceType, and estimated=true. Return exactly three genuinely different titlePromptPairs. Each pair needs: title under 100 characters; angle; transcriptEvidenceExcerpt copied exactly from the supplied owned transcript; usedKeywords containing one or two entries copied exactly from the returned ranked keywords; usedHashtags containing one to three entries copied exactly from the returned ranked hashtags; detailed 16:9 imagePrompt; optional onImageText of five words or fewer; rationale; and evidenceVideoIds. Titles must summarize a real transcript theme, use the ranked keyword naturally, be readable and compelling, and must not equal, begin with, end with, or merely add a suffix/prefix to the current video title. Do not put a list of keywords, language names, 'news protest Sri Lanka sinhala', or hashtags into a title. Do not use generic suffixes such as complete guide or 3 essential lessons unless the transcript itself supports that exact framing. Each image prompt must visualize its own title and transcript evidence with a specific subject, composition, focal point, authentic emotion, relevant setting, lighting, colour/contrast, safe negative space, and exclusions for logos, watermarks, misleading imagery, and unreadable text. Generate all viewer-facing text in " . $language->name . ". Do not copy competitor titles, invent facts or metrics, claim search volume, or promise reach/performance.";
+        $run = $this->agentJson($context, "COMPETITOR_VIDEO_RESEARCH", $this->agentCode("COMPETITOR", \YtgConfig::agentCode()), $message, $payload, "competitor-video-research-v2");
+        $research = $run->valid ? $this->validateCompetitorVideoResearch($run->data, $allowedIds, $language, $sources, (string)$context->video->title, $ownedTranscript) : null;
+        if ($research === null) { return $this->fail($res, "The configured AI did not produce three transcript-grounded, SEO-relevant titles that passed quality checks. No low-quality fallback titles were saved. Please retry or review the selected saved agent."); }
+        $source = "SAVED_AGENT";
+        $row = (object)array("channelId" => $context->channel->channelId, "contextVideoId" => $context->video->youtubeVideoId, "sourceVideoIds" => array_keys($allowedIds), "detectedLanguage" => $language->name, "languageCode" => $language->code, "languageConfidence" => $language->confidence, "languageSource" => $language->source, "rankedKeywords" => $research->keywords, "rankedHashtags" => $research->hashtags, "description" => $research->description, "tags" => $research->tags, "titlePromptPairs" => $research->titlePromptPairs, "limitations" => $research->limitations, "resultSource" => $source, "modelVersion" => "competitor-video-research-v2", "createdAt" => $this->now());
         $save = \SOSSData::Insert("ytg_competitor_research", $row); if (!$save->success) { return $this->fail($res, "Competitor research was generated but could not be saved."); }
         $row->researchId = $this->generatedId($save); $research->researchId = $row->researchId; $research->source = $source;
         $this->audit("COMPETITOR_VIDEO_RESEARCH_GENERATED", $context->channel->channelId, "video:" . $context->video->youtubeVideoId, null, array("competitorVideoIds" => array_keys($allowedIds), "language" => $language->name, "source" => $source));
@@ -287,18 +290,28 @@ class GrowthAiService extends \YtgServiceBase {
         return (object)array($field => $items, "task" => $task, "dataSource" => "RULE_BASED_PUBLIC_METADATA");
     }
 
-    private function validateCompetitorVideoResearch($data, $allowedIds, $language, $sources) {
+    private function validateCompetitorVideoResearch($data, $allowedIds, $language, $sources, $currentTitle, $ownedTranscript) {
         if (!is_object($data) || !isset($data->keywords, $data->hashtags, $data->description, $data->tags, $data->titlePromptPairs) || !is_array($data->titlePromptPairs) || count($data->titlePromptPairs) !== 3) { return null; }
         $keywords = $this->validateRankedResearchItems($data->keywords, $allowedIds, false); $hashtags = $this->validateRankedResearchItems($data->hashtags, $allowedIds, true);
         if (!count($keywords) || !count($hashtags)) { return null; }
         $description = $this->safeText($data->description, 5000); $tags = $this->strings($data->tags, 30, 100); if ($description === "" || !count($tags)) { return null; }
+        $keywordMap = array(); foreach ($keywords as $keyword) { $keywordMap[$this->normalizeSearchText($keyword->text)] = $keyword->text; }
+        $hashtagMap = array(); foreach ($hashtags as $hashtag) { $hashtagMap[$this->normalizeSearchText($hashtag->text)] = $hashtag->text; }
+        $normalizedTranscript = $this->normalizeSearchText($ownedTranscript); if ($normalizedTranscript === "") { return null; }
         $pairs = array();
         foreach ($data->titlePromptPairs as $value) {
             $item = is_object($value) ? $value : (object)$value; $rawTitle = trim(isset($item->title) ? (string)$item->title : ""); if ($this->textLength($rawTitle) >= 100) { return null; } $title = $this->safeText($rawTitle, 99); $angle = $this->safeText(isset($item->angle) ? $item->angle : "", 500); $prompt = $this->safeText(isset($item->imagePrompt) ? $item->imagePrompt : "", 4000); $rationale = $this->safeText(isset($item->rationale) ? $item->rationale : "", 1500);
             $ids = $this->validEvidenceIds(isset($item->evidenceVideoIds) ? $item->evidenceVideoIds : array(), $allowedIds); if ($title === "" || $angle === "" || $prompt === "" || $rationale === "" || !count($ids)) { return null; }
+            if ($this->titleTooSimilar($title, $currentTitle) || strpos($title, "#") !== false) { return null; }
+            $excerpt = $this->safeText(isset($item->transcriptEvidenceExcerpt) ? $item->transcriptEvidenceExcerpt : "", 500); $normalizedExcerpt = $this->normalizeSearchText($excerpt);
+            if ($this->textLength($normalizedExcerpt) < 10 || strpos($normalizedTranscript, $normalizedExcerpt) === false) { return null; }
+            $usedKeywords = $this->validatedSelectedTerms(isset($item->usedKeywords) ? $item->usedKeywords : array(), $keywordMap, 2); if (!count($usedKeywords)) { return null; }
+            $normalizedTitle = $this->normalizeSearchText($title); $titleUsesKeyword = false; foreach ($usedKeywords as $keyword) { if (strpos($normalizedTitle, $this->normalizeSearchText($keyword)) !== false) { $titleUsesKeyword = true; break; } } if (!$titleUsesKeyword) { return null; }
+            $keywordHits = 0; foreach ($keywordMap as $normalizedKeyword => $keyword) { if ($normalizedKeyword !== "" && strpos($normalizedTitle, $normalizedKeyword) !== false) { $keywordHits++; } } if ($keywordHits > 3) { return null; }
+            $usedHashtags = $this->validatedSelectedTerms(isset($item->usedHashtags) ? $item->usedHashtags : array(), $hashtagMap, 3, true); if (!count($usedHashtags)) { return null; }
             $onImageText = $this->safeText(isset($item->onImageText) ? $item->onImageText : "", 80); if ($onImageText !== "" && count(preg_split('/\s+/u', $onImageText, -1, PREG_SPLIT_NO_EMPTY)) > 5) { return null; }
             if (stripos($prompt, "16:9") === false) { $prompt .= " Aspect ratio 16:9."; }
-            $pairs[] = (object)array("title" => $title, "angle" => $angle, "imagePrompt" => $prompt, "onImageText" => $onImageText, "rationale" => $rationale, "evidenceVideoIds" => $ids);
+            $pairs[] = (object)array("title" => $title, "angle" => $angle, "transcriptEvidenceExcerpt" => $excerpt, "usedKeywords" => $usedKeywords, "usedHashtags" => $usedHashtags, "imagePrompt" => $prompt, "onImageText" => $onImageText, "rationale" => $rationale, "evidenceVideoIds" => $ids);
         }
         $uniqueTitles = array(); foreach ($pairs as $pair) { $uniqueTitles[] = $this->lowerText($pair->title); } if (count(array_unique($uniqueTitles)) !== 3) { return null; }
         return (object)array("language" => $language, "sources" => $sources, "keywords" => $keywords, "hashtags" => $hashtags, "description" => $description, "tags" => $tags, "titlePromptPairs" => $pairs, "limitations" => $this->strings(isset($data->limitations) ? $data->limitations : array("Public metrics and product rankings do not guarantee performance."), 10, 1000));
@@ -316,26 +329,6 @@ class GrowthAiService extends \YtgServiceBase {
         return $out;
     }
 
-    private function fallbackCompetitorVideoResearch($context, $videos, $allowedIds, $language, $sources) {
-        $terms = array(); $hashtags = array();
-        foreach ($videos as $video) {
-            $id = $video["videoId"];
-            foreach (isset($video["tags"]) && is_array($video["tags"]) ? $video["tags"] : array() as $tag) { $key = $this->lowerText(trim((string)$tag)); if ($key !== "") { if (!isset($terms[$key])) { $terms[$key] = array("text" => trim((string)$tag), "ids" => array(), "count" => 0); } $terms[$key]["ids"][$id] = true; $terms[$key]["count"]++; } }
-            foreach (isset($video["hashtags"]) && is_array($video["hashtags"]) ? $video["hashtags"] : array() as $tag) { $key = $this->lowerText(ltrim(trim((string)$tag), "#")); if ($key !== "") { if (!isset($hashtags[$key])) { $hashtags[$key] = array("text" => "#" . ltrim(trim((string)$tag), "#"), "ids" => array(), "count" => 0); } $hashtags[$key]["ids"][$id] = true; $hashtags[$key]["count"]++; } }
-        }
-        uasort($terms, function($left, $right) { return $right["count"] - $left["count"]; }); uasort($hashtags, function($left, $right) { return $right["count"] - $left["count"]; });
-        if (!count($terms)) { $first = $videos[0]; $terms["topic"] = array("text" => $this->safeText($first["title"], 100), "ids" => array($first["videoId"] => true), "count" => 1); }
-        if (!count($hashtags)) { $firstTerm = reset($terms); $hashtags["topic"] = array("text" => "#" . preg_replace('/\s+/u', '', $this->safeText($firstTerm["text"], 50)), "ids" => $firstTerm["ids"], "count" => 1); }
-        $keywordItems = array(); foreach (array_slice($terms, 0, 12, true) as $term) { $keywordItems[] = (object)array("text" => $term["text"], "rank" => count($keywordItems) + 1, "rationale" => "Repeated or explicitly supplied public metadata term; search volume is unknown.", "evidenceVideoIds" => array_keys($term["ids"]), "evidenceType" => "metadata", "estimated" => true); }
-        $hashtagItems = array(); foreach (array_slice($hashtags, 0, 8, true) as $term) { $hashtagItems[] = (object)array("text" => $term["text"], "rank" => count($hashtagItems) + 1, "rationale" => "Public hashtag evidence; use only when directly relevant.", "evidenceVideoIds" => array_keys($term["ids"]), "evidenceType" => "metadata", "estimated" => true); }
-        $base = $this->safeText($context->video->title, 72); $evidenceIds = array_slice(array_keys($allowedIds), 0, 5); $sinhala = $language->code === "si";
-        $titles = $sinhala ? array($base, $this->safeText($base . " | සම්පූර්ණ මාර්ගෝපදේශය", 99), $this->safeText($base . " | වැදගත් කරුණු 3ක්", 99)) : array($base, $this->safeText($base . ": The Complete Guide", 99), $this->safeText("3 Essential Lessons About " . $base, 99));
-        $angles = $sinhala ? array("සෘජු මාතෘකා පොරොන්දුව", "සම්පූර්ණ පැහැදිලි කිරීම", "සංඛ්‍යාත්මක ප්‍රායෝගික කෝණය") : array("Direct topic promise", "Complete explanatory guide", "Number-led practical angle");
-        $pairs = array(); foreach ($titles as $index => $title) { $prompt = $sinhala ? "මෙම මාතෘකාවට ගැළපෙන පැහැදිලි ප්‍රධාන විෂයයක්, එක් ශක්තිමත් නාභි ලක්ෂ්‍යයක්, ස්වභාවික හැඟීමක්, අදාළ පසුබිමක්, සිනමාත්මක ආලෝකය සහ ඉහළ වර්ණ ප්‍රතිවිරෝධතාවයක් සහිත YouTube thumbnail එකක්. පෙළ සඳහා ආරක්ෂිත හිස් ඉඩ තබන්න. 16:9. ලාංඡන, watermark, නොමඟ යවන රූප සහ කියවිය නොහැකි පෙළ නොදමන්න." : "Create a YouTube thumbnail faithful to this title with one clear subject, a strong focal point, an authentic emotion, a relevant setting, cinematic lighting, and high colour contrast. Leave safe negative space for optional short text. Aspect ratio 16:9. Exclude logos, watermarks, misleading imagery, clutter, and unreadable text."; $pairs[] = (object)array("title" => $title, "angle" => $angles[$index], "imagePrompt" => $prompt, "onImageText" => "", "rationale" => $sinhala ? "තරඟකරුගේ පොදු metadata රටාව භාවිතා කරමින් මුල් වීඩියෝ පොරොන්දුව වෙනස් ආකාරයකින් ඉදිරිපත් කරයි." : "Uses the public competitor metadata pattern while keeping this video's promise distinct and accurate.", "evidenceVideoIds" => $evidenceIds); }
-        $description = $sinhala ? $base . " පිළිබඳ පැහැදිලි සහ ප්‍රායෝගික විස්තරයක්. වීඩියෝවෙන් ලැබෙන ප්‍රධාන වටිනාකම මුලින් සඳහන් කර අදාළ කරුණු ස්වභාවිකව විස්තර කරන්න." : "A clear, practical explanation of " . $base . ". Open with the viewer benefit, summarize the useful points naturally, and include only directly relevant terms and links.";
-        return (object)array("language" => $language, "sources" => $sources, "keywords" => $keywordItems, "hashtags" => $hashtagItems, "description" => $description, "tags" => array_values(array_map(function($item) { return $item->text; }, array_slice($keywordItems, 0, 15))), "titlePromptPairs" => $pairs, "limitations" => array("Public metadata and product rankings do not provide exact search volume and do not guarantee performance.", "Transcript-specific findings are available only for rights-confirmed transcript inputs."));
-    }
-
     private function detectGenerationLanguage($context, $override) {
         $value = trim((string)$override); $source = "user_override"; $confidence = "high";
         if ($value === "" && $context->transcript !== null && isset($context->transcript->language) && trim((string)$context->transcript->language) !== "") { $value = trim((string)$context->transcript->language); $source = "owned_video_transcript"; $confidence = "high"; }
@@ -347,6 +340,26 @@ class GrowthAiService extends \YtgServiceBase {
         elseif (in_array($normalized, array("en", "eng", "english"), true)) { $code = "en"; $name = "English"; }
         elseif (preg_match('/^[a-z]{2,3}(?:-[a-z0-9]+)?$/i', $value)) { $code = strtolower(substr($value, 0, 12)); }
         return (object)array("name" => $this->safeText($name, 40), "code" => $code, "confidence" => $confidence, "source" => $source);
+    }
+
+    private function validatedSelectedTerms($values, $allowedMap, $limit, $allowEmpty = false) {
+        if (!is_array($values)) { return $allowEmpty ? array() : array(); } $out = array();
+        foreach ($values as $value) { $normalized = $this->normalizeSearchText($value); if ($normalized !== "" && isset($allowedMap[$normalized])) { $out[] = $allowedMap[$normalized]; } if (count($out) >= $limit) { break; } }
+        return array_values(array_unique($out));
+    }
+
+    private function titleTooSimilar($candidate, $current) {
+        $candidateNormalized = $this->normalizeSearchText($candidate); $currentNormalized = $this->normalizeSearchText($current);
+        if ($candidateNormalized === "" || $currentNormalized === "") { return false; }
+        if ($candidateNormalized === $currentNormalized || strpos($candidateNormalized, $currentNormalized . " ") === 0 || substr($candidateNormalized, -strlen(" " . $currentNormalized)) === " " . $currentNormalized || strpos($currentNormalized, $candidateNormalized . " ") === 0) { return true; }
+        $candidateTokens = array_values(array_unique(preg_split('/\s+/u', $candidateNormalized, -1, PREG_SPLIT_NO_EMPTY))); $currentTokens = array_values(array_unique(preg_split('/\s+/u', $currentNormalized, -1, PREG_SPLIT_NO_EMPTY)));
+        if (!count($candidateTokens) || !count($currentTokens)) { return false; }
+        $intersection = count(array_intersect($candidateTokens, $currentTokens)); $union = count(array_unique(array_merge($candidateTokens, $currentTokens)));
+        return $union > 0 && $intersection / $union >= 0.8;
+    }
+
+    private function normalizeSearchText($value) {
+        $value = $this->lowerText(trim((string)$value)); $value = preg_replace('/[^\p{L}\p{M}\p{N}]+/u', ' ', $value); return trim(preg_replace('/\s+/u', ' ', $value));
     }
 
     private function validEvidenceIds($values, $allowedIds) { if (!is_array($values)) { return array(); } $out = array(); foreach ($values as $id) { $id = (string)$id; if (isset($allowedIds[$id])) { $out[] = $id; } } return array_values(array_unique($out)); }

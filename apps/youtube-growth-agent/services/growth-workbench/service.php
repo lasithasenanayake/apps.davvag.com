@@ -548,6 +548,7 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         }
         $researchQuery = $this->query("ytg_competitor_research", $conditions, array(array("column" => "researchId", "direction" => "DESC")), 1, 0);
         $research = $researchQuery->success && count($researchQuery->result) ? $researchQuery->result[0] : null;
+        if ($research !== null && (!isset($research->modelVersion) || $research->modelVersion !== "competitor-video-research-v2")) { $research = null; }
         if ($research !== null) {
             foreach (array("sourceVideoIds", "rankedKeywords", "rankedHashtags", "tags", "titlePromptPairs", "limitations") as $field) { $research->{$field} = $this->decodeJson(isset($research->{$field}) ? $research->{$field} : array()); }
         }

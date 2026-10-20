@@ -44,10 +44,11 @@
    </div>
 
    <div class="ytg-panel" style="margin-bottom:16px" v-if="competitor.workspace&&competitor.workspace.videos.length">
-    <h2>Research and generate</h2><p class="ytg-muted">The app detects the owned video's main language from its transcript or metadata. Enter an override only when needed.</p>
+    <h2>Research and generate</h2><p class="ytg-muted">The owned video's transcript is the primary source for every suggested title. Ranked competitor keywords and hashtags are used only when they match the transcript topic.</p>
+    <div class="ytg-alert warning" v-if="!analysis.transcript">Import or download the selected video's transcript in Growth Studio before generating titles.</div>
     <div class="ytg-form-grid"><label>Language override (optional)<input v-model="competitor.languageOverride" placeholder="Sinhala, English, si, en"></label></div>
     <label style="margin-top:12px;font-weight:400"><input type="checkbox" v-model="competitor.aiConsent" style="width:auto;margin-right:8px">I confirm that this selected video context and the listed competitor evidence may be sent to the configured saved-agent provider for this request.</label>
-    <div class="ytg-actions" style="margin-top:12px"><button class="ytg-button" v-on:click="generateCompetitorResearch" v-bind:disabled="!!busy||!competitor.aiConsent">{{busy==='GenerateCompetitorVideoResearch'?"Researching...":"Research and generate"}}</button></div>
+    <div class="ytg-actions" style="margin-top:12px"><button class="ytg-button" v-on:click="generateCompetitorResearch" v-bind:disabled="!!busy||!competitor.aiConsent||!analysis.transcript">{{busy==='GenerateCompetitorVideoResearch'?"Researching...":"Research and generate"}}</button></div>
    </div>
 
    <template v-if="competitorResearch()">
@@ -56,7 +57,7 @@
      <div class="ytg-panel ytg-col-6"><h2>Ranked keywords</h2><ol class="ytg-action-list"><li v-for="item in competitorResearch().keywords"><strong>{{item.text}}</strong><br><span>{{item.rationale}}</span><br><small class="ytg-muted">Evidence: {{evidenceText(item)}} &middot; {{item.evidenceType}} &middot; product estimate</small></li></ol></div>
      <div class="ytg-panel ytg-col-6"><h2>Ranked hashtags</h2><ol class="ytg-action-list"><li v-for="item in competitorResearch().hashtags"><strong>{{item.text}}</strong><br><span>{{item.rationale}}</span><br><small class="ytg-muted">Evidence: {{evidenceText(item)}} &middot; product estimate</small></li></ol></div>
     </div>
-    <div class="ytg-panel" style="margin-bottom:16px"><h2>Three title and image-prompt pairs</h2><article class="ytg-recommendation" v-for="(pair,index) in competitorResearch().titlePromptPairs" style="padding:16px;margin:12px 0;background:#f8fafc"><div class="ytg-badges"><span class="ytg-badge">Option {{index+1}}</span><span class="ytg-badge">{{pair.angle}}</span></div><h3>{{pair.title}}</h3><p>{{pair.rationale}}</p><p><strong>Thumbnail text:</strong> {{pair.onImageText||"No text required"}}</p><p><strong>Image prompt</strong></p><div class="ytg-code" style="white-space:pre-wrap;padding:12px">{{pair.imagePrompt}}</div><small class="ytg-muted">Evidence videos: {{evidenceText(pair)}}</small></article><div class="ytg-alert warning" v-for="notice in competitorResearch().limitations">{{notice}}</div></div>
+    <div class="ytg-panel" style="margin-bottom:16px"><h2>Three transcript-grounded title and image-prompt pairs</h2><article class="ytg-recommendation" v-for="(pair,index) in competitorResearch().titlePromptPairs" style="padding:16px;margin:12px 0;background:#f8fafc"><div class="ytg-badges"><span class="ytg-badge">Option {{index+1}}</span><span class="ytg-badge">{{pair.angle}}</span><span class="ytg-badge good" v-for="keyword in pair.usedKeywords">SEO: {{keyword}}</span><span class="ytg-badge" v-for="hashtag in pair.usedHashtags">{{hashtag}}</span></div><h3>{{pair.title}}</h3><p>{{pair.rationale}}</p><p><strong>Transcript grounding:</strong> “{{pair.transcriptEvidenceExcerpt}}”</p><p><strong>Thumbnail text:</strong> {{pair.onImageText||"No text required"}}</p><p><strong>Image prompt</strong></p><div class="ytg-code" style="white-space:pre-wrap;padding:12px">{{pair.imagePrompt}}</div><small class="ytg-muted">Competitor evidence videos: {{evidenceText(pair)}}</small></article><div class="ytg-alert warning" v-for="notice in competitorResearch().limitations">{{notice}}</div></div>
    </template>
   </div>
 
