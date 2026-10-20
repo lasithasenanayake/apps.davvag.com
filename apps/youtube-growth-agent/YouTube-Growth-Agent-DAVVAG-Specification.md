@@ -6,7 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
-**Implementation baseline:** app version 0.7; Phase 0/1 plus the read-only advisory portions of Phase 2/3 and enhanced competitor growth analysis implemented on 2026-10-15
+**Implementation baseline:** app version 0.9; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and the competitor-video research workspace implemented by 2026-10-19
 
 ---
 
@@ -231,6 +231,8 @@ Video inspector tabs:
 7. Title, description, thumbnail, chapters, cards, playlist, and end-screen recommendations.
 8. Action and experiment history.
 
+For `#/app/youtube-growth-agent/video?videoId={youtubeVideoId}&channelId={channelId}`, add a **Competitor video research** panel. It must keep the selected owned video and authorized channel as the primary context while allowing the user to add, remove, retry, and analyse multiple competitor YouTube video URLs. A pasted URL is research input only and must never switch the active channel or bypass server-side `channelId` authorization.
+
 ### 5.4 AI recommendation inbox
 
 Every recommendation must contain:
@@ -279,6 +281,49 @@ Outputs:
 - Search-intent classification: learn, compare, solve, story, news, inspiration, or transaction.
 - Suggested title angles, opening hooks, viewer promise, and outline.
 - Cannibalization warning when the channel already has overlapping videos.
+
+#### 5.5.1 Competitor video URL research for the video inspector
+
+The selected video's inspector must support a focused workflow that compares the owned video with specific competitor videos supplied by the user.
+
+**Input and retrieval**
+
+1. Accept one or more standard YouTube video URLs, Shorts URLs, or `youtu.be` URLs; normalize each to a validated 11-character YouTube video ID and deduplicate it within the selected channel/video workspace.
+2. Fetch public competitor video data through documented YouTube APIs: title, description, channel identity, publish date, duration, category, public tags when returned, hashtags parsed from public metadata, thumbnail, and current public statistics.
+3. Record the source URL, normalized video ID, retrieval status, data source, and freshness timestamp. Show per-URL errors without discarding successful items in the same batch.
+4. Never accept browser-provided competitor metadata as trusted evidence. Reload and validate it server-side.
+
+**Competitor transcript boundary**
+
+- Do not download or imply access to a competitor's caption track through `captions.download`; the documented caption download flow requires authorization for the owning channel. Do not scrape watch pages, timed-text endpoints, YouTube Studio, or third-party transcript sites.
+- A competitor transcript may be analysed only when the user uploads or pastes it with confirmation that they have the necessary rights, or when an administrator configures a licensed provider whose terms permit this use. Store provenance as `user_upload`, `manual_text`, or `licensed_provider`, plus language, optional time-coded segments, rights confirmation, and import time.
+- If no authorized competitor transcript is available, continue with public metadata analysis and clearly label transcript-dependent insights as unavailable. The absence of a competitor transcript must not block the rest of the research workflow.
+
+**Research and ranking**
+
+- Determine top-performing competitor examples using comparable evidence such as public views, publish age, format, and duration. When derived metrics are enabled, the product may calculate and label estimates such as views per day; otherwise rank by raw public metrics and recency without presenting a proprietary numeric score.
+- Extract candidate topic phrases, repeated terms, public tags, and hashtags from the supplied metadata and authorized transcript text. Preserve an evidence link from each result to one or more competitor video IDs and identify whether the evidence came from metadata or a transcript.
+- Rank keywords and hashtags by evidence frequency, placement, topical relevance to the selected video, cross-video recurrence, and competitor performance. Never present estimated search volume, competition, or guaranteed ranking unless a licensed provider supplied that specific metric; label all product rankings as estimates.
+- Remove duplicates and near-duplicates, reject irrelevant or misleading terms, and separate `keywords` from YouTube `tags` and `hashtags` in the result.
+
+**Language detection and generation**
+
+- Detect the selected owned video's main language from its authorized transcript when available. Fall back in order to the video's `defaultLanguage`/`defaultAudioLanguage`, a high-confidence title-and-description detection, and finally the channel default language.
+- Return the detected language, ISO language code when known, confidence (`low`, `medium`, or `high`), and detection source. Allow the user to override it for the current generation run.
+- Generate the proposed title, description, keywords, hashtags, thumbnail text, and image prompts in the detected or user-selected main language. Retain brand names and established technical terms in their conventional form. Do not silently translate to English.
+
+**Required result**
+
+One explicit **Research and generate** action, with the existing AI data-sharing confirmation, must return:
+
+- A source summary for every competitor URL, including transcript availability and provenance.
+- Ranked top-performing keywords and a separate ranked hashtag list, each with evidence video IDs, evidence type, rationale, and estimate labels where applicable.
+- One recommended video description, a relevant tag/keyword set, and a limited set of accurate hashtags.
+- Exactly three materially different, accurate title recommendations, each under 100 characters, each tied to a distinct angle or viewer promise, and each supported by the supplied research.
+- Exactly one thumbnail/image-generation prompt paired with each recommended title. Each prompt must specify the subject, composition, focal point, emotion, setting, lighting, colour/contrast, aspect ratio `16:9`, safe negative space, optional on-image text of no more than five words, and exclusions such as logos, watermarks, misleading imagery, and unreadable text.
+- A short rationale and cited competitor video IDs for every title/prompt pair, plus a warning that the recommendations are hypotheses rather than guaranteed outcomes.
+
+The three title/prompt pairs must be displayed and saved together so the user cannot accidentally apply a title with an unrelated visual concept. This workflow prepares assets only; it does not update the YouTube video or generate an image without a separate user action.
 
 ### 5.6 Transcript and Shorts finder
 
@@ -409,6 +454,32 @@ Aligns retention points with transcript timestamps, explains drop-offs and spike
 
 Creates accurate title options, thumbnail briefs, hook alignment, and native A/B test variants.
 
+For competitor-video research, the Discovery and SEO Agent and Packaging Agent must share one validated payload. The validator must require exactly three `titlePromptPairs`, reject titles of 100 characters or more, reject prompt pairs without evidence video IDs, and overwrite the returned language with the server-determined or explicit user-selected language. The response contract is:
+
+```json
+{
+  "language": {"name": "Sinhala", "code": "si", "confidence": "high", "source": "owned_video_transcript"},
+  "sources": [{"videoId": "abcdefghijk", "transcriptStatus": "user_upload", "freshness": "2026-10-19T00:00:00Z"}],
+  "keywords": [{"text": "example", "rank": 1, "rationale": "why it is relevant", "evidenceVideoIds": ["abcdefghijk"], "evidenceType": "metadata", "estimated": true}],
+  "hashtags": [{"text": "#example", "rank": 1, "rationale": "why it is relevant", "evidenceVideoIds": ["abcdefghijk"], "estimated": true}],
+  "description": "Recommended description in the selected main language",
+  "tags": ["relevant tag"],
+  "titlePromptPairs": [
+    {
+      "title": "Title in the selected main language",
+      "angle": "Distinct viewer promise",
+      "imagePrompt": "Complete 16:9 thumbnail-generation prompt",
+      "onImageText": "Five words maximum",
+      "rationale": "Why this pairing fits the evidence",
+      "evidenceVideoIds": ["abcdefghijk"]
+    }
+  ],
+  "limitations": ["Public metrics and product rankings do not guarantee performance."]
+}
+```
+
+The example shows one pair for readability; runtime validation requires exactly three.
+
 ### 7.7 Community Insight Agent
 
 Groups comments into questions and themes, drafts replies, and suggests content based on audience language. It must not profile individual commenters or infer sensitive attributes.
@@ -535,6 +606,9 @@ Never expose this plugin folder or its secrets over HTTP.
 | `UpdateRecommendationStatus` | Accept, dismiss, complete, or reopen an action |
 | `AddCompetitor` | Add a user-selected public comparison channel |
 | `RefreshCompetitors` | Refresh public metadata within policy and quota limits |
+| `AddCompetitorVideos` | Validate and save multiple competitor video URLs against one selected owned video |
+| `ImportCompetitorTranscript` | Save a pasted/uploaded or licensed transcript with provenance and rights confirmation; never scrape it from YouTube |
+| `GenerateCompetitorVideoResearch` | Detect the main video language and generate evidence-backed keywords, hashtags, metadata, exactly three titles, and three paired image prompts |
 | `CreateExperiment` | Record hypothesis and variants |
 | `CompleteExperiment` | Store result and next decision |
 | `PreviewMetadataUpdate` | Show a full diff and required preserved fields |
@@ -584,7 +658,9 @@ Create one DAVVAG schema JSON file per namespace under `schemas/`. Names below a
 | `ytg_comments` | Refreshed comment sample for insight | channelId, videoId, youtubeCommentId, text, publishedAt, likeCount, refreshedAt |
 | `ytg_content_tags` | Product-generated topic classification | channelId, videoId, tag, provenance, modelVersion |
 | `ytg_competitors` | User-selected public comparison channels | channelId, competitorYoutubeChannelId, label, active, refreshedAt |
-| `ytg_competitor_videos` | Refreshed public catalogue sample | competitorId, youtubeVideoId, metadata, statistics, refreshedAt |
+| `ytg_competitor_videos` | Refreshed public catalogue sample and user-supplied video URLs | competitorId, channelId, contextVideoId, sourceUrl, youtubeVideoId, metadata, statistics, retrievalStatus, refreshedAt |
+| `ytg_competitor_transcripts` | Rights-confirmed transcript input for a competitor video | channelId, contextVideoId, competitorVideoId, language, sourceType, segments/plainText, rightsConfirmedBy, rightsConfirmedAt, importedAt |
+| `ytg_competitor_research` | Saved video-level research result | channelId, contextVideoId, sourceVideoIds, detectedLanguage, languageConfidence, rankedKeywords, rankedHashtags, description, tags, titlePromptPairs, modelVersion, createdAt |
 | `ytg_recommendations` | Prioritized action inbox | channelId, videoId, type, observation, evidence, actions, confidence, effort, status, reviewAt |
 | `ytg_short_candidates` | Timestamped repurposing suggestions | channelId, videoId, startMs, endMs, hook, captionPlan, titleOptions, evidence, status |
 | `ytg_content_ideas` | Backlog and researched briefs | channelId, pillarId, idea, intent, evidence, brief, status |
@@ -599,6 +675,7 @@ Security requirements:
 - Do not place OAuth access tokens, refresh tokens, client secrets, or AI keys in generic object fields returned by SOSSData.
 - Use a dedicated encrypted server-side secret mechanism and store only a credential reference in `ytg_oauth_grants`.
 - Apply `channelId` and authorized-profile constraints to every query, including raw reports.
+- Treat rights confirmation as provenance, not as proof of ownership; never expose competitor transcript text outside the authorized channel workspace or reuse it for model training.
 - Because DAVVAG raw queries interpolate placeholders, cast numeric values, validate dates, whitelist sort fields/enums, and never accept raw SQL fragments from the browser.
 
 ---
@@ -714,6 +791,13 @@ Implementation status (2026-08-25):
 - Every saved-agent prompt carries the channel language so configured agents can return Sinhala or English.
 - Direct YouTube caption-track download is implemented with a separate owner-triggered incremental `youtube.force-ssl` consent flow. After consent, selecting a video without a stored transcript automatically runs `captions.list` and `captions.download`, parses WebVTT cues into validated millisecond timestamps, records provenance, and retains manual transcript import as fallback. Existing base OAuth connections are not silently widened.
 
+Implementation extension (2026-10-19):
+
+- Implemented a competitor-video URL research panel on the selected video route.
+- Implemented batch URL validation and public metadata retrieval, plus rights-confirmed transcript paste/upload provenance. A licensed-provider integration may use the same provenance contract when configured.
+- Implemented evidence-backed competitor keyword and hashtag ranking, selected-owned-video language detection/override, and generation of a recommended description, tags, hashtags, exactly three titles, and one paired image prompt for each title.
+- Preserved the existing rule that competitor captions are not downloaded or scraped from YouTube.
+
 ### Phase 3 — Packaging, community, and experiments
 
 - Title/thumbnail workshop.
@@ -778,6 +862,11 @@ The MVP is complete when:
 13. Sync jobs are resumable and do not duplicate imported daily reports.
 14. The user can accept, dismiss, complete, and review recommendations.
 15. No channel-changing action occurs without explicit approval.
+16. The selected video route accepts multiple competitor video URL formats, deduplicates IDs, reports per-URL failures, and never changes the active authorized channel context.
+17. Competitor transcript analysis is available only for rights-confirmed user input or an approved licensed provider; metadata-only research still succeeds when no transcript is available.
+18. The research result identifies the selected owned video's main language and generation source/confidence, and an explicit per-run language override works.
+19. A successful competitor-video research run returns ranked, evidence-linked keywords and hashtags, one description, relevant tags, exactly three titles under 100 characters, and exactly three title-paired 16:9 image prompts in the selected language.
+20. The server rejects unsupported competitor IDs, fabricated metrics, missing evidence links, invalid language metadata, and AI responses containing fewer or more than three title/prompt pairs.
 
 ---
 

@@ -1,1 +1,37 @@
-{"fields":[{"fieldName":"competitorVideoId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},{"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},{"fieldName":"competitorId","dataType":"int"},{"fieldName":"youtubeVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},{"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},{"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},{"fieldName":"tags","dataType":"object"},{"fieldName":"hashtags","dataType":"object"},{"fieldName":"publishedAt","dataType":"java.util.Date"},{"fieldName":"thumbnailUrl","dataType":"java.lang.String","annotations":{"maxLen":1000}},{"fieldName":"durationSeconds","dataType":"long"},{"fieldName":"contentType","dataType":"java.lang.String","annotations":{"maxLen":40}},{"fieldName":"views","dataType":"long"},{"fieldName":"likes","dataType":"long"},{"fieldName":"comments","dataType":"long"},{"fieldName":"subscriberCountSnapshot","dataType":"long"},{"fieldName":"ageDays","dataType":"int"},{"fieldName":"viewsPerDay","dataType":"float"},{"fieldName":"viewsToSubscriberRatio","dataType":"float"},{"fieldName":"performanceRank","dataType":"int"},{"fieldName":"shortlisted","dataType":"boolean","annotations":{"default":false}},{"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":40}},{"fieldName":"calculationSource","dataType":"java.lang.String","annotations":{"maxLen":80}},{"fieldName":"refreshedAt","dataType":"java.util.Date"}]}
+{
+  "fields": [
+    {"fieldName":"competitorVideoId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"contextVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"competitorId","dataType":"int"},
+    {"fieldName":"sourceUrl","dataType":"java.lang.String","annotations":{"maxLen":1000}},
+    {"fieldName":"youtubeVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"sourceChannelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"channelTitle","dataType":"java.lang.String","annotations":{"maxLen":255,"encoding":"utf8"}},
+    {"fieldName":"title","dataType":"java.lang.String","annotations":{"maxLen":500,"encoding":"utf8"}},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"tags","dataType":"object"},
+    {"fieldName":"hashtags","dataType":"object"},
+    {"fieldName":"publishedAt","dataType":"java.util.Date"},
+    {"fieldName":"thumbnailUrl","dataType":"java.lang.String","annotations":{"maxLen":1000}},
+    {"fieldName":"durationSeconds","dataType":"long"},
+    {"fieldName":"contentType","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"categoryId","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"defaultLanguage","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"defaultAudioLanguage","dataType":"java.lang.String","annotations":{"maxLen":30}},
+    {"fieldName":"views","dataType":"long"},
+    {"fieldName":"likes","dataType":"long"},
+    {"fieldName":"comments","dataType":"long"},
+    {"fieldName":"subscriberCountSnapshot","dataType":"long"},
+    {"fieldName":"ageDays","dataType":"int"},
+    {"fieldName":"viewsPerDay","dataType":"float"},
+    {"fieldName":"viewsToSubscriberRatio","dataType":"float"},
+    {"fieldName":"performanceRank","dataType":"int"},
+    {"fieldName":"shortlisted","dataType":"boolean","annotations":{"default":false}},
+    {"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"retrievalStatus","dataType":"java.lang.String","annotations":{"maxLen":40,"default":"READY"}},
+    {"fieldName":"calculationSource","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"},
+    {"fieldName":"refreshedAt","dataType":"java.util.Date"}
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fields": [
+    {"fieldName":"competitorTranscriptId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"contextVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"competitorVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"language","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"sourceType","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"segments","dataType":"object"},
+    {"fieldName":"plainText","dataType":"java.lang.String","annotations":{"maxLen":250000,"encoding":"utf8"}},
+    {"fieldName":"durationMs","dataType":"long"},
+    {"fieldName":"rightsConfirmedBy","dataType":"int"},
+    {"fieldName":"rightsConfirmedAt","dataType":"java.util.Date"},
+    {"fieldName":"provenance","dataType":"java.lang.String","annotations":{"maxLen":2000,"encoding":"utf8"}},
+    {"fieldName":"importedAt","dataType":"java.util.Date"}
+  ]
+}

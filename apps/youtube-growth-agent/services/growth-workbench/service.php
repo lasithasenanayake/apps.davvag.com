@@ -329,6 +329,131 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         return (object)array("refreshed" => $refreshed, "competitors" => $competitors, "competitorVideos" => $analysis->videos, "competitorAnalysis" => $analysis, "message" => $refreshed . " public comparison channels refreshed and their latest videos ranked without search.list.");
     }
 
+    public function postGetCompetitorVideoWorkspace($req, $res) {
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "");
+        if ($channel === null) { return null; }
+        $video = $this->ownedVideo($channel->channelId, isset($body->videoId) ? $body->videoId : "");
+        if ($video === null) { return $this->fail($res, "A video in this channel workspace is required."); }
+        return $this->competitorVideoWorkspace($channel, $video);
+    }
+
+    public function postAddCompetitorVideos($req, $res) {
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager", "Editor"));
+        if ($channel === null) { return null; }
+        $video = $this->ownedVideo($channel->channelId, isset($body->videoId) ? $body->videoId : "");
+        if ($video === null) { return $this->fail($res, "A video in this channel workspace is required."); }
+        $references = isset($body->urls) ? $body->urls : array();
+        if (is_string($references)) { $references = preg_split('/[\r\n,]+/', $references); }
+        if (!is_array($references)) { return $this->fail($res, "Enter one or more YouTube video URLs."); }
+        $byId = array(); $results = array();
+        foreach (array_slice($references, 0, 20) as $value) {
+            $sourceUrl = trim((string)$value);
+            $parsed = $this->parseCompetitorVideoReference($sourceUrl);
+            if ($parsed === null) { $results[] = (object)array("sourceUrl" => substr($sourceUrl, 0, 1000), "status" => "INVALID", "message" => "Use a YouTube watch, Shorts, or youtu.be URL."); continue; }
+            if (!isset($byId[$parsed->videoId])) { $byId[$parsed->videoId] = $parsed->sourceUrl; }
+        }
+        if (!count($byId)) { return (object)array("workspace" => $this->competitorVideoWorkspace($channel, $video), "results" => $results, "message" => "No valid competitor video URLs were supplied."); }
+        $grant = $this->credentialGrant($channel->channelId);
+        if ($grant === null || !isset($grant->credentialRef)) { return $this->fail($res, "Connected YouTube credentials are required to retrieve public video metadata."); }
+        $quota = $this->consumeQuota($channel->channelId, "competitor video public metadata", 1);
+        if (!$quota->success) { return $this->fail($res, isset($quota->message) ? $quota->message : "YouTube quota is unavailable."); }
+        $google = new \YtgGoogleClient();
+        $response = $google->dataGet($grant->credentialRef, "videos", array("part" => "snippet,contentDetails,statistics,status", "id" => implode(",", array_keys($byId)), "maxResults" => 50));
+        if (!$response->success) { return $this->fail($res, isset($response->message) ? $response->message : "Competitor video metadata could not be retrieved."); }
+        $returned = array(); $saved = 0;
+        foreach (isset($response->data["items"]) && is_array($response->data["items"]) ? $response->data["items"] : array() as $item) {
+            $id = isset($item["id"]) ? $this->youtubeId($item["id"]) : "";
+            if ($id === "" || !isset($byId[$id])) { continue; }
+            $returned[$id] = true;
+            $snippet = isset($item["snippet"]) && is_array($item["snippet"]) ? $item["snippet"] : array();
+            $details = isset($item["contentDetails"]) && is_array($item["contentDetails"]) ? $item["contentDetails"] : array();
+            $statistics = isset($item["statistics"]) && is_array($item["statistics"]) ? $item["statistics"] : array();
+            $sourceChannelId = isset($snippet["channelId"]) ? (string)$snippet["channelId"] : "";
+            if ($sourceChannelId !== "" && $sourceChannelId === (string)$channel->youtubeChannelId) { $results[] = (object)array("sourceUrl" => $byId[$id], "videoId" => $id, "status" => "REJECTED", "message" => "The URL belongs to the connected channel, not a competitor."); continue; }
+            $description = isset($snippet["description"]) ? substr((string)$snippet["description"], 0, 10000) : "";
+            $durationSeconds = $this->isoDurationSeconds(isset($details["duration"]) ? $details["duration"] : "PT0S");
+            $existing = $this->first("ytg_competitor_videos", array(
+                array("column" => "channelId", "operator" => "=", "value" => $channel->channelId),
+                array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId),
+                array("column" => "youtubeVideoId", "operator" => "=", "value" => $id)
+            ));
+            $row = $existing !== null ? $existing : new \stdClass();
+            $row->channelId = $channel->channelId; $row->contextVideoId = $video->youtubeVideoId; $row->competitorId = 0;
+            $row->sourceUrl = substr($byId[$id], 0, 1000); $row->youtubeVideoId = $id; $row->sourceChannelId = substr($sourceChannelId, 0, 90);
+            $row->channelTitle = substr(isset($snippet["channelTitle"]) ? (string)$snippet["channelTitle"] : "", 0, 255);
+            $row->title = substr(isset($snippet["title"]) ? (string)$snippet["title"] : "", 0, 500); $row->description = $description;
+            $row->tags = isset($snippet["tags"]) && is_array($snippet["tags"]) ? array_slice($snippet["tags"], 0, 100) : array();
+            $row->hashtags = $this->extractHashtags($row->title . "\n" . $description);
+            $row->publishedAt = isset($snippet["publishedAt"]) ? date("Y-m-d H:i:s", strtotime($snippet["publishedAt"])) : null;
+            $row->thumbnailUrl = isset($snippet["thumbnails"]["medium"]["url"]) ? (string)$snippet["thumbnails"]["medium"]["url"] : "";
+            $row->durationSeconds = $durationSeconds; $row->contentType = $durationSeconds > 0 && $durationSeconds <= 180 && $this->hasShortsMarker($snippet) ? "Short" : "Long-form";
+            $row->categoryId = substr(isset($snippet["categoryId"]) ? (string)$snippet["categoryId"] : "", 0, 30);
+            $row->defaultLanguage = substr(isset($snippet["defaultLanguage"]) ? (string)$snippet["defaultLanguage"] : "", 0, 30);
+            $row->defaultAudioLanguage = substr(isset($snippet["defaultAudioLanguage"]) ? (string)$snippet["defaultAudioLanguage"] : "", 0, 30);
+            $row->views = intval(isset($statistics["viewCount"]) ? $statistics["viewCount"] : 0); $row->likes = intval(isset($statistics["likeCount"]) ? $statistics["likeCount"] : 0); $row->comments = intval(isset($statistics["commentCount"]) ? $statistics["commentCount"] : 0);
+            $row->source = "YOUTUBE_DATA"; $row->retrievalStatus = "READY"; $row->calculationSource = ""; $row->refreshedAt = $this->now();
+            if ($existing === null) { $row->createdAt = $this->now(); }
+            $save = $existing === null ? \SOSSData::Insert("ytg_competitor_videos", $row) : \SOSSData::Update("ytg_competitor_videos", $row);
+            if ($save->success) { $saved++; $row->competitorVideoId = $existing !== null ? $existing->competitorVideoId : $this->generatedId($save); $results[] = (object)array("sourceUrl" => $byId[$id], "videoId" => $id, "status" => "READY", "message" => "Public metadata retrieved."); }
+            else { $results[] = (object)array("sourceUrl" => $byId[$id], "videoId" => $id, "status" => "ERROR", "message" => "Metadata could not be saved."); }
+        }
+        foreach ($byId as $id => $sourceUrl) { if (!isset($returned[$id])) { $results[] = (object)array("sourceUrl" => $sourceUrl, "videoId" => $id, "status" => "NOT_FOUND", "message" => "The video was unavailable, private, or not found."); } }
+        $this->rankContextCompetitorVideos($channel->channelId, $video->youtubeVideoId, true);
+        if ($saved > 0) { $this->clearContextResearch($channel->channelId, $video->youtubeVideoId); }
+        $this->audit("COMPETITOR_VIDEOS_ADDED", $channel->channelId, "video:" . $video->youtubeVideoId, null, array("saved" => $saved, "requested" => count($byId)));
+        return (object)array("workspace" => $this->competitorVideoWorkspace($channel, $video), "results" => $results, "message" => $saved . " competitor video" . ($saved === 1 ? "" : "s") . " added or refreshed.");
+    }
+
+    public function postImportCompetitorTranscript($req, $res) {
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager", "Editor"));
+        if ($channel === null) { return null; }
+        $video = $this->ownedVideo($channel->channelId, isset($body->videoId) ? $body->videoId : "");
+        if ($video === null) { return $this->fail($res, "A video in this channel workspace is required."); }
+        $competitorVideoId = $this->youtubeId(isset($body->competitorVideoId) ? $body->competitorVideoId : "");
+        $competitorVideo = $this->first("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId), array("column" => "youtubeVideoId", "operator" => "=", "value" => $competitorVideoId)));
+        if ($competitorVideo === null) { return $this->fail($res, "Add the competitor video URL before importing its transcript."); }
+        $rightsConfirmed = isset($body->rightsConfirmed) && filter_var($body->rightsConfirmed, FILTER_VALIDATE_BOOLEAN);
+        if (!$rightsConfirmed) { return $this->fail($res, "Confirm that you have the rights or permission to analyse this transcript."); }
+        $plainText = isset($body->plainText) ? trim((string)$body->plainText) : "";
+        if ($plainText === "" || strlen($plainText) > 250000) { return $this->fail($res, "Transcript text is required and must be 250,000 characters or fewer."); }
+        $sourceType = strtoupper(trim(isset($body->sourceType) ? (string)$body->sourceType : "MANUAL_TEXT"));
+        if (!in_array($sourceType, array("MANUAL_TEXT", "USER_UPLOAD", "LICENSED_PROVIDER"), true)) { return $this->fail($res, "Transcript provenance is invalid."); }
+        $language = $this->language(isset($body->language) ? $body->language : "");
+        $durationMs = max(1000, intval(isset($competitorVideo->durationSeconds) ? $competitorVideo->durationSeconds : 0) * 1000);
+        $segments = $this->normalizeTranscriptSegments(isset($body->segments) ? $body->segments : array(), $plainText, $durationMs);
+        if ($segments === null) { return $this->fail($res, "Transcript timestamps are invalid or exceed the competitor video duration."); }
+        $existing = $this->first("ytg_competitor_transcripts", array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId), array("column" => "competitorVideoId", "operator" => "=", "value" => $competitorVideoId)));
+        $row = $existing !== null ? $existing : new \stdClass();
+        $row->channelId = $channel->channelId; $row->contextVideoId = $video->youtubeVideoId; $row->competitorVideoId = $competitorVideoId; $row->language = $language; $row->sourceType = $sourceType;
+        $row->segments = $segments; $row->plainText = $plainText; $row->durationMs = $durationMs; $row->rightsConfirmedBy = intval($this->currentProfile()->id); $row->rightsConfirmedAt = $this->now(); $row->provenance = "Rights-confirmed transcript supplied by DAVVAG profile " . $this->currentProfile()->id . "; it was not downloaded or scraped from YouTube."; $row->importedAt = $this->now();
+        $save = $existing === null ? \SOSSData::Insert("ytg_competitor_transcripts", $row) : \SOSSData::Update("ytg_competitor_transcripts", $row);
+        if (!$save->success) { return $this->fail($res, "Competitor transcript could not be saved."); }
+        $this->clearContextResearch($channel->channelId, $video->youtubeVideoId);
+        $this->audit("COMPETITOR_TRANSCRIPT_IMPORTED", $channel->channelId, "competitor-video:" . $competitorVideoId, null, array("source" => $sourceType, "language" => $language));
+        return (object)array("workspace" => $this->competitorVideoWorkspace($channel, $video), "message" => "Rights-confirmed competitor transcript saved. No YouTube caption track was downloaded.");
+    }
+
+    public function postRemoveCompetitorVideo($req, $res) {
+        $body = $this->body($req);
+        $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager", "Editor"));
+        if ($channel === null) { return null; }
+        $video = $this->ownedVideo($channel->channelId, isset($body->videoId) ? $body->videoId : "");
+        if ($video === null) { return $this->fail($res, "A video in this channel workspace is required."); }
+        $competitorVideoId = $this->youtubeId(isset($body->competitorVideoId) ? $body->competitorVideoId : "");
+        $conditions = array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId), array("column" => "competitorVideoId", "operator" => "=", "value" => $competitorVideoId));
+        $transcripts = $this->query("ytg_competitor_transcripts", $conditions, array(), 20, 0);
+        foreach ($transcripts->success ? $transcripts->result : array() as $transcript) { \SOSSData::Delete("ytg_competitor_transcripts", $transcript); }
+        $row = $this->first("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId), array("column" => "youtubeVideoId", "operator" => "=", "value" => $competitorVideoId)));
+        if ($row === null) { return $this->fail($res, "Competitor video was not found in this workspace."); }
+        \SOSSData::Delete("ytg_competitor_videos", $row);
+        $this->clearContextResearch($channel->channelId, $video->youtubeVideoId);
+        $this->audit("COMPETITOR_VIDEO_REMOVED", $channel->channelId, "competitor-video:" . $competitorVideoId, null, array("contextVideoId" => $video->youtubeVideoId));
+        return (object)array("workspace" => $this->competitorVideoWorkspace($channel, $video), "message" => "Competitor video and its stored transcript were removed from this workspace.");
+    }
+
     public function postSaveCalendarItem($req, $res) {
         $body = $this->body($req);
         $channel = $this->requireChannel($res, isset($body->channelId) ? $body->channelId : "", array("Owner", "Manager", "Editor"));
@@ -404,6 +529,61 @@ class GrowthWorkbenchService extends \YtgServiceBase {
             $durationSeconds = $this->isoDurationSeconds(isset($contentDetails["duration"]) ? $contentDetails["duration"] : "PT0S");
             $this->upsert("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $channelId), array("column" => "competitorId", "operator" => "=", "value" => $competitor->competitorId), array("column" => "youtubeVideoId", "operator" => "=", "value" => $item["id"])), (object)array("channelId" => $channelId, "competitorId" => $competitor->competitorId, "youtubeVideoId" => $item["id"], "title" => isset($snippet["title"]) ? substr((string)$snippet["title"], 0, 500) : "", "description" => $description, "tags" => isset($snippet["tags"]) && is_array($snippet["tags"]) ? array_slice($snippet["tags"], 0, 100) : array(), "hashtags" => $this->extractHashtags((isset($snippet["title"]) ? $snippet["title"] : "") . "\n" . $description), "publishedAt" => isset($snippet["publishedAt"]) ? date("Y-m-d H:i:s", strtotime($snippet["publishedAt"])) : null, "thumbnailUrl" => isset($snippet["thumbnails"]["medium"]["url"]) ? $snippet["thumbnails"]["medium"]["url"] : "", "durationSeconds" => $durationSeconds, "contentType" => $durationSeconds > 0 && $durationSeconds <= 180 && $this->hasShortsMarker($snippet) ? "Short" : "Long-form", "views" => intval(isset($stats["viewCount"]) ? $stats["viewCount"] : 0), "likes" => intval(isset($stats["likeCount"]) ? $stats["likeCount"] : 0), "comments" => intval(isset($stats["commentCount"]) ? $stats["commentCount"] : 0), "subscriberCountSnapshot" => intval(isset($competitor->subscriberCount) ? $competitor->subscriberCount : 0), "source" => "YOUTUBE_DATA", "calculationSource" => "", "refreshedAt" => $this->now()));
         }
+    }
+
+    private function competitorVideoWorkspace($channel, $video) {
+        $conditions = array(array("column" => "channelId", "operator" => "=", "value" => $channel->channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $video->youtubeVideoId));
+        $query = $this->query("ytg_competitor_videos", $conditions, array(array("column" => "performanceRank", "direction" => "ASC")), 100, 0);
+        $videos = $query->success ? $query->result : array();
+        if (count($videos)) { $videos = $this->rankContextCompetitorVideos($channel->channelId, $video->youtubeVideoId, false); }
+        $transcriptQuery = $this->query("ytg_competitor_transcripts", $conditions, array(array("column" => "importedAt", "direction" => "DESC")), 100, 0);
+        $transcripts = array();
+        foreach ($transcriptQuery->success ? $transcriptQuery->result : array() as $transcript) {
+            $transcripts[(string)$transcript->competitorVideoId] = (object)array("competitorVideoId" => $transcript->competitorVideoId, "language" => $transcript->language, "sourceType" => $transcript->sourceType, "provenance" => $transcript->provenance, "importedAt" => $transcript->importedAt);
+        }
+        foreach ($videos as $item) {
+            $item->tags = $this->decodeJson(isset($item->tags) ? $item->tags : array()); $item->hashtags = $this->decodeJson(isset($item->hashtags) ? $item->hashtags : array());
+            $item->transcript = isset($transcripts[(string)$item->youtubeVideoId]) ? $transcripts[(string)$item->youtubeVideoId] : null;
+            $item->watchUrl = "https://www.youtube.com/watch?v=" . rawurlencode((string)$item->youtubeVideoId);
+        }
+        $researchQuery = $this->query("ytg_competitor_research", $conditions, array(array("column" => "researchId", "direction" => "DESC")), 1, 0);
+        $research = $researchQuery->success && count($researchQuery->result) ? $researchQuery->result[0] : null;
+        if ($research !== null) {
+            foreach (array("sourceVideoIds", "rankedKeywords", "rankedHashtags", "tags", "titlePromptPairs", "limitations") as $field) { $research->{$field} = $this->decodeJson(isset($research->{$field}) ? $research->{$field} : array()); }
+        }
+        return (object)array("contextVideoId" => $video->youtubeVideoId, "videos" => $videos, "research" => $research, "transcriptPolicy" => "Competitor captions are never downloaded or scraped. Only rights-confirmed user input or an approved licensed provider may be analysed.", "derivedMetricsEnabled" => \YtgConfig::derivedMetricsEnabled());
+    }
+
+    private function rankContextCompetitorVideos($channelId, $contextVideoId, $persist) {
+        $query = $this->query("ytg_competitor_videos", array(array("column" => "channelId", "operator" => "=", "value" => $channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $contextVideoId)), array(array("column" => "views", "direction" => "DESC")), 100, 0);
+        $videos = $query->success ? $query->result : array(); $derived = \YtgConfig::derivedMetricsEnabled(); $now = time();
+        foreach ($videos as $item) {
+            $published = isset($item->publishedAt) ? strtotime((string)$item->publishedAt) : false; $ageDays = $published === false ? 1 : max(1, intval(floor(($now - $published) / 86400)) + 1);
+            $item->ageDays = $ageDays; $item->viewsPerDay = $derived ? round(intval($item->views) / $ageDays, 2) : null; $item->viewsToSubscriberRatio = null; $item->calculationSource = $derived ? "PRODUCT_CALCULATION" : "DISABLED_BY_POLICY";
+        }
+        usort($videos, function($left, $right) use ($derived) { $leftValue = $derived ? floatval($left->viewsPerDay) : intval($left->views); $rightValue = $derived ? floatval($right->viewsPerDay) : intval($right->views); return $leftValue === $rightValue ? 0 : ($leftValue < $rightValue ? 1 : -1); });
+        foreach ($videos as $index => $item) { $item->performanceRank = $index + 1; $item->shortlisted = $index < min(10, count($videos)); if ($persist) { \SOSSData::Update("ytg_competitor_videos", $item); } }
+        return $videos;
+    }
+
+    private function clearContextResearch($channelId, $contextVideoId) {
+        $query = $this->query("ytg_competitor_research", array(array("column" => "channelId", "operator" => "=", "value" => $channelId), array("column" => "contextVideoId", "operator" => "=", "value" => $contextVideoId)), array(), 100, 0);
+        foreach ($query->success ? $query->result : array() as $row) { \SOSSData::Delete("ytg_competitor_research", $row); }
+    }
+
+    private function parseCompetitorVideoReference($value) {
+        $value = trim((string)$value); if ($value === "" || strlen($value) > 1000) { return null; }
+        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $value)) { return (object)array("videoId" => $value, "sourceUrl" => "https://www.youtube.com/watch?v=" . $value); }
+        if (!preg_match('/^https?:\/\//i', $value)) { $value = "https://" . $value; }
+        if (filter_var($value, FILTER_VALIDATE_URL) === false) { return null; }
+        $host = strtolower((string)parse_url($value, PHP_URL_HOST)); $host = preg_replace('/^(?:www\.|m\.)/', '', $host); $path = trim((string)parse_url($value, PHP_URL_PATH), "/"); $id = "";
+        if ($host === "youtu.be" && preg_match('/^([A-Za-z0-9_-]{11})(?:\/|$)/', $path, $match)) { $id = $match[1]; }
+        elseif (in_array($host, array("youtube.com", "music.youtube.com"), true)) {
+            if (preg_match('/^(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})(?:\/|$)/', $path, $match)) { $id = $match[1]; }
+            elseif ($path === "watch") { parse_str((string)parse_url($value, PHP_URL_QUERY), $query); $id = isset($query["v"]) ? (string)$query["v"] : ""; }
+        }
+        if (!preg_match('/^[A-Za-z0-9_-]{11}$/', $id)) { return null; }
+        return (object)array("videoId" => $id, "sourceUrl" => substr($value, 0, 1000));
     }
 
     private function parseCompetitorReference($value) {

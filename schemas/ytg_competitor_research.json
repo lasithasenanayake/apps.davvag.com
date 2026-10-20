@@ -1,0 +1,21 @@
+{
+  "fields": [
+    {"fieldName":"researchId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"contextVideoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"sourceVideoIds","dataType":"object"},
+    {"fieldName":"detectedLanguage","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"languageCode","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"languageConfidence","dataType":"java.lang.String","annotations":{"maxLen":20}},
+    {"fieldName":"languageSource","dataType":"java.lang.String","annotations":{"maxLen":60}},
+    {"fieldName":"rankedKeywords","dataType":"object"},
+    {"fieldName":"rankedHashtags","dataType":"object"},
+    {"fieldName":"description","dataType":"java.lang.String","annotations":{"maxLen":10000,"encoding":"utf8"}},
+    {"fieldName":"tags","dataType":"object"},
+    {"fieldName":"titlePromptPairs","dataType":"object"},
+    {"fieldName":"limitations","dataType":"object"},
+    {"fieldName":"resultSource","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"modelVersion","dataType":"java.lang.String","annotations":{"maxLen":100}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}

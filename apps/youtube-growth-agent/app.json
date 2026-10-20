@@ -19,7 +19,7 @@
   "description": {
     "title": "YouTube Growth Agent",
     "author": "DAVVAG",
-    "version": "0.8",
+    "version": "0.9",
     "icon": "appicon.svg"
   },
   "tags": ["showincms", "showindock"],
@@ -78,6 +78,8 @@
       "ytg_calendar_items",
       "ytg_competitors",
       "ytg_competitor_videos",
+      "ytg_competitor_transcripts",
+      "ytg_competitor_research",
       "ytg_comments",
       "ytg_experiments",
       "ytg_audit_log"
