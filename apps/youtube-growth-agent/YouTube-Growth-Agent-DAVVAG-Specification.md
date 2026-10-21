@@ -6,7 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
-**Implementation baseline:** app version 0.15; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research with automatic AI output repair, a model-visible application-owned runtime output contract, and bounded failure diagnostics implemented by 2026-10-21
+**Implementation baseline:** app version 0.16; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research with automatic AI output repair, a model-visible application-owned runtime output contract, and bounded provider failure diagnostics implemented by 2026-10-21
 
 ---
 
@@ -803,6 +803,7 @@ Implementation extension (2026-10-19):
 - Added authenticated failure diagnostics on 2026-10-21. When both generation attempts fail, the endpoint returns validation defects, execution/parsing errors, and up to 12,000 characters of raw output from each agent attempt. Request payloads, transcripts, profile data, and credentials are excluded from this diagnostic response.
 - Corrected saved-agent payload delivery on 2026-10-21. The saved-agent runtime retains application payload data for skills and internal context but does not add it to the provider prompt. The YouTube Growth Agent now serializes its authoritative payload into every model-visible task message, ensuring the selected transcript, real competitor IDs, generation language, policies, validation errors, rejected candidate, and output contract reach both the primary and repair agents.
 - Corrected the research evidence allow-list on 2026-10-21. Known competitor IDs remain valid evidence sources, and the selected owned-video ID is additionally accepted for transcript evidence. The exact allow-list and usage policy are sent to both agents; unknown or invented IDs remain invalid.
+- Corrected provider-error propagation on 2026-10-21. Saved-agent failures expose their sanitized diagnostic in `message`, with `error` retained for compatibility. The growth service now preserves either field so authentication, quota, context-size, transport, and provider HTTP failures are no longer collapsed into a generic execution error.
 
 ### Phase 3 — Packaging, community, and experiments
 

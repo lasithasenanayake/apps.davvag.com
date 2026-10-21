@@ -234,7 +234,7 @@ class GrowthAiService extends \YtgServiceBase {
             if (!class_exists("\\ai_agent_creator\\CreatorService")) { throw new \RuntimeException("Saved-agent runtime is unavailable."); }
             $creator = new \ai_agent_creator\CreatorService(); $profile = $this->currentProfile();
             $run = $creator->interactWithAgent(array("agentCode" => $agentCode, "message" => $this->agentPromptMessage($message, $payload), "appCode" => "youtube-growth-agent", "appName" => "YouTube Growth Agent", "profile" => array("profileId" => $profile->id), "conversationKey" => $context->channel->channelId . ":" . $context->video->youtubeVideoId . ":" . strtolower($agentType), "context" => array("channelId" => $context->channel->channelId, "videoId" => $context->video->youtubeVideoId, "language" => $context->language, "officialMetricsOnly" => true, "channelWriteBack" => false), "payload" => $payload));
-            if (!isset($run->success) || !$run->success) { throw new \RuntimeException(isset($run->error) ? $run->error : "Saved-agent execution failed."); }
+            if (!isset($run->success) || !$run->success) { throw new \RuntimeException($this->savedAgentExecutionError($run)); }
             $text = isset($run->response) ? $run->response : (isset($run->reply) ? $run->reply : ""); $data = $this->decodeAgentJson($text);
             if (!is_object($data) || $this->forbidden($data)) { throw new \RuntimeException("Saved-agent JSON was invalid or contained unsupported claims."); }
             $this->recordRun($context, $agentType, isset($run->model) ? $run->model : "", $promptVersion, $payload, $data, "STRUCTURE_VALID", isset($run->tokenUsage) ? intval($run->tokenUsage) : 0);
@@ -249,6 +249,16 @@ class GrowthAiService extends \YtgServiceBase {
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (!is_string($json)) { throw new \RuntimeException("The application payload could not be encoded for the saved agent."); }
         return trim((string)$instructions) . "\n\nAUTHORITATIVE APPLICATION PAYLOAD JSON (use these exact values; do not ask the user to provide them again):\n" . $json;
+    }
+
+    private function savedAgentExecutionError($run) {
+        if (is_object($run)) {
+            foreach (array("error", "message") as $field) {
+                $value = $this->safeText(isset($run->{$field}) ? $run->{$field} : "", 1000);
+                if ($value !== "") { return $value; }
+            }
+        }
+        return "Saved-agent execution failed without a provider error message.";
     }
 
     private function agentFailureSnapshot($run) {
