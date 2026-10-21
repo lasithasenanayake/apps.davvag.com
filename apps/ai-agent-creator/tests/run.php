@@ -88,6 +88,8 @@ $normalizedInteraction = callPrivate($service, "interactionMessage", array(array
 checkAac(strlen($normalizedInteraction) > 50000 && substr($normalizedInteraction, -strlen("සිංහල")) === "සිංහල", "YouTube Growth Agent interactions retain approved research payloads beyond the legacy 50KB limit");
 $unrelatedInteraction = callPrivate($service, "interactionMessage", array(array("appCode" => "another-app", "message" => $longInteraction)));
 checkAac(strlen($unrelatedInteraction) <= 50000, "unrelated saved-agent apps retain the existing 50KB interaction ceiling");
+$nestedRuntimeInteraction = callPrivate($service, "runtimeMessage", array(array("message" => $longInteraction, "payload" => array("appCode" => "youtube-growth-agent"))));
+checkAac(strlen($nestedRuntimeInteraction) > 50000 && substr($nestedRuntimeInteraction, -strlen("සිංහල")) === "සිංහල", "RunAgent retains the approved YouTube payload when appCode is nested by InteractWithAgent");
 $utf8Cut = callPrivate($service, "limitUtf8Text", array(str_repeat("අ", 10), 5));
 checkAac(strlen($utf8Cut) <= 5 && preg_match('//u', $utf8Cut) === 1, "byte limits never split a UTF-8 character");
 $longGooglePayload = callPrivate($service, "providerPayload", array($googleCreated->config, $normalizedInteraction, array(), array(), array()));

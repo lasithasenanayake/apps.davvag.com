@@ -288,7 +288,7 @@ class CreatorService {
         $body = $this->objectToArray($input);
         $appContext = $this->applicationContextFromRunBody($body);
         $agentCode = $this->normalizeAgentCode($this->arrayString($body, "agentCode", ""));
-        $message = $this->arrayString($body, "message", "");
+        $message = $this->runtimeMessage($body);
         $contentResult = $this->normalizeRuntimeContent(isset($body["content"]) ? $body["content"] : array(), $message);
 
         if ($agentCode === "") {
@@ -2676,7 +2676,15 @@ class CreatorService {
     }
 
     private function interactionMessage($body) {
+        return $this->runtimeMessage($body);
+    }
+
+    private function runtimeMessage($body) {
         $appCode = $this->normalizeContextCode($this->arrayString($body, "appCode", ""), "");
+        if ($appCode === "" && isset($body["payload"])) {
+            $payload = $this->objectToArray($body["payload"]);
+            $appCode = $this->normalizeContextCode($this->arrayString($payload, "appCode", ""), "");
+        }
         $messageLimit = $appCode === "youtube-growth-agent" ? 800000 : 50000;
         $message = $this->limitUtf8Text(isset($body["message"]) ? $body["message"] : "", $messageLimit);
         if ($message !== "") {
