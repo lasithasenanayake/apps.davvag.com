@@ -39,6 +39,10 @@ $snapshot = $aiReflection->getMethod("agentFailureSnapshot"); $snapshot->setAcce
 $diagnostic = $snapshot->invoke($ai, (object)array("valid" => false, "error" => "Invalid JSON", "rawResponse" => str_repeat("x", 13000)));
 expectResearch($diagnostic->validJson === false && $diagnostic->error === "Invalid JSON", "failure diagnostics should expose the AI parsing error");
 expectResearch(strlen($diagnostic->rawResponse) === 12000, "failure diagnostics should bound the raw AI response");
+$promptMessage = $aiReflection->getMethod("agentPromptMessage"); $promptMessage->setAccessible(true);
+$visiblePrompt = $promptMessage->invoke($ai, "Return JSON.", array("selectedOwnedVideoTranscript" => "සිංහල transcript", "competitorVideoIds" => array("19qCPrr5Xhg")));
+expectResearch(strpos($visiblePrompt, "AUTHORITATIVE APPLICATION PAYLOAD JSON") !== false, "saved-agent messages should identify the authoritative runtime payload");
+expectResearch(strpos($visiblePrompt, "සිංහල transcript") !== false && strpos($visiblePrompt, "19qCPrr5Xhg") !== false, "saved-agent messages should contain the transcript and real competitor IDs visible to the model");
 $language = (object)array("name" => "English", "code" => "en", "confidence" => "high", "source" => "owned_video_transcript");
 $allowed = array("19qCPrr5Xhg" => true);
 $sources = array((object)array("videoId" => "19qCPrr5Xhg", "transcriptStatus" => "unavailable"));
@@ -94,6 +98,7 @@ expectResearch(strpos($aiSource, "deriveResearchTags") !== false, "the applicati
 expectResearch(strpos($aiSource, "Troubleshooting details:") !== false, "failed research should return structured AI response diagnostics");
 expectResearch(strpos($aiSource, '"primaryAgent" => $this->agentFailureSnapshot($run)') !== false, "failure diagnostics should include the primary AI response");
 expectResearch(strpos($aiSource, '"repairAgent" => $this->agentFailureSnapshot($repairRun)') !== false, "failure diagnostics should include the repair AI response");
+expectResearch(strpos($aiSource, '$this->agentPromptMessage($message, $payload)') !== false, "the saved-agent provider message should include the complete application payload");
 expectResearch(strpos($aiSource, "No low-quality titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;

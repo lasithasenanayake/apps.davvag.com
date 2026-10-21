@@ -232,7 +232,7 @@ class GrowthAiService extends \YtgServiceBase {
             require_once($path);
             if (!class_exists("\\ai_agent_creator\\CreatorService")) { throw new \RuntimeException("Saved-agent runtime is unavailable."); }
             $creator = new \ai_agent_creator\CreatorService(); $profile = $this->currentProfile();
-            $run = $creator->interactWithAgent(array("agentCode" => $agentCode, "message" => $message, "appCode" => "youtube-growth-agent", "appName" => "YouTube Growth Agent", "profile" => array("profileId" => $profile->id), "conversationKey" => $context->channel->channelId . ":" . $context->video->youtubeVideoId . ":" . strtolower($agentType), "context" => array("channelId" => $context->channel->channelId, "videoId" => $context->video->youtubeVideoId, "language" => $context->language, "officialMetricsOnly" => true, "channelWriteBack" => false), "payload" => $payload));
+            $run = $creator->interactWithAgent(array("agentCode" => $agentCode, "message" => $this->agentPromptMessage($message, $payload), "appCode" => "youtube-growth-agent", "appName" => "YouTube Growth Agent", "profile" => array("profileId" => $profile->id), "conversationKey" => $context->channel->channelId . ":" . $context->video->youtubeVideoId . ":" . strtolower($agentType), "context" => array("channelId" => $context->channel->channelId, "videoId" => $context->video->youtubeVideoId, "language" => $context->language, "officialMetricsOnly" => true, "channelWriteBack" => false), "payload" => $payload));
             if (!isset($run->success) || !$run->success) { throw new \RuntimeException(isset($run->error) ? $run->error : "Saved-agent execution failed."); }
             $text = isset($run->response) ? $run->response : (isset($run->reply) ? $run->reply : ""); $data = $this->decodeAgentJson($text);
             if (!is_object($data) || $this->forbidden($data)) { throw new \RuntimeException("Saved-agent JSON was invalid or contained unsupported claims."); }
@@ -242,6 +242,12 @@ class GrowthAiService extends \YtgServiceBase {
             $fallback->rawResponse = $this->safeText($text, 12000); $fallback->error = $this->safeText($error->getMessage(), 1000);
             $this->recordRun($context, $agentType, "", $promptVersion, $payload, array("error" => $error->getMessage()), "REJECTED_FALLBACK", 0); return $fallback;
         }
+    }
+
+    private function agentPromptMessage($instructions, $payload) {
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!is_string($json)) { throw new \RuntimeException("The application payload could not be encoded for the saved agent."); }
+        return trim((string)$instructions) . "\n\nAUTHORITATIVE APPLICATION PAYLOAD JSON (use these exact values; do not ask the user to provide them again):\n" . $json;
     }
 
     private function agentFailureSnapshot($run) {
