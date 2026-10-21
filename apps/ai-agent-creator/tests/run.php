@@ -83,6 +83,15 @@ foreach (array("image" => "image/png", "audio" => "audio/mpeg", "video" => "vide
 }
 $googlePayload = callPrivate($service, "providerPayload", array($googleCreated->config, "Review", array(), array(), $googleContent));
 checkAac(count($googlePayload["contents"][0]["parts"]) === 5 && isset($googlePayload["contents"][0]["parts"][4]["inlineData"]), "Google maps text, image, audio, video, and document parts natively");
+$longInteraction = str_repeat("a", 60000) . "සිංහල";
+$normalizedInteraction = callPrivate($service, "interactionMessage", array(array("appCode" => "youtube-growth-agent", "message" => $longInteraction)));
+checkAac(strlen($normalizedInteraction) > 50000 && substr($normalizedInteraction, -strlen("සිංහල")) === "සිංහල", "YouTube Growth Agent interactions retain approved research payloads beyond the legacy 50KB limit");
+$unrelatedInteraction = callPrivate($service, "interactionMessage", array(array("appCode" => "another-app", "message" => $longInteraction)));
+checkAac(strlen($unrelatedInteraction) <= 50000, "unrelated saved-agent apps retain the existing 50KB interaction ceiling");
+$utf8Cut = callPrivate($service, "limitUtf8Text", array(str_repeat("අ", 10), 5));
+checkAac(strlen($utf8Cut) <= 5 && preg_match('//u', $utf8Cut) === 1, "byte limits never split a UTF-8 character");
+$longGooglePayload = callPrivate($service, "providerPayload", array($googleCreated->config, $normalizedInteraction, array(), array(), array()));
+checkAac(isset($longGooglePayload["contents"][0]["parts"][0]["text"]) && strlen($longGooglePayload["contents"][0]["parts"][0]["text"]) > 50000 && is_string(json_encode($longGooglePayload)), "Google receives non-empty, JSON-encodable contents for large app payloads");
 
 $ollamaBody = baseConfigBody("ollama", "gemma4");
 $ollamaBody->modalities = array("input" => array("text", "image"), "output" => array("text"));

@@ -1526,7 +1526,7 @@ class CreatorService {
                 continue;
             }
             $role = $item["role"] === "assistant" ? "assistant" : "user";
-            $content = trim(substr((string)$item["content"], 0, 5000));
+            $content = $this->limitUtf8Text($item["content"], 5000);
             if ($content !== "") {
                 $messages[] = array("role" => $role, "content" => $content);
             }
@@ -1577,6 +1577,10 @@ class CreatorService {
     private function sendJsonRequest($url, $method, $headers, $payload, $provider) {
         $ch = curl_init($url);
         $payloadJson = json_encode($payload);
+        if (!is_string($payloadJson)) {
+            curl_close($ch);
+            return $this->fail("Agent provider request could not be encoded as valid UTF-8 JSON.");
+        }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -2552,11 +2556,20 @@ class CreatorService {
         if (!isset($body->$key)) {
             return $default;
         }
-        return trim(substr((string)$body->$key, 0, 20000));
+        return $this->limitUtf8Text($body->$key, 20000);
     }
 
     private function limitText($value, $maxLength) {
-        return trim(substr((string)$value, 0, $maxLength));
+        return $this->limitUtf8Text($value, $maxLength);
+    }
+
+    private function limitUtf8Text($value, $maxBytes) {
+        $value = (string)$value; $maxBytes = max(0, (int)$maxBytes);
+        if (strlen($value) <= $maxBytes) { return trim($value); }
+        if (function_exists("mb_strcut")) { return trim(mb_strcut($value, 0, $maxBytes, "UTF-8")); }
+        $value = substr($value, 0, $maxBytes);
+        while ($value !== "" && preg_match('//u', $value) !== 1) { $value = substr($value, 0, -1); }
+        return trim($value);
     }
 
     private function integerString($value) {
@@ -2568,7 +2581,7 @@ class CreatorService {
         if (!is_array($input) || !isset($input[$key])) {
             return $default;
         }
-        return trim(substr((string)$input[$key], 0, 50000));
+        return $this->limitUtf8Text($input[$key], 50000);
     }
 
     private function arrayList($input, $key) {
@@ -2663,17 +2676,19 @@ class CreatorService {
     }
 
     private function interactionMessage($body) {
-        $message = $this->arrayString($body, "message", "");
+        $appCode = $this->normalizeContextCode($this->arrayString($body, "appCode", ""), "");
+        $messageLimit = $appCode === "youtube-growth-agent" ? 800000 : 50000;
+        $message = $this->limitUtf8Text(isset($body["message"]) ? $body["message"] : "", $messageLimit);
         if ($message !== "") {
             return $message;
         }
 
-        $message = $this->arrayString($body, "prompt", "");
+        $message = $this->limitUtf8Text(isset($body["prompt"]) ? $body["prompt"] : "", $messageLimit);
         if ($message !== "") {
             return $message;
         }
 
-        return $this->arrayString($body, "question", "");
+        return $this->limitUtf8Text(isset($body["question"]) ? $body["question"] : "", $messageLimit);
     }
 
     private function boolFromArray($input, $key, $default) {
