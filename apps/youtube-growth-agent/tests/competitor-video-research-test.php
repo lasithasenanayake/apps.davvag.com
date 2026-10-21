@@ -43,6 +43,10 @@ $promptMessage = $aiReflection->getMethod("agentPromptMessage"); $promptMessage-
 $visiblePrompt = $promptMessage->invoke($ai, "Return JSON.", array("selectedOwnedVideoTranscript" => "සිංහල transcript", "competitorVideoIds" => array("19qCPrr5Xhg")));
 expectResearch(strpos($visiblePrompt, "AUTHORITATIVE APPLICATION PAYLOAD JSON") !== false, "saved-agent messages should identify the authoritative runtime payload");
 expectResearch(strpos($visiblePrompt, "සිංහල transcript") !== false && strpos($visiblePrompt, "19qCPrr5Xhg") !== false, "saved-agent messages should contain the transcript and real competitor IDs visible to the model");
+$evidenceIdsMethod = $aiReflection->getMethod("researchEvidenceIds"); $evidenceIdsMethod->setAccessible(true);
+$researchEvidenceIds = $evidenceIdsMethod->invoke($ai, array("QlG3RWY6OBU" => true), "19qCPrr5Xhg");
+expectResearch(isset($researchEvidenceIds["QlG3RWY6OBU"]) && isset($researchEvidenceIds["19qCPrr5Xhg"]), "research evidence should permit known competitor IDs and the owned-video ID");
+expectResearch(!isset($researchEvidenceIds["invented-id"]), "research evidence should not admit unknown video IDs");
 $language = (object)array("name" => "English", "code" => "en", "confidence" => "high", "source" => "owned_video_transcript");
 $allowed = array("19qCPrr5Xhg" => true);
 $sources = array((object)array("videoId" => "19qCPrr5Xhg", "transcriptStatus" => "unavailable"));
@@ -99,6 +103,7 @@ expectResearch(strpos($aiSource, "Troubleshooting details:") !== false, "failed 
 expectResearch(strpos($aiSource, '"primaryAgent" => $this->agentFailureSnapshot($run)') !== false, "failure diagnostics should include the primary AI response");
 expectResearch(strpos($aiSource, '"repairAgent" => $this->agentFailureSnapshot($repairRun)') !== false, "failure diagnostics should include the repair AI response");
 expectResearch(strpos($aiSource, '$this->agentPromptMessage($message, $payload)') !== false, "the saved-agent provider message should include the complete application payload");
+expectResearch(strpos($aiSource, '"allowedEvidenceVideoIds" => array_keys($evidenceIds)') !== false, "the agent contract should expose the exact evidence ID allow-list");
 expectResearch(strpos($aiSource, "No low-quality titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;
