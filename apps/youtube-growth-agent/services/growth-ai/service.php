@@ -127,7 +127,7 @@ class GrowthAiService extends \YtgServiceBase {
         }
         if (!count($videos)) { return $this->fail($res, "None of the selected competitor video IDs belong to this video workspace."); }
         $language = $this->detectGenerationLanguage($context, isset($body->languageOverride) ? $body->languageOverride : ""); $context->language = $language->name;
-        $payload = array("selectedOwnedVideo" => $context->safeVideo, "selectedOwnedVideoTranscript" => $this->safeText($ownedTranscript, 50000), "competitorVideos" => $videos, "generationLanguage" => $language, "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "viewsPerDay is a labelled product estimate" : "Use raw public metrics only", "titlePolicy" => array("primaryTruthSource" => "selectedOwnedVideoTranscript", "currentTitleMustNotBeReused" => (string)$context->video->title, "keywordUse" => "Use one or two high-relevance ranked keywords naturally in each title; never append a keyword list.", "hashtagUse" => "Hashtags guide topic relevance and belong in the hashtag output, not as a stuffed title suffix.", "pairCount" => 3));
+        $payload = array("selectedOwnedVideo" => $context->safeVideo, "selectedOwnedVideoTranscript" => $this->safeText($ownedTranscript, 50000), "competitorVideos" => $videos, "generationLanguage" => $language, "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "viewsPerDay is a labelled product estimate" : "Use raw public metrics only", "titlePolicy" => array("primaryTruthSource" => "selectedOwnedVideoTranscript", "currentTitleMustNotBeReused" => (string)$context->video->title, "keywordUse" => "Use one or two high-relevance ranked keywords naturally in each title; never append a keyword list.", "hashtagUse" => "Hashtags guide topic relevance and belong in the hashtag output, not as a stuffed title suffix.", "pairCount" => 3), "outputContract" => $this->competitorResearchOutputContract());
         $message = "Return strict JSON with keywords, hashtags, description, tags, titlePromptPairs, and limitations. First understand the selected owned-video transcript: its central subject, key event or claim, people/organizations involved, viewer value, tone, and factual boundaries. The transcript is the primary truth source for every title; competitor data is secondary SEO and packaging evidence only. Rank only keywords and hashtags that are both relevant to the transcript and supported by supplied competitor evidence. Each keyword/hashtag item needs text, rationale, evidenceVideoIds, evidenceType, and estimated=true. Return exactly three genuinely different titlePromptPairs. Each pair needs: title under 100 characters; angle; transcriptEvidenceExcerpt copied exactly from the supplied owned transcript; usedKeywords containing one or two entries copied exactly from the returned ranked keywords; usedHashtags containing one to three entries copied exactly from the returned ranked hashtags; detailed 16:9 imagePrompt; optional onImageText of five words or fewer; rationale; and evidenceVideoIds. Titles must summarize a real transcript theme, use the ranked keyword naturally, be readable and compelling, and must not equal, begin with, end with, or merely add a suffix/prefix to the current video title. Do not put a list of keywords, language names, 'news protest Sri Lanka sinhala', or hashtags into a title. Do not use generic suffixes such as complete guide or 3 essential lessons unless the transcript itself supports that exact framing. Each image prompt must visualize its own title and transcript evidence with a specific subject, composition, focal point, authentic emotion, relevant setting, lighting, colour/contrast, safe negative space, and exclusions for logos, watermarks, misleading imagery, and unreadable text. Generate all viewer-facing text in " . $language->name . ". Do not copy competitor titles, invent facts or metrics, claim search volume, or promise reach/performance.";
         $run = $this->agentJson($context, "COMPETITOR_VIDEO_RESEARCH", $this->agentCode("COMPETITOR", \YtgConfig::agentCode()), $message, $payload, "competitor-video-research-v2");
         $validationErrors = array();
@@ -307,19 +307,33 @@ class GrowthAiService extends \YtgServiceBase {
         return (object)array($field => $items, "task" => $task, "dataSource" => "RULE_BASED_PUBLIC_METADATA");
     }
 
+    private function competitorResearchOutputContract() {
+        return array(
+            "responseFormat" => "Return one JSON object only. Do not use Markdown fences or explanatory text.",
+            "requiredTopLevelFields" => array("keywords", "hashtags", "description", "titlePromptPairs"),
+            "optionalTopLevelFields" => array("tags", "limitations"),
+            "keywords" => array("type" => "array", "itemFields" => array("text" => "string", "rank" => "integer", "rationale" => "string", "evidenceVideoIds" => "string[]", "evidenceType" => "metadata|transcript|metadata_and_transcript", "estimated" => "boolean")),
+            "hashtags" => array("type" => "array", "itemFields" => array("text" => "#hashtag string", "rank" => "integer", "rationale" => "string", "evidenceVideoIds" => "string[]", "evidenceType" => "metadata|transcript|metadata_and_transcript", "estimated" => "boolean")),
+            "description" => "string in generationLanguage",
+            "tags" => "optional string[]; copy concise relevant terms from keywords, without # prefixes; the application derives this field from validated keywords and hashtags when omitted",
+            "titlePromptPairs" => array("type" => "array", "exactItemCount" => 3, "itemFields" => array("title" => "string under 100 characters", "angle" => "string", "transcriptEvidenceExcerpt" => "exact continuous excerpt copied from selectedOwnedVideoTranscript", "usedKeywords" => "string[1..2], copied exactly from keywords[].text", "usedHashtags" => "string[1..3], copied exactly from hashtags[].text", "imagePrompt" => "specific 16:9 prompt", "onImageText" => "string of at most five words or empty", "rationale" => "string", "evidenceVideoIds" => "string[] containing only supplied competitor video IDs")),
+            "limitations" => "string[]"
+        );
+    }
+
     private function validateCompetitorVideoResearch($data, $allowedIds, $language, $sources, $currentTitle, $ownedTranscript, &$validationErrors = null) {
         $validationErrors = array();
         if (!is_object($data)) { $validationErrors[] = "The response was not a JSON object."; return null; }
-        foreach (array("keywords", "hashtags", "description", "tags", "titlePromptPairs") as $field) { if (!isset($data->{$field})) { $validationErrors[] = "Missing required field: " . $field . "."; } }
+        foreach (array("keywords", "hashtags", "description", "titlePromptPairs") as $field) { if (!isset($data->{$field})) { $validationErrors[] = "Missing required field: " . $field . "."; } }
         if (count($validationErrors)) { return null; }
         if (!is_array($data->titlePromptPairs) || count($data->titlePromptPairs) !== 3) { $validationErrors[] = "Exactly three titlePromptPairs are required."; }
         $keywords = $this->validateRankedResearchItems($data->keywords, $allowedIds, false); $hashtags = $this->validateRankedResearchItems($data->hashtags, $allowedIds, true);
         if (!count($keywords)) { $validationErrors[] = "At least one ranked keyword with valid competitor evidence is required."; }
         if (!count($hashtags)) { $validationErrors[] = "At least one ranked hashtag with valid competitor evidence is required."; }
-        $description = $this->safeText($data->description, 5000); $tags = $this->strings($data->tags, 30, 100);
+        $description = $this->safeText($data->description, 5000); $tags = $this->strings(isset($data->tags) ? $data->tags : array(), 30, 100);
         if ($description === "") { $validationErrors[] = "The recommended description is empty."; }
-        if (!count($tags)) { $validationErrors[] = "At least one relevant tag is required."; }
         if (count($validationErrors)) { return null; }
+        if (!count($tags)) { $tags = $this->deriveResearchTags($keywords, $hashtags); }
         $keywordMap = array(); foreach ($keywords as $keyword) { $keywordMap[$this->normalizeSearchText($keyword->text)] = $keyword->text; }
         $hashtagMap = array(); foreach ($hashtags as $hashtag) { $hashtagMap[$this->normalizeSearchText($hashtag->text)] = $hashtag->text; }
         $normalizedTranscript = $this->normalizeSearchText($ownedTranscript); if ($normalizedTranscript === "") { $validationErrors[] = "The owned-video transcript is empty after normalization."; return null; }
@@ -358,6 +372,13 @@ class GrowthAiService extends \YtgServiceBase {
             $out[] = (object)array("text" => $text, "rank" => count($out) + 1, "rationale" => $rationale, "evidenceVideoIds" => $ids, "evidenceType" => $evidenceType, "estimated" => true);
         }
         return $out;
+    }
+
+    private function deriveResearchTags($keywords, $hashtags) {
+        $values = array();
+        foreach (array_slice($keywords, 0, 15) as $keyword) { if (isset($keyword->text)) { $values[] = $keyword->text; } }
+        foreach (array_slice($hashtags, 0, 5) as $hashtag) { if (isset($hashtag->text)) { $values[] = ltrim((string)$hashtag->text, "#"); } }
+        return $this->strings($values, 20, 100);
     }
 
     private function detectGenerationLanguage($context, $override) {

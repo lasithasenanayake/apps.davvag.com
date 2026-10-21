@@ -49,6 +49,11 @@ $payload = (object)array(
 );
 $validated = $validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript);
 expectResearch($validated !== null && count($validated->titlePromptPairs) === 3, "exactly three valid title/prompt pairs should be accepted");
+$payloadWithoutTags = clone $payload;
+unset($payloadWithoutTags->tags);
+$validatedWithoutTags = $validate->invoke($ai, $payloadWithoutTags, $allowed, $language, $sources, $currentTitle, $ownedTranscript);
+expectResearch($validatedWithoutTags !== null, "otherwise-valid research should not fail when the AI omits optional tags");
+expectResearch(in_array("topic keyword", $validatedWithoutTags->tags, true) && in_array("topic", $validatedWithoutTags->tags, true), "missing tags should be derived from validated ranked keywords and hashtags");
 $payload->titlePromptPairs = array($pair("A"), $pair("B"));
 $validationErrors = array();
 $invalidArgs = array($payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript, &$validationErrors);
@@ -80,6 +85,8 @@ $aiSource = file_get_contents($appRoot . "/services/growth-ai/service.php");
 expectResearch(strpos($aiSource, "competitor-video-research-v2") !== false, "the transcript-grounded prompt contract should use version 2");
 expectResearch(strpos($aiSource, "competitor-video-research-repair-v2") !== false, "invalid primary output should receive one structured repair attempt");
 expectResearch(strpos($aiSource, 'agentCode("TITLE", "seo-suggestion-agent")') !== false, "the repair attempt should use the configured title specialist");
+expectResearch(strpos($aiSource, '"outputContract" => $this->competitorResearchOutputContract()') !== false, "every research call should include the application-owned output contract");
+expectResearch(strpos($aiSource, "deriveResearchTags") !== false, "the application should derive safe tags when the AI omits them");
 expectResearch(strpos($aiSource, "No low-quality titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;
