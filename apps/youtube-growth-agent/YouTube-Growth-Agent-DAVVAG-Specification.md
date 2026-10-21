@@ -6,7 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
-**Implementation baseline:** app version 0.10; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research implemented by 2026-10-20
+**Implementation baseline:** app version 0.11; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research with automatic AI output repair implemented by 2026-10-21
 
 ---
 
@@ -798,6 +798,7 @@ Implementation extension (2026-10-19):
 - Implemented evidence-backed competitor keyword and hashtag ranking, selected-owned-video language detection/override, and generation of a recommended description, tags, hashtags, exactly three titles, and one paired image prompt for each title.
 - Preserved the existing rule that competitor captions are not downloaded or scraped from YouTube.
 - Strengthened title generation on 2026-10-20: the selected owned-video transcript is mandatory and is the primary truth source; every title must cite an exact transcript excerpt, use one or two returned ranked keywords naturally, remain distinct from the current title, and avoid hashtag/keyword stuffing. Invalid AI output is rejected instead of being replaced with generic rule-based titles.
+- Added a single automatic repair pass on 2026-10-21: when the primary research agent returns nearly valid JSON, the configured title specialist receives the rejected output and explicit validation defects, then returns a complete corrected object. If repair also fails, the API reports concise field-level validation reasons while still refusing to save low-quality titles.
 
 ### Phase 3 — Packaging, community, and experiments
 

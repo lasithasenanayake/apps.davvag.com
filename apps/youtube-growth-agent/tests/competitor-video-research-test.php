@@ -50,7 +50,10 @@ $payload = (object)array(
 $validated = $validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript);
 expectResearch($validated !== null && count($validated->titlePromptPairs) === 3, "exactly three valid title/prompt pairs should be accepted");
 $payload->titlePromptPairs = array($pair("A"), $pair("B"));
-expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "a response with fewer than three title/prompt pairs must be rejected");
+$validationErrors = array();
+$invalidArgs = array($payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript, &$validationErrors);
+expectResearch($validate->invokeArgs($ai, $invalidArgs) === null, "a response with fewer than three title/prompt pairs must be rejected");
+expectResearch(in_array("Exactly three titlePromptPairs are required.", $validationErrors, true), "validation should explain the rejected title-pair count");
 $payload->titlePromptPairs = array($pair("A"), $pair("B"), $pair("C"));
 $payload->titlePromptPairs[0]->title = $currentTitle;
 expectResearch($validate->invoke($ai, $payload, $allowed, $language, $sources, $currentTitle, $ownedTranscript) === null, "the current uploaded title must be rejected");
@@ -75,7 +78,9 @@ $partial = file_get_contents($appRoot . "/components/video-inspector/partial.htm
 expectResearch(strpos($partial, "Competitor video research") !== false && strpos($partial, "Research and generate") !== false, "video inspector should expose the competitor research workflow");
 $aiSource = file_get_contents($appRoot . "/services/growth-ai/service.php");
 expectResearch(strpos($aiSource, "competitor-video-research-v2") !== false, "the transcript-grounded prompt contract should use version 2");
-expectResearch(strpos($aiSource, "No low-quality fallback titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
+expectResearch(strpos($aiSource, "competitor-video-research-repair-v2") !== false, "invalid primary output should receive one structured repair attempt");
+expectResearch(strpos($aiSource, 'agentCode("TITLE", "seo-suggestion-agent")') !== false, "the repair attempt should use the configured title specialist");
+expectResearch(strpos($aiSource, "No low-quality titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;
 ?>
