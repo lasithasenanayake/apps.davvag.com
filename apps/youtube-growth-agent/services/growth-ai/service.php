@@ -130,6 +130,7 @@ class GrowthAiService extends \YtgServiceBase {
         $payload = array("selectedOwnedVideo" => $context->safeVideo, "selectedOwnedVideoTranscript" => $this->safeText($ownedTranscript, 50000), "competitorVideos" => $videos, "generationLanguage" => $language, "metricPolicy" => \YtgConfig::derivedMetricsEnabled() ? "viewsPerDay is a labelled product estimate" : "Use raw public metrics only", "titlePolicy" => array("primaryTruthSource" => "selectedOwnedVideoTranscript", "currentTitleMustNotBeReused" => (string)$context->video->title, "keywordUse" => "Use one or two high-relevance ranked keywords naturally in each title; never append a keyword list.", "hashtagUse" => "Hashtags guide topic relevance and belong in the hashtag output, not as a stuffed title suffix.", "pairCount" => 3), "outputContract" => $this->competitorResearchOutputContract());
         $message = "Return strict JSON with keywords, hashtags, description, tags, titlePromptPairs, and limitations. First understand the selected owned-video transcript: its central subject, key event or claim, people/organizations involved, viewer value, tone, and factual boundaries. The transcript is the primary truth source for every title; competitor data is secondary SEO and packaging evidence only. Rank only keywords and hashtags that are both relevant to the transcript and supported by supplied competitor evidence. Each keyword/hashtag item needs text, rationale, evidenceVideoIds, evidenceType, and estimated=true. Return exactly three genuinely different titlePromptPairs. Each pair needs: title under 100 characters; angle; transcriptEvidenceExcerpt copied exactly from the supplied owned transcript; usedKeywords containing one or two entries copied exactly from the returned ranked keywords; usedHashtags containing one to three entries copied exactly from the returned ranked hashtags; detailed 16:9 imagePrompt; optional onImageText of five words or fewer; rationale; and evidenceVideoIds. Titles must summarize a real transcript theme, use the ranked keyword naturally, be readable and compelling, and must not equal, begin with, end with, or merely add a suffix/prefix to the current video title. Do not put a list of keywords, language names, 'news protest Sri Lanka sinhala', or hashtags into a title. Do not use generic suffixes such as complete guide or 3 essential lessons unless the transcript itself supports that exact framing. Each image prompt must visualize its own title and transcript evidence with a specific subject, composition, focal point, authentic emotion, relevant setting, lighting, colour/contrast, safe negative space, and exclusions for logos, watermarks, misleading imagery, and unreadable text. Generate all viewer-facing text in " . $language->name . ". Do not copy competitor titles, invent facts or metrics, claim search volume, or promise reach/performance.";
         $run = $this->agentJson($context, "COMPETITOR_VIDEO_RESEARCH", $this->agentCode("COMPETITOR", \YtgConfig::agentCode()), $message, $payload, "competitor-video-research-v2");
+        $repairRun = null;
         $validationErrors = array();
         $research = $run->valid ? $this->validateCompetitorVideoResearch($run->data, $allowedIds, $language, $sources, (string)$context->video->title, $ownedTranscript, $validationErrors) : null;
         if (!$run->valid) { $validationErrors[] = "The primary research agent did not return usable JSON."; }
@@ -148,7 +149,9 @@ class GrowthAiService extends \YtgServiceBase {
         }
         if ($research === null) {
             $details = count($validationErrors) ? implode(" ", array_slice(array_values(array_unique($validationErrors)), 0, 4)) : "The returned structure was incomplete.";
-            return $this->fail($res, "AI title generation failed quality checks after one automatic repair attempt. " . $details . " No low-quality titles were saved.");
+            $diagnostics = array("validationErrors" => array_values(array_unique($validationErrors)), "primaryAgent" => $this->agentFailureSnapshot($run), "repairAgent" => $this->agentFailureSnapshot($repairRun));
+            $diagnosticJson = json_encode($diagnostics, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            return $this->fail($res, "AI title generation failed quality checks after one automatic repair attempt. " . $details . " No low-quality titles were saved. Troubleshooting details: " . ($diagnosticJson === false ? '{"error":"Diagnostic encoding failed."}' : $diagnosticJson));
         }
         $row = (object)array("channelId" => $context->channel->channelId, "contextVideoId" => $context->video->youtubeVideoId, "sourceVideoIds" => array_keys($allowedIds), "detectedLanguage" => $language->name, "languageCode" => $language->code, "languageConfidence" => $language->confidence, "languageSource" => $language->source, "rankedKeywords" => $research->keywords, "rankedHashtags" => $research->hashtags, "description" => $research->description, "tags" => $research->tags, "titlePromptPairs" => $research->titlePromptPairs, "limitations" => $research->limitations, "resultSource" => $source, "modelVersion" => "competitor-video-research-v2", "createdAt" => $this->now());
         $save = \SOSSData::Insert("ytg_competitor_research", $row); if (!$save->success) { return $this->fail($res, "Competitor research was generated but could not be saved."); }
@@ -221,9 +224,10 @@ class GrowthAiService extends \YtgServiceBase {
     }
 
     private function agentJson($context, $agentType, $agentCode, $message, $payload, $promptVersion) {
-        $fallback = (object)array("valid" => false, "data" => null);
+        $fallback = (object)array("valid" => false, "data" => null, "rawResponse" => "", "error" => "");
         $path = TENANT_RESOURCE_LOCATION . "/apps/ai-agent-creator/services/creator-api/service.php";
-        if ($agentCode === "" || !is_file($path)) { $this->recordRun($context, $agentType, "", $promptVersion, $payload, array("error" => "agent unavailable"), "FALLBACK", 0); return $fallback; }
+        if ($agentCode === "" || !is_file($path)) { $fallback->error = "Saved agent is unavailable."; $this->recordRun($context, $agentType, "", $promptVersion, $payload, array("error" => "agent unavailable"), "FALLBACK", 0); return $fallback; }
+        $text = "";
         try {
             require_once($path);
             if (!class_exists("\\ai_agent_creator\\CreatorService")) { throw new \RuntimeException("Saved-agent runtime is unavailable."); }
@@ -233,10 +237,20 @@ class GrowthAiService extends \YtgServiceBase {
             $text = isset($run->response) ? $run->response : (isset($run->reply) ? $run->reply : ""); $data = $this->decodeAgentJson($text);
             if (!is_object($data) || $this->forbidden($data)) { throw new \RuntimeException("Saved-agent JSON was invalid or contained unsupported claims."); }
             $this->recordRun($context, $agentType, isset($run->model) ? $run->model : "", $promptVersion, $payload, $data, "STRUCTURE_VALID", isset($run->tokenUsage) ? intval($run->tokenUsage) : 0);
-            return (object)array("valid" => true, "data" => $data);
+            return (object)array("valid" => true, "data" => $data, "rawResponse" => $this->safeText($text, 12000), "error" => "");
         } catch (\Throwable $error) {
+            $fallback->rawResponse = $this->safeText($text, 12000); $fallback->error = $this->safeText($error->getMessage(), 1000);
             $this->recordRun($context, $agentType, "", $promptVersion, $payload, array("error" => $error->getMessage()), "REJECTED_FALLBACK", 0); return $fallback;
         }
+    }
+
+    private function agentFailureSnapshot($run) {
+        if (!is_object($run)) { return null; }
+        return (object)array(
+            "validJson" => isset($run->valid) && $run->valid === true,
+            "error" => $this->safeText(isset($run->error) ? $run->error : "", 1000),
+            "rawResponse" => $this->safeText(isset($run->rawResponse) ? $run->rawResponse : "", 12000)
+        );
     }
 
     private function validateShorts($data, $segments, $durationMs) {

@@ -6,7 +6,7 @@
 **DAVVAG app code:** `youtube-growth-agent`  
 **Primary users:** creators, channel managers, small agencies, and ministry/media teams managing one or more YouTube channels  
 **Initial language support:** English and Sinhala, with a design that can add more languages later
-**Implementation baseline:** app version 0.12; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research with automatic AI output repair and an application-owned runtime output contract implemented by 2026-10-21
+**Implementation baseline:** app version 0.13; Phase 0/1 plus the read-only advisory portions of Phase 2/3, enhanced competitor growth analysis, and transcript-grounded competitor-video research with automatic AI output repair, an application-owned runtime output contract, and bounded failure diagnostics implemented by 2026-10-21
 
 ---
 
@@ -800,6 +800,7 @@ Implementation extension (2026-10-19):
 - Strengthened title generation on 2026-10-20: the selected owned-video transcript is mandatory and is the primary truth source; every title must cite an exact transcript excerpt, use one or two returned ranked keywords naturally, remain distinct from the current title, and avoid hashtag/keyword stuffing. Invalid AI output is rejected instead of being replaced with generic rule-based titles.
 - Added a single automatic repair pass on 2026-10-21: when the primary research agent returns nearly valid JSON, the configured title specialist receives the rejected output and explicit validation defects, then returns a complete corrected object. If repair also fails, the API reports concise field-level validation reasons while still refusing to save low-quality titles.
 - Added an application-owned machine-readable output contract on 2026-10-21. The complete expected JSON shape is supplied at runtime to every mapped agent, so saved-agent startup prompts are optional guidance rather than the schema authority. If an otherwise valid response omits `tags`, the service deterministically derives them from its validated ranked keywords and hashtags; transcript grounding, evidence, title quality, and the three-pair requirement remain strict.
+- Added authenticated failure diagnostics on 2026-10-21. When both generation attempts fail, the endpoint returns validation defects, execution/parsing errors, and up to 12,000 characters of raw output from each agent attempt. Request payloads, transcripts, profile data, and credentials are excluded from this diagnostic response.
 
 ### Phase 3 — Packaging, community, and experiments
 

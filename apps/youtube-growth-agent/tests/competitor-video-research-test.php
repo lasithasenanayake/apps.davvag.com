@@ -35,6 +35,10 @@ expectResearch($parse->invoke($workbench, "https://youtube.com/watch?v=too-short
 $aiReflection = new ReflectionClass("youtube_growth_agent\\GrowthAiService");
 $ai = $aiReflection->newInstanceWithoutConstructor();
 $validate = $aiReflection->getMethod("validateCompetitorVideoResearch"); $validate->setAccessible(true);
+$snapshot = $aiReflection->getMethod("agentFailureSnapshot"); $snapshot->setAccessible(true);
+$diagnostic = $snapshot->invoke($ai, (object)array("valid" => false, "error" => "Invalid JSON", "rawResponse" => str_repeat("x", 13000)));
+expectResearch($diagnostic->validJson === false && $diagnostic->error === "Invalid JSON", "failure diagnostics should expose the AI parsing error");
+expectResearch(strlen($diagnostic->rawResponse) === 12000, "failure diagnostics should bound the raw AI response");
 $language = (object)array("name" => "English", "code" => "en", "confidence" => "high", "source" => "owned_video_transcript");
 $allowed = array("19qCPrr5Xhg" => true);
 $sources = array((object)array("videoId" => "19qCPrr5Xhg", "transcriptStatus" => "unavailable"));
@@ -87,6 +91,9 @@ expectResearch(strpos($aiSource, "competitor-video-research-repair-v2") !== fals
 expectResearch(strpos($aiSource, 'agentCode("TITLE", "seo-suggestion-agent")') !== false, "the repair attempt should use the configured title specialist");
 expectResearch(strpos($aiSource, '"outputContract" => $this->competitorResearchOutputContract()') !== false, "every research call should include the application-owned output contract");
 expectResearch(strpos($aiSource, "deriveResearchTags") !== false, "the application should derive safe tags when the AI omits them");
+expectResearch(strpos($aiSource, "Troubleshooting details:") !== false, "failed research should return structured AI response diagnostics");
+expectResearch(strpos($aiSource, '"primaryAgent" => $this->agentFailureSnapshot($run)') !== false, "failure diagnostics should include the primary AI response");
+expectResearch(strpos($aiSource, '"repairAgent" => $this->agentFailureSnapshot($repairRun)') !== false, "failure diagnostics should include the repair AI response");
 expectResearch(strpos($aiSource, "No low-quality titles were saved") !== false, "invalid AI title output should fail closed instead of returning generic fallback titles");
 
 echo "COMPETITOR_VIDEO_RESEARCH_OK" . PHP_EOL;
