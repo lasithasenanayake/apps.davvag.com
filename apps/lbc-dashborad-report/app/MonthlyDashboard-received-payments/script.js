@@ -61,8 +61,8 @@ WEBDOCK.component().register(function(exports){
             scope.startDate = (firstDay.getMonth() + 1) + "-" + firstDay.getDate() + "-" + firstDay.getFullYear();
             scope.endDate = (lastDay.getMonth() + 1) + "-" + lastDay.getDate() + "-" + lastDay.getFullYear();
 
-            $('#receivedPaymentsStartDate').datepicker().datepicker('setDate', firstDay);
-            $('#receivedPaymentsEndDate').datepicker().datepicker('setDate', lastDay);
+            $('#receivedPaymentsStartDate').val(scope.startDate).datepicker();
+            $('#receivedPaymentsEndDate').val(scope.endDate).datepicker();
             loadReport();
         },
         filters: {
