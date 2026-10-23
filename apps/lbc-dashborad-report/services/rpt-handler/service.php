@@ -81,6 +81,77 @@ class rptService {
         }
     }
 
+    public function getReceivedPayments($req,$res){
+        if (!isset($_GET["startdate"]) || !isset($_GET["enddate"])){
+            $res->SetError("Invalid query");
+            return array();
+        }
+
+        $startDate = DateTime::createFromFormat('!Y-n-j', $_GET["startdate"]);
+        $startErrors = DateTime::getLastErrors();
+        $endDate = DateTime::createFromFormat('!Y-n-j', $_GET["enddate"]);
+        $endErrors = DateTime::getLastErrors();
+        $invalidStart = !$startDate || ($startErrors && ($startErrors["warning_count"] || $startErrors["error_count"]));
+        $invalidEnd = !$endDate || ($endErrors && ($endErrors["warning_count"] || $endErrors["error_count"]));
+        if ($invalidStart || $invalidEnd || $startDate > $endDate){
+            $res->SetError("Invalid date range");
+            return array();
+        }
+
+        $mainObj = new stdClass();
+        $mainObj->parameters = new stdClass();
+        $mainObj->parameters->startdate = $startDate->format('Y-m-d');
+        $mainObj->parameters->enddate = $endDate->format('Y-m-d');
+
+        $resultObj = SOSSData::ExecuteRaw("paymentheader_received_sum_by_month", $mainObj);
+        if (!$resultObj->success){
+            $res->SetError($resultObj->result);
+            return array();
+        }
+
+        $data = array();
+        foreach ($resultObj->result as $value){
+            $dateParts = explode("-", $value->month);
+            if (count($dateParts) !== 2){
+                continue;
+            }
+
+            $monthNumber = intval($dateParts[0]);
+            $year = $dateParts[1];
+            $paymentType = isset($value->paymentType) && trim($value->paymentType) !== ""
+                ? $value->paymentType
+                : "Unspecified";
+
+            if (!isset($data[$year])){
+                $data[$year] = array();
+            }
+            if (!isset($data[$year][$paymentType])){
+                $row = new stdClass();
+                $row->name = $paymentType;
+                for ($i = 1; $i <= 12; $i++){
+                    $monthName = DateTime::createFromFormat('!m', $i)->format('F');
+                    $row->{$monthName} = array("total" => 0, "receipts" => 0);
+                }
+                $data[$year][$paymentType] = $row;
+            }
+
+            if ($monthNumber >= 1 && $monthNumber <= 12){
+                $monthName = DateTime::createFromFormat('!m', $monthNumber)->format('F');
+                $data[$year][$paymentType]->{$monthName} = array(
+                    "total" => floatval($value->total),
+                    "receipts" => intval($value->receipts)
+                );
+            }
+        }
+
+        ksort($data);
+        foreach ($data as $year => $rows){
+            ksort($rows);
+            $data[$year] = array_values($rows);
+        }
+        return $data;
+    }
+
 
     public function getallProfiles($req,$res){
         if (isset($_GET["page"]) && isset($_GET["size"])){

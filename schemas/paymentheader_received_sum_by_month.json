@@ -1,0 +1,25 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["startdate", "enddate"],
+        "query": "SELECT 0 sysversionid, DATE_FORMAT(receiptDate, '%m-%Y') AS month, COALESCE(NULLIF(paymentType, ''), 'Unspecified') AS paymentType, COUNT(*) AS receipts, SUM(paymentAmount) AS total FROM paymentheader WHERE receiptDate >= '$startdate' AND receiptDate < DATE_ADD('$enddate', INTERVAL 1 DAY) AND LOWER(COALESCE(status, '')) NOT IN ('cancelled', 'canceled') GROUP BY DATE_FORMAT(receiptDate, '%m-%Y'), COALESCE(NULLIF(paymentType, ''), 'Unspecified') ORDER BY YEAR(receiptDate), MONTH(receiptDate), paymentType"
+    },
+    "fields": [
+        {
+            "fieldName": "month",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "paymentType",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "receipts",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "total",
+            "dataType": "float"
+        }
+    ]
+}

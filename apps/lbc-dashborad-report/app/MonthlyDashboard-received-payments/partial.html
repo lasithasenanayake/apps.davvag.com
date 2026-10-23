@@ -1,0 +1,68 @@
+<div style="color:black;">
+  <div>
+    <div class="row" aria-label="Received payments filters" style="margin: 10px;">
+      <b>From:</b>
+      <input type="text" id="receivedPaymentsStartDate" v-model="startDate" data-date-format="mm-dd-yyyy" />
+      <b> To:</b>
+      <input type="text" id="receivedPaymentsEndDate" v-model="endDate" data-date-format="mm-dd-yyyy" />
+      <button type="button" v-on:click="refreshData">Search</button>
+    </div>
+  </div>
+
+  <p v-if="message" style="margin: 20px 10px;">{{ message }}</p>
+
+  <div v-for="year in Object.keys(items)">
+    <h1>{{ year }} Received Payments</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Payment Type</th>
+          <th>January</th>
+          <th>February</th>
+          <th>March</th>
+          <th>April</th>
+          <th>May</th>
+          <th>June</th>
+          <th>July</th>
+          <th>August</th>
+          <th>September</th>
+          <th>October</th>
+          <th>November</th>
+          <th>December</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in items[year]">
+          <td>{{ item.name }}</td>
+          <td class="text-right">{{ item.January.total | currency }}</td>
+          <td class="text-right">{{ item.February.total | currency }}</td>
+          <td class="text-right">{{ item.March.total | currency }}</td>
+          <td class="text-right">{{ item.April.total | currency }}</td>
+          <td class="text-right">{{ item.May.total | currency }}</td>
+          <td class="text-right">{{ item.June.total | currency }}</td>
+          <td class="text-right">{{ item.July.total | currency }}</td>
+          <td class="text-right">{{ item.August.total | currency }}</td>
+          <td class="text-right">{{ item.September.total | currency }}</td>
+          <td class="text-right">{{ item.October.total | currency }}</td>
+          <td class="text-right">{{ item.November.total | currency }}</td>
+          <td class="text-right">{{ item.December.total | currency }}</td>
+        </tr>
+        <tr>
+          <th>Total</th>
+          <th class="text-right">{{ sum(year, 'January', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'February', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'March', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'April', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'May', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'June', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'July', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'August', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'September', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'October', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'November', 'total') | currency }}</th>
+          <th class="text-right">{{ sum(year, 'December', 'total') | currency }}</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

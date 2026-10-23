@@ -26,6 +26,9 @@
             },"CustomerEnrolment" : {
                 "method" : "GET",
                 "parameters":["startdate","enddate"]
+            },"ReceivedPayments" : {
+                "method" : "GET",
+                "parameters":["startdate","enddate"]
             },"allProfiles_withoutfilter":{
                 "method":"GET",
                 "parameters":["page","size"]

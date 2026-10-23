@@ -16,6 +16,10 @@
             "type": "component",
             "location": "app"
         },
+        "MonthlyDashboard-received-payments": {
+            "type": "component",
+            "location": "app"
+        },
         "customers": {
             "type": "component",
             "location": "app"
@@ -50,7 +54,8 @@
                     "/allprofiles": "Profilelist-Report",
                     "/all": "Profilelist-Report-all",
                     "/rpt-monthly-dashboard": "MonthlyDashboard",
-                    "/rpt-monthly-dashboard-income": "MonthlyDashboard-income"
+                    "/rpt-monthly-dashboard-income": "MonthlyDashboard-income",
+                    "/rpt-monthly-dashboard-received-payments": "MonthlyDashboard-received-payments"
                 }
             }
         },
@@ -75,6 +80,10 @@
                 {
                     "name": "Dashboard Income",
                     "path": "rpt-monthly-dashboard-income"
+                },
+                {
+                    "name": "Dashboard Received Payments",
+                    "path": "rpt-monthly-dashboard-received-payments"
                 }
             ]
         }
@@ -106,6 +115,8 @@
             "lbc_rpt_all_invoice_reciept_all_status",
             "lbc_rpt_outstanding",
             "orderdetails_purchase_sum_by_month",
+            "paymentheader",
+            "paymentheader_received_sum_by_month",
             "schedule_pending"
         ],
         "workflows": [],
