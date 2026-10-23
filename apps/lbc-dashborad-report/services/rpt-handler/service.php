@@ -152,6 +152,61 @@ class rptService {
         return $data;
     }
 
+    public function getBillingCollectionsReconciliation($req,$res){
+        if (!isset($_GET["startdate"]) || !isset($_GET["enddate"])){
+            $res->SetError("Invalid query");
+            return array();
+        }
+
+        $startDate = DateTime::createFromFormat('!Y-n-j', $_GET["startdate"]);
+        $startErrors = DateTime::getLastErrors();
+        $endDate = DateTime::createFromFormat('!Y-n-j', $_GET["enddate"]);
+        $endErrors = DateTime::getLastErrors();
+        $invalidStart = !$startDate || ($startErrors && ($startErrors["warning_count"] || $startErrors["error_count"]));
+        $invalidEnd = !$endDate || ($endErrors && ($endErrors["warning_count"] || $endErrors["error_count"]));
+        if ($invalidStart || $invalidEnd || $startDate > $endDate){
+            $res->SetError("Invalid date range");
+            return array();
+        }
+
+        $mainObj = new stdClass();
+        $mainObj->parameters = new stdClass();
+        $mainObj->parameters->startdate = $startDate->format('Y-m-d');
+        $mainObj->parameters->enddate = $endDate->format('Y-m-d');
+
+        $resultObj = SOSSData::ExecuteRaw("revenue_collections_monthly_analysis", $mainObj);
+        if (!$resultObj->success){
+            $res->SetError($resultObj->result);
+            return array();
+        }
+
+        $resultByMonth = array();
+        foreach ($resultObj->result as $value){
+            $resultByMonth[$value->monthKey] = $value;
+        }
+
+        $rows = array();
+        $cursor = clone $startDate;
+        $cursor->modify('first day of this month');
+        $lastMonth = clone $endDate;
+        $lastMonth->modify('first day of this month');
+        while ($cursor <= $lastMonth){
+            $monthKey = $cursor->format('Y-m');
+            $source = isset($resultByMonth[$monthKey]) ? $resultByMonth[$monthKey] : null;
+            $row = new stdClass();
+            $row->monthKey = $monthKey;
+            $row->monthLabel = $cursor->format('F Y');
+            $row->grossBillings = $source ? floatval($source->grossBillings) : 0;
+            $row->cashCollections = $source ? floatval($source->cashCollections) : 0;
+            $row->invoiceCount = $source ? intval($source->invoiceCount) : 0;
+            $row->receiptCount = $source ? intval($source->receiptCount) : 0;
+            $rows[] = $row;
+            $cursor->modify('+1 month');
+        }
+
+        return $rows;
+    }
+
 
     public function getallProfiles($req,$res){
         if (isset($_GET["page"]) && isset($_GET["size"])){

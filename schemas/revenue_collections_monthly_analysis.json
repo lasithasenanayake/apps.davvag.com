@@ -1,0 +1,29 @@
+{
+    "rawquery": {
+        "type": "sql",
+        "parameters": ["startdate", "enddate"],
+        "query": "SELECT 0 sysversionid, activity.monthKey, SUM(activity.grossBillings) AS grossBillings, SUM(activity.cashCollections) AS cashCollections, SUM(activity.invoiceCount) AS invoiceCount, SUM(activity.receiptCount) AS receiptCount FROM (SELECT DATE_FORMAT(invoiceDate, '%Y-%m') AS monthKey, SUM(COALESCE(total, 0)) AS grossBillings, 0 AS cashCollections, COUNT(*) AS invoiceCount, 0 AS receiptCount FROM orderheader WHERE invoiceDate >= '$startdate' AND invoiceDate < DATE_ADD('$enddate', INTERVAL 1 DAY) AND LOWER(COALESCE(status, '')) NOT IN ('cancelled', 'canceled', 'deleted', 'void', 'rejected') GROUP BY DATE_FORMAT(invoiceDate, '%Y-%m') UNION ALL SELECT DATE_FORMAT(receiptDate, '%Y-%m') AS monthKey, 0 AS grossBillings, SUM(COALESCE(paymentAmount, 0)) AS cashCollections, 0 AS invoiceCount, COUNT(*) AS receiptCount FROM paymentheader WHERE receiptDate >= '$startdate' AND receiptDate < DATE_ADD('$enddate', INTERVAL 1 DAY) AND LOWER(COALESCE(status, '')) NOT IN ('cancelled', 'canceled', 'deleted', 'void', 'rejected') GROUP BY DATE_FORMAT(receiptDate, '%Y-%m')) activity GROUP BY activity.monthKey ORDER BY activity.monthKey"
+    },
+    "fields": [
+        {
+            "fieldName": "monthKey",
+            "dataType": "java.lang.String"
+        },
+        {
+            "fieldName": "grossBillings",
+            "dataType": "float"
+        },
+        {
+            "fieldName": "cashCollections",
+            "dataType": "float"
+        },
+        {
+            "fieldName": "invoiceCount",
+            "dataType": "int"
+        },
+        {
+            "fieldName": "receiptCount",
+            "dataType": "int"
+        }
+    ]
+}

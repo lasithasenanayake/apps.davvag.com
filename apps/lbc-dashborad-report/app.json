@@ -20,6 +20,10 @@
             "type": "component",
             "location": "app"
         },
+        "BillingCollectionsReconciliation": {
+            "type": "component",
+            "location": "app"
+        },
         "customers": {
             "type": "component",
             "location": "app"
@@ -36,7 +40,7 @@
     "description": {
         "title": "LBC Dashbord",
         "author": "Lasitha Senanayake",
-        "version": "0.7",
+        "version": "0.9",
         "icon": "appicon.png"
     },
     "tags": [
@@ -55,7 +59,8 @@
                     "/all": "Profilelist-Report-all",
                     "/rpt-monthly-dashboard": "MonthlyDashboard",
                     "/rpt-monthly-dashboard-income": "MonthlyDashboard-income",
-                    "/rpt-monthly-dashboard-received-payments": "MonthlyDashboard-received-payments"
+                    "/rpt-monthly-dashboard-received-payments": "MonthlyDashboard-received-payments",
+                    "/rpt-billing-collections-reconciliation": "BillingCollectionsReconciliation"
                 }
             }
         },
@@ -84,6 +89,10 @@
                 {
                     "name": "Dashboard Received Payments",
                     "path": "rpt-monthly-dashboard-received-payments"
+                },
+                {
+                    "name": "Billing & Collections Reconciliation",
+                    "path": "rpt-billing-collections-reconciliation"
                 }
             ]
         }
@@ -115,8 +124,10 @@
             "lbc_rpt_all_invoice_reciept_all_status",
             "lbc_rpt_outstanding",
             "orderdetails_purchase_sum_by_month",
+            "orderheader",
             "paymentheader",
             "paymentheader_received_sum_by_month",
+            "revenue_collections_monthly_analysis",
             "schedule_pending"
         ],
         "workflows": [],

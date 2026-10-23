@@ -1,0 +1,87 @@
+<div class="billing-collections-report">
+  <div class="report-heading">
+    <div>
+      <h1>Billing &amp; Collections Reconciliation</h1>
+      <p>Monthly comparison of gross billings and cash collected, based on transaction dates.</p>
+    </div>
+    <button type="button" class="btn btn-default print-report" v-on:click="printReport">Print</button>
+  </div>
+
+  <div class="report-filters">
+    <label for="billingCollectionsStartDate">From</label>
+    <input type="text" id="billingCollectionsStartDate" v-model="startDate" data-date-format="mm-dd-yyyy" />
+    <label for="billingCollectionsEndDate">To</label>
+    <input type="text" id="billingCollectionsEndDate" v-model="endDate" data-date-format="mm-dd-yyyy" />
+    <button type="button" class="btn btn-primary" v-on:click="refreshData">Run Report</button>
+  </div>
+
+  <p v-if="message" class="report-message">{{ message }}</p>
+
+  <div class="reconciliation-kpis" v-if="rows.length">
+    <div class="reconciliation-kpi">
+      <span>Total Gross Billings</span>
+      <strong>{{ formatMoney(totals.grossBillings) }}</strong>
+      <small>{{ totals.invoiceCount }} invoices</small>
+    </div>
+    <div class="reconciliation-kpi">
+      <span>Total Cash Collections</span>
+      <strong>{{ formatMoney(totals.cashCollections) }}</strong>
+      <small>{{ totals.receiptCount }} receipts</small>
+    </div>
+    <div class="reconciliation-kpi">
+      <span>Billing–Collection Gap</span>
+      <strong v-bind:class="varianceClass(totals.collectionVariance)">{{ formatMoney(totals.collectionVariance) }}</strong>
+      <small>Billings less collections</small>
+    </div>
+    <div class="reconciliation-kpi">
+      <span>Cash Realization Rate</span>
+      <strong>{{ formatPercent(totals.collectionRate) }}</strong>
+      <small>Collections ÷ billings</small>
+    </div>
+  </div>
+
+  <div class="table-responsive" v-if="rows.length">
+    <table class="table table-striped table-bordered reconciliation-table">
+      <thead>
+        <tr>
+          <th>Accounting Period</th>
+          <th class="text-right">Invoices</th>
+          <th class="text-right">Gross Billings</th>
+          <th class="text-right">Receipts</th>
+          <th class="text-right">Cash Collections</th>
+          <th class="text-right">Monthly Gap</th>
+          <th class="text-right">Cash Realization</th>
+          <th class="text-right">Cumulative Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in rows">
+          <td>{{ row.monthLabel }}</td>
+          <td class="text-right">{{ row.invoiceCount }}</td>
+          <td class="text-right">{{ formatMoney(row.grossBillings) }}</td>
+          <td class="text-right">{{ row.receiptCount }}</td>
+          <td class="text-right">{{ formatMoney(row.cashCollections) }}</td>
+          <td class="text-right" v-bind:class="varianceClass(row.collectionVariance)">{{ formatMoney(row.collectionVariance) }}</td>
+          <td class="text-right">{{ formatPercent(row.collectionRate) }}</td>
+          <td class="text-right" v-bind:class="varianceClass(row.cumulativeVariance)">{{ formatMoney(row.cumulativeVariance) }}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Total</th>
+          <th class="text-right">{{ totals.invoiceCount }}</th>
+          <th class="text-right">{{ formatMoney(totals.grossBillings) }}</th>
+          <th class="text-right">{{ totals.receiptCount }}</th>
+          <th class="text-right">{{ formatMoney(totals.cashCollections) }}</th>
+          <th class="text-right" v-bind:class="varianceClass(totals.collectionVariance)">{{ formatMoney(totals.collectionVariance) }}</th>
+          <th class="text-right">{{ formatPercent(totals.collectionRate) }}</th>
+          <th class="text-right">—</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="accounting-note" v-if="rows.length">
+    <strong>Accounting note:</strong> Gross billings use the invoice total and may include tax. The gap compares invoices issued and receipts recorded during the selected period. It is a timing and collection-performance measure, not the closing accounts-receivable balance or an aged receivables schedule. Collections may relate to invoices from earlier periods.
+  </div>
+</div>

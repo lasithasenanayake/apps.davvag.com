@@ -1,0 +1,35 @@
+{
+    "name": "billing-collections-reconciliation",
+    "description": "Accounting analysis of invoiced revenue and cash collections",
+    "author": "Davvag",
+    "version": "0.1",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ],
+        "js": [
+            {
+                "tag": "bootstrap-datetimepicker",
+                "version": "latest",
+                "location": "bootstrap-datepicker.js"
+            }
+        ],
+        "css": [
+            {
+                "type": "css",
+                "location": "datepicker.css"
+            },
+            {
+                "type": "css",
+                "location": "report.css"
+            }
+        ]
+    }
+}

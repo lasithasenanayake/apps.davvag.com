@@ -1,0 +1,110 @@
+.billing-collections-report {
+    color: #222;
+    padding: 18px;
+}
+
+.report-heading {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.report-heading h1 {
+    margin: 0 0 5px;
+}
+
+.report-heading p {
+    color: #666;
+    margin: 0;
+}
+
+.report-filters {
+    align-items: center;
+    background: #f5f7f9;
+    border: 1px solid #dde2e6;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 12px;
+}
+
+.report-filters label {
+    margin: 0 2px 0 8px;
+}
+
+.report-filters input {
+    padding: 6px 8px;
+}
+
+.report-message {
+    margin: 16px 0;
+}
+
+.reconciliation-kpis {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    margin-bottom: 20px;
+}
+
+.reconciliation-kpi {
+    border: 1px solid #dfe4e8;
+    border-left: 4px solid #337ab7;
+    border-radius: 3px;
+    padding: 14px;
+}
+
+.reconciliation-kpi span,
+.reconciliation-kpi small {
+    color: #66717a;
+    display: block;
+}
+
+.reconciliation-kpi strong {
+    display: block;
+    font-size: 22px;
+    margin: 5px 0;
+}
+
+.reconciliation-table th {
+    white-space: nowrap;
+}
+
+.reconciliation-table tfoot {
+    background: #eef2f5;
+}
+
+.reconciliation-gap {
+    color: #a94442;
+}
+
+.reconciliation-covered {
+    color: #3c763d;
+}
+
+.accounting-note {
+    background: #fcf8e3;
+    border: 1px solid #faebcc;
+    color: #6f5b1d;
+    margin-top: 16px;
+    padding: 12px;
+}
+
+@media (max-width: 900px) {
+    .reconciliation-kpis {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media print {
+    .report-filters,
+    .print-report {
+        display: none !important;
+    }
+
+    .billing-collections-report {
+        padding: 0;
+    }
+}

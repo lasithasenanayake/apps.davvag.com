@@ -29,6 +29,9 @@
             },"ReceivedPayments" : {
                 "method" : "GET",
                 "parameters":["startdate","enddate"]
+            },"BillingCollectionsReconciliation" : {
+                "method" : "GET",
+                "parameters":["startdate","enddate"]
             },"allProfiles_withoutfilter":{
                 "method":"GET",
                 "parameters":["page","size"]
