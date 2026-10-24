@@ -37,6 +37,7 @@ WEBDOCK.component().register(function (exports) {
         workbench.services.GetWorkbench({channelId: state.channelId, videoId: state.videoId}).then(function (response) {
             state.loading = false;
             if (!response.success) { state.error = message(response, "Growth Studio could not be loaded."); return; }
+            if (response.result.transcript) { response.result.transcript = normalizeTranscript(response.result.transcript); }
             state.data = response.result; state.videoId = response.result.selectedVideoId || state.videoId;
             if (response.result.transcript) {
                 state.transcriptText = response.result.transcript.plainText || "";
@@ -79,13 +80,35 @@ WEBDOCK.component().register(function (exports) {
         state.busy = "DownloadTranscript"; state.error = ""; state.info = automatic ? "Downloading the available YouTube caption track..." : "";
         workbench.services.DownloadTranscript({channelId: state.channelId, videoId: state.videoId, language: state.captionLanguage}).then(function (response) {
             state.busy = "";
-            if (response.success) { state.info = response.result.message || "Timestamped transcript downloaded."; load(); }
+            if (response.success) {
+                if (response.result && response.result.transcript) {
+                    var transcript = normalizeTranscript(response.result.transcript);
+                    state.data.transcript = transcript; state.transcriptText = transcript.plainText || ""; state.transcriptLanguage = transcript.language || "English";
+                }
+                state.info = response.result.message || "Timestamped transcript downloaded.";
+            }
             else { state.error = message(response, "The timestamped transcript could not be downloaded."); }
         }).error(function () { state.busy = ""; state.error = "The timestamped transcript could not be downloaded."; });
     }
     function transcriptPreview() {
         var transcript = state.data && state.data.transcript ? state.data.transcript : null;
         return transcript && transcript.segments && transcript.segments.slice ? transcript.segments.slice(0, 200) : [];
+    }
+    function normalizeTranscript(transcript) {
+        if (!transcript || typeof transcript !== "object") { return transcript; }
+        var segments = transcript.segments;
+        for (var attempt = 0; attempt < 4 && typeof segments === "string"; attempt++) {
+            try { segments = JSON.parse(segments); } catch (error) { segments = []; break; }
+        }
+        if (segments && !Array.isArray(segments) && typeof segments === "object") {
+            segments = segments.segments || segments.items || segments.values || segments.data || Object.keys(segments).sort(function (a, b) { return Number(a) - Number(b); }).map(function (key) { return segments[key]; });
+        }
+        transcript.segments = Array.isArray(segments) ? segments.map(function (item) {
+            if (typeof item === "string") { try { return JSON.parse(item); } catch (error) { return null; } }
+            return item;
+        }).filter(function (item) { return item && typeof item === "object" && isFinite(Number(item.startMs)) && isFinite(Number(item.endMs)) && String(item.text || "").trim(); }) : [];
+        if (!transcript.plainText && transcript.segments.length) { transcript.plainText = transcript.segments.map(function (item) { return item.text; }).join("\n"); }
+        return transcript;
     }
     function transcriptSource() {
         var transcript = state.data && state.data.transcript ? state.data.transcript : null;

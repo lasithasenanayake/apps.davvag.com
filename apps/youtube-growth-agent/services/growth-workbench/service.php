@@ -53,10 +53,10 @@ class GrowthWorkbenchService extends \YtgServiceBase {
                 array("column" => "videoId", "operator" => "=", "value" => $videoId)
             ), array(array("column" => "transcriptId", "direction" => "DESC")));
             if ($transcript !== null) {
-                $transcript->segments = $this->decodeJson(isset($transcript->segments) ? $transcript->segments : array());
+                $transcript->segments = $this->decodeTranscriptSegments(isset($transcript->segments) ? $transcript->segments : array());
                 if (isset($transcript->sourceType) && $transcript->sourceType === "YOUTUBE_CAPTION") {
                     $transcript->segments = YouTubeCaptionParser::normalizeSegments($transcript->segments);
-                    $transcript->plainText = YouTubeCaptionParser::plainText($transcript->segments);
+                    if (count($transcript->segments)) { $transcript->plainText = YouTubeCaptionParser::plainText($transcript->segments); }
                 }
                 $result->transcript = $transcript;
             }
@@ -764,6 +764,34 @@ class GrowthWorkbenchService extends \YtgServiceBase {
             $segments[] = (object)array("startMs" => $start, "endMs" => $end, "text" => $text);
             $previousEnd = $end;
             if (count($segments) > 5000) { return null; }
+        }
+        return $segments;
+    }
+
+    private function decodeTranscriptSegments($value) {
+        for ($attempt = 0; $attempt < 4 && is_string($value); $attempt++) {
+            $trimmed = trim($value);
+            if ($trimmed === "") { return array(); }
+            $decoded = json_decode($trimmed);
+            if (json_last_error() !== JSON_ERROR_NONE) { return array(); }
+            $value = $decoded;
+        }
+        if (is_object($value)) {
+            foreach (array("segments", "items", "values", "data") as $wrapper) {
+                if (isset($value->{$wrapper})) { return $this->decodeTranscriptSegments($value->{$wrapper}); }
+            }
+            $value = (array)$value;
+        }
+        if (!is_array($value)) { return array(); }
+        if (isset($value["startMs"], $value["endMs"])) { $value = array($value); }
+        $segments = array();
+        foreach ($value as $item) {
+            for ($attempt = 0; $attempt < 3 && is_string($item); $attempt++) {
+                $decoded = json_decode(trim($item));
+                if (json_last_error() !== JSON_ERROR_NONE) { break; }
+                $item = $decoded;
+            }
+            if (is_object($item) || is_array($item)) { $segments[] = $item; }
         }
         return $segments;
     }

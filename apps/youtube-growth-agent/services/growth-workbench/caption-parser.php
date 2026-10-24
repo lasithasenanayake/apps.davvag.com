@@ -71,6 +71,10 @@ final class YouTubeCaptionParser {
         if (!is_array($segments)) { return array(); }
         $output = array();
         foreach ($segments as $value) {
+            if (is_string($value)) {
+                $decoded = json_decode($value);
+                if (is_object($decoded) || is_array($decoded)) { $value = $decoded; }
+            }
             $item = is_object($value) ? $value : (object)$value;
             $startMs = isset($item->startMs) ? max(0, intval($item->startMs)) : -1;
             $endMs = isset($item->endMs) ? intval($item->endMs) : -1;

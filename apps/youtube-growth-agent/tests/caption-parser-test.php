@@ -38,6 +38,12 @@ expectCaption($rolling[1]->text === "second phrase" && $rolling[1]->startMs === 
 expectCaption($rolling[2]->text === "final phrase" && $rolling[2]->startMs === 7919, "subsequent rolling prefixes should be removed");
 expectCaption(YouTubeCaptionParser::plainText($rolling) === "First spoken phrase\nsecond phrase\nfinal phrase", "plain text should contain each rolling phrase once");
 
+$serializedItems = YouTubeCaptionParser::normalizeSegments(array(
+    json_encode(array("startMs" => 0, "endMs" => 1000, "text" => "Stored first cue")),
+    json_encode(array("startMs" => 1200, "endMs" => 2200, "text" => "Stored second cue"))
+));
+expectCaption(count($serializedItems) === 2 && $serializedItems[1]->text === "Stored second cue", "serialized segment items returned by object storage should be decoded");
+
 $intentionalRepeat = YouTubeCaptionParser::normalizeSegments(array(
     (object)array("startMs" => 0, "endMs" => 1200, "text" => "Repeat this"),
     (object)array("startMs" => 1200, "endMs" => 2500, "text" => "Repeat this")
