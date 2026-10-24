@@ -64,5 +64,11 @@ if (strpos($studioSource, "state.data.transcript = transcript") === false || str
     exit(1);
 }
 
+$workbenchSource = file_get_contents(dirname(__DIR__) . "/services/growth-workbench/service.php");
+if (strpos($workbenchSource, 'SOSSData::Update("ytg_videos", $video)') !== false) {
+    fwrite(STDERR, "FAIL: importing a transcript must not rewrite or remove its video catalogue record" . PHP_EOL);
+    exit(1);
+}
+
 echo "TRANSCRIPT_SERVICE_CONTRACTS_OK" . PHP_EOL;
 ?>

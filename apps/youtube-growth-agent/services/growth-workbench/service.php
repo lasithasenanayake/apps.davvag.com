@@ -102,8 +102,6 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         if ($existing === null) { $row->createdAt = $this->now(); }
         $save = $existing === null ? \SOSSData::Insert("ytg_transcripts", $row) : \SOSSData::Update("ytg_transcripts", $row);
         if (!$save->success) { return $this->fail($res, "Transcript could not be saved."); }
-        $video->hasTranscript = true;
-        \SOSSData::Update("ytg_videos", $video);
         $this->audit("TRANSCRIPT_IMPORTED", $channel->channelId, "video:" . $video->youtubeVideoId, null, array("source" => "USER_UPLOAD", "language" => $language, "segments" => count($segments)));
         $row->segments = $segments;
         return (object)array("transcript" => $row, "message" => "User-provided transcript saved with validated timestamps.");
@@ -174,8 +172,6 @@ class GrowthWorkbenchService extends \YtgServiceBase {
         );
         $save = \SOSSData::Insert("ytg_transcripts", $row);
         if (!$save->success) { return $this->fail($res, "The timestamped caption transcript could not be saved."); }
-        $video->hasTranscript = true;
-        \SOSSData::Update("ytg_videos", $video);
         $this->audit("YOUTUBE_CAPTION_IMPORTED", $channel->channelId, "video:" . $video->youtubeVideoId, null, array("language" => $track->language, "trackKind" => $track->trackKind, "segments" => count($parsed->segments)));
         return (object)array(
             "transcript" => $row,
