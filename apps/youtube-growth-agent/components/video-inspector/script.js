@@ -1,8 +1,9 @@
 WEBDOCK.component().register(function (exports) {
-    var api, sync, workbench, ai;
+    var api, sync, workbench, ai, metadataWorkflow;
     var state = {
         channelId: "", videoId: "", loading: false, syncing: false, busy: "", error: "", info: "", analysis: null, activeTab: "overview",
-        competitor: {urls: "", workspace: null, loading: false, transcriptVideo: null, transcriptText: "", transcriptLanguage: "English", sourceType: "MANUAL_TEXT", rightsConfirmed: false, languageOverride: "", aiConsent: false, result: null}
+        competitor: {urls: "", workspace: null, loading: false, transcriptVideo: null, transcriptText: "", transcriptLanguage: "English", sourceType: "MANUAL_TEXT", rightsConfirmed: false, languageOverride: "", aiConsent: false, result: null},
+        metadata: {workspace: null, loading: false, aiConsent: false, languageOverride: "", current: null, selectedTitle: "0", customTitle: "", edit: {title: "", thumbnailPrompt: "", description: "", chapters: "", keywords: "", hashtags: ""}}
     };
     exports.vue = {data: state, methods: {
         load: load, syncVideo: syncVideo, setTab: setTab, back: function () { navigate("videos"); },
@@ -10,15 +11,17 @@ WEBDOCK.component().register(function (exports) {
         formatWatchMinutes: formatWatchMinutes, formatAverageDuration: formatAverageDuration, formatAveragePercentage: formatAveragePercentage, syncErrorActions: syncErrorActions,
         addCompetitorVideos: addCompetitorVideos, removeCompetitorVideo: removeCompetitorVideo, openCompetitorTranscript: openCompetitorTranscript,
         closeCompetitorTranscript: closeCompetitorTranscript, loadCompetitorTranscriptFile: loadCompetitorTranscriptFile, saveCompetitorTranscript: saveCompetitorTranscript, generateCompetitorResearch: generateCompetitorResearch,
-        competitorResearch: competitorResearch, evidenceText: evidenceText, formatRate: formatRate
+        competitorResearch: competitorResearch, evidenceText: evidenceText, formatRate: formatRate,
+        loadMetadataWorkspace: loadMetadataWorkspace, generateMetadataSuggestions: generateMetadataSuggestions, selectSuggestion: selectSuggestion, selectMetadataTitle: selectMetadataTitle,
+        markMetadataApplied: markMetadataApplied, formatChapterTime: formatChapterTime, metricLabel: metricLabel, formatMetricValue: formatMetricValue, formatChange: formatChange
     }, onReady: function () { initialize(); }};
     exports.onReady = function () {};
 
     function initialize() {
-        api = exports.getComponent("api"); sync = exports.getComponent("youtube-sync"); workbench = exports.getComponent("growth-workbench"); ai = exports.getComponent("growth-ai");
+        api = exports.getComponent("api"); sync = exports.getComponent("youtube-sync"); workbench = exports.getComponent("growth-workbench"); ai = exports.getComponent("growth-ai"); metadataWorkflow = exports.getComponent("metadata-workflow");
         state.channelId = query("channelId") || window.localStorage.getItem("ytg.selectedChannelId") || ""; state.videoId = query("videoId");
         if (!state.channelId || !state.videoId) { state.error = "Channel and video IDs are required."; return; }
-        if (!workbench || !ai) { state.error = "Competitor research services are not loaded."; return; }
+        if (!workbench || !ai || !metadataWorkflow) { state.error = "Video intelligence services are not loaded."; return; }
         load();
     }
     function setTab(tab) { state.activeTab = tab; if (tab === "competitors" && !state.competitor.workspace) { loadCompetitorWorkspace(); } }
@@ -26,7 +29,7 @@ WEBDOCK.component().register(function (exports) {
         state.loading = true; if (!preserveMessages) { state.error = ""; state.info = ""; }
         api.services.GetVideoAnalysis({channelId: state.channelId, videoId: state.videoId}).then(function (response) {
             state.loading = false;
-            if (response.success) { state.analysis = response.result; loadCompetitorWorkspace(); }
+            if (response.success) { state.analysis = response.result; loadCompetitorWorkspace(); loadMetadataWorkspace(); }
             else { state.error = msg(response, "Video analysis could not be loaded."); }
         }).error(function () { state.loading = false; state.error = "Video analysis could not be loaded."; });
     }
@@ -38,6 +41,59 @@ WEBDOCK.component().register(function (exports) {
             else { state.error = msg(response, "Competitor video research could not be loaded."); }
         }).error(function () { state.competitor.loading = false; state.error = "Competitor video research could not be loaded."; });
     }
+    function loadMetadataWorkspace() {
+        if (state.metadata.loading) { return; } state.metadata.loading = true;
+        metadataWorkflow.services.GetMetadataWorkspace({channelId: state.channelId, videoId: state.videoId}).then(function (response) {
+            state.metadata.loading = false;
+            if (!response.success) { state.error = msg(response, "Metadata suggestions and application history could not be loaded."); return; }
+            state.metadata.workspace = response.result;
+            if (!state.metadata.current && response.result.suggestions && response.result.suggestions.length) { selectSuggestion(response.result.suggestions[0]); }
+        }).error(function () { state.metadata.loading = false; state.error = "Metadata suggestions and application history could not be loaded."; });
+    }
+    function generateMetadataSuggestions() {
+        if (state.busy) { return; }
+        if (!state.analysis || !state.analysis.transcript) { state.error = "Import or download the inspected video's transcript before generating suggestions."; return; }
+        if (!state.metadata.aiConsent) { state.error = "Confirm the saved-agent data disclosure for this generation action first."; return; }
+        state.busy = "GenerateMetadataSuggestions"; state.error = ""; state.info = "";
+        ai.services.GenerateMetadataSuggestions({channelId: state.channelId, videoId: state.videoId, languageOverride: state.metadata.languageOverride, confirmAgentDataShare: true}).then(function (response) {
+            state.busy = "";
+            if (!response.success) { state.error = msg(response, "Metadata suggestions could not be generated."); return; }
+            selectSuggestion(response.result.suggestion); state.info = response.result.message; loadMetadataWorkspace();
+        }).error(function () { state.busy = ""; state.error = "Metadata suggestions could not be generated."; });
+    }
+    function selectSuggestion(row) {
+        if (!row) { return; } state.metadata.current = row; state.metadata.selectedTitle = "0"; state.metadata.customTitle = "";
+        var suggestions = row.suggestions || {}, pairs = suggestions.titlePromptPairs || [], first = pairs[0] || {};
+        state.metadata.edit.title = first.title || ""; state.metadata.edit.thumbnailPrompt = first.thumbnailPrompt || "";
+        state.metadata.edit.description = suggestions.description || ""; state.metadata.edit.chapters = chapterText(suggestions);
+        state.metadata.edit.keywords = (suggestions.keywords || []).join(", "); state.metadata.edit.hashtags = (suggestions.hashtags || []).join(" ");
+    }
+    function selectMetadataTitle() {
+        var row = state.metadata.current, index = state.metadata.selectedTitle;
+        if (!row) { return; }
+        if (index === "custom") { state.metadata.edit.title = state.metadata.customTitle; return; }
+        var pair = (row.suggestions.titlePromptPairs || [])[Number(index)]; if (!pair) { return; }
+        state.metadata.edit.title = pair.title || ""; state.metadata.edit.thumbnailPrompt = pair.thumbnailPrompt || "";
+    }
+    function markMetadataApplied() {
+        var row = state.metadata.current; if (state.busy || !row) { return; }
+        if (state.metadata.selectedTitle === "custom") { state.metadata.edit.title = state.metadata.customTitle; }
+        if (!window.confirm("Save these edited values as an immutable marked-as-applied record? This read-only integration will not update YouTube.")) { return; }
+        state.busy = "MarkMetadataApplied"; state.error = ""; state.info = "";
+        metadataWorkflow.services.MarkMetadataApplied({channelId: state.channelId, videoId: state.videoId, suggestionId: row.suggestionId, finalValues: {title: state.metadata.edit.title, thumbnailPrompt: state.metadata.edit.thumbnailPrompt, description: state.metadata.edit.description, chapters: state.metadata.edit.chapters, keywords: splitList(state.metadata.edit.keywords, false), hashtags: splitList(state.metadata.edit.hashtags, true)}}).then(function (response) {
+            state.busy = ""; if (!response.success) { state.error = msg(response, "The application record could not be saved."); return; }
+            state.info = response.result.message; loadMetadataWorkspace();
+        }).error(function () { state.busy = ""; state.error = "The application record could not be saved."; });
+    }
+    function splitList(value, hashtags) { return String(value || "").split(hashtags ? /[\s,]+/ : /[,\n]+/).map(function (item) { return item.trim(); }).filter(function (item) { return !!item; }); }
+    function chapterText(suggestions) {
+        var chapters = suggestions.chapters || []; if (chapters.length) { return chapters.map(function (item) { return formatChapterTime(item.startMs) + " " + item.title; }).join("\n"); }
+        var outline = suggestions.untimedTopicOutline || []; return outline.length ? "Untimed outline (source transcript has no timestamps)\n" + outline.map(function (item) { return "- " + item; }).join("\n") : "No source-timestamped chapters are available.";
+    }
+    function formatChapterTime(ms) { var seconds = Math.max(0, Math.floor(Number(ms || 0) / 1000)), h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60; return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s; }
+    function metricLabel(name) { return {impressions:"Impressions", impressionsCtr:"Impressions CTR", views:"Views", averageViewDuration:"Average view duration", watchMinutes:"Watch time (minutes)"}[name] || name; }
+    function formatMetricValue(name, value) { if (value === null || typeof value === "undefined") { return "Unavailable"; } if (name === "impressionsCtr") { return Number(value).toLocaleString(undefined,{maximumFractionDigits:2}) + "%"; } if (name === "averageViewDuration") { return formatDuration(value); } return Number(value).toLocaleString(undefined,{maximumFractionDigits:2}); }
+    function formatChange(metric) { if (!metric || metric.absoluteChange === null) { return metric && metric.status === "ZERO_BASELINE" ? "Percentage unavailable (zero baseline)" : "Not enough comparable data"; } var prefix = Number(metric.absoluteChange) > 0 ? "+" : ""; var percent = metric.percentageChange === null ? "percentage unavailable" : (Number(metric.percentageChange) > 0 ? "+" : "") + Number(metric.percentageChange).toLocaleString(undefined,{maximumFractionDigits:2}) + "%"; return prefix + Number(metric.absoluteChange).toLocaleString(undefined,{maximumFractionDigits:2}) + " (" + percent + ")"; }
     function syncVideo() {
         if (state.syncing) { return; } state.syncing = true; state.error = ""; state.info = "";
         sync.services.SyncVideo({channelId: state.channelId, videoId: state.videoId}).then(function (response) {

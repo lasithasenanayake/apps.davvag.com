@@ -1,0 +1,14 @@
+{
+  "fields": [
+    {"fieldName":"summaryId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"transcriptHash","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"transcriptLength","dataType":"int"},
+    {"fieldName":"summary","dataType":"object"},
+    {"fieldName":"hasTimestamps","dataType":"boolean"},
+    {"fieldName":"chunkCount","dataType":"int"},
+    {"fieldName":"modelVersion","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}

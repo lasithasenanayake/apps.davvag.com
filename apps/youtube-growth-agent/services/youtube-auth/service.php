@@ -298,7 +298,8 @@ class YouTubeAuthService extends \YtgServiceBase {
             "ytg_video_statistics", "ytg_analytics_daily", "ytg_reach_daily", "ytg_traffic_sources",
             "ytg_recommendations", "ytg_sync_jobs", "ytg_quota_usage", "ytg_agent_runs", "ytg_videos",
             "ytg_retention_points", "ytg_transcripts", "ytg_short_candidates", "ytg_content_ideas",
-            "ytg_calendar_items", "ytg_competitors", "ytg_competitor_videos", "ytg_comments", "ytg_experiments",
+            "ytg_calendar_items", "ytg_competitors", "ytg_competitor_videos", "ytg_competitor_transcripts", "ytg_competitor_research",
+            "ytg_video_summaries", "ytg_metadata_suggestions", "ytg_metadata_applications", "ytg_comments", "ytg_experiments",
             "ytg_oauth_grants", "ytg_channel_access"
         );
         $deleted = array();

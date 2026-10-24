@@ -1,0 +1,16 @@
+{
+  "fields": [
+    {"fieldName":"applicationId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"suggestionId","dataType":"int"},
+    {"fieldName":"suggestionVersion","dataType":"int"},
+    {"fieldName":"metadataBefore","dataType":"object"},
+    {"fieldName":"finalValues","dataType":"object"},
+    {"fieldName":"baseline","dataType":"object"},
+    {"fieldName":"applicationMode","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"status","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"appliedByProfileId","dataType":"int"},
+    {"fieldName":"appliedAt","dataType":"java.util.Date"}
+  ]
+}

@@ -15,6 +15,7 @@ This tenant app implements the read-only DAVVAG command centre, content-intellig
 - Per-video audience-retention imports from the YouTube Analytics API.
 - Timestamped Shorts candidates, SEO/video briefs, URL-based public competitor workspaces, a performing-video shortlist, and a content calendar.
 - Packaging variants, native A/B test preparation, community themes, manual reply drafts, experiment journals, and session-path proposals.
+- Versioned, editable video metadata suggestions with transcript summarization, immutable marked-as-applied records, and observed before/after analytics comparisons.
 - Saved-agent reuse through `ai-agent-creator`, strict JSON/evidence validation, auditable runs, and deterministic fallbacks.
 - Sinhala/English generation requests based on channel settings.
 - Disconnect, local stored-data deletion, and audit records covering Phase 0-3 namespaces.
@@ -63,6 +64,14 @@ YTG_VIDEO_IDEA_AGENT_CODE
 ```
 
 System administrators can map these tasks to any saved agent directly in **Settings & Privacy**. The selector is populated from `ai-agent-creator`; provider credentials and prompts remain owned by that app. Missing agents or rejected JSON use a deterministic, channel-scoped fallback.
+
+## Video metadata suggestions and application tracking
+
+Open an owned video and select **Suggestions**. A stored transcript is required. Transcripts longer than 5,000 characters are summarized by the configured transcript agent before generation; model-sized chunks are summarized and merged when necessary, source timestamps are allow-listed, and an unchanged transcript reuses its saved summary. The SEO agent then produces three validated title/thumbnail-prompt pairs, a description, source-timestamped chapters (or an explicit untimed outline), keywords, and separate hashtags. Available competitor titles, descriptions, and exposed tags are treated as untrusted reference data; unavailable fields are reported.
+
+Generated versions are immutable. Users can edit a working copy and save the final values as a separate immutable `MARKED_AS_APPLIED` record. The current OAuth scopes are read-only, so this action does not update YouTube. Each record captures available pre-change metadata and a seven-day performance baseline. Application history compares impressions, impressions CTR, views, average view duration, and watch time over matched periods where possible, labels missing and zero-baseline cases, and shows later applications that shorten or overlap a measurement window. These changes are observational and are not attributed solely to metadata.
+
+The declarative schemas `ytg_video_summaries`, `ytg_metadata_suggestions`, and `ytg_metadata_applications` must be installed through the tenant's normal schema update process before using this workflow.
 
 ## Competitor growth analysis
 

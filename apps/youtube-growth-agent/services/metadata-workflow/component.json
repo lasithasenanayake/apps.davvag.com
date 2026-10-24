@@ -1,0 +1,16 @@
+{
+  "name":"metadata-workflow",
+  "description":"Immutable metadata application records and observed performance comparisons",
+  "author":"DAVVAG",
+  "version":"0.1",
+  "resources":{"files":[{"type":"mainScript","location":"script.js"}]},
+  "dependency":{"plugins":[
+    {"type":"php","plugin_location":"local","location":"/profile/profile.php"},
+    {"type":"php","plugin_location":"local","location":"/youtube-growth/youtube-growth.php"}
+  ]},
+  "serviceHandler":{"file":"service.php","class":"youtube_growth_agent\\MetadataWorkflowService","methods":{
+    "GetMetadataWorkspace":{"method":"POST"},
+    "MarkMetadataApplied":{"method":"POST"}
+  }},
+  "transformers":{}
+}

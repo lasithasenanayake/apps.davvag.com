@@ -1,0 +1,17 @@
+{
+  "fields": [
+    {"fieldName":"suggestionId","dataType":"int","annotations":{"isPrimary":true,"autoIncrement":true}},
+    {"fieldName":"channelId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"videoId","dataType":"java.lang.String","annotations":{"maxLen":90}},
+    {"fieldName":"version","dataType":"int"},
+    {"fieldName":"transcriptHash","dataType":"java.lang.String","annotations":{"maxLen":64}},
+    {"fieldName":"summaryId","dataType":"int"},
+    {"fieldName":"competitorVideoIds","dataType":"object"},
+    {"fieldName":"competitorFindings","dataType":"object"},
+    {"fieldName":"suggestions","dataType":"object"},
+    {"fieldName":"language","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"source","dataType":"java.lang.String","annotations":{"maxLen":40}},
+    {"fieldName":"modelVersion","dataType":"java.lang.String","annotations":{"maxLen":80}},
+    {"fieldName":"createdAt","dataType":"java.util.Date"}
+  ]
+}
