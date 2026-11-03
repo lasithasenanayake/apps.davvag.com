@@ -1,0 +1,17 @@
+{
+    "name": "Stripe platform settings",
+    "version": "1.0",
+    "resources": {
+        "css": [],
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            },
+            {
+                "type": "mainView",
+                "location": "partial.html"
+            }
+        ]
+    }
+}

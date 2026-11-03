@@ -62,6 +62,7 @@
               <span class="text-muted">{{ store.items.length }} {{ store.items.length==1 ? 'product' : 'products' }}</span>
               <strong>{{ store.currencycode }} {{ store.total | money }}</strong>
             </div>
+            <div v-if="paymentSettings.enabled && paymentSettings.service_fee_percent>0" class="mb-3"><div class="d-flex justify-content-between small text-muted mb-2"><span>Service fee ({{ paymentSettings.service_fee_percent }}%)</span><span>{{ store.currencycode }} {{ serviceFee(store) | money }}</span></div><div class="d-flex justify-content-between"><strong>Estimated total</strong><strong>{{ store.currencycode }} {{ (store.total+serviceFee(store)) | money }}</strong></div></div>
             <button type="button" class="btn btn-primary btn-block" @click="checkout(store)" :aria-label="'Checkout with '+store.storename">Proceed to checkout</button>
           </div>
         </div>

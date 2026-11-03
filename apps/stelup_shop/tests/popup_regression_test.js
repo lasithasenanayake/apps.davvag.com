@@ -96,7 +96,8 @@ for (const name of ["messaging", "product-comments"]) {
     component.vue.methods.send(name === "messaging" ? data.message : data.comment);
     assert.equal((data.messages || data.comments).length, 1);
     assert.equal(name === "messaging" ? data.message : data.comment, "");
-    assert.equal(disabledStates.at(-1), false);
+    if (name === "messaging") { assert.equal(data.sending, false); }
+    else { assert.equal(disabledStates.at(-1), false); }
     assert.equal(completed, false, "Sending must leave the conversation open");
 }
 console.log("Popup callbacks, Buy, product loading/errors, message and comment submission passed.");

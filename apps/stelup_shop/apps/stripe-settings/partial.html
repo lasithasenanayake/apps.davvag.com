@@ -1,0 +1,20 @@
+<div class="container py-4">
+  <h1 class="h3">Stripe settings</h1><p class="text-muted">Configure platform payments, seller commission and buyer service fees.</p>
+  <p v-if="loading" role="status">Loading settings...</p><div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div><div v-if="saved" class="alert alert-info" role="status">Settings saved.</div>
+  <form v-if="allowed" class="card" @submit.prevent="save"><div class="card-body">
+    <div class="form-group"><label><input type="checkbox" v-model="settings.enabled"> Enable Stripe Connect payments</label></div>
+    <div class="row"><div class="col-md-6 form-group"><label for="stripe-mode">Mode</label><select id="stripe-mode" class="form-control" v-model="settings.mode"><option value="test">Test</option><option value="live">Live</option></select></div>
+    <div class="col-md-6 form-group"><label for="stripe-base">Public site URL</label><input id="stripe-base" class="form-control" type="url" required v-model.trim="settings.base_url" placeholder="https://stelup.com"><small class="text-muted">Include any installation subdirectory. Do not include a hash route.</small></div></div>
+    <div class="row"><div class="col-md-6 form-group"><label for="stripe-pk">Platform publishable key</label><input id="stripe-pk" class="form-control" v-model.trim="settings.publishable_key" autocomplete="off" placeholder="pk_test_..."></div>
+    <div class="col-md-6 form-group"><label for="stripe-sk">Platform secret key</label><input id="stripe-sk" type="password" class="form-control" v-model.trim="settings.secret_key" autocomplete="new-password" :placeholder="settings.has_secret_key ? 'Saved; leave blank to keep' : 'sk_test_...'"><small class="text-muted">Saved server-side; never returned to this page.</small></div></div>
+    <div class="row"><div class="col-md-6 form-group"><label for="stripe-client">Connect OAuth client ID</label><input id="stripe-client" class="form-control" v-model.trim="settings.client_id" autocomplete="off" placeholder="ca_..."></div>
+    <div class="col-md-6 form-group"><label for="stripe-webhook">Connected-account webhook signing secret</label><input id="stripe-webhook" type="password" class="form-control" v-model.trim="settings.webhook_secret" autocomplete="new-password" :placeholder="settings.has_webhook_secret ? 'Saved; leave blank to keep' : 'whsec_...'"></div></div>
+    <h2 class="h5 mt-3">Fees</h2><div class="row"><div class="col-md-6 form-group"><label for="stripe-commission">Seller commission (%)</label><input id="stripe-commission" type="number" min="0" max="100" step="0.01" class="form-control" v-model.number="settings.commission_percent" required><small class="text-muted">Deducted from the product subtotal paid to the seller.</small></div>
+    <div class="col-md-6 form-group"><label for="stripe-fee">Buyer service fee (%)</label><input id="stripe-fee" type="number" min="0" max="100" step="0.01" class="form-control" v-model.number="settings.service_fee_percent" required><small class="text-muted">Added to the buyer's product subtotal. Set to 0 to disable.</small></div></div>
+    <button type="submit" class="btn btn-primary" :disabled="busy">{{ busy ? 'Saving...' : 'Save settings' }}</button>
+    <hr><h2 class="h5">Stripe Dashboard setup</h2><p>Enable Standard account OAuth in the platform's Connect settings. Use the client ID and keys for the same mode.</p>
+    <label>OAuth redirect URI</label><p class="small" style="overflow-wrap:anywhere;">{{ settings.base_url }}/components/stelup_shop/stripe-api/service/Callback</p>
+    <label>Connected-account webhook endpoint</label><p class="small" style="overflow-wrap:anywhere;">{{ settings.base_url }}/components/stelup_shop/stripe-api/service/Webhook</p>
+    <p class="text-muted small mb-0">Listen to checkout.session.completed checkout.session.async_payment_succeeded and checkout.session.expired for connected accounts. Paste the endpoint's signing secret above.</p>
+  </div></form>
+</div>

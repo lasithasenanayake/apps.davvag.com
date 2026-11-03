@@ -1,22 +1,22 @@
-<div v-for="error in submitErrors" class="alert alert-danger" role="alert">{{ error }}</div>
-<div class="mb-3 overflow-auto" style="max-height: 55vh; overflow-wrap: anywhere;"  id="message_data">
- 
-    <div class="d-flex align-items-start mb-3" v-for="c in messages">
-      <div v-if="c.m_from==c.userboxid" class="col-auto" ><img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+c.userboxid" class="rounded-circle" alt="" style="width: 40px; height: 40px; object-fit: cover;"></div>
-      <div v-if="c.m_from==c.userboxid" class="col-auto" style="width: calc(100% - 60px);text-align: left;">{{ c.messagetext }}</div>
-      <div v-if="c.m_from==c.inboxid" class="col-auto" style="width: calc(100% - 60px);text-align: right;">{{ c.messagetext }}</div>
-      <div v-if="c.m_from==c.inboxid" class="col-auto" ><img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+c.inboxid" class="rounded-circle" alt="" style="width: 40px; height: 40px; object-fit: cover;"></div>
+<div class="d-flex flex-column h-100" style="min-height: 0;">
+  <div v-for="error in submitErrors" class="alert alert-danger mb-2" role="alert">{{ error }} <button v-if="!messages.length" type="button" class="btn btn-default btn-sm mt-2" @click="retry" :disabled="loading">Reload messages</button></div>
+  <div id="message_data" class="p-3 mb-2" :style="data.stretch ? {flex:'1',minHeight:'0',overflowY:'auto'} : {maxHeight:'45vh',minHeight:'140px',overflowY:'auto'}" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions text">
+    <p v-if="loading" class="text-muted text-center" role="status">Loading messages...</p>
+    <p v-else-if="!messages.length && !submitErrors.length" class="text-muted text-center">Start the conversation. Send a message below.</p>
+    <div v-for="(c,index) in messages" :key="c.id || index" class="d-flex mb-3" :class="isOwn(c) ? 'justify-content-end' : 'justify-content-start'">
+      <div class="card px-3 py-2" :class="isOwn(c) ? 'card-header' : ''" style="max-width: 90%; min-width: 0;">
+        <small class="text-muted mb-1">{{ isOwn(c) ? 'You' : (data.name || 'Seller') }}</small>
+        <div style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ c.messagetext }}</div>
+        <small v-if="c.msgdate" class="text-muted mt-1">{{ c.msgdate }}</small>
+      </div>
     </div>
-  
-  
-</div>
-<div id="form-row" class="form-row align-items-center" style="padding-top: 5px;">
-  <div class="col-auto" style="width: 40px;"><img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+profile.id" class="rounded-circle" alt="" style="width: 40px; height: 40px; object-fit: cover;"></div>
-  <div class="col-auto" style="flex: 1; min-width: 0;"><textarea aria-label="Write a message" class="form-control" v-model="message"  maxlength="500" style="width: 100%;height: 50px;" v-on:keyup="textOnChage" v-on:focus="textOnChage"></textarea></div>
-  <div class="col-auto" ><button v-on:click="send(message)" class="btn btn-primary" style="height: 50px;">Send</button></div>
-</div>
-<div class="form-row align-items-center">
-  <div class="col"></div>
-  <div class="col"></div>
-  <div class="col" style="text-align: right;">{{ TextLength }} / 500</div>
+  </div>
+  <form id="form-row" class="border-top pt-3 px-3 pb-2" @submit.prevent="send">
+    <label for="stelup-message-input" class="small mb-1">Message</label>
+    <textarea id="stelup-message-input" aria-label="Write a message" class="form-control" v-model="message" maxlength="500" rows="2" placeholder="Write your message..." :disabled="sending" style="resize: none;" @keydown.ctrl.enter.prevent="send" @keydown.meta.enter.prevent="send"></textarea>
+    <div class="d-flex align-items-center justify-content-between mt-2" style="gap: 12px;">
+      <small class="text-muted">{{ TextLength }} / 500</small>
+      <button type="submit" class="btn btn-primary" :disabled="!message.trim() || sending || loading">{{ sending ? 'Sending...' : 'Send' }}</button>
+    </div>
+  </form>
 </div>

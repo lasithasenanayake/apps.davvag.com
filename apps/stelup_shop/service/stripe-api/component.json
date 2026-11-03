@@ -1,0 +1,54 @@
+{
+    "name": "Stelup Stripe Connect API",
+    "version": "1.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    },
+    "serviceHandler": {
+        "file": "service.php",
+        "class": "StelupStripeApi",
+        "methods": {
+            "Settings": {
+                "method": "GET"
+            },
+            "PublicSettings": {
+                "method": "GET"
+            },
+            "SellerStatus": {
+                "method": "GET"
+            },
+            "SellerProfile": {
+                "method": "POST"
+            },
+            "CompleteSeller": {
+                "method": "POST"
+            },
+            "Connect": {
+                "method": "POST"
+            },
+            "Callback": {
+                "method": "GET"
+            },
+            "Quote": {
+                "method": "POST"
+            },
+            "PaymentStatus": {
+                "method": "GET",
+                "parameters": [
+                    "token"
+                ]
+            },
+            "Webhook": {
+                "method": "POST"
+            },
+            "SaveSettings": {
+                "method": "POST"
+            }
+        }
+    }
+}

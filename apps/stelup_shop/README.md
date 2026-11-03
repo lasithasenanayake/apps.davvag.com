@@ -97,3 +97,13 @@ The coordinator closes the current instance before opening another dialog or nav
 Run `node tests/popup_regression_test.js` for callback and product-state regression checks. Browser integration was also checked against the actual CMS popup shell and downloader using fixture services; live service verification remains separate.
 
 CMS preloading registers helper components without calling their `onLoad()`. Catalog popup callers initialize `shop-popup` once, when its `open` export is first needed. The popup regression test covers this preloaded-but-uninitialized state.
+
+## Messaging layout
+
+The messages route uses a shared-theme inbox and chat panel. Mobile shows either the inbox or the selected conversation, with Back returning to the list. The scrollable message history keeps the composer visible. Search, loading/retry states, safe message decoding and send status work in the inbox and product-message popup.
+
+The inbox disposes the previous conversation and invalidates old downloader requests when switching or returning. Message callbacks ignore disposed views; unsuccessful sends preserve the draft. Run `node tests/messaging_regression_test.js` for these behaviors. No service or schema changes are required.
+
+## Stripe Connect payments
+
+Configure `#/app/stelup_shop/stripe-settings` as an administrator. Sellers connect their Standard Stripe accounts through the redesigned seller registration. Commission is deducted from the seller subtotal; a configured buyer service fee is shown separately before payment. Keys remain server-side. See [STRIPE_CONNECT.md](STRIPE_CONNECT.md) for required Stripe Dashboard/tenant-permission setup, fee examples, storage and test instructions.

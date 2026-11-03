@@ -119,12 +119,20 @@
         "pending-orders": {
             "type": "component",
             "location": "apps"
+        },
+        "stripe-api": {
+            "type": "service",
+            "location": "service"
+        },
+        "stripe-settings": {
+            "type": "component",
+            "location": "apps"
         }
     },
     "description": {
         "title": "Stelup App",
         "author": "lasitha@davvag.com",
-        "version": "0.7",
+        "version": "1.0",
         "icon": "appicon.png"
     },
     "tags": [
@@ -140,7 +148,8 @@
                 "p_svr",
                 "productsvr",
                 "login-handler",
-                "seller_svr"
+                "seller_svr",
+                "stripe-api"
             ],
             "routes": {
                 "partials": {
@@ -158,7 +167,8 @@
                     "/messages": "messages",
                     "/userprofile": "user-profile",
                     "/selleradmin": "seller-product-admin",
-                    "/orders": "pending-orders"
+                    "/orders": "pending-orders",
+                    "/stripe-settings": "stripe-settings"
                 }
             }
         }
@@ -207,15 +217,36 @@
             "profilestatus",
             "stelup_trade",
             "stelup_trade_confirm",
-            "stelup_trade_rejected"
+            "stelup_trade_rejected",
+            "orderheader",
+            "orderdetails_accepted",
+            "orderdetails_deleted",
+            "paymentheader",
+            "paymentdetails",
+            "payment_advance"
         ],
         "workflows": [
             "davvag-attributes/stelup_dispatch_order.json"
         ],
         "plugins": {
-            "local": ["davvag-attributes","davvag-order","profile","profile-stelup"],
-            "global": ["Facebook","Google","auth","davvag-flow","notify","phpcache","sossdata"]
+            "local": [
+                "davvag-attributes",
+                "davvag-order",
+                "profile",
+                "profile-stelup"
+            ],
+            "global": [
+                "Facebook",
+                "Google",
+                "auth",
+                "davvag-flow",
+                "notify",
+                "phpcache",
+                "sossdata"
+            ]
         },
-        "php-extensions": []
+        "php-extensions": [
+            "curl"
+        ]
     }
 }

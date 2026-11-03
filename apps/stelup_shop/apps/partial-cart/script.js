@@ -6,7 +6,8 @@ WEBDOCK.component().register(function(exports){
             items: [],
             itemsGrouped:[],
             hasOrder: false,
-            user:{}
+            user:{},
+            paymentSettings:{service_fee_percent:0,enabled:false}
     };
 
     function unitPrice(item) {
@@ -55,9 +56,9 @@ WEBDOCK.component().register(function(exports){
                 scope.profile = {address:{gpspoint:""},address2:{},address3:{}};
                 //scope.profile.name = scope.user.name;
                 scope.profile.email = scope.user.email;
-                $('#idCartLogin').modal('hide');  
+                $('#idCartLogin').modal('hide');
             }else {
-                toastr.error('Invalid Username or Password', 'Login error');    
+                toastr.error('Invalid Username or Password', 'Login error');
             }
 
         }).error(function(){
@@ -67,8 +68,11 @@ WEBDOCK.component().register(function(exports){
 
     var vueData =  {
        data : bindData,
-       onReady: function(app,renderDiv){ 
-           scope = app;      
+       onReady: function(app,renderDiv){
+           scope = app;
+            exports.getComponent("stripe-api").services.PublicSettings().then(function(result){
+                if(result.success){bindData.paymentSettings=result.result;}
+            }).error(function(){});
             if(sessionStorage.items){
                 bindData.items=JSON.parse(sessionStorage.items);
                 processItems();
@@ -79,6 +83,12 @@ WEBDOCK.component().register(function(exports){
        },
        methods:{
             unitPrice: unitPrice,
+            serviceFee: function(store){
+                var code=String(store.currencycode||"gbp").toLowerCase();
+                var factor=["bif","clp","djf","gnf","jpy","kmf","krw","mga","pyg","rwf","vnd","vuv","xaf","xof","xpf"].indexOf(code)!==-1?1:100;
+                var whole=code==="isk"||code==="ugx"?100:1;
+                return Math.round((Math.round(store.total*factor)*Number(bindData.paymentSettings.service_fee_percent||0)/100)/whole)*whole/factor;
+            },
             lineTotal: lineTotal,
             updateQuantity: function (item) {
                 item.qty = Math.max(1, Math.floor(Number(item.qty) || 1));
@@ -127,7 +137,7 @@ WEBDOCK.component().register(function(exports){
                 $('#idCartLogin').on('hidden.bs.modal', function () {
                     location.href ="#/user";
                 });
-                $('#idCartLogin').modal('hide'); 
+                $('#idCartLogin').modal('hide');
             }
         },
         computed: {

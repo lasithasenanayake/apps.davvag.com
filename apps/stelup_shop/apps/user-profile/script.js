@@ -11,31 +11,81 @@ WEBDOCK.component().register(function(exports){
         Transaction:[],
         Summary:{},
         showSearch:false,
+        canManageStripe:false,
         image:'components/dock/soss-uploader/service/get/profile/1',
-        appName:"Tranaction History",
+        appName:"Transactions History",
+        activeTab:"#tran",
+        detailOpen:false,
+        isMobile:window.matchMedia("(max-width: 767.98px)").matches,
+        profile:{amount:0,remarks:""},
         profile_policy:{id:1,profilephoto:1,lastseen:1,status:1,read_receipts:1,posts:1},
         loadingApp:false,
         loadingAppError:false,
         submitErrors:[]
     };
     var newFile;
-    function completeResponce(results){
-        if($('#decker1100').hasClass("profile-content-show")){
-            bindData.apptitle="Tranaction History";
-            showTab("#tran");
-            $('#decker1100').removeClass("profile-content-show");
+    var viewportQuery = window.matchMedia("(max-width: 767.98px)");
+    var detailModal;
+
+    function closeDetails() {
+        bindData.detailOpen = false;
+        if (bindData.isMobile && detailModal) {
+            detailModal.modal("hide");
         }
-        console.log(results);
     }
 
-    function showTab(x){
-        $("#tabs>div.active").removeClass("active");
-        $(x).addClass("active");
+    function completeResponce() {
+        closeDetails();
+        bindData.appName = "Transactions History";
+        showTab("#tran");
+    }
+
+    function showTab(tab) {
+        bindData.activeTab = tab;
+    }
+
+    function openDetails(tab, title) {
+        bindData.appName = title;
+        showTab(tab);
+        bindData.detailOpen = true;
+        if (bindData.isMobile) {
+            Vue.nextTick(function () { detailModal.modal("show"); });
+        }
+    }
+
+    function updateViewport() {
+        if (bindData.isMobile && !viewportQuery.matches && detailModal) {
+            detailModal.modal("hide");
+        }
+        bindData.isMobile = viewportQuery.matches;
+        if (!bindData.isMobile && detailModal) {
+            Vue.nextTick(function () {
+                detailModal.css("display", "").removeAttr("aria-hidden");
+            });
+        }
+        if (bindData.isMobile && bindData.detailOpen) {
+            Vue.nextTick(function () { detailModal.modal("show"); });
+        }
     }
 
     var vueData = {
         onReady: function(){
+            detailModal = $("#stelup-profile-detail");
+            detailModal.on("hidden.bs.modal.stelupProfile", function () {
+                bindData.detailOpen = false;
+            });
+            viewportQuery.addEventListener("change", updateViewport);
+            exports.getComponent("stripe-api").services.PublicSettings().then(function(r){
+                if(r.success){bindData.canManageStripe=!!r.result.can_manage_settings;}
+            }).error(function(){});
             initializeComponent();
+        },
+        beforeDestroy: function () {
+            viewportQuery.removeEventListener("change", updateViewport);
+            if (detailModal) {
+                detailModal.modal("hide");
+                detailModal.off(".stelupProfile");
+            }
         },
         data:bindData,
         methods: {
@@ -77,32 +127,20 @@ WEBDOCK.component().register(function(exports){
                     });
                 });
             },
-            showTab:function(tab,title){
-                $('#decker1100').addClass("profile-content-show");
-                bindData.appName=title;
-                showTab(tab);
-            },
+            showTab:openDetails,
             downloadapp:function(appname,form,data,apptitle){
-                $('#decker1100').addClass("profile-content-show");
                 bindData.loadingApp=false;
-                bindData.appName=apptitle;
-                showTab("#app");
-                apploader.downloadAPP(appname,form,"appdock",function(d){
-                    
-                    
+                bindData.loadingAppError=false;
+                openDetails("#app", apptitle);
+                apploader.downloadAPP(appname,form,"appdock",function(){
                     bindData.loadingApp=true;
                     bindData.loadingAppError=false;
-                    
-                },function(e){
-                    console.log(e);
+                },function(error){
+                    console.log(error);
                     bindData.loadingAppError=true;
                 },completeResponce,data);
             },
-            hide:function(){
-                $('#decker1100').removeClass("profile-content-show");
-                bindData.apptitle="Tranaction History";
-                showTab("#tran");
-            },
+            hide:closeDetails,
             showMenu:function(a){
                 if($(a).hasClass("show")){
                     $(a).removeClass("show");

@@ -1,25 +1,30 @@
-<div class="container" id="idOrderWizard">
+<div class="container py-4" id="idOrderWizard">
+<h1 class="h3">Checkout</h1>
+<div v-for="error in submitErrors" class="alert alert-danger" role="alert">{{ error }}</div>
+<p v-if="quoteLoading" role="status">Calculating your total...</p>
+<div v-if="quote" class="card mb-4"><div class="card-body"><h2 class="h5">Order summary</h2><div class="d-flex justify-content-between mb-2"><span>Products</span><strong>{{ quote.currency.toUpperCase() }} {{ quote.subtotal | money }}</strong></div><div v-if="quote.service_fee_minor>0" class="d-flex justify-content-between mb-2"><span>Service fee ({{ quote.service_fee_percent }}%)</span><strong>{{ quote.currency.toUpperCase() }} {{ quote.service_fee | money }}</strong></div><div class="d-flex justify-content-between border-top pt-2"><strong>Total to pay</strong><strong>{{ quote.currency.toUpperCase() }} {{ quote.total | money }}</strong></div></div></div>
+<button v-if="!quoteLoading" type="button" class="btn btn-default btn-sm mb-3" :disabled="isBusy" @click="refreshQuote">Refresh order summary</button>
     <div  class="py-3">
-        <form id="Form">
+        <form id="Form" @submit.prevent="submitPurchase">
             <div class="form-group">
                 <label for="exampleInputPassword1">Email </label>
                 <input type="text" class="form-control" v-model="profile.email" disabled="disabled">
             </div>
             <div class="form-group">
                 <label for="exampleInputPassword1">Name *</label>
-                <input type="text" class="form-control" v-model="profile.name">
+                <input type="text" class="form-control" v-model="profile.name" required>
             </div>
             <div class="form-group">
                 <label for="exampleInputPassword1">Contact Number *</label>
-                <input type="text" class="form-control" v-model="profile.contactno" maxlength="10">
+                <input type="text" class="form-control" v-model="profile.contactno" required maxlength="32">
             </div>
             <div class="form-group">
                     <label for="exampleInputPassword1">Address *</label>
-                    <textarea class="form-control deliveryAddress" v-model="profile.address" style="margin-bottom:10px;"></textarea>
+                    <textarea class="form-control deliveryAddress" v-model="profile.address" required style="margin-bottom:10px;"></textarea>
             </div>
             <div class="form-group">
                     <label for="exampleInputPassword1">Counrty *</label>
-                    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="profile.country">
+                    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="profile.country" required>
                             <option value=""></option>
                             <option value="United States">United States</option>
                             <option value="United Kingdom">United Kingdom</option>
@@ -293,7 +298,7 @@
                 </div>
             </div> -->
             
-            <button type="button" class="btn bg-primary-button btn-block" v-on:click="submitPurchase()">Complete Purchase</button>
+            <p class="text-muted small">You will continue to Stripe to pay securely.</p><button type="submit" class="btn btn-primary btn-block" :disabled="!quote || quoteLoading || isBusy">{{ isBusy ? "Opening Stripe..." : "Continue to secure payment" }}</button>
             
         </form>
     </div>

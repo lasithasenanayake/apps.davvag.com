@@ -1,50 +1,75 @@
-WEBDOCK.component().register(function(exports){
-    bindData={header:{buttonuri:""},InvoiceToSave:sessionStorage.tmpRept?JSON.parse(sessionStorage.tmpRept):null};
-    var vueData =  {
-        methods:{
-            navigateBack: function(){
-                handler1 = exports.getShellComponent("soss-routes");
-                handler1.appNavigate("..");
-            },
-            print:function(){
-                var prtContent=document.getElementById("printcontent");
-                var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-                WinPrint.document.open('text/html');
-                WinPrint.document.write('<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"><div style="margin: 30px;"> '+prtContent.innerHTML+'</div>');
-                WinPrint.document.close();
-                WinPrint.focus();
-                setTimeout(function(){ WinPrint.print();WinPrint.close(); }, 3000);
+WEBDOCK.component().register(function(exports) {
+    var state= {
+        loading:true,error:"",payment:null
+    }
+    ,api,token;
+    function verify() {
+        state.loading=true;
+        state.error="";
+        if(!token) {
+            state.loading=false;
+            state.error="No Stripe checkout reference was provided.";
+            return;
+        }
+        api.services.PaymentStatus( {
+            token:token
+        }
+        ).then(function(r) {
+            state.loading=false;
+            if(!r.success) {
+                state.error=typeof r.result==="string"?r.result:"Unable to verify payment. Please try again.";
+                return;
             }
-        },
-        data :bindData,
-        onReady: function(s){
-            var menuhandler  = exports.getComponent("soss-data");
-            if(sessionStorage.blogheader){
-    
-                //document.title=JSON.parse(sessionStorage.blogheader).name;
-                //bindData.url=r.result.buttonuri;
-                bindData.header=JSON.parse(sessionStorage.blogheader);
-            }else{
-                var data={name:"cms-global"}
-                menuhandler.services.Settings(data)
-                        .then(function(r){
-                            //console.log(JSON.stringify(r));
-                            if(r.success){
-                                bindData.header= r.result;
-                                sessionStorage.blogheader=JSON.stringify(r.result)
-                            }
-                        })
-                        .error(function(error){
-                            //bindData.Articals=[];
-                            console.log(error.responseJSON);
-                });
+            state.payment=r.result;
+            if(r.result.paid) {
+                var seen=JSON.parse(sessionStorage.stelupPaidTokens||"[]");
+                if(seen.indexOf(token)===-1) {
+                    var purchased=r.result.quote;
+                    var items=JSON.parse(sessionStorage.items||"[]");
+                    items=items.filter(function(item) {
+                        if(String(item.storeid)!==String(purchased.storeid)) {
+                            return true;
+                        }
+                        var row=purchased.items.filter(function(p) {
+                            return String(p.itemid)===String(item.itemid);
+                        }
+                        )[0];
+                        if(!row) {
+                            return true;
+                        }
+                        item.qty=Math.max(0,Number(item.qty)-row.qty);
+                        return item.qty>0;
+                    }
+                    );
+                    sessionStorage.items=JSON.stringify(items);
+                    seen.push(token);
+                    sessionStorage.stelupPaidTokens=JSON.stringify(seen.slice(-20));
+                    sessionStorage.removeItem("tmpstorecheckout");
+                }
             }
         }
-    } 
-
-    exports.vue = vueData;
-    exports.onReady = function(){
-       
+        ).error(function() {
+            state.loading=false;
+            state.error="Unable to verify payment. Please try again.";
+        }
+        );
     }
-    
-});
+    exports.vue= {
+        data:state,onReady:function() {
+            api=exports.getComponent("stripe-api");
+            var hash=window.location.hash;
+            token=new URLSearchParams(hash.indexOf("?")===-1?"":hash.substring(hash.indexOf("?")+1)).get("checkout_token");
+            verify();
+        }
+        ,filters: {
+            money:function(v) {
+                return(Number(v)||0).toFixed(2);
+            }
+        }
+        ,methods: {
+            verify:verify
+        }
+    }
+    ;
+}
+);

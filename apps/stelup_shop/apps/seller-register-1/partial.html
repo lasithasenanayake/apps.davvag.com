@@ -1,36 +1,13 @@
-<div class="py-3">
-<h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Seller Signup</h1>
-<hr>
-<div class="input-error">
-  <div class="alert alert-danger" v-if="submitErrors" v-for="error in submitErrors">
-    <strong>ERROR! </strong> {{error}}
-  </div>
-  <div class="alert alert-info" v-if="submitInfo" v-for="error in submitInfo">
-      <strong>INFO! </strong> {{error}}
-    </div>
-</div>
-<form id="form-details-0" class="activeForm" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Varifting Profile</h5>
-  <hr>
-</form>
-<form id="form-details-1" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <div class="form-group">
-    <label for="name">Name *</label>
-    <input type="text" id="name" class="form-control"  aria-describedby="emailHelp" placeholder="Enter Name" v-model="data.name">
-  </div>
-  
-  <div class="form-group">
-    <label for="contactno">Contact No *</label>
-    <input type="number" id="contactno" class="form-control"  aria-describedby="Help1" placeholder="Enter Contact No" v-model="data.contactno">
-    <small id="Help1" class="form-text text-muted">We'll never share your contact no with anyone else.</small>
-  </div>
-  <div class="form-group">
-    <label for="address">Address *</label>
-    <textarea class="form-control deliveryAddress" v-model="data.address" placeholder="Enter Your Address" style="margin-bottom:10px;"></textarea>
-  </div>
-  <div class="form-group">
-    <label for="exampleInputPassword1">Counrty *</label>
-    <select class="form-control mb15" data-placeholder="Choose a Country..."  title="" v-model="data.country">
+<div class="container py-4">
+  <h1 class="h3">Set up your shop</h1><p class="text-muted">Create your seller profile, choose your policies and connect Stripe for payments.</p>
+  <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div><p v-if="loading" role="status">Loading your shop...</p>
+  <div v-if="done" class="card text-center"><div class="card-body py-5"><h2 class="h4">Your shop is ready</h2><p>Your Stripe account is connected and your seller profile is saved.</p><a href="#/app/stelup_shop/itemonboard" class="btn btn-primary">Create a listing</a></div></div>
+  <form v-else-if="!loading" class="card" @submit.prevent="next"><div class="card-body">
+    <p class="text-muted small">Step {{ step }} of 3</p>
+    <div v-if="step==1"><h2 class="h5 mb-3">Shop details</h2>
+      <div class="row"><div class="col-md-6 form-group"><label for="seller-name">Shop name</label><input id="seller-name" class="form-control" v-model.trim="profile.name" maxlength="120" required></div><div class="col-md-6 form-group"><label for="seller-phone">Contact number</label><input id="seller-phone" class="form-control" type="tel" v-model.trim="profile.contactno" required></div></div>
+      <div class="form-group"><label for="seller-address">Address</label><textarea id="seller-address" class="form-control" v-model.trim="profile.address" required></textarea></div>
+      <div class="row"><div class="col-md-6 form-group"><label for="seller-country">Country</label><select id="seller-country" class="form-control" v-model="profile.country" required>
             <option value="">Choose a Country...</option>
             <option value="United States">United States</option>
             <option value="United Kingdom">United Kingdom</option>
@@ -283,123 +260,24 @@
             <option value="Yemen">Yemen</option>
             <option value="Zambia">Zambia</option>
             <option value="Zimbabwe">Zimbabwe</option>
-          </select>
-  </div>
-  <button  class="btn bg-primary-button btn-block" v-on:click="sellersiginup">Next</button>
-</form>
-<form id="form-details-2" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <div class="form-group">
-    <label for="username">User Name *</label>
-    <input type="Text" id="username" class="form-control"  aria-describedby="Help2" placeholder="Enter username" v-model="attributes.username">
-    <small id="Help2" class="form-text text-muted">This is your unique Identity.</small>
-  </div>
-  <div class="form-group">
-    <label for="address">BIO </label>
-    <textarea class="form-control deliveryAddress" v-model="attributes.bio" placeholder="Add Bio" style="margin-bottom:10px;"></textarea>
-  </div>
-  <div class="form-group">
-    <label for="website">Web Site</label>
-    <input type="text" id ="website"class="form-control"  aria-describedby="Help3" placeholder="www.yourwebsite.com" v-model="attributes.website">
-  </div>
-  <div class="form-group">
-    <label for="instagram">Instagram User</label>
-    <input type="text" id="instagram" class="form-control"  aria-describedby="Help4" placeholder="instagram.com/user" v-model="attributes.instagram">
-  </div>
-  <button  class="btn bg-primary-button btn-block" v-on:click="biosiginup">Next</button>
-</form>
-<form id="form-details-3" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <div id="app_stripe"></div>
-</form>
-<form id="form-details-4" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Your own selling policies!</h5>
-  <hr>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.refunds">
-        I give refunds
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.internationalshipping">
-        I ship internationally.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.internationalshipping">
-        I ship internationally.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N" v-model="attributes.combinedshipping">
-        I can do combined shipping
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.bundleshipping">
-        I can do bundles
-    </label>
-  </div>
-  
-  <button  class="btn bg-primary-button btn-block" v-on:click="sellingoplicy">Next</button>
-</form>
-<form id="form-details-5" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Your trading policies!</h5>
-  <hr>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.reviews">
-        You must have atleast  <input class="form-control" type="number" maxlength="2" size="2" autocomplete="off" v-model="attributes.numberofreviews" style="
-        size: 2;
-        width: 50px;
-        border-top: none;
-        border-right: none;
-        border-left: none;
-        background: none;
-        /* border-bottom: black; */
-    "> reviews.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.sendvideo">
-        You must send a video of you packaging the photocard.
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.sendphotocardvideo">
-        You must send a video of you posting the photocard if you can
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.icovershipping">
-        You must cover shipping from you to me - I will cover shipping from me to you
-    </label>
-  </div>
-  <div class="checkbox">
-    <label style="font-size: 1.5em">
-        <input type="checkbox" true-value="Y" false-value="N"  v-model="attributes.localtradonly">
-        I will only trade within the {{ data.country }} unless states otherwise
-    </label>
-  </div>
-  
-  <button  class="btn bg-primary-button btn-block" v-on:click="tradingoplicy">Next</button>
-</form>
-<form id="form-details-6" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
-  <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Profile Image</h5>
-  <hr>
-  <div class="form-group">
-    <div class="img-thumbnail img-fluid" style="max-height: 280px; object-fit: contain;">
-    <img class="img-fluid" :src="p_image"  width="300px" @click="crope"/>
-    <i class="fa fa-camera upload-button" @click="crope"></i>
+          </select></div><div class="col-md-6 form-group"><label for="seller-city">City</label><input id="seller-city" class="form-control" v-model.trim="profile.city"></div></div>
+      <div class="form-group"><label for="seller-bio">About your shop</label><textarea id="seller-bio" class="form-control" v-model="profile.attributes.bio" maxlength="2000"></textarea></div>
     </div>
-  </div>
-  
-  <button  class="btn bg-primary-button btn-block" v-on:click="submit">Finish</button>
-</form>
+    <div v-if="step==2"><h2 class="h5 mb-3">Shop policies</h2>
+      <div class="form-group"><label for="seller-website">Website</label><input id="seller-website" class="form-control" v-model.trim="profile.attributes.website"></div>
+      <div class="form-group"><label><input type="checkbox" true-value="Y" false-value="N" v-model="profile.attributes.refunds"> Accept returns and refunds</label></div>
+      <div class="form-group"><label><input type="checkbox" true-value="Y" false-value="N" v-model="profile.attributes.internationalshipping"> Offer international shipping</label></div>
+      <div class="form-group"><label><input type="checkbox" true-value="Y" false-value="N" v-model="profile.attributes.combinedshipping"> Offer combined shipping</label></div>
+      <div class="form-group"><label><input type="checkbox" true-value="Y" false-value="N" v-model="profile.attributes.localtradonly"> Trade locally only</label></div>
+    </div>
+    <div v-if="step==3"><h2 class="h5 mb-3">Connect your Stripe account</h2>
+      <p>Connect an existing Stripe account or create one on Stripe. Your login and bank information are entered on Stripe.</p>
+      <div v-if="!settings.enabled" class="alert alert-info">The administrator needs to configure Stripe payments before you can finish onboarding.</div>
+      <div v-else class="mb-4"><p v-if="connected" class="alert alert-info">Stripe connected. Payments and payouts are enabled.</p><p v-else-if="connection.account_id" class="alert alert-info">Your account is linked. Finish the requirements in Stripe to enable payments and payouts.</p>
+        <p class="text-muted">Seller commission: {{ settings.commission_percent }}% of the product subtotal. Buyer service fee: {{ settings.service_fee_percent }}%. Stripe processing fees are separate.</p>
+        <div class="d-flex flex-wrap" style="gap:8px;"><button type="button" class="btn btn-primary" :disabled="busy" @click="connect">{{ connection.account_id ? 'Reconnect Stripe' : 'Connect with Stripe' }}</button><button type="button" class="btn btn-default" :disabled="busy" @click="refresh">Refresh status</button><a v-if="connection.account_id" class="btn btn-default" href="https://dashboard.stripe.com/" target="_blank" rel="noopener">Stripe Dashboard</a></div>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-between border-top pt-3" style="gap:8px;"><button v-if="step>1" type="button" class="btn btn-default" :disabled="busy" @click="step--">Back</button><button type="submit" class="btn btn-primary ml-auto" :disabled="busy || (step==3 && !connected)">{{ busy ? 'Saving...' : (step==3 ? 'Finish registration' : 'Save and continue') }}</button></div>
+  </div></form>
 </div>

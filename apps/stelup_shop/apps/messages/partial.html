@@ -1,15 +1,39 @@
 <div class="container py-4">
-  <div class="row">
-    <div class="col-12 col-md-4 mb-3">
-      <h1 class="h4 mb-3">Messages</h1>
-      <p v-if="!messages.length" class="text-muted">No conversations yet.</p>
-      <button type="button" class="btn btn-default w-100 text-left mb-2" v-for="m in messages" @click="downloadapp('stelup_shop','messaging',m,'Messages')">
-        <span class="d-flex align-items-center">
-          <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+m.m_from" :alt="m.name" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
-          <span style="min-width: 0;"><strong class="d-block text-truncate">{{ m.name }}</strong><small class="text-muted">{{ m.msgdate }}</small><span v-if="m.msgread==0" class="d-block small text-primary">Unread</span></span>
-        </span>
-      </button>
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 12px;">
+    <div><h1 class="h3 mb-1">Messages</h1><p class="text-muted mb-0 d-none d-md-block">Keep in touch with your shops and customers.</p></div>
+    <a class="btn btn-default" href="#/app/stelup_shop">Browse shops</a>
+  </div>
+  <div class="card" style="height: min(720px, calc(100dvh - 180px)); min-height: 360px; overflow: hidden;">
+    <div class="row no-gutters h-100">
+      <section class="col-12 col-md-4 flex-column h-100 border-right" :class="active ? 'd-none d-md-flex' : 'd-flex'" aria-label="Conversations">
+        <div class="p-3 border-bottom">
+          <div class="d-flex align-items-center justify-content-between mb-3"><h2 class="h5 mb-0">Inbox</h2><button type="button" class="btn btn-default btn-sm" @click="refresh" :disabled="loading">Refresh</button></div>
+          <input type="search" class="form-control" v-model="search" placeholder="Search conversations" aria-label="Search conversations">
+        </div>
+        <div class="p-2 overflow-auto flex-grow-1" style="min-height: 0;">
+          <p v-if="loading" class="p-3 text-muted" role="status">Loading conversations...</p>
+          <div v-else-if="error" class="alert alert-danger m-2" role="alert">{{ error }} <button type="button" class="btn btn-default btn-sm mt-2" @click="refresh">Try again</button></div>
+          <p v-else-if="!messages.length" class="p-3 text-muted">No conversations yet. Open a product to message its seller.</p>
+          <p v-else-if="!filteredMessages.length" class="p-3 text-muted">No conversations match your search.</p>
+          <button v-else type="button" class="btn w-100 text-left mb-2 p-3" :class="active && active.m_from==m.m_from ? 'btn-primary' : 'btn-default'" v-for="(m,index) in filteredMessages" :key="String(m.m_from)+'-'+index" @click="openConversation(m)" :aria-label="'Open conversation with '+m.name" :aria-pressed="!!active && active.m_from==m.m_from">
+            <span class="d-flex align-items-center">
+              <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+m.m_from" class="rounded-circle mr-3 flex-shrink-0" alt="" style="width: 44px; height: 44px; object-fit: cover;">
+              <span class="d-block flex-grow-1" style="min-width: 0;"><strong class="d-block text-truncate">{{ m.name }}</strong><small class="d-block">{{ m.msgdate }}</small><small v-if="m.msgread==0" class="d-block font-weight-bold">Unread messages</small></span>
+            </span>
+          </button>
+        </div>
+      </section>
+      <section class="col-12 col-md-8 flex-column h-100" :class="active ? 'd-flex' : 'd-none d-md-flex'" aria-label="Conversation">
+        <div v-if="active" class="d-flex align-items-center border-bottom p-3">
+          <button type="button" class="btn btn-default btn-sm mr-3" @click="back" aria-label="Back to conversations">Back</button>
+          <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+active.m_from" class="rounded-circle mr-2 flex-shrink-0" alt="" style="width: 36px; height: 36px; object-fit: cover;">
+          <h2 class="h6 mb-0 text-truncate">{{ active.name }}</h2>
+        </div>
+        <div v-if="!active" class="d-flex flex-column align-items-center justify-content-center h-100 p-4 text-center"><h2 class="h5">Your conversations</h2><p class="text-muted">Choose a conversation to read and reply.</p></div>
+        <p v-if="loadingChat" class="text-muted px-3 pt-3" role="status">Opening conversation...</p>
+        <div v-if="chatError" class="alert alert-danger m-3" role="alert">{{ chatError }} <button type="button" class="btn btn-default btn-sm mt-2" @click="retryConversation">Try again</button></div>
+        <div class="flex-grow-1 overflow-hidden" v-show="active" style="min-height: 0;"><div id="messagedock" class="h-100" v-once></div></div>
+      </section>
     </div>
-    <div class="col-12 col-md-8" id="messagedock"></div>
   </div>
 </div>

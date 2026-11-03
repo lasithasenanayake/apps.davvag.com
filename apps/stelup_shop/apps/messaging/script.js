@@ -1,150 +1,81 @@
-WEBDOCK.component().register(function(exports){
-    var scope,validator_profile,service_handler,sossrout_handler,call_handler,complete_call;
-    var p=0;
-    var s=40;
-    var l=0;
-
+WEBDOCK.component().register(function (exports) {
+    var service, renderDiv, disposed = false;
     var bindData = {
-        submitErrors : [],submitInfo : [],data:{},messages:[],message:"",messagetype:"text",profile:localStorage.profile?JSON.parse(localStorage.profile):{id:0}
+        submitErrors: [], data: {}, messages: [], message: "", sending: false, loading: true,
+        profile: localStorage.profile ? JSON.parse(localStorage.profile) : {id: 0}
     };
 
-    var vueData =  {
-        methods:{
-            send:submit,
-            scrollToElement() {
-                const el = this.$el.getElementsByClassName('.comments-box')[0];
-            
-                if (el) {
-                  el.scrollIntoView();
-                }
-              },
-            textOnChage:function(){
-                var element = document.getElementById("message_data");
-                $("#message_data").animate({ scrollTop: element.scrollHeight }, 1000);
-            }
-           
-        },
-        data :bindData,
-        onReady: function(s,c){
-            scope=s;
-            call_handler=c;
-            complete_call = function (result) {
-                if (typeof exports.Complete === "function") {
-                    exports.Complete(result);
-                }
-            };
-            if(c && c.data){
-                bindData.data=c.data;
-            }
-            initialize();
-        },
-        computed:{
-            TextLength:function(){
-                return this.message.length;
-            }
-        },
-        mounted() {
-            //this.scrollToElement();
-        }
-    }
-    scrolled =false;
-    function updateScroll(){
-        if(!scrolled){
-            var element = document.getElementById("message_data");
-            $("#message_data").animate({ scrollTop: element.scrollHeight }, 1000);
-            //element.scrollTop =element.scrollHeight;
-            //element.scrollIntoView();
-            //console.log("S");
-        }
-        
+    function decode(value) {
+        try { return decodeURIComponent(String(value || "")); }
+        catch (error) { return String(value || ""); }
     }
 
-    
-
-    function initialize(){
-        service_handler = exports.getComponent("p_svr");
-        if(!service_handler){
-            console.log("Service has not Loaded please check.")
-        }
-        
-        data= {id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,page:p.toString(),size:s.toString(),lastid:l.toString()};
-        service_handler.services.Messages(data).then(function(result){
-
-            
-            if(result.success){
-                
-                result.result.forEach(element => {
-                    element.messagetext=b64_to_utf8(element.messagetext);
-                });
-                bindData.messages=result.result;
-                //setTimeout(updateScroll(),5000);
-                
-            }else{
-                lockForm();
-            }
-            unlockForm();
-        }).error(function(result){
-            console.log(result);
-            
+    function scrollToBottom() {
+        if (typeof Vue === "undefined") { return; }
+        Vue.nextTick(function () {
+            if (disposed) { return; }
+            var element = renderDiv && renderDiv.find ? renderDiv.find("#message_data")[0] : document.getElementById("message_data");
+            if (element) { element.scrollTop = element.scrollHeight; }
         });
-        
-    }
-    function utf8_to_b64( str ) {
-        return encodeURIComponent( str );
-      }
-      
-      function b64_to_utf8( str ) {
-        return decodeURIComponent( str );
-      }
-
-    function submit(c_input){
-        lockForm();
-       
-            //data={}
-            str=utf8_to_b64(bindData.message);
-            data ={id:bindData.data.storeid?bindData.data.storeid:bindData.data.pid,messagetype:bindData.messagetype,message:str}
-            service_handler.services.SendMessage(data).then(function(result){
-                
-                //console.log(result);
-                
-                if(result.success){
-                    bindData.message="";
-                    result.result.messagetext=b64_to_utf8(result.result.messagetext);
-                    //console.log(str);
-                    bindData.messages.push(result.result);
-
-                }else{
-                    scope.submitErrors.push("Error");
-                }
-                unlockForm();
-            }).error(function(result){
-                scope.submitErrors = [];
-                bindData.submitErrors.push("Error");
-                unlockForm();
-            });
-
-        //}
     }
 
-    function navigateBack(){
-
+    function loadMessages() {
+        bindData.loading = true;
+        bindData.submitErrors = [];
+        service.services.Messages({id: bindData.data.storeid || bindData.data.pid, page: "0", size: "40", lastid: "0"}).then(function (result) {
+            if (disposed) { return; }
+            bindData.loading = false;
+            if (result.success && Array.isArray(result.result)) {
+                bindData.messages = result.result.map(function (message) {
+                    return Object.assign({}, message, {messagetext: decode(message.messagetext)});
+                });
+                scrollToBottom();
+            } else {
+                bindData.submitErrors = ["Unable to load messages. Please try again."];
+            }
+        }).error(function () {
+            if (disposed) { return; }
+            bindData.loading = false;
+            bindData.submitErrors = ["Unable to load messages. Please try again."];
+        });
     }
 
-    
-
-    function lockForm(){
-        $("#form-row :input").prop("disabled", true);
+    function send() {
+        var text = bindData.message.trim();
+        if (!text || text.length > 500 || bindData.sending || bindData.loading) { return; }
+        bindData.sending = true;
+        bindData.submitErrors = [];
+        service.services.SendMessage({id: bindData.data.storeid || bindData.data.pid, messagetype: "text", message: encodeURIComponent(text)}).then(function (result) {
+            if (disposed) { return; }
+            bindData.sending = false;
+            if (result.success && result.result) {
+                bindData.messages.push(Object.assign({}, result.result, {messagetext: decode(result.result.messagetext)}));
+                bindData.message = "";
+                scrollToBottom();
+            } else {
+                bindData.submitErrors = ["Your message was not sent. Please try again."];
+            }
+        }).error(function () {
+            if (disposed) { return; }
+            bindData.sending = false;
+            bindData.submitErrors = ["Your message was not sent. Please try again."];
+        });
     }
 
-    function unlockForm(){
-        $("#form-row :input").prop("disabled", false);
-    }
-
-    
-
-    exports.vue = vueData;
-    exports.onReady = function(element){
-        
-    }
-
+    exports.vue = {
+        data: bindData,
+        onReady: function (scope, context) {
+            bindData.data = context && context.data && typeof context.data === "object" ? context.data : {};
+            renderDiv = context && context.renderDiv || exports.renderDiv;
+            service = exports.getComponent("p_svr");
+            loadMessages();
+        },
+        beforeDestroy: function () { disposed = true; },
+        computed: {TextLength: function () { return this.message.length; }},
+        methods: {
+            send: send,
+            retry: loadMessages,
+            isOwn: function (message) { return String(message.m_from) === String(bindData.profile.id); }
+        }
+    };
 });

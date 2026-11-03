@@ -1,19 +1,17 @@
 {
-    "name" : "Seller Register",
-    "description":"Vue.JS Plugin for Soss Router",
-    "author":"Lasitha Dissanayake",
-    "version" : "0.1",
-    "gitUrl" : "",
+    "name": "Seller onboarding with Stripe Connect",
+    "version": "1.0",
     "resources": {
-        "files":[
+        "css": [],
+        "files": [
             {
-                "type" : "mainScript",
-                "location" : "script.js"
+                "type": "mainScript",
+                "location": "script.js"
             },
             {
-                "type" : "mainView",
-                "location" : "partial.html"
+                "type": "mainView",
+                "location": "partial.html"
             }
-        ],"css": []
+        ]
     }
 }

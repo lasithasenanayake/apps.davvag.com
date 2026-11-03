@@ -1,4 +1,4 @@
-<div class="">
+<div class="container py-4">
   <div class="row profile">
   <div class="col-md-4">
     <div class="profile-leftsidebar card mb-4">
@@ -11,7 +11,7 @@
         </div>
         <h5 class="font-size-16 mb-1 text-truncate">{{ item.name }}</h5>
       </div>
-      <div class="simplebar-content" style="padding: 5px;height: calc(100vh - 300px); overflow: hidden scroll; padding-right: 20px; padding-bottom: 0px;">
+      <div class="simplebar-content p-3">
         
         <div id="profile-setting-accordion" class="custom-accordion">
             <div class="card shadow-none border mb-2">
@@ -76,7 +76,7 @@
                           <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="showTab('#events','Purchases History')">My Purchases <i class="fa fa-shopping-cart" ></i></button>
                       </div>
                       <div class="py-3">
-                        <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="downloadapp('userapp','profile-edit',item,'Edit Profile')"><i class="fa fa-pencil"></i> Edit</button>
+                        <button type="button" class="btn btn-light btn-sm" style="width: 100%;" v-on:click="downloadapp('userapp','profile-edit',item,'Edit Profile')"><i class="fa fa-pencil"></i> Edit</button><a class="btn btn-default btn-sm btn-block mt-3" href="#/app/stelup_shop/selleronboard">Seller registration &amp; payouts</a><a v-if="canManageStripe" class="btn btn-default btn-sm btn-block mt-3" href="#/app/stelup_shop/stripe-settings">Stripe settings</a>
                       </div>
                     </div>
 
@@ -101,31 +101,28 @@
       <!-- END MENU -->
     </div>
   </div>
-  <div class="col-md-8">
-          <div id="decker1100" class="profile-content p-3 overflow-auto">
-            <!-- Tab panes -->
-            <div class="d-flex align-items-center justify-content-between p-3 app_header">
-                <div class="app_title">
-                     <h4>{{ appName }}</h4>
-                </div>
-                <div  class="app_close">
-                  <a v-on:click="hide"><i class="fa fa-times"></i></a>
-                </div>
-              </div>
+  <div id="stelup-profile-detail" :class="isMobile ? 'modal' : 'col-md-8'" :role="isMobile ? 'dialog' : 'region'" :aria-modal="isMobile && detailOpen ? 'true' : null" aria-labelledby="stelup-profile-detail-title" tabindex="-1">
+    <div :class="isMobile ? 'modal-dialog m-0 w-100 h-100' : ''" :style="isMobile ? {maxWidth:'none'} : {}">
+      <div :class="isMobile ? 'modal-content h-100 border-0 rounded-0' : 'card'">
+        <div class="modal-header align-items-center">
+          <h2 id="stelup-profile-detail-title" class="h5 mb-0">{{ appName }}</h2>
+          <button type="button" class="btn btn-default btn-sm ml-3" @click="hide" aria-label="Close history">Close</button>
+        </div>
+        <div id="decker1100" class="modal-body" :style="isMobile ? {overflowY:'auto',minHeight:0} : {}">
             <div  id="tabs" class="tab-content">
-                <div class="tab-pane" id="app">
+                <div class="tab-pane" :class="{active:activeTab==='#app'}" id="app">
                       <div  id="appdock" style="padding: 5px;"><h1>Please Wait Loading</h1></div>
                       
                     </div>
-              <div class="tab-pane active" id="tran">
+              <div class="tab-pane" :class="{active:activeTab==='#tran'}" id="tran">
                 
-                <table class="table mb30">
+                <div class="table-responsive"><table class="table mb-0">
                   <thead>
                     <tr>
                       <th>Type</th>
                       <th>#</th>
                       <th>Date</th>
-                      <th>Amout</th>
+                      <th>Amount</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -145,20 +142,20 @@
                       <td><button v-if="Summary.outstanding>0" class="btn btn-success btn-sm" v-on:click="showPay();">Pay Bill</button></td>
                     </tr>
                   </tbody>
-                </table>
+                </table></div>
               </div>
-              <div class="tab-pane" id="events">
+              <div class="tab-pane" :class="{active:activeTab==='#events'}" id="events">
                 <div class="events">
                   <h5 class="subtitle">Order Pending</h5>
-                  <div class="row">
+                  <div class="mb-4">
                     
-                    <table class="table mb30">
+                    <div class="table-responsive"><table class="table mb-0">
                         <thead>
                           <tr>
                             <th>Number</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Amout</th>
+                            <th>Amount</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -172,22 +169,22 @@
                           </tr>
                          
                         </tbody>
-                      </table>
+                      </table></div>
                     
                   </div>
                   
                   <br>
                   
                   
-                  <div class="row">
+                  <div class="mb-4">
                     <h5 class="subtitle">Orders Accepted</h5>
-                    <table class="table mb30">
+                    <div class="table-responsive"><table class="table mb-0">
                         <thead>
                           <tr>
                             <th>Number</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Amout</th>
+                            <th>Amount</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -201,18 +198,18 @@
                           </tr>
                          
                         </tbody>
-                      </table>
+                      </table></div>
                   </div>
 
-                  <div class="row">
+                  <div class="mb-4">
                     <h5 class="subtitle">Orders Rejected</h5>
-                    <table class="table mb30">
+                    <div class="table-responsive"><table class="table mb-0">
                         <thead>
                           <tr>
                             <th>Number</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Amout</th>
+                            <th>Amount</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -226,13 +223,15 @@
                           </tr>
                          
                         </tbody>
-                      </table>
+                      </table></div>
                   </div>
                   
                 </div><!-- events -->
               </div>
             </div><!-- tab-content -->
-          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal fade" id="modalImagePopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
