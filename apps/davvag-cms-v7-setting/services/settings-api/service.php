@@ -213,6 +213,14 @@ class CmsV7SettingsApi {
             $site->nav->fallback = (bool)$navSource->fallback;
         }
         $site->nav->variant = $this->cleanSlug(isset($navSource->variant) ? $navSource->variant : "clean", "clean");
+        $site->nav->colors = new \stdClass();
+        $colors = isset($navSource->colors) && is_object($navSource->colors) ? $navSource->colors : new \stdClass();
+        foreach(array("background", "text", "link", "hover", "border", "menuBackground", "hoverBackground", "buttonBackground", "buttonText") as $key){
+            $color = isset($colors->{$key}) && is_string($colors->{$key}) ? trim($colors->{$key}) : "";
+            if(preg_match('/^#[0-9a-fA-F]{6}$/D', $color)){
+                $site->nav->colors->{$key} = $color;
+            }
+        }
         $site->nav->links = $this->links(isset($navSource->links) ? $navSource->links : array());
         $site->nav->cta = new \stdClass();
         $ctaSource = isset($navSource->cta) && is_object($navSource->cta) ? $navSource->cta : new \stdClass();

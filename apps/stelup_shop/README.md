@@ -5,8 +5,8 @@ Stelup Shop is a DAVVAG Framework marketplace application for seller onboarding,
 ## Application structure
 
 - `app.json` registers components, routes, startup services, plugins, schemas, and workflows.
-- `apps/` contains routed UI components, their templates, scripts, and component-specific CSS.
-- `apps/stelup-theme/` provides the shared CMS V7-aligned visual layer.
+- `apps/` contains routed UI templates and scripts. Legacy component CSS files remain unreferenced.
+- `apps/stelup-theme/` ensures the existing CMS v7 stylesheets are available without duplicating them.
 - `service/app-handler/` handles seller profiles, products, likes, favorites, comments, and trade proposals.
 - `service/productsvr/` provides catalog lookup, product sharing metadata, and checkout.
 - `service/p_svr/` provides public profiles, follows, seller products, and messaging.
@@ -50,7 +50,11 @@ No Laravel, Symfony, React, Node runtime, or package installation is required by
 
 ## Theme integration
 
-`apps/stelup-theme/stelup-theme.css` reuses the CMS V7 design vocabulary: teal primary (`#0f766e`), blue secondary (`#2563eb`), rose danger/accent (`#e11d48`), neutral surfaces, 8px radii, restrained shadows, accessible focus rings, and responsive card/modal/button behavior. The component is loaded once from `configuration.webdock.onLoad`.
+Stelup uses `assets/davvag-cms-v7/cms-v7.css` and `cms-v7-bootstrap-theme.css` directly. It inherits the CMS shell's live `--cms-*` variables, so theme previews and changes from `#/app/davvag-cms-v7-setting` affect its buttons, cards, forms, tables and modals. No Stelup component loads an app stylesheet or defines its own theme palette.
+
+The `stelup-theme` startup component adds these shared assets only when the current dock has not already loaded them. Theme selection and persistence remain owned by CMS v7. Layout uses Bootstrap responsive columns and utilities, plus inline image sizing and spacing. Initially hidden form steps retain inline display states for the existing jQuery step navigation.
+
+Validation: existing PHP static regression checks; all component/app JSON manifests; Vue template compilation; home/profile fixture renders at 390, 768 and 1440 pixels; live CSS-variable color changes. Authenticated checkout and messaging services require separate live-session verification.
 
 ## Security behavior
 

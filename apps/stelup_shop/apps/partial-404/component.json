@@ -5,12 +5,7 @@
     "version" : "0.1",
     "gitUrl" : "",
     "resources": {
-        "css":[
-            {
-                "type" : "css",
-                "location" : "style.css"
-            }
-        ],
+        "css": [],
         "files":[
             {
                 "type" : "mainScript",

@@ -5,12 +5,7 @@
     "version" : "0.3",
     "gitUrl" : "",
     "resources": {
-        "css":[
-            {
-                "type" : "css",
-                "location" : "marketplace.css"
-            }
-        ],
+        "css": [],
         "js":[
             {
                 "tag": "markedmin",

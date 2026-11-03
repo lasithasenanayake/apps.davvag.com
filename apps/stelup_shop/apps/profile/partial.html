@@ -1,101 +1,52 @@
-<div class="container" @scroll="handleScroll($event)">
+<div class="container py-4" @scroll="handleScroll($event)">
     <div v-if="itemCount>0" class="row">
-        <input id="idButtonLocation" type="button" aria-label="Open cart" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/stelup_shop/appicon.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+        <button id="idButtonLocation" type="button" class="btn btn-primary mb-3 ml-auto" v-on:click="navcheckout()"><i class="fa fa-shopping-cart" aria-hidden="true"></i> View cart</button>
     </div>
+  <div class="card mb-4">
+    <div class="card-body row align-items-center">
+      <div class="col-12 col-md-6 mb-3 mb-md-0">
+        <div class="d-flex align-items-center mb-3">
+          <img :src="'components/dock/soss-uploader/service/get/profile/'+user.id" class="rounded-circle mr-3" style="width: 64px; height: 64px; object-fit: cover;" :alt="user.name">
+          <h1 class="h4 mb-0">{{ user.name }}</h1>
+        </div>
+        <button v-if="user.followed==1" @click="follow(user)" type="button" class="btn btn-default"><i class="fa fa-check"></i> Following</button>
+        <button v-if="user.followed==0" @click="follow(user)" type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Follow shop</button>
+        <a v-if="user.followed==-1" href="#/app/stelup_shop/userprofile" class="btn btn-default">Manage profile</a>
+      </div>
+      <div class="col-12 col-md-6">
+        <dl class="row text-center mb-0">
+          <div class="col-4"><dt class="small text-muted">Reviews</dt><dd class="h4 mb-0">{{ reviewsore }}</dd></div>
+          <div class="col-4"><dt class="small text-muted">Followers</dt><dd class="h4 mb-0">{{ user.followers }}</dd></div>
+          <div class="col-4"><dt class="small text-muted">Following</dt><dd class="h4 mb-0">{{ user.following }}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex flex-wrap mb-3" style="gap: 8px;" role="group" aria-label="Shop products">
+    <button type="button" class="btn" :class="tid==1?'btn-primary':'btn-default'" :aria-pressed="tid==1" @click="loadPd(1)">Listings</button>
+    <button type="button" class="btn" :class="tid==3?'btn-primary':'btn-default'" :aria-pressed="tid==3" @click="loadPd(3)">Liked</button>
+    <button type="button" class="btn" :class="tid==2?'btn-primary':'btn-default'" :aria-pressed="tid==2" @click="loadPd(2)">Saved</button>
+  </div>
   <div class="row">
-    <div class="col" style="width: 60%;">
-        <div class="profile-row">
-            <div class="profile-pic-col">
-                    <img :src="'components/dock/soss-uploader/service/get/profile/'+user.id" class="img-responsive" alt="">
-            </div>
-            <div class="profile-col" style="margin: auto;">
-                <h6>{{ user.name }}</h6>
-                
-            </div>
-        </div>
-        <div class="profile-row">
-            <button v-if="user.followed==1" v-on:click="follow(user)" type="button" class="btn btn-default btn-sm" style="width: 100px;text-align: center;"><i class="fa fa-plus-square"></i> Following</button>
-            <button v-if="user.followed==0" v-on:click="follow(user)" type="button" class="btn btn-danger btn-sm" style="width: 100px;text-align: center;"><i class="fa fa-plus-square-o"></i> Follow</button>
-            <button v-if="user.followed==-1" type="button" class="btn btn-default btn-sm" style="width: 100px;text-align: center;">Help?</button>
-        </div>
-    </div>
-    <div class="col" style="width: 40%;">
-        <div class="profile-row">
-            <div class="profile-col">
-                <h6>Reviews</h6>
-            </div>
-            <div class="profile-col" style="text-align: right;">
-                {{ reviewsore }}
-            </div>
-           
-        </div>
-        <div class="profile-row">
-            <div class="profile-col">
-                <h6>Followers</h6>
-            </div>
-            <div class="profile-col" style="text-align: right;">
-                {{ user.followers }}
-            </div>
-            
-        </div>
-        <div class="profile-row">
-            <div class="profile-col">
-                <h6>Followed</h6>
-            </div>
-            <div class="profile-col" style="text-align: right;">
-                {{ user.following }}
-            </div>
-        </div>
-       
-    </div>
-  </div>
-  <div class="profile-row-header">
-    <button type="button" class="btn btn-default btn-sm" style="width: 40px;text-align: center;" v-on:click="loadPd(1)"><i class="fa fa-usd"></i></button>
-    <button type="button" class="btn btn-default btn-sm" style="width: 40px;text-align: center;" v-on:click="loadPd(3)"><i class="fa fa-heart-o"></i></button>
-    <button type="button" class="btn btn-default btn-sm" style="width: 40px;text-align: center;" v-on:click="loadPd(2)"><i class="fa fa-plus-square-o"></i></button>
-  </div>
-  <div class="row" style="margin: auto;">
         
-    <div  :class="item.qty>0?'divImage':'divImage watermarked'" v-for="item in products" style="margin: auto;" @click="downloadapp('stelup_shop','product_app',item,item.storename,'components/davvag-cms/soss-uploader/service/get/profile/'+item.storeid)">
-        <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+item.itemid+'-'+item.imgurl"  class="upload-image"/>
-        </div>
+    <div  class="col-6 col-md-4 col-lg-3 mb-3" v-for="item in products" :key="item.itemid"><button type="button" class="btn btn-default w-100 p-1" @click="downloadapp('stelup_shop','product_app',item,item.storename,'components/davvag-cms/soss-uploader/service/get/profile/'+item.storeid)" :aria-label="'View '+item.name"><img :src="'components/davvag-cms/soss-uploader/service/get/products/'+item.itemid+'-'+item.imgurl"  class="img-fluid w-100" style="aspect-ratio: 1; object-fit: contain;" :alt="item.name" loading="lazy"/><span v-if="item.qty<=0" class="d-block small mt-1">Unavailable</span></button></div>
       
   </div>
   
 </div>
-<div v-if="loading" class="row" >    
-    <div class="col-md-4 col-sm-6">
-           
-    </div>
-    <div class="col-md-4 col-sm-6">
-            <div id="custom-search-input">
-                <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
-            </div>
-    </div>
-    <div class="col-md-4 col-sm-6">
-            
-    </div>
-           
+<div v-if="loading" class="cms-v7-loading" role="status"><i class="fa fa-refresh fa-spin" aria-hidden="true"></i> Loading products...</div>
+<div v-if="noproducts && !loading" class="cms-v7-loading" role="status">
+  <h2 class="h5">{{ q ? 'No products found for ?'+q+'?' : 'No products to show yet' }}</h2>
+  <p class="text-muted mb-0">Try another search or browse a different collection.</p>
 </div>
-<div v-if="noproducts" class="row" >
-        <div class="col-md-4 col-sm-6">
-           
-            </div>    
-        
-        <div class="col-md-4 col-sm-6">
-                <h1> No Results for Search Query "{{ q }}" </h1>
-            </div>
-            <div class="col-md-4 col-sm-6">
-           
-                </div>
-</div>
+
 <div class="modal fade" id="modalImagePopup" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
             <div class="modal-header">
                 <div style="width: 40px;">
-                    <div class="profile-userpic">
-                        <img :src="'components/dock/soss-uploader/service/get/profile/'+product.storeid" class="img-responsive" alt="">
+                    <div class="flex-shrink-0">
+                        <img :src="'components/dock/soss-uploader/service/get/profile/'+product.storeid" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         
                     </div>
                 </div>
@@ -111,20 +62,20 @@
                 <div class="row">		
                         <div class="col-md-12">
                                 <div class="row">
-                                        <div class="col-md-12"><img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;"></div>
+                                        <div class="col-md-12"><img class="img-fluid" :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;"></div>
                                         
                                       </div>
                                 <div class="row" style="margin-top: 10px;">
                                     <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
-                                        <i v-if="product.liked==1" class="fa fa-heart fa-2x"> </i>
-                                        <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
+                                        <i v-if="product.liked==1" class="fa fa-heart fa-lg"> </i>
+                                        <i v-if="product.liked==0" class="fa fa-heart-o fa-lg"> </i>
                                     </a> 
-                                    <a class="btn btn-default" href="path/to/settings" aria-label="Settings"><i class="fa fa-envelope-o fa-2x"> </i></a>
+                                    <a class="btn btn-default" href="path/to/settings" aria-label="Settings"><i class="fa fa-envelope-o fa-lg"> </i></a>
                                          
-                                    <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-2x" ></i> </i> </a>
+                                    <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-lg" ></i> </a>
                                     <a class="btn btn-default" v-on:click="favorite(product)" aria-label="Settings" style="right: 10px;position: absolute;margin-right: 10px;">
-                                        <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-2x" > </i> 
-                                        <i v-if="product.favorite==1" class="fa fa-plus-square fa-2x" > </i> 
+                                        <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-lg" > </i>
+                                        <i v-if="product.favorite==1" class="fa fa-plus-square fa-lg" > </i>
                                     </a>
                                     </div>
                                 <hr>
@@ -149,7 +100,7 @@
                                                   <td>{{ product.storename }}</td>
                                                   <td>{{ product.currencycode }}.{{ product.price-(product.price*(product.discountper/100)) }}</td>
                                                   <td>{{ product.uom }}</td>
-                                                  <td> <input type="number" min="0" step="1" value="1" style="width: 50px" v-model="product.qty"/></td>                                       
+                                                  <td> <input class="form-control" type="number" min="0" step="1" value="1" style="width: 50px" v-model="product.qty"/></td>
                                               </tr>                                  
                                             </tbody>
                                           </table>
@@ -157,38 +108,38 @@
                                 <div v-if="showshare" class="row" >
                                     <div class="col-social">
                                         <a  :href="'https://facebook.com/sharer/sharer.php?u='+escape(product.url)" target="_blank" aria-label="Share on Facebook">
-                                            <i class="fa fa-facebook-square fa-2x"> </i> 
+                                            <i class="fa fa-facebook-square fa-lg"> </i>
                                         </a>
                                     </div>
                                     <div class="col-social">
                                     <a  :href="'https://twitter.com/intent/tweet/?text='+product.caption+'&url='+escape(product.url)" target="_blank" aria-label="Share on Twitter">
-                                        <i class="fa fa-twitter-square fa-2x"></i>
+                                        <i class="fa fa-twitter-square fa-lg"></i>
                                     </a>
                                     </div>
                                     <div class="col-social">
                                         <a  :href="'whatsapp://send?text='+product.caption+' '+product.url" target="_blank" aria-label="Share on WhatsApp">                
-                                                <i class="fa fa-whatsapp fa-2x"></i>
+                                                <i class="fa fa-whatsapp fa-lg"></i>
                                             </a>
                                     </div>
                                     <div class="col-social">
                                         <a  :href="'https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title='+product.name+'&amp;caption='+product.caption+'&amp;content='+escape(product.url)+'&amp;canonicalUrl='+escape(product.url)+'&amp;shareSource=tumblr_share_button'" target="_blank" aria-label="Share on Tumblr">                                
-                                                    <i class="fa fa-tumblr-square fa-2x"></i>
+                                                    <i class="fa fa-tumblr-square fa-lg"></i>
                                                 </a>
                                     </div>
                                     <div class="col-social">
                                         <a  :href="'https://www.linkedin.com/shareArticle?mini=true&amp;url='+escape(product.url)+'&amp;title='+product.name+'&amp;summary='+product.caption+'&amp;source='+escape(product.url)" target="_blank" aria-label="Share on LinkedIn">
                                                             
-                                                    <i class="fa fa-linkedin-square fa-2x"></i>
+                                                    <i class="fa fa-linkedin-square fa-lg"></i>
                                                 </a>
                                     </div>
                                     <div class="col-social">
                                         <a  :href="'mailto:?subject='+product.name+'&amp;body='+escape(product.url)" target="_self" aria-label="Share by E-Mail">                      
-                                                        <i class="fa fa-envelope fa-2x"></i>
+                                                        <i class="fa fa-envelope fa-lg"></i>
                                                     </a>
                                         </div>
                                     <div class="col-social">
                                         <a  :href="'https://pinterest.com/pin/create/button/?url='+escape(product.url)+'&amp;media='+product.url+'&amp;description='+product.caption" target="_blank" aria-label="Share on Pinterest">                                      
-                                                                <i class="fa fa-pinterest fa-2x"></i>
+                                                                <i class="fa fa-pinterest fa-lg"></i>
                                                             </a>
                                     </div>
                                 </div>
@@ -214,8 +165,8 @@
         <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
             <div class="modal-header">
                 <div style="width: 40px;">
-                    <div class="profile-userpic">
-                        <img :src="appIcon" class="img-responsive" alt="">
+                    <div class="flex-shrink-0">
+                        <img :src="appIcon" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         
                     </div>
                 </div>

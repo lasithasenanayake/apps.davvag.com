@@ -123,14 +123,14 @@ WEBDOCK.component().register(function(exports){
                 case "url_redirect":
                     
                     $('#modalappwindow').on('hidden.bs.modal', function () {
-                        // do somethingâ€¦
+                        // do something…
                         window.location=d.url;
                       });
                       $('#modalappwindow').modal('toggle');
                     break;
                 case "app_open":
                     $('#modalappwindow').on('hidden.bs.modal', function () {
-                        // do somethingâ€¦
+                        // do something…
                         $('#modalappwindow').unbind();
                         bindData.appIcon=d.appicon;
                         bindData.appTitle=d.apptitle;
@@ -406,10 +406,10 @@ WEBDOCK.component().register(function(exports){
         },
         computed:{
             reviewsore:function(){
-                if(this.user.reviews==0){
+                if(!Number(this.user.reviews)){
                     return 0;
                 }else{
-                    this.user.reviewscore/this.user.reviews;
+                    return Number(this.user.reviewscore || 0)/Number(this.user.reviews);
                 }
             }
         }

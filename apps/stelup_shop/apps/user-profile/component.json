@@ -15,11 +15,6 @@
                 "location" : "partial.html"
             }
         ],
-        "css":[
-            {
-                "type":"css",
-                "location":"profile.css"
-            }
-        ]
+        "css": []
     }
 }

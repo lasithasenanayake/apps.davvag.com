@@ -1,4 +1,4 @@
-<div class="input-form">
+<div class="py-3">
 <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Make a Proposal</h1>
 <hr>
 <div class="input-error">
@@ -13,7 +13,7 @@
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Please wait Validating Post Requirment.</h5>
   <hr>
 </form>
-<form id="form-details-1" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-1" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   
   
   <div class="form-group">
@@ -26,7 +26,7 @@
   </div>
   <button  class="btn bg-primary-button btn-block" v-on:click="sellersiginup">Next</button>
 </form>
-<form id="form-details-2" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-2" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center"> Delivery Information </h3>
   <hr>
   <div class="form-group">
@@ -296,25 +296,25 @@
 </div>
 <button  class="btn bg-primary-button btn-block" v-on:click="biosiginup">Next</button>
 </form>
-<form id="form-details-3" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-3" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center"> Images </h3>
   <hr>
   <div class="form-group">
     <div class="row">
     <div class="col">
-    <img :src="p_image_1"  class="upload-image"  @click="crope(1)"/>
+    <img :src="p_image_1"  class="img-thumbnail img-fluid" style="max-height: 280px; object-fit: contain;"  @click="crope(1)"/>
     
     </div>
     <div class="col">
-      <img :src="p_image_2" class="upload-image"  @click="crope(2)"/>
+      <img :src="p_image_2" class="img-thumbnail img-fluid" style="max-height: 280px; object-fit: contain;"  @click="crope(2)"/>
       
     </div>
     <div class="col">
-      <img :src="p_image_3" class="upload-image"  @click="crope(3)"/>
+      <img :src="p_image_3" class="img-thumbnail img-fluid" style="max-height: 280px; object-fit: contain;"  @click="crope(3)"/>
       
     </div>
     <div class="col">
-      <img :src="p_image_4"  class="upload-image"  @click="crope(4)"/>
+      <img :src="p_image_4"  class="img-thumbnail img-fluid" style="max-height: 280px; object-fit: contain;"  @click="crope(4)"/>
       
     </div>
     </div>
@@ -322,7 +322,7 @@
     
   <button  class="btn bg-primary-button btn-block" v-on:click="submit">Done</button>
 </form>
-<form id="form-details-4" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-4" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center">Your Proposal has been sent!</h5>
   <hr>
   <p style="text-align: center">
@@ -331,7 +331,7 @@
   
   <button  class="btn bg-primary-button btn-block" v-on:click="sellingoplicy">OK</button>
 </form>
-<form id="form-details-5" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-5" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Error Sending Your Proposal</h5>
   <hr>
   <p style="text-align: center">
@@ -340,7 +340,7 @@
   
   <button  class="btn bg-primary-button btn-block" v-on:click="tradingoplicy">Retry</button>
 </form>
-<form id="form-details-6" class="inactiveForm" onsubmit="event.preventDefault();">
+<form id="form-details-6" class="inactiveForm" style="display: none;" onsubmit="event.preventDefault();">
   <h5 class="h5 mb-3 font-weight-normal" style="text-align: center;">Profile Image</h5>
   <hr>
   

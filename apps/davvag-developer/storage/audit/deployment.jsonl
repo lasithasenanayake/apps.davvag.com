@@ -2,3 +2,5 @@
 {"time":"2026-10-30T05:24:25+00:00","event":"package.build","actor":"64a4cf6a23ee5","context":{"build_id":"20261030052424-fb3b93a2397b","applications":["davvag-app-manager"]}}
 {"time":"2026-10-30T05:26:49+00:00","event":"package.build","actor":"64a4cf6a23ee5","context":{"build_id":"20261030052634-9670774d04ba","applications":["dock","davvag-cms-v7","davvag-cms-v7-setting","stelup_shop","userapp","davvag-useradmin","currency-configuration","davvag-tools","i18n"]}}
 {"time":"2026-10-30T05:30:12+00:00","event":"package.build","actor":"64a4cf6a23ee5","context":{"build_id":"20261030053002-6627e32bf9fe","applications":["dock","davvag-cms-v7","davvag-cms-v7-setting","stelup_shop","userapp","davvag-useradmin","currency-configuration","davvag-tools","i18n"]}}
+{"time":"2026-11-03T03:51:30+00:00","event":"package.build","actor":"64a4cf6a23ee5","context":{"build_id":"20261103035120-d13cdab20d4c","applications":["dock","davvag-tools","stelup_shop","dock-settings","currency-configuration","davvag-cms-v7"]}}
+{"time":"2026-11-03T03:59:47+00:00","event":"package.upload","actor":"64a4cf6a23ee5","context":{"upload_id":"70ee4e12de2b","name":"stelup-1.0.0.zip"}}

@@ -1,5 +1,268 @@
 [
     {
+        "build_id": "20261030053002-6627e32bf9fe",
+        "package_name": "Stelup_installation",
+        "package_version": "1.0.0",
+        "created_at": "2026-10-30T05:30:12+00:00",
+        "applications": [
+            "dock",
+            "davvag-cms-v7",
+            "davvag-cms-v7-setting",
+            "stelup_shop",
+            "userapp",
+            "davvag-useradmin",
+            "currency-configuration",
+            "davvag-tools",
+            "i18n"
+        ],
+        "size": 15846880,
+        "status": "complete",
+        "artifact": "20261030053002-6627e32bf9fe.zip",
+        "manifest": {
+            "package_format": "davvag-bundle",
+            "format_version": "1.0",
+            "package_name": "Stelup_installation",
+            "package_version": "1.0.0",
+            "build_id": "20261030053002-6627e32bf9fe",
+            "created_at": "2026-10-30T05:30:05+00:00",
+            "deployment_profile": "production",
+            "applications": [
+                {
+                    "id": "dock",
+                    "name": "DAAVG Dock",
+                    "version": "0.9"
+                },
+                {
+                    "id": "davvag-cms-v7",
+                    "name": "Davvag CMS v7",
+                    "version": "1.2"
+                },
+                {
+                    "id": "davvag-cms-v7-setting",
+                    "name": "Davvag CMS v7 Settings",
+                    "version": "0.4"
+                },
+                {
+                    "id": "stelup_shop",
+                    "name": "Stelup App",
+                    "version": "0.4"
+                },
+                {
+                    "id": "userapp",
+                    "name": "User App",
+                    "version": "0.5"
+                },
+                {
+                    "id": "davvag-useradmin",
+                    "name": "Users",
+                    "version": "0.1"
+                },
+                {
+                    "id": "currency-configuration",
+                    "name": "Currency Configuration",
+                    "version": "0.4"
+                },
+                {
+                    "id": "davvag-tools",
+                    "name": "DAVVAG Tools",
+                    "version": "1.0"
+                },
+                {
+                    "id": "i18n",
+                    "name": "Internationalization",
+                    "version": "0.1"
+                }
+            ],
+            "plugins": [
+                {
+                    "id": "davvag-attributes",
+                    "requested_scope": "local",
+                    "classification": "bundled-installable-plugin",
+                    "available": true,
+                    "source": "local"
+                },
+                {
+                    "id": "profile",
+                    "requested_scope": "local",
+                    "classification": "bundled-installable-plugin",
+                    "available": true,
+                    "source": "local"
+                },
+                {
+                    "id": "auth",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "phpcache",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "sossdata",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "davvag-order",
+                    "requested_scope": "local",
+                    "classification": "bundled-installable-plugin",
+                    "available": true,
+                    "source": "local"
+                },
+                {
+                    "id": "profile-stelup",
+                    "requested_scope": "local",
+                    "classification": "bundled-installable-plugin",
+                    "available": true,
+                    "source": "local"
+                },
+                {
+                    "id": "Facebook",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "Google",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "davvag-flow",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                },
+                {
+                    "id": "notify",
+                    "requested_scope": "global",
+                    "classification": "shared-framework-component",
+                    "available": true,
+                    "source": "global"
+                }
+            ],
+            "workflows": [
+                {
+                    "id": "davvag-attributes/stelup_dispatch_order.json",
+                    "available": true,
+                    "scheduled": false
+                }
+            ],
+            "database": {
+                "mode": "schema-safe-reference",
+                "schemas": [
+                    "currency_configuration",
+                    "davvag_launchers_query",
+                    "davvag_launchers_subquery",
+                    "profile",
+                    "profile_notify_u",
+                    "attr_stelup_dispatch",
+                    "d_cms_artical_v1",
+                    "ledger",
+                    "messages",
+                    "messages_inbox_query",
+                    "messages_query",
+                    "nearproducts",
+                    "orderdetails",
+                    "orderdetails_dispatched",
+                    "orderdetails_pending",
+                    "orderheader_accepted",
+                    "orderheader_cancelled",
+                    "orderheader_deleted",
+                    "orderheader_dispatched",
+                    "orderheader_pending",
+                    "orderheader_rejected",
+                    "payment_ext_request",
+                    "products",
+                    "products_attributes",
+                    "products_comments",
+                    "products_favorites",
+                    "products_image",
+                    "products_likes",
+                    "products_reviews",
+                    "products_stelup_1",
+                    "products_stelup_2",
+                    "products_stelup_3",
+                    "products_subitems",
+                    "products_subitems_query",
+                    "profile_attributes",
+                    "profile_followers",
+                    "profile_policy",
+                    "profilestatus",
+                    "stelup_trade",
+                    "stelup_trade_confirm",
+                    "stelup_trade_rejected",
+                    "orderheader",
+                    "orderdetails_accepted",
+                    "schedule_pending",
+                    "users",
+                    "usergroups",
+                    "domain_permision",
+                    "usergroup_permission",
+                    "user_object",
+                    "user_view_objects"
+                ],
+                "migrations": []
+            },
+            "dependencies": {
+                "dock": [
+                    "currency-configuration",
+                    "davvag-tools"
+                ],
+                "davvag-cms-v7": [
+                    "davvag-tools"
+                ],
+                "davvag-cms-v7-setting": [
+                    "davvag-cms-v7"
+                ],
+                "stelup_shop": [
+                    "currency-configuration",
+                    "davvag-tools"
+                ],
+                "userapp": [
+                    "currency-configuration",
+                    "davvag-tools",
+                    "i18n"
+                ],
+                "davvag-useradmin": [],
+                "currency-configuration": [],
+                "davvag-tools": [],
+                "i18n": []
+            },
+            "framework_requirements": {
+                "package_installer": "davvag-developer >= 1.0.0"
+            },
+            "php_requirements": {
+                "minimum": "7.4.0"
+            },
+            "extensions": [
+                "curl"
+            ],
+            "configuration_requirements": [],
+            "provenance": {
+                "signed": false,
+                "trust_required": true
+            }
+        },
+        "archive": {
+            "file_count": 1055,
+            "extracted_bytes": 26640618,
+            "archive_bytes": 15846880,
+            "driver": "ZipArchive"
+        }
+    },
+    {
         "build_id": "20261030052634-9670774d04ba",
         "package_name": "davvag-deployment",
         "package_version": "1.0.0",
@@ -552,31 +815,28 @@
         }
     },
     {
-        "build_id": "20261030053002-6627e32bf9fe",
-        "package_name": "Stelup_installation",
+        "build_id": "20261103035120-d13cdab20d4c",
+        "package_name": "stelup",
         "package_version": "1.0.0",
-        "created_at": "2026-10-30T05:30:12+00:00",
+        "created_at": "2026-11-03T03:51:30+00:00",
         "applications": [
             "dock",
-            "davvag-cms-v7",
-            "davvag-cms-v7-setting",
-            "stelup_shop",
-            "userapp",
-            "davvag-useradmin",
-            "currency-configuration",
             "davvag-tools",
-            "i18n"
+            "stelup_shop",
+            "dock-settings",
+            "currency-configuration",
+            "davvag-cms-v7"
         ],
-        "size": 15846880,
+        "size": 15663323,
         "status": "complete",
-        "artifact": "20261030053002-6627e32bf9fe.zip",
+        "artifact": "20261103035120-d13cdab20d4c.zip",
         "manifest": {
             "package_format": "davvag-bundle",
             "format_version": "1.0",
-            "package_name": "Stelup_installation",
+            "package_name": "stelup",
             "package_version": "1.0.0",
-            "build_id": "20261030053002-6627e32bf9fe",
-            "created_at": "2026-10-30T05:30:05+00:00",
+            "build_id": "20261103035120-d13cdab20d4c",
+            "created_at": "2026-11-03T03:51:25+00:00",
             "deployment_profile": "production",
             "applications": [
                 {
@@ -585,14 +845,9 @@
                     "version": "0.9"
                 },
                 {
-                    "id": "davvag-cms-v7",
-                    "name": "Davvag CMS v7",
-                    "version": "1.2"
-                },
-                {
-                    "id": "davvag-cms-v7-setting",
-                    "name": "Davvag CMS v7 Settings",
-                    "version": "0.4"
+                    "id": "davvag-tools",
+                    "name": "DAVVAG Tools",
+                    "version": "1.0"
                 },
                 {
                     "id": "stelup_shop",
@@ -600,13 +855,8 @@
                     "version": "0.4"
                 },
                 {
-                    "id": "userapp",
-                    "name": "User App",
-                    "version": "0.5"
-                },
-                {
-                    "id": "davvag-useradmin",
-                    "name": "Users",
+                    "id": "dock-settings",
+                    "name": "Web Dock Settings",
                     "version": "0.1"
                 },
                 {
@@ -615,14 +865,9 @@
                     "version": "0.4"
                 },
                 {
-                    "id": "davvag-tools",
-                    "name": "DAVVAG Tools",
-                    "version": "1.0"
-                },
-                {
-                    "id": "i18n",
-                    "name": "Internationalization",
-                    "version": "0.1"
+                    "id": "davvag-cms-v7",
+                    "name": "Davvag CMS v7",
+                    "version": "1.2"
                 }
             ],
             "plugins": [
@@ -719,6 +964,10 @@
                     "davvag_launchers_subquery",
                     "profile",
                     "profile_notify_u",
+                    "user_object",
+                    "user_view_objects",
+                    "usergroups",
+                    "users",
                     "attr_stelup_dispatch",
                     "d_cms_artical_v1",
                     "ledger",
@@ -756,14 +1005,7 @@
                     "stelup_trade_confirm",
                     "stelup_trade_rejected",
                     "orderheader",
-                    "orderdetails_accepted",
-                    "schedule_pending",
-                    "users",
-                    "usergroups",
-                    "domain_permision",
-                    "usergroup_permission",
-                    "user_object",
-                    "user_view_objects"
+                    "orderdetails_accepted"
                 ],
                 "migrations": []
             },
@@ -772,25 +1014,17 @@
                     "currency-configuration",
                     "davvag-tools"
                 ],
+                "davvag-tools": [],
+                "stelup_shop": [
+                    "davvag-cms-v7",
+                    "currency-configuration",
+                    "davvag-tools"
+                ],
+                "dock-settings": [],
+                "currency-configuration": [],
                 "davvag-cms-v7": [
                     "davvag-tools"
-                ],
-                "davvag-cms-v7-setting": [
-                    "davvag-cms-v7"
-                ],
-                "stelup_shop": [
-                    "currency-configuration",
-                    "davvag-tools"
-                ],
-                "userapp": [
-                    "currency-configuration",
-                    "davvag-tools",
-                    "i18n"
-                ],
-                "davvag-useradmin": [],
-                "currency-configuration": [],
-                "davvag-tools": [],
-                "i18n": []
+                ]
             },
             "framework_requirements": {
                 "package_installer": "davvag-developer >= 1.0.0"
@@ -808,9 +1042,9 @@
             }
         },
         "archive": {
-            "file_count": 1055,
-            "extracted_bytes": 26640618,
-            "archive_bytes": 15846880,
+            "file_count": 974,
+            "extracted_bytes": 26194881,
+            "archive_bytes": 15663323,
             "driver": "ZipArchive"
         }
     }

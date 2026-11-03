@@ -14,11 +14,6 @@
                 "type" : "mainView",
                 "location" : "partial.html"
             }
-        ],"css":[
-            {
-                "type":"css",
-                "location":"product-comments.css"
-            }
-        ]
+        ],"css": []
     }
 }

@@ -1,28 +1,28 @@
 
  <div v-if="a5>0" class="row">
-        <input id="idButtonLocation" type="button" aria-label="Open cart" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/stelup_shop/appicon.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+        <button id="idButtonLocation" type="button" class="btn btn-primary mb-3 ml-auto" v-on:click="navcheckout()"><i class="fa fa-shopping-cart" aria-hidden="true"></i> View cart</button>
   </div>
   <div class="row" style="margin: auto;">
-        <div class="col-sm-6" v-for="product in products" style="padding-bottom: 10px;">
-            <div class="card">
+        <div class="col-12 col-md-6 mb-4 d-flex" v-for="product in products" :key="product.itemid">
+            <div class="card w-100 h-100" style="overflow: hidden;">
                 <div class="card-header">
-                    <div class="row">
+                    <div class="d-flex align-items-center">
                         <div style="width: 40px;">
-                            <div class="profile-userpic">
-                                <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid" class="img-responsive" alt="">
+                            <div class="flex-shrink-0">
+                                <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                                 
                             </div>
                         </div>
                         <div class="col">
                             <a :href="'#/app/stelup_shop/profile?id='+product.storeid">
-                                <h5>{{ product.storename }}</h5>
+                                <h5 class="mb-0">{{ product.storename }}</h5>
                             </a>
                         </div>
                     </div>
                 </div>
                 
-                <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
-                <div class="row" style="margin: 10px;">
+                <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" class="img-fluid w-100" style="aspect-ratio: 4 / 3; object-fit: contain;" :alt="product.name" loading="lazy">
+                <div class="d-flex flex-wrap align-items-center px-3 py-2" style="gap: 8px;">
                     <strong>Price:</strong> {{ product.price | currency_formate}}
                 </div>
                 <div class="card-body">
@@ -66,9 +66,9 @@
                   </div>
                   
                 </div>
-                <div v-if="isEditable(product)" class="card-body">
-                    <button type="button" class="btn bg-primary-button pull-left"   v-on:click="edit(product)">Edit</button>
-                    <button type="button" class="btn bg-primary-button pull-right"   v-on:click="marksold(product)">Unlist</button>
+                <div v-if="isEditable(product)" class="card-body d-flex flex-wrap align-items-center justify-content-between mt-auto" style="gap: 8px; flex-grow: 0;">
+                    <button type="button" class="btn bg-primary-button "   v-on:click="edit(product)">Edit</button>
+                    <button type="button" class="btn bg-primary-button "   v-on:click="marksold(product)">Unlist</button>
                     
                 </div>
               </div>
@@ -82,7 +82,7 @@
            
     </div>
     <div class="col-md-4 col-sm-6">
-            <div id="custom-search-input">
+            <div class="mb-4">
                 <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
             </div>
     </div>
@@ -109,8 +109,8 @@
         <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
             <div class="modal-header">
                 <div style="width: 40px;">
-                    <div class="profile-userpic">
-                        <img :src="appIcon" class="img-responsive" alt="">
+                    <div class="flex-shrink-0">
+                        <img :src="appIcon" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         
                     </div>
                 </div>

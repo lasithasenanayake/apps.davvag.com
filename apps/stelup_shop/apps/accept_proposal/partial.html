@@ -3,8 +3,8 @@
         <div class="card-header">
             <div class="row">
                 <div style="width: 40px;">
-                    <div class="profile-userpic">
-                        <img :src="'components/dock/soss-uploader/service/get/profile/'+data.profileId" class="img-responsive" alt="">
+                    <div class="flex-shrink-0">
+                        <img :src="'components/dock/soss-uploader/service/get/profile/'+data.profileId" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         
                     </div>
                 </div>
@@ -16,7 +16,7 @@
             </div>
         </div>
         
-        <img :src="'components/davvag-cms/soss-uploader/service/get/products_proposal/'+data.id+'-1'" style="width: 100%;">
+        <img class="img-fluid" :src="'components/davvag-cms/soss-uploader/service/get/products_proposal/'+data.id+'-1'" style="width: 100%;">
         <div class="card-body">
           <h5 class="card-title">{{ data.description }}</h5>
           <p class="card-text">{{ data.item_condition }}</p>

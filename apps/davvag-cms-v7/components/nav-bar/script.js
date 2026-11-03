@@ -25,6 +25,19 @@ WEBDOCK.component().register(function(exports){
 
     exports.vue = {
         data: bindData,
+        computed: {
+            navigationStyle: function(){
+                var colors = this.site.nav.colors || {};
+                var style = {};
+                var variables = {background: "background", text: "text", link: "link", hover: "hover", border: "border", menuBackground: "menu-background", hoverBackground: "hover-background", buttonBackground: "button-background", buttonText: "button-text"};
+                for(var key in variables){
+                    if(/^#[0-9a-f]{6}$/i.test(colors[key] || "")){
+                        style["--cms-nav-" + variables[key]] = colors[key];
+                    }
+                }
+                return style;
+            }
+        },
         methods: {
             toggleMenu: toggleMenu,
             closeMenu: closeMenu,

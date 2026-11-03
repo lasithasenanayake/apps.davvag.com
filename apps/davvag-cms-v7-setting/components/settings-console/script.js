@@ -11,6 +11,17 @@ WEBDOCK.component().register(function(exports){
         selectedPage: emptyPage(),
         selectedTheme: null,
         selectedThemeIndex: 0,
+        navColorFields: [
+            {key: "background", label: "Navbar background"},
+            {key: "text", label: "Brand and text"},
+            {key: "link", label: "Links and icons"},
+            {key: "hover", label: "Link hover text"},
+            {key: "border", label: "Border"},
+            {key: "menuBackground", label: "Dropdown background"},
+            {key: "hoverBackground", label: "Hover background"},
+            {key: "buttonBackground", label: "CTA background"},
+            {key: "buttonText", label: "CTA text"}
+        ],
         sectionAnimations: [
             {value: "none", label: "None"},
             {value: "fade", label: "Fade"},
@@ -44,6 +55,8 @@ WEBDOCK.component().register(function(exports){
             reload: reload,
             saveSite: saveSite,
             addNavLink: addNavLink,
+            resetNavColors: resetNavColors,
+            navColorValue: navColorValue,
             addFooterLink: addFooterLink,
             addTheme: addTheme,
             removeTheme: removeTheme,
@@ -130,7 +143,7 @@ WEBDOCK.component().register(function(exports){
             favicon: "assets/davvag-cms-v7/favicon.svg",
             theme: "clean",
             startup: {mode: "page", route: "/"},
-            nav: {variant: "clean", links: [], cta: {label: "", url: ""}},
+            nav: {variant: "clean", colors: {}, links: [], cta: {label: "", url: ""}},
             footer: {variant: "simple", copyright: "", links: []},
             themes: [defaultTheme("clean", "Clean")]
         };
@@ -228,6 +241,11 @@ WEBDOCK.component().register(function(exports){
         var normalized = merge(base, site || {});
         normalized.startup = normalized.startup || {mode: "page", route: "/"};
         normalized.nav = normalized.nav || {};
+        var colors = normalized.nav.colors || {};
+        normalized.nav.colors = {};
+        bindData.navColorFields.forEach(function(field){
+            normalized.nav.colors[field.key] = /^#[0-9a-f]{6}$/i.test(colors[field.key] || "") ? colors[field.key] : "";
+        });
         normalized.nav.links = arrayOrEmpty(normalized.nav.links);
         normalized.nav.cta = normalized.nav.cta || {label: "", url: ""};
         normalized.footer = normalized.footer || {};
@@ -258,6 +276,14 @@ WEBDOCK.component().register(function(exports){
 
     function saveSite(){
         clearStatus();
+        var invalidColor = bindData.navColorFields.some(function(field){
+            var color = bindData.site.nav.colors[field.key];
+            return color && !/^#[0-9a-f]{6}$/i.test(color);
+        });
+        if(invalidColor){
+            setError("Navigation colors must use #rrggbb format or be empty to follow the theme.");
+            return;
+        }
         var payload = cleanSiteForSave();
         api.services.SaveSite(payload).then(function(response){
             if(response.success){
@@ -318,6 +344,22 @@ WEBDOCK.component().register(function(exports){
             return item;
         });
         return cleaned.length ? cleaned : [defaultTheme("clean", "Clean")];
+    }
+
+    function resetNavColors(){
+        bindData.navColorFields.forEach(function(field){
+            bindData.site.nav.colors[field.key] = "";
+        });
+    }
+
+    function navColorValue(key){
+        var color = bindData.site.nav.colors[key];
+        if(/^#[0-9a-f]{6}$/i.test(color || "")){
+            return color;
+        }
+        var theme = bindData.site.themes[themeIndex(bindData.site.theme)] || defaultTheme("clean", "Clean");
+        var fields = {background: "background", text: "text", link: "muted", hover: "text", menuBackground: "background", hoverBackground: "surface", buttonBackground: "primary", buttonText: "background"};
+        return theme[fields[key]] || "#d8dee8";
     }
 
     function addNavLink(){

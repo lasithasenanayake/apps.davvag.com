@@ -1,7 +1,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <div class="error-template">
+            <div class="text-center py-5">
                 <h1>
                     Thank You</h1>
                 <h2>
@@ -9,7 +9,7 @@
                 <div class="error-details">
                     We will dispach the Order soon.
                 </div>
-                <div class="error-actions">
+                <div class="my-3">
                     <a :href="header.buttonuri" class="btn bg-primary-button btn-lg"><span class="fa fa-home"></span>
                         Take Me Home </a>
                 </div>
@@ -63,14 +63,14 @@
                                         <strong>Conatct Details:</strong><br>
                                         {{ InvoiceToSave.contactno }}<br>
                               {{ InvoiceToSave.email }}<br>
-                              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
+                              <img class="img-fluid" :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=pfl'+InvoiceToSave.profileId+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
                                     </address>
                                 </div>
                                 <div class="col-md-6 text-right">
                                     <address>
                                         <strong>Payment Type:</strong><br>
                               {{ InvoiceToSave.paymentType }}<br>
-                              <img :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=rpt'+InvoiceToSave.receiptNo+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
+                              <img class="img-fluid" :src="'https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=rpt'+InvoiceToSave.receiptNo+'&choe=UTF-8'" v-show="InvoiceToSave.receiptNo != 0 ? true : false"/>
                               <br>
                                     </address>
                                 </div>

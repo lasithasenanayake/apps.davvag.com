@@ -160,6 +160,7 @@
     },
     "dependencies": {
         "apps": [
+            "davvag-cms-v7",
             "currency-configuration",
             "davvag-tools"
         ],

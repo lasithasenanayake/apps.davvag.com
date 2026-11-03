@@ -63,8 +63,8 @@ select {
     position: sticky;
     top: 0;
     z-index: 50;
-    border-bottom: 1px solid var(--cms-border);
-    background: color-mix(in srgb, var(--cms-bg) 92%, transparent);
+    border-bottom: 1px solid var(--cms-nav-border, var(--cms-border));
+    background: var(--cms-nav-background, color-mix(in srgb, var(--cms-bg) 92%, transparent));
     backdrop-filter: blur(14px);
 }
 
@@ -80,13 +80,13 @@ select {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--cms-text);
+    color: var(--cms-nav-text, var(--cms-text));
     font-weight: 700;
 }
 
 .cms-v7-brand:hover,
 .cms-v7-brand:focus {
-    color: var(--cms-text);
+    color: var(--cms-nav-text, var(--cms-text));
     text-decoration: none;
 }
 
@@ -97,7 +97,7 @@ select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--cms-text);
+    background: var(--cms-nav-text, var(--cms-text));
     color: var(--cms-bg);
     overflow: hidden;
 }
@@ -114,17 +114,17 @@ select {
     display: none;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--cms-border);
+    border: 1px solid var(--cms-nav-border, var(--cms-border));
     border-radius: var(--cms-radius);
     background: transparent;
-    color: var(--cms-text);
+    color: var(--cms-nav-text, var(--cms-text));
     cursor: pointer;
     padding: 0;
 }
 
 .cms-v7-nav-toggle:hover,
 .cms-v7-nav-toggle:focus {
-    background: var(--cms-surface);
+    background: var(--cms-nav-hover-background, var(--cms-surface));
     outline: none;
 }
 
@@ -141,7 +141,7 @@ select {
 
 .cms-v7-nav-links a,
 .cms-v7-nav-menu-button {
-    color: var(--cms-muted);
+    color: var(--cms-nav-link, var(--cms-muted));
     font-size: 14px;
 }
 
@@ -149,7 +149,7 @@ select {
 .cms-v7-nav-links a:focus,
 .cms-v7-nav-menu-button:hover,
 .cms-v7-nav-menu-button:focus {
-    color: var(--cms-text);
+    color: var(--cms-nav-hover, var(--cms-text));
     text-decoration: none;
 }
 
@@ -181,9 +181,9 @@ select {
     top: calc(100% + 8px);
     right: 0;
     min-width: 190px;
-    border: 1px solid var(--cms-border);
+    border: 1px solid var(--cms-nav-border, var(--cms-border));
     border-radius: var(--cms-radius);
-    background: var(--cms-bg);
+    background: var(--cms-nav-menu-background, var(--cms-nav-background, var(--cms-bg)));
     box-shadow: var(--cms-shadow);
     padding: 8px;
     display: none;
@@ -198,11 +198,13 @@ select {
     display: block;
     padding: 9px 10px;
     border-radius: var(--cms-radius);
-    color: var(--cms-text);
+    color: var(--cms-nav-text, var(--cms-text));
 }
 
-.cms-v7-nav-menu a:hover {
-    background: var(--cms-surface);
+.cms-v7-nav-menu a:hover,
+.cms-v7-nav-menu a:focus {
+    color: var(--cms-nav-hover, var(--cms-text));
+    background: var(--cms-nav-hover-background, var(--cms-surface));
 }
 
 .cms-v7-button {
@@ -277,15 +279,15 @@ select {
     border: 0;
     border-radius: var(--cms-radius);
     background: transparent;
-    color: var(--cms-muted);
+    color: var(--cms-nav-link, var(--cms-muted));
     cursor: pointer;
     padding: 0;
 }
 
 .cms-v7-nav-action:hover,
 .cms-v7-nav-action:focus {
-    background: var(--cms-surface);
-    color: var(--cms-text);
+    background: var(--cms-nav-hover-background, var(--cms-surface));
+    color: var(--cms-nav-hover, var(--cms-text));
     outline: none;
 }
 
@@ -772,7 +774,7 @@ select {
         width: 100%;
         margin-top: 2px;
         padding: 8px 0 4px;
-        border-top: 1px solid var(--cms-border);
+        border-top: 1px solid var(--cms-nav-border, var(--cms-border));
     }
 
     .cms-v7-nav-links.open {
@@ -846,4 +848,24 @@ select {
     .cms-v7-hero h1 {
         font-size: 38px;
     }
+}
+
+/* Navigation overrides stay scoped to the navbar, including mobile menus. */
+.cms-v7-nav .cms-v7-button,
+.cms-v7-nav .cms-v7-button:visited {
+    background: var(--cms-nav-button-background, var(--cms-primary));
+    border-color: var(--cms-nav-button-background, var(--cms-primary));
+    color: var(--cms-nav-button-text, var(--cms-on-primary));
+}
+
+.cms-v7-nav .cms-v7-button:hover,
+.cms-v7-nav .cms-v7-button:focus {
+    background: color-mix(in srgb, var(--cms-nav-button-background, var(--cms-primary)) 88%, var(--cms-nav-text, var(--cms-text)));
+    border-color: color-mix(in srgb, var(--cms-nav-button-background, var(--cms-primary)) 84%, var(--cms-nav-text, var(--cms-text)));
+    color: var(--cms-nav-button-text, var(--cms-on-primary));
+}
+
+.cms-v7-nav .cms-v7-nav-action:hover,
+.cms-v7-nav .cms-v7-nav-action:focus {
+    color: var(--cms-nav-hover, var(--cms-text));
 }

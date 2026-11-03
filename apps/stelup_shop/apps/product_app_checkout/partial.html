@@ -1,8 +1,8 @@
   <div class="col-sm-12" style="padding-bottom: 10px;">
           
-          <h6 class="card-title" style="color: firebrick;">You can Also buy bellow items Individually</h6>
-          <table style="width: 100%;">
-            <thead  style="background-color: black;color: white;">
+          <h6 class="card-title" >You can Also buy bellow items Individually</h6>
+          <div class="table-responsive"><table class="table table-striped" style="width: 100%;">
+            <thead  >
               <tr>
                 <th scope="col">Name</th>
                 
@@ -25,10 +25,10 @@
                 </div>
               </td>
             </tr>
-          </table>
+          </table></div>
        <br/>
-        <h6 v-if="product.qty>0" class="card-title" style="color: forestgreen;">Or you can buy the whole group of Items @ the rate of {{ product.price | currency_formate }}</h6>
-        <h6 v-if="product.qty<=0" class="card-title" style="color:red;">Sorry Group Item Purchase is not avalible</h6>
+        <h6 v-if="product.qty>0" class="card-title" >Or you can buy the whole group of Items @ the rate of {{ product.price | currency_formate }}</h6>
+        <h6 v-if="product.qty<=0" class="card-title" >Sorry Group Item Purchase is not avalible</h6>
       
 </div>
 <div v-if="!isEditable(product)" class="modal-footer">

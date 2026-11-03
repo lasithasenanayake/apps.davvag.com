@@ -1,14 +1,14 @@
-<div class="container" @scroll="handleScroll($event)">
+<div class="container py-4" @scroll="handleScroll($event)">
     <div v-if="a5>0" class="row">
-        <input id="idButtonLocation" type="button" aria-label="Open cart" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/stelup_shop/appicon.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+        <button id="idButtonLocation" type="button" class="btn btn-primary mb-3 ml-auto" v-on:click="navcheckout()"><i class="fa fa-shopping-cart" aria-hidden="true"></i> View cart</button>
     </div>
     <div class="row">
 	    <div class="col-12">
-    	    <div id="custom-search-input">
+            <div class="mb-4">
                 <div class="input-group">
-                    <input type="text" class="search-query form-control" placeholder="Search" v-model="q" v-on:keyup="OnkeyEnter"/>
-                    <span class="input-group-btn">
-                        <button type="button" v-on:click="onSearch">
+                    <input type="text" class="search-query form-control" placeholder="Search products" aria-label="Search products" v-model="q" v-on:keyup="OnkeyEnter"/>
+                    <span class="input-group-append">
+                        <button type="button" class="btn btn-primary" aria-label="Search products" v-on:click="onSearch">
                             <span class="fa fa-search"></span>
                         </button>
                     </span>
@@ -16,65 +16,65 @@
             </div>
         </div>
 	</div>
-  <div class="row" style="margin: auto;">
-        <div class="col-sm-4" v-for="product in products" style="padding-bottom: 10px;">
-            <div class="card">
+  <div class="row">
+        <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex" v-for="product in products" :key="product.itemid">
+            <div class="card w-100 h-100" style="overflow: hidden;">
                 <div class="card-header">
-                    <div class="row">
+                    <div class="d-flex align-items-center">
                         <div style="width: 40px;">
-                            <div class="profile-userpic">
-                                <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid" class="img-responsive" alt="">
+                            <div class="flex-shrink-0">
+                                <img :src="'components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                                 
                             </div>
                         </div>
                         <div class="col">
                             <a :href="'#/app/stelup_shop/profile?id='+product.storeid">
-                                <h5>{{ product.storename }}</h5>
+                                <h5 class="mb-0">{{ product.storename }}</h5>
                             </a>
                         </div>
                     </div>
                 </div>
                 
-                <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
-                <div class="row" style="margin: 10px;">
+                <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" class="img-fluid w-100" style="aspect-ratio: 4 / 3; object-fit: contain;" :alt="product.name" loading="lazy">
+                <div class="d-flex flex-wrap align-items-center px-3 py-2" style="gap: 8px;">
                     <strong>Price:</strong> {{ product.price | currency_formate}}
                 </div>
-                <div class="row" style="margin: 10px;">
-                    <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
-                        <i v-if="product.liked==1" class="fa fa-heart fa-2x" style="color: red;"> </i>
-                        <i v-if="product.liked==0" class="fa fa-heart-o fa-2x"> </i>
-                    </a> 
-                    <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','messaging',product,'Message','components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid)"><i class="fa fa-envelope-o fa-2x"> </i></a>
+                <div class="d-flex flex-wrap align-items-center px-3 py-2" style="gap: 8px;">
+                    <button type="button" class="btn btn-default" v-on:click="like(product)" aria-label="Like product">
+                        <i v-if="product.liked==1" class="fa fa-heart fa-lg" style="color: var(--cms-primary);"> </i>
+                        <i v-if="product.liked==0" class="fa fa-heart-o fa-lg"> </i>
+                    </button>
+                    <button type="button" class="btn btn-default" v-on:click="downloadapp('stelup_shop','messaging',product,'Message','components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid)" aria-label="Message seller"><i class="fa fa-envelope-o fa-lg"> </i></button>
                          
-                    <a class="btn btn-default"  aria-label="Settings" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-2x" ></i> </a>
-                    <a class="btn btn-default" v-on:click="favorite(product)" aria-label="Settings" style="right: 10px;position: absolute;margin-right: 10px;">
-                        <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-2x" > </i> 
-                        <i v-if="product.favorite==1" class="fa fa-check-square fa-2x" > </i> 
-                    </a>
-                    <a class="btn btn-default"  aria-label="Settings" v-on:click="downloadapp('stelup_shop','product_app',product,product.storename,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-eye fa-2x"></i> </a>
+                    <button type="button" class="btn btn-default" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)" aria-label="Comment on product"><i class="fa fa-comment-o fa-lg" ></i> </button>
+                    <button type="button" class="btn btn-default" v-on:click="favorite(product)"  aria-label="Save product">
+                        <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-lg" > </i>
+                        <i v-if="product.favorite==1" class="fa fa-check-square fa-lg" > </i>
+                    </button>
+                    <button type="button" class="btn btn-default" v-on:click="downloadapp('stelup_shop','product_app',product,product.storename,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)" aria-label="View product"><i class="fa fa-eye fa-lg"></i> </button>
                     
                 </div>
                 <div class="card-body">
-                  <h5 class="card-title">{{ product.name }}</h5>
-                  <p class="card-text">{{ product.caption }}</p>
+                  <h5 class="card-title" style="overflow-wrap: anywhere;">{{ product.name }}</h5>
+                  <p class="card-text" style="overflow-wrap: anywhere;">{{ product.caption }}</p>
                   
                
                 </div>
-                <div v-if="!isEditable(product) && product.catogory!='group listing'" class="card-body">
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
+                <div v-if="!isEditable(product) && product.catogory!='group listing'" class="card-body d-flex flex-wrap align-items-center justify-content-between mt-auto" style="gap: 8px; flex-grow: 0;">
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button " v-on:click="additem(product,true)">Add to cart</button>
                     
-                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
+                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button " v-on:click="trade(product)">Trade</button>
                     
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button " v-on:click="addchecout(product,true)">Buy</button>
                     
                 </div>
-                <div v-if="!isEditable(product) && product.catogory=='group listing'" class="card-body">
-                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Add to cart</button>
-                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Trade</button>
+                <div v-if="!isEditable(product) && product.catogory=='group listing'" class="card-body d-flex flex-wrap align-items-center justify-content-between mt-auto" style="gap: 8px; flex-grow: 0;">
+                    <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button " v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Add to cart</button>
+                    <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button " v-on:click="downloadapp('stelup_shop','product_app_checkout',product,product.name,'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)">Trade</button>
                 </div>
-                <div v-if="isEditable(product)" class="card-body">
-                    <button type="button" class="btn bg-primary-button pull-left"   v-on:click="edit(product)">Edit</button>
-                    <button type="button" class="btn bg-primary-button pull-right"   v-on:click="marksold(product)">Unlist</button>
+                <div v-if="isEditable(product)" class="card-body d-flex flex-wrap align-items-center justify-content-between mt-auto" style="gap: 8px; flex-grow: 0;">
+                    <button type="button" class="btn bg-primary-button "   v-on:click="edit(product)">Edit</button>
+                    <button type="button" class="btn bg-primary-button "   v-on:click="marksold(product)">Unlist</button>
                     
                 </div>
               </div>
@@ -83,31 +83,10 @@
   </div>
   
 </div>
-<div v-if="loading" class="row" >    
-    <div class="col-md-4 col-sm-6">
-           
-    </div>
-    <div class="col-md-4 col-sm-6">
-            <div id="custom-search-input">
-                <h2><span class="fa fa-refresh fa-spin" ></span> Loading Please wait...</h2>
-            </div>
-    </div>
-    <div class="col-md-4 col-sm-6">
-            
-    </div>
-           
-</div>
-<div v-if="noproducts" class="row" >
-        <div class="col-md-4 col-sm-6">
-           
-            </div>    
-        
-        <div class="col-md-4 col-sm-6">
-                <h1> No Results for Search Query "{{ q }}" </h1>
-            </div>
-            <div class="col-md-4 col-sm-6">
-           
-                </div>
+<div v-if="loading" class="cms-v7-loading" role="status"><i class="fa fa-refresh fa-spin" aria-hidden="true"></i> Loading products...</div>
+<div v-if="noproducts && !loading" class="cms-v7-loading" role="status">
+  <h2 class="h5">{{ q ? 'No products found for ?'+q+'?' : 'No products to show yet' }}</h2>
+  <p class="text-muted mb-0">Try another search or browse a different collection.</p>
 </div>
 
 <div class="modal fade" id="modalappwindow" role="dialog" tabindex="-1"  style="overflow-x: auto;overflow-y: auto;width:100%;">
@@ -115,8 +94,8 @@
         <div class="modal-content" style="overflow-x: auto;overflow-y: auto;">
             <div class="modal-header">
                 <div style="width: 40px;">
-                    <div class="profile-userpic">
-                        <img :src="appIcon" class="img-responsive" alt="">
+                    <div class="flex-shrink-0">
+                        <img :src="appIcon" class="rounded-circle img-fluid" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         
                     </div>
                 </div>

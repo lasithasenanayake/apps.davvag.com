@@ -78,7 +78,7 @@
             <div class="cms7-section-heading compact">
                 <div>
                     <h2>Navbar</h2>
-                    <p>Customize the public navigation links and call to action.</p>
+                    <p>Customize the public navigation colors, links, and call to action.</p>
                 </div>
                 <button class="cms7-btn ghost" type="button" v-on:click="addNavLink">Add link</button>
             </div>
@@ -98,6 +98,22 @@
                 <label>
                     <span>CTA URL</span>
                     <input type="text" v-model="site.nav.cta.url">
+                </label>
+            </div>
+            <div class="cms7-section-heading compact">
+                <div>
+                    <h3>Navigation colors</h3>
+                    <p>Leave a color empty to follow the site theme. Save settings to apply changes.</p>
+                </div>
+                <button class="cms7-btn ghost" type="button" v-on:click="resetNavColors">Use theme colors</button>
+            </div>
+            <div class="cms7-grid two">
+                <label v-for="field in navColorFields" v-bind:key="field.key">
+                    <span>{{ field.label }}</span>
+                    <div class="cms7-color-field">
+                        <input type="color" v-bind:aria-label="field.label + ' color picker'" v-bind:value="navColorValue(field.key)" v-on:input="site.nav.colors[field.key] = $event.target.value">
+                        <input type="text" v-bind:aria-label="field.label + ' hex color'" v-model.trim="site.nav.colors[field.key]" placeholder="Theme default (#rrggbb)" maxlength="7">
+                    </div>
                 </label>
             </div>
             <div class="cms7-list">

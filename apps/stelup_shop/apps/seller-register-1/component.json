@@ -14,12 +14,6 @@
                 "type" : "mainView",
                 "location" : "partial.html"
             }
-        ],"css":[
-            {
-                "type":"css",
-                "location":"sample-input-form.css"
-                
-            }
-        ]
+        ],"css": []
     }
 }

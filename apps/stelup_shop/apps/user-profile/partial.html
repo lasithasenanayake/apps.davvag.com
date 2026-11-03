@@ -1,10 +1,10 @@
 <div class="">
   <div class="row profile">
   <div class="col-md-4">
-    <div class="profile-leftsidebar mr-lg-1">
+    <div class="profile-leftsidebar card mb-4">
       <div class="text-center border-bottom p-4">
         <div class="mb-4 profile-user">
-          <img :src="image" class="rounded-circle avatar-lg img-thumbnail" alt="">
+          <img :src="image" class="rounded-circle img-thumbnail" style="width: 96px; height: 96px; object-fit: cover;" alt="">
           <button type="button" class="btn bg-light avatar-xs p-0 rounded-circle profile-photo-edit" v-on:click="changeProfilePic">
               <i class="fa fa-pencil"></i>
           </button>
@@ -102,9 +102,9 @@
     </div>
   </div>
   <div class="col-md-8">
-          <div id="decker1100" class="profile-content">
+          <div id="decker1100" class="profile-content p-3 overflow-auto">
             <!-- Tab panes -->
-            <div class="row app_header">
+            <div class="d-flex align-items-center justify-content-between p-3 app_header">
                 <div class="app_title">
                      <h4>{{ appName }}</h4>
                 </div>
