@@ -1,0 +1,40 @@
+<div class="ddm" data-ddm-root>
+  <aside class="ddm-sidebar">
+    <div class="ddm-brand"><span class="ddm-brand-mark">D</span><span><strong>DAVVAG</strong><small>Developer</small></span></div>
+    <nav>
+      <button class="is-active" data-view-button="bundle"><span>▦</span>Deployment Manager</button>
+      <button data-view-button="install"><span>⇧</span>Install Package</button>
+      <button data-view-button="history"><span>◷</span>Package History</button>
+    </nav>
+    <div class="ddm-runtime"><small>Package format</small><strong data-format>—</strong><small>ZIP driver</small><strong data-zip-driver>—</strong></div>
+  </aside>
+  <main class="ddm-main">
+    <header class="ddm-header"><div><p class="ddm-eyebrow">Developer / Deployment</p><h1 data-page-title>Application Bundler</h1></div><span class="ddm-security">● Sysadmin protected</span></header>
+    <div class="ddm-alert" data-alert hidden></div>
+
+    <section data-view="bundle">
+      <div class="ddm-steps"><span class="is-active">1 Select</span><span>2 Analyze</span><span>3 Configure</span><span>4 Build</span><span>5 Download</span></div>
+      <div class="ddm-card">
+        <div class="ddm-card-head"><div><h2>Application selection</h2><p>Choose registered applications. Required app dependencies are included automatically.</p></div><div class="ddm-actions"><input type="search" data-search placeholder="Search applications"><button class="ddm-button ghost" data-select-all>Select all</button></div></div>
+        <div class="ddm-app-grid" data-app-grid><div class="ddm-empty">Loading registered applications…</div></div>
+        <div class="ddm-card-foot"><span><strong data-selected-count>0</strong> selected</span><button class="ddm-button primary" data-analyze disabled>Analyze dependencies</button></div>
+      </div>
+      <div class="ddm-grid-2">
+        <div class="ddm-card"><div class="ddm-card-head"><div><h2>Dependency analysis</h2><p>Verified, shared, missing, cyclic, and review-only references.</p></div></div><div data-analysis><div class="ddm-empty">Select applications and run analysis.</div></div></div>
+        <div class="ddm-card"><div class="ddm-card-head"><div><h2>Package configuration</h2><p>Production-safe defaults are applied.</p></div></div>
+          <div class="ddm-form"><label>Package name<input data-package-name value="davvag-deployment"></label><label>Version<input data-package-version value="1.0.0"></label><label>Deployment profile<select data-profile><option>development</option><option selected>staging</option><option>production</option></select></label><label>Database export<select data-db-mode><option value="schema-only" selected>Schema only</option><option value="schema-safe-reference">Schema + approved reference data</option></select></label></div>
+          <div class="ddm-note">Explicit production-data migration is intentionally unavailable. Secrets, credentials, logs, caches, and unsafe links are excluded or block the build.</div>
+          <button class="ddm-button primary wide" data-build disabled>Build verified ZIP package</button><div class="ddm-progress" data-build-progress hidden><i></i><span>Running secure build pipeline…</span></div><div data-build-result></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-view="install" hidden>
+      <div class="ddm-steps"><span class="is-active">1 Upload</span><span>2 Verify</span><span>3 Plan</span><span>4 Approve</span><span>5 Install</span></div>
+      <div class="ddm-grid-2"><div class="ddm-card"><div class="ddm-card-head"><div><h2>Upload deployment package</h2><p>ZIP limits, paths, checksums, format, compatibility, and code-risk indicators are checked before planning.</p></div></div><label class="ddm-drop"><input type="file" accept=".zip,application/zip" data-package-file><span>Drop or select a DAVVAG package ZIP</span><small>Maximum archive size: 256 MiB</small></label><button class="ddm-button primary wide" data-upload>Upload and verify</button></div><div class="ddm-card"><div class="ddm-card-head"><div><h2>Installation plan</h2><p>No destination files or schemas are changed during planning.</p></div></div><div data-install-plan><div class="ddm-empty">Upload a package to begin.</div></div><label class="ddm-check"><input type="checkbox" data-trust> I have reviewed the source and explicitly trust this unsigned package.</label><label class="ddm-check"><input type="checkbox" data-backup> I verified a recoverable destination database backup.</label><label class="ddm-check"><input type="checkbox" data-activate> Activate registered applications after installation.</label><button class="ddm-button danger wide" data-install disabled>Install approved package</button><div data-install-result></div></div></div>
+    </section>
+
+    <section data-view="history" hidden><div class="ddm-card"><div class="ddm-card-head"><div><h2>Package history</h2><p>Build artifacts are kept in protected application storage and downloaded through an authorized service.</p></div><button class="ddm-button ghost" data-refresh-history>Refresh</button></div><div class="ddm-table-wrap"><table><thead><tr><th>Package</th><th>Build ID</th><th>Applications</th><th>Created</th><th>Size</th><th>Status</th><th></th></tr></thead><tbody data-history></tbody></table></div></div></section>
+  </main>
+</div>
+

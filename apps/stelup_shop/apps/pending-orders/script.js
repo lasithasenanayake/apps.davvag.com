@@ -2,7 +2,7 @@ WEBDOCK.component().register(function(exports){
     var scope,validator_profile,service_handler,sossrout_handler,attribute;
 
     var bindData = {
-        submitErrors : [],submitInfo : [],data:[],type:"new",order:{},orderDetails:[]
+        submitErrors : [],submitInfo : [],data:[],type:"pending",order:{},orderDetails:[]
     };
 
     var vueData =  {
@@ -67,7 +67,8 @@ WEBDOCK.component().register(function(exports){
         pInstance = exports.getShellComponent("soss-routes");
         routeData = pInstance.getInputData();
         attribute=exports.getShellComponent("attribute_shell");
-        let type=routeData.t?routeData.t:"new"
+        let type=routeData.t?routeData.t:"pending"
+        if (type === "new") type = "pending";
         bindData.type=type;
         loadOrders();
         loadValidator();

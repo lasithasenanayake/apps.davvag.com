@@ -1,6 +1,6 @@
 <div class="container" @scroll="handleScroll($event)">
     <div v-if="a5>0" class="row">
-        <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+        <input id="idButtonLocation" type="button" aria-label="Open cart" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/stelup_shop/appicon.png&quot;); visibility: visible;" v-on:click="navcheckout()">
     </div>
     <div class="row">
 	    <div class="col-12">
@@ -29,7 +29,7 @@
                         </div>
                         <div class="col">
                             <a :href="'#/app/stelup_shop/profile?id='+product.storeid">
-                                <h5 v-html="product.storename"></h5>
+                                <h5>{{ product.storename }}</h5>
                             </a>
                         </div>
                     </div>
@@ -55,8 +55,8 @@
                     
                 </div>
                 <div class="card-body">
-                  <h5 class="card-title" v-html="product.name">Card title</h5>
-                  <p class="card-text" v-html="product.caption">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                  <h5 class="card-title">{{ product.name }}</h5>
+                  <p class="card-text">{{ product.caption }}</p>
                   
                
                 </div>

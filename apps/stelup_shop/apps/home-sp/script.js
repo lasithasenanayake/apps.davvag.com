@@ -292,7 +292,7 @@ WEBDOCK.component().register(function(exports){
         selectStore: function(p){
             bindData.product=p;
             bindData.product.qty=1;
-            bindData.product.url="http://"+window.location.hostname+"/components/davvag-shop/productsvr/service/Product/?q="+bindData.product.itemid.toString();
+            bindData.product.url=window.location.protocol+"//"+window.location.host+"/components/stelup_shop/productsvr/service/Product/?q="+bindData.product.itemid.toString();
             //$('#modalImagePopup').modal('show');
         }, 
         navcheckout: function(){

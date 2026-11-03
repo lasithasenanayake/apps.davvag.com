@@ -45,9 +45,10 @@
             "ai_agent_billing_usage_monthly_report"
         ],
         "workflows": [],
-        "plugins": [
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

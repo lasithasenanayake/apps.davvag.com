@@ -1,0 +1,10 @@
+{
+    "name": "Stelup Shop Theme",
+    "description": "Shared CMS V7-aligned styles for Stelup Shop",
+    "author": "DAVVAG",
+    "version": "1.0.0",
+    "resources": {
+        "files": [{"type": "mainScript", "location": "script.js"}],
+        "css": [{"type": "css", "location": "stelup-theme.css"}]
+    }
+}

@@ -75,12 +75,10 @@
             "profile"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-attributes",
-            "mpdf",
-            "notify",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes"],
+            "global": ["mpdf","notify","sossdata"]
+        },
         "php-extensions": []
     }
 }

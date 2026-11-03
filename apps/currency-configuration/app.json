@@ -35,10 +35,10 @@
         "apps": [],
         "schemas": ["currency_configuration"],
         "workflows": [],
-        "plugins": [
-            "phpcache",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

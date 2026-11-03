@@ -194,12 +194,10 @@
             "store_products"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "phpmailer",
-            "sossdata",
-            "transactions"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["auth","phpmailer","sossdata","transactions"]
+        },
         "php-extensions": []
     }
 }

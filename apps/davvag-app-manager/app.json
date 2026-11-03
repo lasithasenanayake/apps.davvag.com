@@ -94,9 +94,10 @@
             "schedule_pending"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-attributes"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes"],
+            "global": []
+        },
         "php-extensions": []
     }
 }

@@ -50,9 +50,10 @@
             "profile"
         ],
         "workflows": [],
-        "plugins": [
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["sossdata"]
+        },
         "php-extensions": [
             "curl"
         ]

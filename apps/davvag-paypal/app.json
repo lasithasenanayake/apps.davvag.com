@@ -36,12 +36,10 @@
             "davvag_paypal"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-ipg",
-            "davvag-order",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-ipg","davvag-order","profile"],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

@@ -181,12 +181,10 @@
             ,"travel_destination_trip_item"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["profile"],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": [
             "mbstring",
             "openssl",

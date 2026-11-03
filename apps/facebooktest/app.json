@@ -39,11 +39,10 @@
         "apps": [],
         "schemas": [],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "phpcache",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

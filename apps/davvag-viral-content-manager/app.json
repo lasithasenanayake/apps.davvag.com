@@ -92,10 +92,10 @@
             "optimizer_responses"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["auth","sossdata"]
+        },
         "php-extensions": [
             "curl"
         ]

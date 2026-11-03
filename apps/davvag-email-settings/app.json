@@ -50,13 +50,10 @@
         "workflows": [
             "davvag-attributes/testflow.json"
         ],
-        "plugins": [
-            "davvag-attributes",
-            "davvag-flow",
-            "notify",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes","profile"],
+            "global": ["davvag-flow","notify","sossdata"]
+        },
         "php-extensions": []
     }
 }

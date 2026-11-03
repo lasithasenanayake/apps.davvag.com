@@ -41,7 +41,7 @@ class LoginService {
             $result = SOSSData::Insert ("profile", $profile,$tenantId = null);
             if($result->success){
                 $profile->id=$result->result->generatedId;
-                if(isset($profile->attribute)){
+                if(isset($profile->attributes)){
                     $profile->attributes->id=$result->result->generatedId;
 
                     $r = SOSSData::Insert ("profile_attributes", $profile->attributes);
@@ -51,10 +51,12 @@ class LoginService {
             CacheData::clearObjects("profile_data");
             return $profile;
         }else{
-            $profile->attributes->id=$profile->id;
             $result = SOSSData::Update("profile", $profile);
-            $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
-            $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            if (isset($profile->attributes)) {
+                $profile->attributes->id=$profile->id;
+                $result = SOSSData::Delete ("profile_attributes", $profile->attributes);
+                $result = SOSSData::Insert ("profile_attributes", $profile->attributes);
+            }
             CacheData::clearObjects("profile");
             CacheData::clearObjects("profile_data");
             return $profile;
@@ -100,6 +102,7 @@ class LoginService {
                 }
                 CacheData::setObjects($outObject->token,"sessions",$outObject);
             }
+            return $outObject;
         }else{
             $res->SetError("Session Expired");
         }
@@ -108,6 +111,12 @@ class LoginService {
 
     public function postCreatePaymentRequest($req,$res){
         $data=$req->Body(true);
+        $currentProfile=Profile::getUserProfile();
+        if (!isset($currentProfile->profile) || !isset($data->profileId) ||
+            (string)$currentProfile->profile->id !== (string)$data->profileId) {
+            $res->SetError("Permission Denied");
+            return null;
+        }
         $r = SOSSData::Query ("profile", urlencode("id:".$data->profileId.""));
         if(count($r->result)==0){
             $res->SetError("Profile not file to pay");
@@ -181,8 +190,8 @@ class LoginService {
                         $profile->ledger=$result->result;
                         $result = SOSSData::Query ("orderheader_pending", urlencode("profileid:".$profile->id.""));
                         $profile->order_pending=$result->result;
-                        $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
-                        $profile->order_rejected=$result->result;
+                        $result = SOSSData::Query ("orderheader_dispatched", urlencode("profileid:".$profile->id.""));
+                        $profile->order_dispatched=$result->result;
                         $result = SOSSData::Query ("orderheader_rejected", urlencode("profileid:".$profile->id.""));
                         $profile->order_rejected=$result->result;
                         $result = SOSSData::Query ("orderheader_accepted", urlencode("profileid:".$profile->id.""));
@@ -353,6 +362,12 @@ class LoginService {
 
     public function postupdatePolicy($req,$res){
         $bodypolicy= $req->Body(true);
+        $currentProfile=Profile::getUserProfile();
+        if (!isset($currentProfile->profile, $bodypolicy->id) ||
+            (string)$currentProfile->profile->id !== (string)$bodypolicy->id) {
+            $res->SetError("Permission Denied");
+            return;
+        }
         $result = SOSSData::Query ("profile_policy", urlencode("id:".$bodypolicy->id.""));
         if( $result->success){
             $r=null;
@@ -380,11 +395,13 @@ class LoginService {
         return $outObject;
     }
 
-    public function getLogin($req){
-        //$url = "http://localhost:9000/login/$_GET[email]/$_GET[password]/$_GET[domain]";
-        //$output = sendRestRequest($url, "GET");
-        
-        $outObject = Auth::Login($_GET["email"],$_GET["password"]);
+    public function postLogin($req,$res){
+        $body=$req->Body(true);
+        if (!isset($body->email, $body->password)) {
+            $res->SetError("Email and password are required.");
+            return;
+        }
+        $outObject = Auth::Login($body->email,$body->password);
         //return $outObject
         $_SESSION["authData"] = json_encode($outObject);
         setcookie("authData", json_encode($outObject), time() + (86400 * 1), "/"); // 86400 = 1 day
@@ -438,8 +455,13 @@ class LoginService {
 
    
 
-    public function getResetPassword($req){
-        $outObject = Auth::ResetPassword($_GET["email"],$_GET["token"],$_GET["password"]);
+    public function postResetPassword($req,$res){
+        $body=$req->Body(true);
+        if (!isset($body->email, $body->token, $body->password) || trim((string)$body->password)==="") {
+            $res->SetError("Email, reset token and password are required.");
+            return;
+        }
+        $outObject = Auth::ResetPassword($body->email,$body->token,$body->password);
         return $outObject;
     }
 }

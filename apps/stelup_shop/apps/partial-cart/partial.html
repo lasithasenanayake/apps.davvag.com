@@ -7,10 +7,10 @@
         <div class="col-sm-8 col-md-8 col-md-offset-1">
             <div class="row text-center whiteText">
                 <h2>You don't have any items in the shopping cart</h2>
-                <h3><a href="#/app/davvag-shop" class="">Go To Home</a></h3>
+                <h3><a href="#/app/stelup_shop" class="">Go To Home</a></h3>
             </div>
             <div class="row text-center">
-                <a type="button" class="btn btn-success pull-center hideMobile" href="#/app/davvag-shop">
+                <a type="button" class="btn btn-success pull-center hideMobile" href="#/app/stelup_shop">
                     Continue Shopping <span class="glyphicon glyphicon-play"></span>
                 </a>
             </div>
@@ -29,7 +29,7 @@
                             <img :src="'components/dock/soss-uploader/service/get/profile/'+store.storeid" class="img-responsive" alt="">
                     </div>
                     <div class="profile-col" style="margin: auto;">
-                        <h6 v-html="store.storename"></h6>
+                        <h6>{{ store.storename }}</h6>
                         
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                             <img :src="'components/dock/soss-uploader/service/get/profile/'+store.storeid" class="img-responsive" alt="">
                     </div>
                     <div class="profile-col" style="margin: auto;">
-                        <h6 v-html="store.storename"></h6>
+                        <h6>{{ store.storename }}</h6>
                     </div>
                 </div>
                 <table class="table">

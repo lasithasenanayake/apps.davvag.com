@@ -121,12 +121,10 @@
             "task_manager_work_log_report"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["profile"],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": [
             "imap"
         ]

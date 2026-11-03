@@ -44,11 +44,10 @@
             "davvag_banking"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-order",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-order","profile"],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

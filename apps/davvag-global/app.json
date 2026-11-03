@@ -40,9 +40,10 @@
             "domains_keytokens"
         ],
         "workflows": [],
-        "plugins": [
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

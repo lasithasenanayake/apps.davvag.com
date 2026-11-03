@@ -97,7 +97,7 @@ WEBDOCK.component().register(function(exports){
                 }
                 
             }else{
-                location.href="#/app/stelup_shop/order-error";
+                scope.submitErrors.push("The order could not be completed. Please review your cart and try again.");
             }
         }).error(function(){
             scope.isBusy = false;
@@ -140,7 +140,7 @@ WEBDOCK.component().register(function(exports){
            scope = s;
            var self = this;
            if(bindData.profile==null){
-               window.location="#/app/userapp?u=#/app/davvag-shop/checkout-complete";
+               window.location="#/app/userapp?u=#/app/stelup_shop/checkout";
            }else{
                console.log(bindData.profile);
            }
@@ -157,7 +157,7 @@ WEBDOCK.component().register(function(exports){
     // exports.updateMarkerPos = updateMarkerPos;
     exports.onReady = function(){
         if(bindData.profile==null){
-            window.location="#/app/userapp?u=#/app/davvag-shop/checkout-complete";
+            window.location="#/app/userapp?u=#/app/stelup_shop/checkout";
         }else{
             console.log(bindData.profile);
         }

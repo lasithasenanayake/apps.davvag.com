@@ -77,13 +77,10 @@
             "profilestatus"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "notify",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["profile"],
+            "global": ["auth","notify","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

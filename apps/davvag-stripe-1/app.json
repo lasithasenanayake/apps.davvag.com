@@ -29,7 +29,10 @@
         "apps": ["currency-configuration"],
         "schemas": ["currency_configuration"],
         "workflows": [],
-        "plugins": ["profile", "sossdata", "stripe"],
+        "plugins": {
+            "local": ["profile","stripe"],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

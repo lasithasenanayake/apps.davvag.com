@@ -14,7 +14,7 @@
                     </div>
                     <div class="col">
                         <a :href="'#/app/stelup_shop/profile?id='+product.profileId">
-                            <h5 v-html="product.name"></h5>
+                            <h5>{{ product.name }}</h5>
                         </a>
                     </div>
                 </div>
@@ -37,7 +37,6 @@
             </div>
             <div  class="card-footer">
                 <button type="button" class="form-control btn bg-primary-button"   v-on:click="view(product)">View</button>
-                <button  type="button" class="form-control btn bg-primary-button"   v-on:click="marksold(product)">Send Message</button>
             </div>
           </div>
     </div>
@@ -92,7 +91,6 @@
           </div>
           <div class="modal-footer">
             <button v-if="type=='accepted'" type="button" class="btn bg-primary-button"   v-on:click="dispatch(order)">Dispatch Order</button>
-            <button v-if="type=='accepted'" type="button" class="btn bg-primary-button"   v-on:click="marksold(product)">Refund and reject</button>
             <button type="button" class="btn btn-warning" v-on:click="userPermClose">Cancel</button>
           </div>
       </div>

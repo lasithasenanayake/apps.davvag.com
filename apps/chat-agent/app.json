@@ -80,10 +80,10 @@
             "profile_attributes"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["auth","sossdata"]
+        },
         "php-extensions": [
             "curl"
         ]

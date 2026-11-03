@@ -115,12 +115,10 @@
       "davvag_credit_lesson_unlock"
     ],
     "workflows": [],
-    "plugins": [
-      "sossdata",
-      "auth",
-      "profile",
-      "protected-media"
-    ],
+    "plugins": {
+        "local": ["profile"],
+        "global": ["sossdata","auth","protected-media"]
+    },
     "php-extensions": [
       "mysqli",
       "dom",

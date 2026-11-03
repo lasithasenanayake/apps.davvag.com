@@ -86,12 +86,10 @@
             "schedule_pending"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["profile"],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

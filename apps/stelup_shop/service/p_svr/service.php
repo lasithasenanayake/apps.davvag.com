@@ -12,17 +12,22 @@ class appService {
 
     public function postFollow($req,$res){
         $p=$req->Body(true);
+        $userprofile=Profile::getUserProfile();
+        if (!isset($userprofile->profile) || !isset($p->id)) {
+            $res->SetError("User Not Authenticated.");
+            return;
+        }
+        $p->pid=$userprofile->profile->id;
         $profile= Profile::getProfile($p->id,$p->pid);
         if($profile){
             if(isset($profile->profile)){
-                $userprofile=Profile::getUserProfile();
                 if($p->liked){
                     SOSSData::Insert("profile_followers",$p);
                 }else{
                     SOSSData::Delete("profile_followers",$p);
                     return $p;
                 }
-                $id=$userprofile?$userprofile->profile->id:0;
+                $id=$userprofile->profile->id;
                 Profile::getClearProfile($id,$id);
                 Profile::getClearProfile($p->id,$id);
                 return $p;
@@ -31,7 +36,7 @@ class appService {
                 return;
             }
         }else{
-            $res->SetError ($result);
+            $res->SetError ("Follower profile was not found.");
             return;
         }
     }
@@ -41,8 +46,9 @@ class appService {
         $userprofile=Profile::getUserProfile();
         //return $userprofile;
         //return $userprofile;
-        $id=$userprofile?$userprofile->profile->id:0;
-        $profile=Profile::getProfile($_GET["id"],$id);
+        $id=isset($userprofile->profile)?$userprofile->profile->id:0;
+        $profileId=isset($_GET["id"])?$_GET["id"]:0;
+        $profile=Profile::getProfile($profileId,$id);
         if(isset($profile->profile)){
             $outprofile = $profile->profile;
             $outprofile->attributes=$profile->attributes;
@@ -58,14 +64,18 @@ class appService {
         $p=$req->Body(true);
         
         $userprofile=Profile::getUserProfile();
-        if($userprofile){
+        if(isset($userprofile->profile) && isset($p->id, $p->message)){
             $profile= Profile::getProfile($p->id,$userprofile->profile->id);
             if(isset($profile->profile)){
                 $message =new stdClass();
                 $message->inboxid=$profile->profile->id;
                 $message->userboxid=$userprofile->profile->id;
-                $message->messagetype=$p->messagetype;
-                $message->messagetext=$p->message;
+                $message->messagetype=isset($p->messagetype)?$p->messagetype:"message";
+                $message->messagetext=trim((string)$p->message);
+                if ($message->messagetext === "") {
+                    $res->SetError("Message cannot be empty.");
+                    return;
+                }
                 $message->m_read=0;
                 $message->m_to=$profile->profile->id;
                 $message->m_from=$userprofile->profile->id;
@@ -105,7 +115,7 @@ class appService {
 
     public function getMessageInbox($req,$res){
         $userprofile=Profile::getUserProfile();
-        if($userprofile){
+        if(isset($userprofile->profile)){
             $mainObj = new stdClass();
             $mainObj->parameters = new stdClass();
             $mainObj->parameters->profileId =$userprofile->profile->id;
@@ -125,7 +135,7 @@ class appService {
 
     public function getMessages($req,$res){
         $userprofile=Profile::getUserProfile();
-        if($userprofile){
+        if(isset($userprofile->profile)){
             $mainObj = new stdClass();
             $mainObj->parameters = new stdClass();
             $mainObj->parameters->id =isset($_GET["id"])?$_GET["id"]:0;
@@ -150,17 +160,13 @@ class appService {
     public function getAllProducts($req,$res){
         if (isset($_GET["page"]) && isset($_GET["size"])){
             require_once (PLUGIN_PATH . "/sossdata/SOSSData.php");
-            if(!isset($_GET["id"])){
-                SOSSData::Insert("products_reviews",array("itemid"=>0,"pid"=>"0"));
-                SOSSData::Insert("profile_followers",array("id"=>0,"pid"=>"0"));
-            }
             $mainObj = new stdClass();
             $mainObj->parameters = new stdClass();
             $mainObj->parameters->page = $_GET["page"];
             $mainObj->parameters->size = $_GET["size"];
-            $mainObj->parameters->id = $_GET["id"];
-            $mainObj->parameters->pid = $_GET["pid"];
-            $mainObj->parameters->tid = $_GET["tid"];
+            $mainObj->parameters->id = isset($_GET["id"])?$_GET["id"]:0;
+            $mainObj->parameters->pid = isset($_GET["pid"])?$_GET["pid"]:0;
+            $mainObj->parameters->tid = isset($_GET["tid"])?$_GET["tid"]:0;
 
 
             $resultObj = SOSSData::ExecuteRaw("products_stelup_2", $mainObj);
@@ -182,7 +188,7 @@ class appService {
 
     public function getSellerProducts($req,$res){
         $userprofile=Profile::getUserProfile();
-        if (isset($userprofile)){
+        if (isset($userprofile->profile)){
             $mainObj = new stdClass();
             $mainObj->parameters = new stdClass();
             $mainObj->parameters->pid = $userprofile->profile->id;

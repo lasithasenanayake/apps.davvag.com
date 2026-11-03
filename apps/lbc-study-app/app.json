@@ -109,14 +109,10 @@
         "workflows": [
             "davvag-attributes/testflow.json"
         ],
-        "plugins": [
-            "auth",
-            "davvag-attributes",
-            "davvag-flow",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes","profile"],
+            "global": ["auth","davvag-flow","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

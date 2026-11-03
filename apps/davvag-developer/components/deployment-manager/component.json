@@ -1,0 +1,14 @@
+{
+  "name": "Application Bundler & Deployment Manager",
+  "description": "Build, verify, download, and install portable DAVVAG packages",
+  "author": "DAVVAG",
+  "version": "1.0.0",
+  "resources": {
+    "files": [
+      {"type": "mainScript", "location": "script.js"},
+      {"type": "mainView", "location": "partial.html"}
+    ],
+    "css": [{"type": "css", "location": "style.css"}]
+  }
+}
+

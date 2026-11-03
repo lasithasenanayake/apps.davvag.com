@@ -159,13 +159,10 @@
             "profile_notify_u"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "davvag-attributes",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes","profile"],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

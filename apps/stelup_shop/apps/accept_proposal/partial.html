@@ -10,7 +10,7 @@
                 </div>
                 <div class="col">
                     <a :href="'#/app/stelup_shop/profile?id='+data.profileId">
-                        <h5 v-html="data.name"></h5>
+                        <h5>{{ data.name }}</h5>
                     </a>
                 </div>
             </div>
@@ -18,8 +18,8 @@
         
         <img :src="'components/davvag-cms/soss-uploader/service/get/products_proposal/'+data.id+'-1'" style="width: 100%;">
         <div class="card-body">
-          <h5 class="card-title" v-html="data.description">Card title</h5>
-          <p class="card-text" v-html="marked(data.item_condition)">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          <h5 class="card-title">{{ data.description }}</h5>
+          <p class="card-text">{{ data.item_condition }}</p>
           <button  class="btn bg-primary-button btn-block" v-on:click="submit">Accept</button>
           <button  class="btn bg-primary-button btn-block" v-on:click="Reject">Cancel</button>
        

@@ -47,10 +47,10 @@
         ],
         "schemas": [],
         "workflows": [],
-        "plugins": [
-            "phpmailer",
-            "transactions"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["phpmailer","transactions"]
+        },
         "php-extensions": []
     }
 }

@@ -1,0 +1,33 @@
+{
+  "components": {
+    "deployment-manager": {"type": "component", "location": "components"},
+    "deployment-api": {"type": "service", "location": "services"}
+  },
+  "description": {
+    "title": "DAVVAG Developer",
+    "author": "DAVVAG",
+    "version": "1.0.0",
+    "description": "Application Bundler & Deployment Manager",
+    "icon": "deployment-manager.svg"
+  },
+  "tags": ["showindock"],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "deployment-manager",
+      "onLoad": ["deployment-api"],
+      "routes": {"partials": {"/deployment": "deployment-manager", "/install": "deployment-manager", "/history": "deployment-manager"}}
+    },
+    "dock": {
+      "subapps": [
+        {"name": "Deployment Manager", "path": "deployment"},
+        {"name": "Install Package", "path": "install"},
+        {"name": "Package History", "path": "history"}
+      ]
+    }
+  },
+  "dependencies": {"apps": [], "schemas": [], "workflows": [], "plugins": {
+     "local": [],
+     "global": []
+ }, "php-extensions": ["json", "openssl", "zlib"]}
+}
+

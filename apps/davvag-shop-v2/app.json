@@ -88,14 +88,10 @@
             "products_image"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "davvag-order",
-            "phpcache",
-            "phpmailer",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-order","profile"],
+            "global": ["auth","phpcache","phpmailer","sossdata"]
+        },
         "php-extensions": []
     }
 }

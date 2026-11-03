@@ -136,13 +136,10 @@
     "workflows": [
       "lesson-manager/generate-quiz"
     ],
-    "plugins": [
-      "auth",
-      "sossdata",
-      "profile",
-      "davvag-flow",
-      "protected-media"
-    ],
+    "plugins": {
+        "local": ["profile"],
+        "global": ["auth","sossdata","davvag-flow","protected-media"]
+    },
     "php-extensions": [
       "curl",
       "openssl"

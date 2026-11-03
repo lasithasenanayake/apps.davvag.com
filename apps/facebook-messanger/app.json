@@ -42,11 +42,10 @@
             "profile"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-flow",
-            "phpcache",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["davvag-flow","phpcache","sossdata"]
+        },
         "php-extensions": [
             "curl"
         ]

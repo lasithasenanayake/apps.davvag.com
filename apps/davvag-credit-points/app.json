@@ -161,13 +161,10 @@
       "davvag_credit_checkout"
     ],
     "workflows": [],
-    "plugins": [
-      "auth",
-      "sossdata",
-      "profile",
-      "notify",
-      "protected-media"
-    ],
+    "plugins": {
+        "local": ["profile"],
+        "global": ["auth","sossdata","notify","protected-media"]
+    },
     "php-extensions": [
       "mysqli",
       "openssl",

@@ -64,10 +64,10 @@
         "workflows": [
             "davvag-attributes/testflow.json"
         ],
-        "plugins": [
-            "davvag-attributes",
-            "davvag-flow"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes"],
+            "global": ["davvag-flow"]
+        },
         "php-extensions": []
     }
 }

@@ -118,14 +118,10 @@
             "profilestatus"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "davvag-attributes",
-            "davvag-order",
-            "phpcache",
-            "profile",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes","davvag-order","profile"],
+            "global": ["auth","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

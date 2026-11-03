@@ -17,8 +17,7 @@
         "class": "LoginService",
         "methods" : {
             "login" : {
-                "method" : "GET",
-                "parameters": ["email","password","domain"]
+                "method" : "POST"
             },"GoogleLogin":{
                 "method" : "GET",
                 "parameters": []
@@ -40,8 +39,7 @@
                 "parameters": ["token"]
             },
             "resetPassword":{
-                "method" : "GET",
-                "parameters": ["email","token","password"]
+                "method" : "POST"
             },
             "ResetToken":{
                 "method" : "GET",
@@ -73,12 +71,6 @@
             "route": "/createUser",
             "destMethod": "POST",
             "destUrl" : "http://localhost:9000/createuser/"
-        },
-        "login":{
-            "method": "GET",
-            "route": "/login/@email/@password/@domain",
-            "destMethod": "GET",
-            "destUrl" : "http://localhost:9000/login/@email/@password/@domain"
         },
         "getSession":{
             "method": "GET",

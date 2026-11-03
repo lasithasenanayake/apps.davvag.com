@@ -42,7 +42,10 @@
         ],
         "schemas": [],
         "workflows": [],
-        "plugins": [],
+        "plugins": {
+            "local": [],
+            "global": []
+        },
         "php-extensions": []
     }
 }

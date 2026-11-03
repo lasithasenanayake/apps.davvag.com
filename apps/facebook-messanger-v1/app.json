@@ -72,12 +72,10 @@
             "schedule_pending"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "davvag-flow",
-            "phpcache",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": [],
+            "global": ["auth","davvag-flow","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

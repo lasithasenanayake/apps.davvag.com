@@ -8,9 +8,21 @@ class appService {
         
     } 
 
+    private function authenticatedProfile($res){
+        $userProfile = Profile::getUserProfile();
+        if (!isset($userProfile->profile)) {
+            $res->SetError("User Not Authenticated.");
+            return null;
+        }
+        return $userProfile->profile;
+    }
+
     public function postLike($req,$res){
         $p=$req->Body(true);
-        $result = SOSSData::Query ("products", urlencode("itemid:".($p->itemid==null?0:$p->itemid).""));
+        $profile=$this->authenticatedProfile($res);
+        if (!$profile || !isset($p->itemid, $p->liked)) return;
+        $p->pid=$profile->id;
+        $result = SOSSData::Query ("products", urlencode("itemid:".$p->itemid));
         if($result->success){
             if(count($result->result)!=0){
                
@@ -39,7 +51,14 @@ class appService {
 
     public function postComment($req,$res){
         $p=$req->Body(true);
-        $result = SOSSData::Query ("products", urlencode("itemid:".($p->itemid==null?0:$p->itemid).""));
+        $profile=$this->authenticatedProfile($res);
+        if (!$profile || !isset($p->itemid, $p->comment) || trim((string)$p->comment)==="") {
+            if ($profile) $res->SetError("A comment is required.");
+            return;
+        }
+        $p->pid=$profile->id;
+        $p->comment=trim((string)$p->comment);
+        $result = SOSSData::Query ("products", urlencode("itemid:".$p->itemid));
         if($result->success){
             if(count($result->result)!=0){
                 $r=SOSSData::Insert("products_comments",$p);
@@ -63,7 +82,8 @@ class appService {
     }
 
     public function getAllComments($req,$res){
-        $result = SOSSData::Query ("products_comments", urlencode("itemid:".($_GET["id"]==null?0:$_GET["id"]).""));
+        $id=isset($_GET["id"])?$_GET["id"]:0;
+        $result = SOSSData::Query ("products_comments", urlencode("itemid:".$id));
         if($result->success){
             return $result->result;
         }else{
@@ -74,7 +94,10 @@ class appService {
 
     public function postFavorite($req,$res){
         $p=$req->Body(true);
-        $result = SOSSData::Query ("products", urlencode("itemid:".($p->itemid==null?0:$p->itemid).""));
+        $profile=$this->authenticatedProfile($res);
+        if (!$profile || !isset($p->itemid, $p->liked)) return;
+        $p->pid=$profile->id;
+        $result = SOSSData::Query ("products", urlencode("itemid:".$p->itemid));
         if($result->success){
             if(count($result->result)!=0){
                
@@ -104,7 +127,7 @@ class appService {
         $user= Auth::Autendicate("profile","postSave",$res);
         
         $groupid="seller";
-        if($user->email!=$profile->email){
+        if(!isset($user->email, $profile->email) || $user->email!=$profile->email){
             $res->SetError ("You do not have permission to update this profile.");
             return;
         }
@@ -121,7 +144,7 @@ class appService {
         }
         //var_dump($profile);
         //exit();
-        $result = SOSSData::Query ("profile", urlencode("id:".($profile->id==null?0:$profile->id).""));
+        $result = SOSSData::Query ("profile", urlencode("id:".(isset($profile->id)?$profile->id:0).""));
         
         //return urlencode("id:".$profile->id."");
         if(count($result->result)==0)
@@ -167,8 +190,16 @@ class appService {
 
     public function postConfirmProductProposal($req,$res){
         $product=$req->Body(true);
+        if (!isset($product->id)) {
+            $res->SetError("Proposal id is required");
+            return;
+        }
         $r=SOSSData::Query("stelup_trade","id:".$product->id);
         $userProfile = Profile::getUserProfile();
+        if (!isset($userProfile->profile)) {
+            $res->SetError("User Not Authenticated.");
+            return;
+        }
         //return $product;
         if($r->success && count($r->result)>0){
             $trad=$r->result[0];
@@ -217,8 +248,16 @@ class appService {
 
     public function postRejectProductProposal($req,$res){
         $product=$req->Body(true);
+        if (!isset($product->id)) {
+            $res->SetError("Proposal id is required");
+            return;
+        }
         $r=SOSSData::Query("stelup_trade","id:".$product->id);
         $userProfile = Profile::getUserProfile();
+        if (!isset($userProfile->profile)) {
+            $res->SetError("User Not Authenticated.");
+            return;
+        }
         if($r->success && count($r->result)>0){
             $trad=$r->result[0];
             if($trad->supplier_profileId==$userProfile->profile->id){
@@ -240,8 +279,17 @@ class appService {
     public function postSaveProductProposal($req,$res){
         
         $product=$req->Body(true);
+        $userProfile=$this->authenticatedProfile($res);
+        if (!$userProfile || !isset($product->supplier_profileId, $product->itemid)) return;
+        $product->profileId=$userProfile->id;
+        $itemResult=SOSSData::Query("products",urlencode("itemid:".$product->itemid));
+        if (!$itemResult->success || count($itemResult->result)===0 ||
+            (string)$itemResult->result[0]->storeid !== (string)$product->supplier_profileId) {
+            $res->SetError("Product or supplier was not found");
+            return;
+        }
         $profile=Profile::getProfile($product->supplier_profileId,$product->profileId);
-        if($profile->profile){
+        if(isset($profile->profile)){
             $product->supplier_name= $profile->profile->name;
             $product->supplier_address= $profile->profile->address;
             $product->supplier_country= $profile->profile->country;
@@ -265,7 +313,7 @@ class appService {
 
     private function SaveSubProducts($product){
         $items=array();
-        if($product->groupItems){
+        if(isset($product->groupItems) && is_array($product->groupItems) && count($product->groupItems)>0){
             $result=SOSSData::Query("products_subitems", "itemid:".$product->itemid);
             $databaseItems=$result->success?$result->result:[];
             foreach ($product->groupItems as $key => $value) {
@@ -298,8 +346,21 @@ class appService {
     public function postSaveProduct($req,$res){
         
         $product=$req->Body(true);
-        //return $product;
-        //$user= Auth::Autendicate("product","save",$res);
+        $seller=$this->authenticatedProfile($res);
+        if (!$seller || !isset($product->name, $product->caption)) return;
+        if (isset($product->itemid)) {
+            $existingResult=SOSSData::Query("products",urlencode("itemid:".$product->itemid));
+            if (!$existingResult->success || count($existingResult->result)===0 ||
+                !isset($existingResult->result[0]->storeid) ||
+                (string)$existingResult->result[0]->storeid !== (string)$seller->id) {
+                $res->SetError("Product not found or access denied");
+                return;
+            }
+        }
+        $product->storeid=$seller->id;
+        $product->storename=$seller->name;
+        $product->Images=isset($product->Images) && is_array($product->Images)?$product->Images:array();
+        $product->RemoveImages=isset($product->RemoveImages) && is_array($product->RemoveImages)?$product->RemoveImages:array();
         $summery =new stdClass();
         $summery->summery=substr($product->caption,0,500);
         $summery->title=$product->name;
@@ -425,19 +486,10 @@ class appService {
             $mainObj->parameters->page = $_GET["page"];
             $mainObj->parameters->size = $_GET["size"];
             $mainObj->parameters->search = isset($_GET["q"]) ?  $_GET["q"] : "";
-            $mainObj->parameters->pid = $_GET["pid"];
+            $mainObj->parameters->pid = isset($_GET["pid"])?$_GET["pid"]:0;
 
             $resultObj = SOSSData::ExecuteRaw("products_stelup_1", $mainObj);
             if($resultObj->success){
-                if($mainObj->parameters->page==0 && $mainObj->parameters->search==""){
-                    if(count($resultObj->result)==0){
-                        $m = new stdClass();
-                        $m->itemid=0;
-                        $m->pid=0;
-                        SOSSData::Insert("products_likes",$m);
-                        SOSSData::Insert("products_favorites",$m);
-                    }
-                }
                 return $resultObj->result;
             }else{
                 $res->SetError ($resultObj);

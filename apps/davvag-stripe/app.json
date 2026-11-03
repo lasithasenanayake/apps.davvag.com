@@ -44,13 +44,10 @@
       "davvag_stripe"
     ],
     "workflows": [],
-    "plugins": [
-      "davvag-ipg",
-      "davvag-order",
-      "profile",
-      "sossdata",
-      "stripe"
-    ],
+    "plugins": {
+        "local": ["davvag-ipg","davvag-order","profile","stripe"],
+        "global": ["sossdata"]
+    },
     "php-extensions": []
   }
 }

@@ -73,7 +73,10 @@
         "apps": ["davvag-tools"],
         "schemas": [],
         "workflows": [],
-        "plugins": ["auth", "sossdata", "phpcache", "notify", "mpdf", "phpspreadsheet"],
+        "plugins": {
+            "local": [],
+            "global": ["auth","sossdata","phpcache","notify","mpdf","phpspreadsheet"]
+        },
         "php-extensions": ["mysqli", "mbstring", "zip", "openssl"]
     }
 }

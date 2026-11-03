@@ -67,13 +67,10 @@
             "products"
         ],
         "workflows": [],
-        "plugins": [
-            "auth",
-            "davvag-order",
-            "phpcache",
-            "phpmailer",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-order"],
+            "global": ["auth","phpcache","phpmailer","sossdata"]
+        },
         "php-extensions": []
     }
 }

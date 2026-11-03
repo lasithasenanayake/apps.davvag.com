@@ -98,7 +98,10 @@
       "youtube-growth-agent/refresh-competitors.json",
       "youtube-growth-agent/review-experiments.json"
     ],
-    "plugins": ["auth", "profile", "sossdata", "davvag-flow", "youtube-growth"],
+    "plugins": {
+        "local": ["profile","youtube-growth"],
+        "global": ["auth","sossdata","davvag-flow"]
+    },
     "php-extensions": ["curl", "openssl"]
   }
 }

@@ -20,6 +20,10 @@
             "type": "service",
             "location": "service"
         },
+        "stelup-theme": {
+            "type": "component",
+            "location": "apps"
+        },
         "sample-input-form": {
             "type": "component",
             "location": "apps"
@@ -126,6 +130,7 @@
         "webdock": {
             "startupComponent": "home-sp",
             "onLoad": [
+                "stelup-theme",
                 "app-handler",
                 "p_svr",
                 "productsvr",
@@ -168,6 +173,7 @@
             "messages_query",
             "nearproducts",
             "orderdetails",
+            "orderdetails_dispatched",
             "orderdetails_pending",
             "orderheader_accepted",
             "orderheader_cancelled",
@@ -200,19 +206,10 @@
         "workflows": [
             "davvag-attributes/stelup_dispatch_order.json"
         ],
-        "plugins": [
-            "Facebook",
-            "Google",
-            "auth",
-            "davvag-attributes",
-            "davvag-flow",
-            "davvag-order",
-            "notify",
-            "phpcache",
-            "profile",
-            "profile-stelup",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-attributes","davvag-order","profile","profile-stelup"],
+            "global": ["Facebook","Google","auth","davvag-flow","notify","phpcache","sossdata"]
+        },
         "php-extensions": []
     }
 }

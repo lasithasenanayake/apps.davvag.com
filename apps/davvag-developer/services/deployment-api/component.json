@@ -1,0 +1,23 @@
+{
+  "name": "Deployment API",
+  "description": "Secure application bundling and package installation service",
+  "author": "DAVVAG",
+  "version": "1.0.0",
+  "resources": {"files": [{"type": "mainScript", "location": "script.js"}]},
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_developer\\DeploymentApiService",
+    "methods": {
+      "Bootstrap": {"method": "GET"},
+      "Analyze": {"method": "POST"},
+      "Build": {"method": "POST"},
+      "History": {"method": "GET"},
+      "UploadPackage": {"method": "POST"},
+      "PlanInstall": {"method": "POST"},
+      "InstallPackage": {"method": "POST"},
+      "Download": {"method": "GET", "parameters": ["build"]}
+    }
+  },
+  "transformers": {}
+}
+

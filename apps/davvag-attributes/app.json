@@ -41,10 +41,10 @@
             "d_attributes"
         ],
         "workflows": [],
-        "plugins": [
-            "davvag-flow",
-            "sossdata"
-        ],
+        "plugins": {
+            "local": ["davvag-flow"],
+            "global": ["sossdata"]
+        },
         "php-extensions": []
     }
 }

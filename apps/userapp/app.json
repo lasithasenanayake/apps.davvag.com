@@ -97,15 +97,10 @@
       "profilestatus"
     ],
     "workflows": [],
-    "plugins": [
-      "Facebook",
-      "Google",
-      "auth",
-      "notify",
-      "phpcache",
-      "profile",
-      "sossdata"
-    ],
+    "plugins": {
+        "local": ["profile"],
+        "global": ["Facebook","Google","auth","notify","phpcache","sossdata"]
+    },
     "php-extensions": []
   }
 }

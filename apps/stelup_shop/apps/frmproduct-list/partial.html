@@ -1,6 +1,6 @@
 <div class="container" @scroll="handleScroll($event)">
     <div v-if="itemCount>0" class="row">
-        <input id="idButtonLocation" type="button" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/davvag-shop/img/grabit.png&quot;); visibility: visible;" v-on:click="navcheckout()">
+        <input id="idButtonLocation" type="button" aria-label="Open cart" class="fabButton" style="margin-top: -150px; background-image: url(&quot;assets/stelup_shop/appicon.png&quot;); visibility: visible;" v-on:click="navcheckout()">
     </div>
     <div class="row">
 	    <div class="col-12">
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="col">
-                    <h2 v-html="product.storename"></h2>
+                    <h2>{{ product.storename }}</h2>
                 </div>
                 
                 
@@ -96,10 +96,10 @@
                                     </div>
                                 <hr>
                                 <div class="row" style="margin-right: 10px;margin-left: 10px">
-                                    <h4 v-html="product.name"></h4>
+                                    <h4>{{ product.name }}</h4>
                                 </div>
                                 <div class="row" style="margin-right: 10px;margin-left: 10px">
-                                    <div class="product-desc" v-html="marked(product.caption)"></div>
+                                    <div class="product-desc">{{ product.caption }}</div>
                                 </div>
                                 <div v-if="showstore" class="row">
                                         <table class="table table-striped table-condensed">

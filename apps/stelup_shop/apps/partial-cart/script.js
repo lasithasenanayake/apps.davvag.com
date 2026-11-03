@@ -29,7 +29,6 @@ WEBDOCK.component().register(function(exports){
             }
             bindData.itemsGrouped[i].total=tot;
         }
-        console.log(JSON.stringify(bindData.itemsGrouped));
             //bindData.itemsGrouped.find(function(items[i].storeid){})
             
             
@@ -47,7 +46,7 @@ WEBDOCK.component().register(function(exports){
         handler.services.login({email: scope.user.email,password:scope.user.password,domain:window.location.hostname})
         .then(function(result){
             $('#idCartLogin').on('hidden.bs.modal', function () {
-                location.href ="#/checkout";
+                location.href ="#/app/stelup_shop/checkout";
             })
             if (result.result)
                 result = result.result;
@@ -128,14 +127,14 @@ WEBDOCK.component().register(function(exports){
                     tot+=(this.items[i].qty*(this.items[i].price-(this.items[i].price*(this.items[i].discountper/100))));
                 }
                 return tot;
-            },
-            
-            watch:{
-                items: function (val, oldVal) {
-                    consol.log(val);
+            }
+        },
+        watch:{
+            items: {
+                deep: true,
+                handler: function (val) {
                     sessionStorage.items=JSON.stringify(val);
                 }
-                
             }
         }
     }
@@ -152,8 +151,6 @@ WEBDOCK.component().register(function(exports){
         });
         return map;
     }
-    const grouped = groupBy(bindData.items, i => i.storeid);
-    console.log(grouped);
     exports.vue = vueData;
     exports.onReady = function(){
     }
