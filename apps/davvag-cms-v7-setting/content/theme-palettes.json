@@ -1,0 +1,122 @@
+[
+    {
+        "name": "colorhunt-navy-gold",
+        "label": "Color Hunt - Navy & Gold",
+        "background": "#041C32",
+        "surface": "#04293A",
+        "text": "#ECB365",
+        "muted": "#ECB365",
+        "primary": "#ECB365",
+        "secondary": "#064663",
+        "accent": "#ECB365",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "colorhunt-sunset-plum",
+        "label": "Color Hunt - Sunset Plum",
+        "background": "#F9ED69",
+        "surface": "#F08A5D",
+        "text": "#6A2C70",
+        "muted": "#6A2C70",
+        "primary": "#6A2C70",
+        "secondary": "#B83B5E",
+        "accent": "#B83B5E",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "colorhunt-soft-linen",
+        "label": "Color Hunt - Soft Linen",
+        "background": "#F8EDE3",
+        "surface": "#DFD3C3",
+        "text": "#423847",
+        "muted": "#423847",
+        "primary": "#7D6E83",
+        "secondary": "#D0B8A8",
+        "accent": "#7D6E83",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "forest-sage",
+        "label": "Forest Sage",
+        "background": "#F4F7F0",
+        "surface": "#E2EAD8",
+        "text": "#233A2B",
+        "muted": "#415342",
+        "primary": "#356342",
+        "secondary": "#233A2B",
+        "accent": "#8B4A22",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "terracotta-studio",
+        "label": "Terracotta Studio",
+        "background": "#FFF8F2",
+        "surface": "#F5E6DA",
+        "text": "#402A23",
+        "muted": "#705247",
+        "primary": "#A33F28",
+        "secondary": "#6B4535",
+        "accent": "#A33F28",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "rose-garden",
+        "label": "Rose Garden",
+        "background": "#FFF5F7",
+        "surface": "#FCE3EA",
+        "text": "#4A2035",
+        "muted": "#754258",
+        "primary": "#A32954",
+        "secondary": "#6B3050",
+        "accent": "#A32954",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "ocean-breeze",
+        "label": "Ocean Breeze",
+        "background": "#F0FAFC",
+        "surface": "#D9EEF2",
+        "text": "#123845",
+        "muted": "#3A606B",
+        "primary": "#086578",
+        "secondary": "#164E63",
+        "accent": "#086578",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "graphite-paper",
+        "label": "Graphite & Paper",
+        "background": "#FAFAFA",
+        "surface": "#E8E8E8",
+        "text": "#202020",
+        "muted": "#505050",
+        "primary": "#363636",
+        "secondary": "#606060",
+        "accent": "#363636",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "emerald-night",
+        "label": "Emerald Night",
+        "background": "#101F1B",
+        "surface": "#1A3028",
+        "text": "#ECF6EE",
+        "muted": "#BED4C5",
+        "primary": "#7DD3A8",
+        "secondary": "#B6D9C8",
+        "accent": "#7DD3A8",
+        "font": "Arial, Helvetica, sans-serif"
+    },
+    {
+        "name": "espresso-gold",
+        "label": "Espresso Gold",
+        "background": "#241B17",
+        "surface": "#342720",
+        "text": "#FFF2DC",
+        "muted": "#DDC8AB",
+        "primary": "#E9B66F",
+        "secondary": "#D7C0A1",
+        "accent": "#E9B66F",
+        "font": "Arial, Helvetica, sans-serif"
+    }
+]

@@ -408,7 +408,7 @@ WEBDOCK.component().register(function(exports){
 
     function themeDot(theme){
         return {
-            background: "linear-gradient(135deg, " + (theme.primary || "#0f766e") + ", " + (theme.accent || "#e11d48") + ")"
+            background: "linear-gradient(90deg, " + theme.background + " 0% 25%, " + theme.surface + " 25% 50%, " + theme.primary + " 50% 75%, " + theme.text + " 75% 100%)"
         };
     }
 

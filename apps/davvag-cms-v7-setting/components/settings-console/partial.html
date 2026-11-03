@@ -169,7 +169,7 @@
         <div class="cms7-section-heading">
             <div>
                 <h2>Theme Changer</h2>
-                <p>Create named themes for the separate public theme switcher.</p>
+                <p>Select a theme from the list, customize its colors, then save to update the public theme switcher.</p>
             </div>
             <div class="cms7-inline-actions">
                 <button class="cms7-btn ghost" type="button" v-on:click="addTheme">Add theme</button>
@@ -178,8 +178,8 @@
         </div>
         <div class="cms7-theme-layout">
             <aside class="cms7-side-list">
-                <button type="button" v-for="(theme, index) in site.themes" v-bind:class="{active: selectedThemeIndex == index}" v-on:click="selectTheme(index)">
-                    <span class="cms7-theme-dot" v-bind:style="themeDot(theme)"></span>
+                <button type="button" v-for="(theme, index) in site.themes" v-bind:key="index" v-bind:aria-pressed="selectedThemeIndex == index ? 'true' : 'false'" v-bind:class="{active: selectedThemeIndex == index}" v-on:click="selectTheme(index)">
+                    <span class="cms7-theme-dot" v-bind:style="themeDot(theme)" aria-hidden="true"></span>
                     {{ theme.label || theme.name }}
                 </button>
             </aside>

@@ -233,6 +233,23 @@ class CmsV7SettingsApi {
         $site->footer->copyright = $this->text(isset($footerSource->copyright) ? $footerSource->copyright : "", "", 300);
         $site->footer->links = $this->links(isset($footerSource->links) ? $footerSource->links : array());
         $site->themes = $this->themes(isset($data->themes) ? $data->themes : array());
+        // Older open settings pages may submit the theme list from before this catalog existed.
+        // Migrate those requests once; updated clients can still intentionally remove themes.
+        $catalogVersion = isset($data->themeCatalogVersion) ? (int)$data->themeCatalogVersion : 0;
+        if($catalogVersion < 1){
+            $catalog = $this->readJson(dirname(__DIR__, 2) . "/content/theme-palettes.json", array());
+            $names = array();
+            foreach($site->themes as $theme){
+                $names[$theme->name] = true;
+            }
+            foreach($this->themes($catalog) as $theme){
+                if(!isset($names[$theme->name])){
+                    $site->themes[] = $theme;
+                    $names[$theme->name] = true;
+                }
+            }
+        }
+        $site->themeCatalogVersion = max(1, $catalogVersion);
         return $site;
     }
 
