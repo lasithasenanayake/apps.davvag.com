@@ -1,0 +1,12 @@
+{
+    "name": "Stelup popup coordinator",
+    "version": "1.0",
+    "resources": {
+        "files": [
+            {
+                "type": "mainScript",
+                "location": "script.js"
+            }
+        ]
+    }
+}

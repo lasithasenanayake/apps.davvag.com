@@ -50,7 +50,11 @@ WEBDOCK.component().register(function(exports){
         onReady: function(s,c){
             scope=s;
             call_handler=c;
-            complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
+            complete_call = function (result) {
+                if (typeof exports.Complete === "function") {
+                    exports.Complete(result);
+                }
+            };
             if(c.data){
                 bindData.data=c.data;
             }

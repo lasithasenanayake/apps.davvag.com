@@ -87,3 +87,13 @@ Also validate all JSON manifests, then exercise login, product save, cart checko
 ## Known limitations
 
 The DAVVAG data layer used here does not expose an application-level transaction API, so multi-schema order and proposal transitions cannot be made fully atomic in this app alone. Payment-provider execution and production database workflows must be integration-tested in the configured tenant environment. The legacy social-login callbacks require provider-specific review before production use.
+
+## Popup integration
+
+Catalog views open product, group, message and comment dialogs through `shop-popup`, which delegates to the shell's `app_popup.open(...)`. Popup children return actions through `exports.Complete(...)`, as documented in `docs/11-app-developer-guide.md` (Reusable Lookup Popups). The downloader's `completedEvent` value is a callback collection and must not be called directly.
+
+The coordinator closes the current instance before opening another dialog or navigating. Buy returns one action so its cart update and redirect run once. Closing also destroys the mounted Vue instance. Product dialogs initialize and normalize `groupItems`, and show loading/error states while the product request runs.
+
+Run `node tests/popup_regression_test.js` for callback and product-state regression checks. Browser integration was also checked against the actual CMS popup shell and downloader using fixture services; live service verification remains separate.
+
+CMS preloading registers helper components without calling their `onLoad()`. Catalog popup callers initialize `shop-popup` once, when its `open` export is first needed. The popup regression test covers this preloaded-but-uninitialized state.

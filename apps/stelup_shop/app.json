@@ -20,6 +20,10 @@
             "type": "service",
             "location": "service"
         },
+        "shop-popup": {
+            "type": "component",
+            "location": "apps"
+        },
         "stelup-theme": {
             "type": "component",
             "location": "apps"
@@ -120,7 +124,7 @@
     "description": {
         "title": "Stelup App",
         "author": "lasitha@davvag.com",
-        "version": "0.4",
+        "version": "0.7",
         "icon": "appicon.png"
     },
     "tags": [
@@ -131,6 +135,7 @@
             "startupComponent": "home-sp",
             "onLoad": [
                 "stelup-theme",
+                "shop-popup",
                 "app-handler",
                 "p_svr",
                 "productsvr",

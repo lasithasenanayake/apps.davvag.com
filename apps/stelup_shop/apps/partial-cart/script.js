@@ -9,30 +9,30 @@ WEBDOCK.component().register(function(exports){
             user:{}
     };
 
-    function processItems(){
-        bindData.hasOrder = false;
-        const grouped = groupBy(bindData.items, i => i.storeid);
-        for(var i=0;i<bindData.items.length;i++){
-            filteredItems = bindData.itemsGrouped.filter(function(item) {
-                if(item.storeid===bindData.items[i].storeid)
-                    return item;
+    function unitPrice(item) {
+        var price = Number(item.price) || 0;
+        var discount = Number(item.discountper) || 0;
+        return price - price * discount / 100;
+    }
+
+    function lineTotal(item) {
+        return unitPrice(item) * (Number(item.qty) || 0);
+    }
+
+    function processItems() {
+        var grouped = groupBy(bindData.items, function (item) { return item.storeid; });
+        var stores = [];
+        grouped.forEach(function (items, storeid) {
+            stores.push({
+                storeid: storeid,
+                storename: items[0].storename,
+                currencycode: items[0].currencycode,
+                items: items,
+                total: items.reduce(function (sum, item) { return sum + lineTotal(item); }, 0)
             });
-            if(filteredItems.length==0){
-                bindData.itemsGrouped.push({storeid:bindData.items[i].storeid,storename:bindData.items[i].storename,items:grouped.get(bindData.items[i].storeid),total:0});
-            }
-            
-        }
-        for(var i=0;i<bindData.itemsGrouped.length;i++){
-            tot=0;
-            for(var x=0;x<bindData.itemsGrouped[i].items.length;x++){
-                    tot+=(bindData.itemsGrouped[i].items[x].qty*(bindData.itemsGrouped[i].items[x].price-(bindData.itemsGrouped[i].items[x].price*(bindData.itemsGrouped[i].items[x].discountper/100))));
-            }
-            bindData.itemsGrouped[i].total=tot;
-        }
-            //bindData.itemsGrouped.find(function(items[i].storeid){})
-            
-            
-            
+        });
+        bindData.itemsGrouped = stores;
+        bindData.hasOrder = bindData.items.some(function (item) { return item.isOrder; });
     }
 
     function login(){
@@ -74,7 +74,17 @@ WEBDOCK.component().register(function(exports){
                 processItems();
             }
        },
+       filters: {
+            money: function (value) { return (Number(value) || 0).toFixed(2); }
+       },
        methods:{
+            unitPrice: unitPrice,
+            lineTotal: lineTotal,
+            updateQuantity: function (item) {
+                item.qty = Math.max(1, Math.floor(Number(item.qty) || 1));
+                processItems();
+                sessionStorage.items = JSON.stringify(bindData.items);
+            },
             windowClick: function(event){
                 event.stopPropagation();
             },
@@ -122,11 +132,7 @@ WEBDOCK.component().register(function(exports){
         },
         computed: {
             total: function() {
-                tot=0;
-                for(i in this.items){
-                    tot+=(this.items[i].qty*(this.items[i].price-(this.items[i].price*(this.items[i].discountper/100))));
-                }
-                return tot;
+                return this.items.reduce(function (sum, item) { return sum + lineTotal(item); }, 0);
             }
         },
         watch:{
@@ -134,6 +140,7 @@ WEBDOCK.component().register(function(exports){
                 deep: true,
                 handler: function (val) {
                     sessionStorage.items=JSON.stringify(val);
+                    processItems();
                 }
             }
         }

@@ -14,8 +14,12 @@ WEBDOCK.component().register(function(exports){
         onReady: function(s,c){
             scope=s;
             call_handler=c;
-            complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
-            if(c.data){
+            complete_call = function (result) {
+                if (typeof exports.Complete === "function") {
+                    exports.Complete(result);
+                }
+            };
+            if(c && c.data){
                 bindData.data=c.data;
             }
             initialize();
@@ -43,7 +47,7 @@ WEBDOCK.component().register(function(exports){
             }
             unlockForm();
         }).error(function(result){
-            console.log(e);
+            console.log(result);
             
         });
         loadValidator();
@@ -87,14 +91,10 @@ WEBDOCK.component().register(function(exports){
 
     function lockForm(){
         $("#form-row :input").prop("disabled", true);
-        $("#form-row :textarea").prop("disabled", true);
-        $("#form-row :button").prop("disabled", true);
     }
 
     function unlockForm(){
         $("#form-row :input").prop("disabled", false);
-        $("#form-row :textarea").prop("disabled", false);
-        $("#form-row :button").prop("disabled", false);
     }
 
     function loadValidator(){

@@ -1,71 +1,44 @@
-  <div class="col-sm-12" style="padding-bottom: 10px;">
-    <div class="card">
-        <div :class="product.qty==0?'watermarked':''">
-            <img class="img-fluid" :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" style="width: 100%;">
-        </div>
-        <div v-if="product.groupItems.length!=0" class="row" style="margin: 10px;">
-                
-                <div class="card" v-for="i in product.groupItems" style="width: 100%;">
-                  <div class="card-header">
-                      {{ i.name }}
-                  </div>
-                  <div class="card-body">
-                    <div class="row" style="margin: 10px;">
-                      {{ i.caption }}
-                    </div>
-                    <div class="row" style="margin: 10px;">
-                      <strong>Quantity:</strong> {{ i.qty }}
-                    </div>
-                    <div class="row" style="margin: 10px;">
-                      <strong>Price:</strong> {{ i.price | currency_formate}}
-                    </div>
-                  </div>    
-                  <div class="card-footer">
-                    <div v-if="!isEditable(product)" class="card-body">
-                        <div v-if="i.qty>0">
-                            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(i,true)">Add to cart</button>
-                            <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(i)">Trade</button>
-                            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(i,true)">Buy</button>
-                        </div>
-                    </div>
-                  </div>
-                </div>
-              
-        </div>
-        <div class="row" style="margin: 10px;">
-            <strong>Price:</strong> {{ product.price | currency_formate}}
-        </div>
-        
-        <div class="row" style="margin: 10px;">
-            <a class="btn btn-default" v-on:click="like(product)" aria-label="Settings">
-                <i v-if="product.liked==1" class="fa fa-heart fa-lg" style="color: var(--cms-primary);"> </i>
-                <i v-if="product.liked==0" class="fa fa-heart-o fa-lg"> </i>
-            </a> 
-            <a class="btn btn-default" v-on:click="downloadapp('stelup_shop','messaging',product,'Message','components/davvag-cms/soss-uploader/service/get/profile/'+product.storeid)"><i class="fa fa-envelope-o fa-lg"> </i></a>
-                 
-            <a class="btn btn-default"  aria-label="Settings" v-on:click="downloadapp('stelup_shop','product-comments',product,'Comment','components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl)"><i class="fa fa-comment-o fa-lg" ></i> </a>
-            <a class="btn btn-default" v-on:click="favorite(product)" aria-label="Settings" style="right: 10px;position: absolute;margin-right: 10px;">
-                <i v-if="product.favorite==0" class="fa fa-plus-square-o fa-lg" > </i>
-                <i v-if="product.favorite==1" class="fa fa-check-square fa-lg" > </i>
-            </a>
-        </div>
-        <div class="card-body">
-          <h5 class="card-title">{{ product.name }}</h5>
-          <p class="card-text">{{ product.caption }}</p>
-          
-       
-        </div>
-        <div v-if="!isEditable(product)" class="card-body">
-            <div v-if="product.qty>0">
-            <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add to cart</button>
-            <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
-            <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-right" v-on:click="addchecout(product,true)">Buy</button>
-            </div>
-        </div>
-        <div v-if="isEditable(product)" class="card-body">
-            <button type="button" class="btn bg-primary-button pull-left"   v-on:click="edit(product)">Edit</button>
-            <button type="button" class="btn bg-primary-button pull-right"   v-on:click="marksold(product)">Unlist</button>
-            
+<div class="p-2">
+  <div v-if="loadingProduct" class="cms-v7-loading" role="status">Loading product...</div>
+  <div v-if="productError" class="alert alert-danger" role="alert">{{ productError }}</div>
+  <div v-if="!loadingProduct && product.itemid">
+    <img :src="'components/davvag-cms/soss-uploader/service/get/products/'+product.itemid+'-'+product.imgurl" :alt="product.name" class="img-fluid w-100 mb-3 rounded" style="max-height: 40vh; object-fit: contain;">
+    <p v-if="product.qty<=0" class="alert alert-info">This product is currently unavailable.</p>
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 12px;">
+      <p class="h5 mb-0">{{ product.currencycode }} {{ product.price | currency_formate }}</p>
+      <div class="d-flex flex-wrap" style="gap: 8px;" role="group" aria-label="Product actions">
+        <button type="button" class="btn btn-default" @click="like(product)" :aria-pressed="product.liked==1" aria-label="Like product"><i :class="product.liked==1?'fa fa-heart text-primary':'fa fa-heart-o'" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-default" @click="downloadapp('stelup_shop','messaging',product,'Message seller')" aria-label="Message seller"><i class="fa fa-envelope-o" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-default" @click="downloadapp('stelup_shop','product-comments',product,'Product comments')" aria-label="Product comments"><i class="fa fa-comment-o" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-default" @click="favorite(product)" :aria-pressed="product.favorite==1" aria-label="Save product"><i :class="product.favorite==1?'fa fa-check-square':'fa fa-plus-square-o'" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <h2 class="h4" style="overflow-wrap: anywhere;">{{ product.name }}</h2>
+    <p class="text-muted mb-4" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ product.caption }}</p>
+    <div v-if="product.groupItems.length" class="mb-4">
+      <h3 class="h5 mb-3">Items in this listing</h3>
+      <div class="card mb-2" v-for="i in product.groupItems" :key="i.itemid">
+        <div class="card-body p-3">
+          <h4 class="h6">{{ i.name }}</h4><p>{{ i.caption }}</p>
+          <p class="mb-2">Quantity: {{ i.qty }} &middot; {{ i.currencycode || product.currencycode }} {{ i.price | currency_formate }}</p>
+          <div v-if="!isEditable(product) && i.qty>0" class="d-flex flex-wrap" style="gap: 8px;">
+            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="additem(i,true)">Add to cart</button>
+            <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn btn-default" @click="trade(i)">Trade</button>
+            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="addchecout(i,true)">Buy</button>
+          </div>
         </div>
       </div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-between border-top pt-3" style="gap: 8px;">
+      <template v-if="isEditable(product)">
+        <button type="button" class="btn btn-primary" @click="edit(product)">Edit</button>
+        <button type="button" class="btn btn-default" @click="marksold(product)">Unlist</button>
+      </template>
+      <template v-else-if="product.qty>0">
+        <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="additem(product,true)">Add to cart</button>
+        <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn btn-default" @click="trade(product)">Trade</button>
+        <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="addchecout(product,true)">Buy</button>
+      </template>
+    </div>
+  </div>
 </div>

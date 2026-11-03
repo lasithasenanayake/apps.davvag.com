@@ -18,7 +18,9 @@ WEBDOCK.component().register(function(exports){
         showshare:false,
         appTitle:"",
         appIcon:"",
-        product:{}
+        product:{groupItems:[],qty:0},
+        loadingProduct:true,
+        productError:""
     };
     function calqty(){
         var items=[];
@@ -99,7 +101,7 @@ WEBDOCK.component().register(function(exports){
         }
     }
     function completeResponce(d){
-        console.log(e);
+        console.log(d);
     }
 
     function goLogin(){
@@ -127,23 +129,19 @@ WEBDOCK.component().register(function(exports){
             complete_call({method:"app_open",appname:appname,form:form,data:data,apptitle:apptitle,appicon:appicon});
         },close: function(){
             //bindData.product=p;
-            $('#modalappwindow').modal('toggle');
+            complete_call({method:"close"});
         },
         marksold:function(i){
-            i.showonstore="N";
-            menuhandler.services.SaveProduct(i).then(function(r){
-                //bindData.data.showonstore="N";
-                filteredItems = bindData.products.filter(function(a) {
-                    if(a.itemid!==i.itemid)
-                        return a;
-                });
-                bindData.products=filteredItems==null?[]:filteredItems;
-                //$('#modalImagePopup').modal('toggle');
-            }).error(function(e){
-                console.log(e);
+            var update = Object.assign({}, i, {showonstore: "N"});
+            menuhandler.services.SaveProduct(update).then(function(result){
+                if (result.success) {
+                    complete_call({method:"item_unlisted", item:i});
+                } else {
+                    bindData.productError = "Unable to unlist this product.";
+                }
+            }).error(function(){
+                bindData.productError = "Unable to unlist this product.";
             });
-            
-            //window.location="#/app/stelup_shop/itemonboard?id="+i.itemid.toString();
         },
         like:function(i){
             if(bindData.profile){
@@ -241,8 +239,8 @@ WEBDOCK.component().register(function(exports){
             }
         },
         additem:additem,addchecout:function(item,isorder){
-            additem(item,isorder);
-            complete_call({method:"url_redirect",url:"#/app/stelup_shop/checkout"});
+            // Buy is one completion: update the cart, close, then navigate.
+            complete_call({method:"buy_item",item:item,isOrder:isorder});
         }
         },
         data :bindData
@@ -256,18 +254,32 @@ WEBDOCK.component().register(function(exports){
             });
             scope=s;
             call_handler=c;
-            complete_call=call_handler.completedEvent?call_handler.completedEvent:null;
-            if(c.data){
+            complete_call = function (result) {
+                if (typeof exports.Complete === "function") {
+                    exports.Complete(result);
+                }
+            };
+            if (!c || !c.data || !c.data.itemid) {
+                bindData.loadingProduct = false;
+                bindData.productError = "No product was selected.";
+            }
+            if(c && c.data && c.data.itemid){
                 menuhandler.services.Product({itemid:c.data.itemid}).then(function(r){
-                    if(r.success){
+                    bindData.loadingProduct = false;
+                    if(r.success && r.result){
                         //if(r.result.products!=null){
-                        bindData.product = r.result;
+                        bindData.product = Object.assign({groupItems:[],qty:0}, r.result || {});
+                        if (!Array.isArray(bindData.product.groupItems)) {
+                            bindData.product.groupItems = [];
+                        }
                         //$("#txtcaption").data("editor").html(bindData.product.caption);
                     }else{
-                        bindData.product.name="Error Loading Item";
+                        bindData.loadingProduct = false;
+                        bindData.productError="Unable to load this product. Please close and try again.";
                     }
                 }).error(function(e){
-                    bindData.product.name="Error Loading Item";
+                    bindData.loadingProduct = false;
+                    bindData.productError="Unable to load this product. Please close and try again.";
                     console.log(e);
                 });
                 //bindData.product=c.data;

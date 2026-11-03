@@ -1,39 +1,27 @@
-  <div class="col-sm-12" style="padding-bottom: 10px;">
-          
-          <h6 class="card-title" >You can Also buy bellow items Individually</h6>
-          <div class="table-responsive"><table class="table table-striped" style="width: 100%;">
-            <thead  >
-              <tr>
-                <th scope="col">Name</th>
-                
-                <th scope="col" style="width: 10%;text-align: center;">Quantity</th>
-                <th scope="col" style="width: 15%;text-align: right;">Amount</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tr v-for="i in product.groupItems">
-              <td style="width: 40%;">{{ i.name }}</td>
-              <td style="width: 10%;text-align: center;">{{i.grpqty }}</td>
-              <td style="width: 10%;text-align: center;">{{i.price | currency_formate }}</td>
-              <td style="width: 35%;text-align: right;">
-                <div v-if="i.qty>0">
-                  <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button" v-on:click="additem(i,true)">Add</button>
-                  <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn bg-primary-button" v-on:click="trade(i)">Trade</button>
-                </div>
-                <div v-if="i.qty<=0">
-                  OUT OF STOCK
-                </div>
-              </td>
-            </tr>
-          </table></div>
-       <br/>
-        <h6 v-if="product.qty>0" class="card-title" >Or you can buy the whole group of Items @ the rate of {{ product.price | currency_formate }}</h6>
-        <h6 v-if="product.qty<=0" class="card-title" >Sorry Group Item Purchase is not avalible</h6>
-      
-</div>
-<div v-if="!isEditable(product)" class="modal-footer">
-  <div v-if="product.qty>0">
-  <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="additem(product,true)">Add</button>
-  <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn bg-primary-button pull-left" v-on:click="trade(product)">Trade</button>
+<div class="p-2">
+  <div v-if="loadingProduct" class="cms-v7-loading" role="status">Loading listing...</div>
+  <div v-if="productError" class="alert alert-danger" role="alert">{{ productError }}</div>
+  <div v-if="!loadingProduct && product.itemid">
+    <h2 class="h4">{{ product.name }}</h2>
+    <p class="text-muted">Buy individual items or the complete group.</p>
+    <div class="table-responsive mb-3">
+      <table class="table table-striped" style="min-width: 420px;">
+        <thead><tr><th>Item</th><th>Quantity</th><th>Price</th><th>Actions</th></tr></thead>
+        <tbody><tr v-for="i in product.groupItems" :key="i.itemid">
+          <td>{{ i.name }}</td><td>{{ i.grpqty }}</td><td>{{ i.currencycode || product.currencycode }} {{ i.price | currency_formate }}</td>
+          <td><div v-if="i.qty>0" class="d-flex flex-wrap" style="gap: 8px;">
+            <button v-if="i.sellstype=='se' || i.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="additem(i,true)">Add</button>
+            <button v-if="i.sellstype=='tr' || i.sellstype=='tr-se'" type="button" class="btn btn-default" @click="trade(i)">Trade</button>
+          </div><span v-else class="text-muted">Out of stock</span></td>
+        </tr></tbody>
+      </table>
+    </div>
+    <p v-if="product.qty>0">Complete group: <strong>{{ product.currencycode }} {{ product.price | currency_formate }}</strong></p>
+    <p v-else class="alert alert-info">The complete group is currently unavailable.</p>
+    <div v-if="!isEditable(product) && product.qty>0" class="d-flex flex-wrap border-top pt-3" style="gap: 8px;">
+      <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="additem(product,true)">Add group to cart</button>
+      <button v-if="product.sellstype=='tr' || product.sellstype=='tr-se'" type="button" class="btn btn-default" @click="trade(product)">Trade</button>
+      <button v-if="product.sellstype=='se' || product.sellstype=='tr-se'" type="button" class="btn btn-primary" @click="addchecout(product,true)">Buy group</button>
+    </div>
   </div>
 </div>

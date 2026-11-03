@@ -98,42 +98,16 @@ WEBDOCK.component().register(function(exports){
             
         }
     }
-    function completeResponce(d){
-        if(d.method){
-            switch(d.method){
-                case "url_redirect":
-                    
-                    $('#modalappwindow').on('hidden.bs.modal', function () {
-                        // do something…
-                        window.location=d.url;
-                      });
-                      $('#modalappwindow').modal('toggle');
-                    break;
-                case "app_open":
-                    $('#modalappwindow').on('hidden.bs.modal', function () {
-                        // do something…
-                        $('#modalappwindow').unbind();
-                        bindData.appIcon=d.appicon;
-                        bindData.appTitle=d.apptitle;
-                        $('#modalappwindow').modal('toggle');
-                        apploader.downloadAPP(d.appname,d.form,"appdock",function(d){
-                            
-                        },function(e){
-                            console.log(e);
-                            bindData.loadingAppError=true;
-                        },completeResponce,d.data);
-                      });
-                      $('#modalappwindow').modal('toggle');
-                      break;
-                case "add_item":
-                      additem(d.item,d.isOrder);
-                      $('#modalappwindow').modal('toggle');
-                      break;
-            }
+    function completeResponce(action) {
+        if (action.method === "add_item" || action.method === "buy_item") {
+            additem(action.item, action.isOrder);
+        } else if (action.method === "item_unlisted") {
+            bindData.products = bindData.products.filter(function (item) {
+                return item.itemid != action.item.itemid;
+            });
         }
-        //console.log(e);
     }
-    
+
 
     function goLogin(){
         //$('#modalImagePopup').modal('hide');
@@ -196,20 +170,13 @@ WEBDOCK.component().register(function(exports){
             //window.location="#/app/stelup_shop/itemonboard?id="+i.itemid.toString();
         }
         ,downloadapp:function(appname,form,data,apptitle,appicon){
-            //$('#decker1100').addClass("profile-content-show");
-            bindData.appIcon=appicon;
-            bindData.appTitle=apptitle;
-            $('#modalappwindow').modal('toggle');
-            apploader.downloadAPP(appname,form,"appdock",function(d){
-                
-            },function(e){
-                console.log(e);
-                bindData.loadingAppError=true;
-            },completeResponce,data);
-        },close: function(){
-            //bindData.product=p;
-            $('#modalappwindow').modal('toggle');
-        },
+            // CMS preloads components without running their registration callback.
+            var popup = exports.getComponent("shop-popup");
+            if (typeof popup.open !== "function" && typeof popup.onLoad === "function") {
+                popup.onLoad();
+            }
+            popup.open(appname, form, data, apptitle, completeResponce);
+        },close: function(){},
         marksold:function(i){
             i.showonstore="N";
             menuhandler.services.SaveProduct(i).then(function(r){
