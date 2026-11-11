@@ -19,7 +19,7 @@
             <div class="lm-card-head">
                 <div>
                     <span class="lm-step-label">Step 1</span>
-                    <h3>Choose what you want to learn</h3>
+                    <h3 tabindex="-1" data-lm-stage-heading="choose">Choose what you want to learn</h3>
                 </div>
             </div>
             <div class="lm-card-body">
@@ -77,7 +77,7 @@
                     <button type="button" class="lm-mobile-back" v-on:click="backToSubjects">
                         ← Subjects</button
                     ><span class="lm-step-label">Step 3</span>
-                    <h3>{{lessonsForSubject().length}} lessons</h3>
+                    <h3 tabindex="-1" data-lm-stage-heading="lessons">{{lessonsForSubject().length}} lessons</h3>
                     <p class="lm-muted">Choose a lesson to view its content and tasks.</p>
                 </div>
                 <button
@@ -118,7 +118,8 @@
                     ><span class="lm-eyebrow" style="color: #0c715d"
                         >Lesson {{current.lesson_order}}</span
                     >
-                    <h1>{{current.title}}</h1>
+                    <p class="lm-learning-context" v-if="course">{{course.title}}</p>
+                    <h1 tabindex="-1" data-lm-stage-heading="content">{{current.title}}</h1>
                     <p class="lm-muted">{{current.description}}</p>
                     <div class="lm-actions">
                         <span
@@ -284,10 +285,11 @@
                         <div class="lm-video" v-for="v in current.videos">
                             <h3>{{v.title}}</h3>
                             <div class="lm-video-frame" v-if="isEmbeddable(v)">
-                                <iframe v-bind:src="videoEmbed(v)" allowfullscreen></iframe>
+                                <iframe v-bind:src="videoEmbed(v)" v-bind:title="v.title||'Lesson video'" loading="lazy" allowfullscreen></iframe>
                             </div>
                             <video
                                 controls
+                                playsinline
                                 v-if="!isEmbeddable(v)&&(v.provider==='direct'||v.provider==='local')"
                                 v-bind:src="v.media_reference||v.video_url"
                             ></video
@@ -473,21 +475,23 @@
                         </div>
                     </section>
                 </div>
-                <div class="lm-card-head lm-lesson-navigation">
+                <nav class="lm-card-head lm-lesson-navigation" aria-label="Lesson navigation">
                     <button
+                        type="button"
                         class="lm-btn lm-btn-ghost"
                         v-on:click="previous"
                         v-bind:disabled="!canPrevious()"
                     >
                         Previous</button
                     ><button
+                        type="button"
                         class="lm-btn lm-btn-primary"
                         v-on:click="next"
                         v-bind:disabled="!canNext()"
                     >
                         Next lesson
                     </button>
-                </div>
+                </nav>
             </main>
         </div>
     </div>

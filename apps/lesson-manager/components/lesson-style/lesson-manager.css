@@ -1142,6 +1142,50 @@
 .lm-learning .lm-content-body {
     min-width: 0;
 }
+.lm-learning {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.lm-learning .lm-article {
+    overflow-x: auto;
+}
+.lm-learning .lm-shell,
+.lm-learning .lm-learning-layout,
+.lm-learning .lm-sidebar,
+.lm-learning .lm-topbar > *,
+.lm-learning .lm-section-heading > *,
+.lm-learning .lm-course-meta > * {
+    min-width: 0;
+    max-width: 100%;
+}
+.lm-learning .lm-brand-mark {
+    flex: 0 0 44px;
+}
+.lm-learning-context {
+    display: none;
+}
+.lm-learning [data-lm-stage-heading] {
+    scroll-margin-top: 80px;
+}
+.lm-learning button:focus-visible,
+.lm-learning a:focus-visible,
+.lm-learning [data-lm-stage-heading]:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+}
+.lm-learning .lm-article > *,
+.lm-learning .lm-form label,
+.lm-learning input,
+.lm-learning select,
+.lm-learning textarea {
+    min-width: 0;
+    max-width: 100%;
+}
+.lm-learning .lm-article pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
 .lm-learning .lm-article img,
 .lm-learning .lm-article video,
 .lm-learning .lm-article iframe {
@@ -1152,6 +1196,14 @@
     display: block;
     max-width: 100%;
     overflow-x: auto;
+}
+.lm-learning .lm-article img {
+    height: auto !important; /* Authored images can have inline fixed heights. */
+}
+.lm-learning .lm-article iframe {
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
+    width: 100%;
 }
 .lm-learning .lm-resource {
     gap: 12px;
@@ -1168,7 +1220,31 @@
         grid-template-columns: 1fr;
     }
 }
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
+    .lm-learning {
+        padding: 16px;
+    }
+    .lm-learning .lm-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .lm-learning .lm-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+    .lm-learning-context {
+        color: var(--brand);
+        display: block;
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 0 0 8px;
+    }
+    .lm-learning .lm-section-heading {
+        flex-wrap: wrap;
+    }
     .lm-learning[data-mobile-stage='choose'] .lm-learning-layout {
         display: none;
     }
@@ -1194,15 +1270,21 @@
         max-height: none;
     }
     .lm-learning .lm-mobile-back {
-        display: block;
+        align-items: center;
+        background: #edf6f3;
+        border: 1px solid #d6e4e0;
+        border-radius: 9px;
+        display: inline-flex;
+        padding: 10px 14px;
     }
     .lm-learning .lm-content {
         border-radius: 12px;
         min-height: 0;
+        overflow: visible;
     }
     .lm-learning .lm-content-head h1 {
-        font-size: 24px;
-        line-height: 1.25;
+        font-size: clamp(22px, 4vw, 28px);
+        line-height: 1.5;
     }
     .lm-learning .lm-course-meta {
         align-items: stretch;
@@ -1221,7 +1303,12 @@
     }
     .lm-lesson-navigation {
         background: #fff;
+        border-radius: 0 0 12px 12px;
+        border-top: 1px solid var(--line);
         bottom: 0;
+        box-shadow: 0 -4px 16px rgba(23, 33, 43, 0.06);
+        gap: 10px;
+        padding: 12px 15px;
         padding-bottom: calc(14px + env(safe-area-inset-bottom));
         position: sticky;
         z-index: 5;
@@ -1230,15 +1317,46 @@
         flex: 1;
     }
     .lm-learning .lm-btn,
+    .lm-learning .lm-nav button,
+    .lm-learning .lm-mobile-back,
     .lm-learning .lm-subject-choice,
     .lm-learning .lm-lesson-link {
         min-height: 44px;
         touch-action: manipulation;
     }
+    .lm-learning .lm-btn {
+        max-width: 100%;
+        white-space: normal;
+    }
+    .lm-learning .lm-completion-action .lm-btn,
+    .lm-learning .lm-assignment-box .lm-form > button,
+    .lm-learning .lm-quiz-box > button {
+        width: 100%;
+    }
     .lm-learning input,
     .lm-learning select,
     .lm-learning textarea {
         font-size: 16px;
+    }
+    .lm-learning .lm-form select,
+    .lm-learning .lm-form input:not([type='radio']):not([type='checkbox']) {
+        min-height: 44px;
+    }
+    .lm-learning .lm-option {
+        align-items: flex-start;
+        gap: 10px;
+        min-height: 48px;
+        padding: 12px;
+    }
+    .lm-learning .lm-option input {
+        flex: 0 0 auto;
+        height: 20px;
+        margin: 2px 0 0;
+        width: 20px;
+    }
+    .lm-learning .lm-material-embed {
+        height: clamp(260px, 65svh, 640px);
+        min-height: 0;
     }
     .lm-learning .lm-video {
         padding: 14px;
@@ -1252,6 +1370,9 @@
     }
 }
 @media (max-width: 520px) {
+    .lm-learning {
+        padding: 10px;
+    }
     .lm-subject-grid {
         grid-template-columns: 1fr;
     }

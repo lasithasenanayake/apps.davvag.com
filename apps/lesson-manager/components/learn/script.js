@@ -2,6 +2,7 @@ WEBDOCK.component().register(function (exports) {
     var api,
         router,
         timerHandle,
+        learningHost,
         selectedAssignmentFiles = [];
     // Reactive state used by partial.html.
     var data = {
@@ -64,7 +65,8 @@ WEBDOCK.component().register(function (exports) {
     exports.onReady = function () {};
 
     // Connect framework services and load the initial page data.
-    function init() {
+    function init(scope, context) {
+        learningHost = (context && context.renderDiv) || context || exports.renderDiv;
         data.errors = [];
         data.info = [];
         try {
@@ -175,19 +177,34 @@ WEBDOCK.component().register(function (exports) {
     function selectSubject(subject) {
         data.subjectId = subject && subject.id !== undefined ? subject.id : subject;
         resetLessonState();
-        data.mobileStage = 'lessons';
+        setMobileStage('lessons');
     }
 
     function backToSubjects() {
         data.subjectId = '';
         resetLessonState();
-        data.mobileStage = 'choose';
+        setMobileStage('choose');
     }
 
     function backToLessons() {
         data.quiz = null;
         data.quizAttempt = null;
-        data.mobileStage = 'lessons';
+        setMobileStage('lessons');
+    }
+
+    // Keep the selected step in view when panels change on a phone or tablet.
+    function setMobileStage(stage) {
+        data.mobileStage = stage;
+        if (!window.matchMedia || !window.matchMedia('(max-width: 1000px)').matches) return;
+        setTimeout(function () {
+            if (data.mobileStage !== stage) return;
+            var root = (learningHost && learningHost[0]) || learningHost;
+            if (!root || !root.querySelector) root = document.querySelector('.lm-learning');
+            var heading = root && root.querySelector('[data-lm-stage-heading="' + stage + '"]');
+            if (!heading) return;
+            heading.focus({ preventScroll: true });
+            heading.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }, 0);
     }
 
     // Open lessons and refresh access after unlocking.
@@ -236,7 +253,7 @@ WEBDOCK.component().register(function (exports) {
     function showLesson(lesson, progress) {
         data.current = lesson;
         if (progress) data.current.progress = progress;
-        data.mobileStage = 'content';
+        setMobileStage('content');
         data.quiz = null;
         data.quizAttempt = null;
         data.quizQuestions = [];
