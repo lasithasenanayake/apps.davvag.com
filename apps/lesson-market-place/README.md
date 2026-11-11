@@ -55,6 +55,12 @@ Checkout sends the stored order amount/currency and tenant, learner, and order i
 
 The inspected local tenant currently has an active `CREDIT` program, but its credit packages use `EXTERNAL` and `davvag_stripe` has no initialized account. Change/create a credit package with `STRIPE` and configure credentials before live checkout can start.
 
+## Editing published package details
+
+Save changes in the package editor, then choose **Publish saved draft** to make them public. `AdminPackage.draft` contains the editable draft. The public `Package` response returns the latest published name, summary, rich description, cover image, outcomes, audience and prerequisites in `details`, with `details_version_id` identifying their version. The package card displays those details for both new and enrolled learners.
+
+For an existing active or pending request, `terms`, `version_id` and `attempt.terms` retain the accepted snapshot. Publishing a new description never changes that request's price or included lessons. For an unpublished or archived package, the card falls back to the accepted details. Existing clients without `details` support continue to receive the original `terms` contract.
+
 ## CMS placement
 
 In the package editor, load or name a CMS page and choose **Add package component**. A new page is saved as a draft and must be published in CMS settings. The supported embed is:

@@ -7,27 +7,30 @@
     <p v-if="info" class="lmp-success" role="status">{{info}}</p>
 
     <article v-if="item" class="lmp-panel">
-        <img v-if="item.terms.cover_image" class="lmp-cover" :src="item.terms.cover_image" alt="">
+        <img v-if="details().cover_image" class="lmp-cover" :src="details().cover_image" alt="">
         <div class="lmp-content">
             <p class="lmp-eyebrow">LESSON PACKAGE · {{item.terms.lessons.length}} LESSONS</p>
-            <h1>{{item.terms.name}}</h1>
-            <p>{{item.terms.summary}}</p>
+            <h1>{{details().name}}</h1>
+            <p>{{details().summary}}</p>
             <p class="lmp-price">
                 {{item.terms.credit_price ? item.terms.credit_price+' credits' : 'Free'}}
                 <span class="lmp-muted">
                     · Permanent access · {{item.terms.approval_required?'Staff approval required':'Automatic enrolment'}}
                 </span>
             </p>
-            <div v-html="item.terms.description"></div>
+            <p v-if="item.attempt && item.details_version_id && item.details_version_id!==item.version_id" class="lmp-muted">
+                Showing the latest published package details. Your price and included lessons remain based on version {{item.version_id}}.
+            </p>
+            <div v-html="details().description"></div>
 
             <h2>What you will learn</h2>
-            <p class="lmp-lines">{{item.terms.outcomes}}</p>
+            <p class="lmp-lines">{{details().outcomes}}</p>
 
             <h2>Who this is for</h2>
-            <p class="lmp-lines">{{item.terms.audience}}</p>
+            <p class="lmp-lines">{{details().audience}}</p>
 
             <h2>Prerequisites</h2>
-            <p class="lmp-lines">{{item.terms.prerequisites || 'No additional prerequisites specified.'}}</p>
+            <p class="lmp-lines">{{details().prerequisites || 'No additional prerequisites specified.'}}</p>
 
             <h2>Included lessons</h2>
             <ol>

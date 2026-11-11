@@ -60,13 +60,20 @@ class MarketplaceApi
         $enrolment=$this->profile?$this->data->one('lmp_enrolment',[['column'=>'package_id','operator'=>'=','value'=>(int)$package->id],['column'=>'profile_id','operator'=>'=','value'=>$this->profile]]):null;
         $attempt=$enrolment?$this->data->byId('lmp_attempt',(int)$enrolment->current_attempt_id):null;
         if ($package->status!=='published' && !$attempt) throw new MarketplaceException('Package is unavailable for enrolment.');
-        $terms=$attempt && !in_array($attempt->status,['rejected','cancelled'],true)?json_decode($attempt->snapshot_json):$this->terms($package);
+        $published=$this->terms($package);
+        $terms=$attempt && !in_array($attempt->status,['rejected','cancelled'],true)?json_decode($attempt->snapshot_json):$published;
         if (!$terms) throw new MarketplaceException('Package terms are unavailable.');
+        $versionId=(int)($attempt && !in_array($attempt->status,['rejected','cancelled'],true)?$attempt->version_id:$package->published_version_id);
+        // Refresh authored details without changing the accepted price or lessons.
+        $detailSource=$package->status==='published' && $published ? $published : $terms;
+        $details=new \stdClass();
+        foreach (['name','summary','description','cover_image','outcomes','audience','prerequisites'] as $field) $details->$field=$detailSource->$field ?? '';
+        $detailsVersion=$package->status==='published' && $published ? (int)$package->published_version_id : $versionId;
         $balance=null; $walletError='';
         if ($this->profile && $terms->credit_price>0) { try { $balance=(new \davvag_credit_points\CreditLedgerService())->summary($this->profile,$terms->program_code); } catch (\Throwable $error) { $walletError='The credit wallet is unavailable.'; } }
         $accessible=[];
         if ($this->profile) { require_once TENANT_RESOURCE_LOCATION . '/apps/lesson-manager/lib/LessonAccess.php'; $access=new \lesson_manager\LessonAccess(); foreach ($terms->lesson_ids as $id) { $lesson=$this->catalog->one('lesson_manager_lesson',$id); if ($lesson && $access->financiallyCovered($lesson,$this->profile)) $accessible[]=(int)$id; } }
-        return ['id'=>(int)$package->id,'slug'=>$slug,'status'=>$package->status,'version_id'=>(int)($attempt && !in_array($attempt->status,['rejected','cancelled'],true)?$attempt->version_id:$package->published_version_id),'terms'=>$terms,'attempt'=>$this->engine()->safeAttempt($attempt),'signed_in'=>$this->profile>0,'balance'=>$balance,'wallet_error'=>$walletError,'already_accessible'=>$accessible];
+        return ['id'=>(int)$package->id,'slug'=>$slug,'status'=>$package->status,'version_id'=>$versionId,'terms'=>$terms,'details'=>$details,'details_version_id'=>$detailsVersion,'attempt'=>$this->engine()->safeAttempt($attempt),'signed_in'=>$this->profile>0,'balance'=>$balance,'wallet_error'=>$walletError,'already_accessible'=>$accessible];
     }); }
 
     public function postRequestEnrolment($req,$res) { return $this->call($req,$res,function($body) {

@@ -8,7 +8,7 @@ WEBDOCK.component().register(function (exports) {
             load: load, action: action, confirm: confirm, cancel: cancel, buy: buy, signIn: signIn, close: function() {
                 data.confirming=false;
             }
-            , label: label, learn: learn
+            , label: label, learn: learn, details: details
         }
         , onReady: function(s, context) {
             api=exports.getComponent('marketplace-api');
@@ -61,6 +61,9 @@ WEBDOCK.component().register(function (exports) {
             data.item=item;
         }
         );
+    }
+    function details() {
+        return data.item ? (data.item.details || data.item.terms) : {};
     }
     function route() {
         return '#/app/lesson-market-place/package?slug='+encodeURIComponent(slug);
