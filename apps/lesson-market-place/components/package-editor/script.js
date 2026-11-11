@@ -113,9 +113,11 @@ WEBDOCK.component().register(function(exports) {
     }
     function save() {
         sync();
-        var payload=JSON.parse(JSON.stringify(d.form));
-        delete payload.lessons;
-        delete payload.program_code;
+        // Loaded drafts also contain server-derived cohort and lesson metadata.
+        var payload={};
+        ['slug', 'name', 'summary', 'description', 'cover_image', 'outcomes', 'audience', 'prerequisites', 'product_id', 'class_grade_id', 'lesson_ids', 'pricing_mode', 'credit_price', 'approval_required'].forEach(function(field) {
+            payload[field]=d.form[field];
+        });
         payload.id=d.id;
         payload.revision=d.revision;
         payload.product_id=Number(payload.product_id);
