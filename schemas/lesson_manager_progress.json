@@ -117,6 +117,26 @@
       "annotations": {
         "decimalPoints": "8,2"
       }
+    },
+    {
+      "fieldName": "current_section",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "section_updated_at",
+      "dataType": "java.lang.String",
+      "annotations": { "maxLen": 32 }
+    },
+    {
+      "fieldName": "completed_sections",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "learning_drafts",
+      "dataType": "object"
     }
   ],
   "relations": [

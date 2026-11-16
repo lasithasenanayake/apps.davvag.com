@@ -2,7 +2,7 @@
     "name": "lesson-style",
     "description": "Lesson Manager styles",
     "author": "DAVVAG",
-    "version": "1.5",
+    "version": "1.6",
     "resources": {
         "files": [{ "type": "mainScript", "location": "script.js" }],
         "css": [{ "type": "css", "location": "lesson-manager.css" }]

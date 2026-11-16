@@ -3,6 +3,11 @@ WEBDOCK.component().register(function (exports) {
         router,
         timerHandle,
         learningHost,
+        draftTimer,
+        positionError = false,
+        saveQueue = Promise.resolve(),
+        quizStates = {},
+        assignmentStates = {},
         selectedAssignmentFiles = [];
     // Reactive state used by partial.html.
     var data = {
@@ -12,6 +17,13 @@ WEBDOCK.component().register(function (exports) {
         course: null,
         lessons: [],
         subjectId: '',
+        studentId: '',
+        sectionIndex: 0,
+        completedSections: [],
+        drafts: { quizzes: {}, assignments: {} },
+        sectionBusy: false,
+        activityBusy: false,
+        saveStatus: '',
         current: null,
         mobileStage: 'choose',
         quiz: null,
@@ -58,7 +70,16 @@ WEBDOCK.component().register(function (exports) {
             videoEmbed: videoEmbed,
             isEmbeddable: isEmbeddable,
             statusClass: statusClass,
-            courseProgress: courseProgress
+            courseProgress: courseProgress,
+            sections: sections,
+            activeSection: activeSection,
+            sectionIs: sectionIs,
+            sectionBack: sectionBack,
+            sectionNext: sectionNext,
+            sectionNextLabel: sectionNextLabel,
+            sectionDone: sectionDone,
+            saveDraft: saveDraft,
+            reviewSection: reviewSection
         },
         onReady: init
     };
@@ -102,6 +123,7 @@ WEBDOCK.component().register(function (exports) {
 
     // Clear lesson-specific progress, quiz, and assignment state.
     function resetLessonState() {
+        if (data.current) persistPosition();
         data.current = null;
         data.quiz = null;
         data.quizAttempt = null;
@@ -116,6 +138,8 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function loadCourse() {
+        if (data.activityBusy || data.sectionBusy) { data.courseId = data.current ? data.current.course_id : data.courseId; return; }
+        if (draftTimer && data.current) { clearTimeout(draftTimer); draftTimer = null; persistPosition(); }
         data.subjectId = '';
         data.mobileStage = 'choose';
         data.course = null;
@@ -137,9 +161,12 @@ WEBDOCK.component().register(function (exports) {
                         return String(l.id) === wanted;
                     })[0];
                     if (selected) {
-                        selectSubject(selected.subject_id);
+                        selectSubject(selected.subject_id, false);
                         openLesson(selected);
                     }
+                } else {
+                    var subject = new URLSearchParams(location.hash.split('?')[1] || '').get('subject_id');
+                    if (subject) selectSubject(subject);
                 }
                 if (!data.lessons.length) ok('This assigned course has no published lessons yet.');
             })
@@ -151,8 +178,8 @@ WEBDOCK.component().register(function (exports) {
 
     function applyCourse(x) {
         data.course = x.course || null;
-        data.lessons = x.lessons || [];
-        data.lessons.forEach(normalizeLesson);
+        data.studentId = x.student ? x.student.id : '';
+        data.lessons = (x.lessons || []).map(function (lesson) { normalizeLesson(lesson); return lesson; });
     }
 
     // Build the subject picker from the lessons available to the learner.
@@ -174,21 +201,31 @@ WEBDOCK.component().register(function (exports) {
         });
     }
 
-    function selectSubject(subject) {
+    function selectSubject(subject, resume) {
+        if (data.activityBusy || data.sectionBusy) return;
         data.subjectId = subject && subject.id !== undefined ? subject.id : subject;
         resetLessonState();
         setMobileStage('lessons');
+        if (resume !== false) {
+            var saved = lessonsForSubject().filter(function (l) {
+                return l.unlocked && l.progress && l.progress.current_section;
+            }).sort(function (a, b) {
+                return String(b.progress.section_updated_at || '').localeCompare(String(a.progress.section_updated_at || '')) || Number(b.id) - Number(a.id);
+            })[0];
+            if (saved) openLesson(saved);
+        }
     }
 
     function backToSubjects() {
+        if (data.activityBusy || data.sectionBusy) return;
         data.subjectId = '';
         resetLessonState();
         setMobileStage('choose');
     }
 
     function backToLessons() {
-        data.quiz = null;
-        data.quizAttempt = null;
+        if (data.activityBusy || data.sectionBusy) return;
+        if (draftTimer) persistPosition();
         setMobileStage('lessons');
     }
 
@@ -209,7 +246,9 @@ WEBDOCK.component().register(function (exports) {
 
     // Open lessons and refresh access after unlocking.
     function openLesson(l) {
-        if (!l || (!l.unlocked && !l.credit_locked) || data.busyLesson) return;
+        if (!l || (!l.unlocked && !l.credit_locked) || data.busyLesson || data.sectionBusy || data.activityBusy) return;
+        if (data.current && String(data.current.id) === String(l.id)) return setMobileStage('content');
+        if (draftTimer) { clearTimeout(draftTimer); draftTimer = null; persistPosition(); }
         if (
             l.credit_locked &&
             !window.confirm(
@@ -220,9 +259,7 @@ WEBDOCK.component().register(function (exports) {
         )
             return;
         data.busyLesson = l.id;
-        api.services
-            .StartLesson({ lesson_id: l.id })
-            .then(function (r) {
+        runActivity('StartLesson', { lesson_id: l.id }, function (r) {
                 data.busyLesson = 0;
                 if (!r.success) return fail(msg(r, 'Lesson could not be opened.'));
                 if (l.credit_locked) {
@@ -230,8 +267,7 @@ WEBDOCK.component().register(function (exports) {
                     return reloadUnlockedLesson(l);
                 }
                 showLesson(l, r.result);
-            })
-            .error(function () {
+            }, function () {
                 data.busyLesson = 0;
                 fail('Lesson could not be opened.');
             });
@@ -251,8 +287,11 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function showLesson(lesson, progress) {
+        if (progress) {
+            normalizeProgress(progress);
+            lesson.progress = progress;
+        }
         data.current = lesson;
-        if (progress) data.current.progress = progress;
         setMobileStage('content');
         data.quiz = null;
         data.quizAttempt = null;
@@ -263,6 +302,182 @@ WEBDOCK.component().register(function (exports) {
         data.assignmentForm = { content: '', file_url: '' };
         selectedAssignmentFiles = [];
         data.assignmentFiles = [];
+        quizStates = {};
+        assignmentStates = {};
+        var p = data.current.progress || {};
+        data.completedSections = decode(p.completed_sections, []);
+        data.drafts = decode(p.learning_drafts, { quizzes: {}, assignments: {} });
+        try {
+            var local = JSON.parse(window.localStorage.getItem(draftKey()) || 'null');
+            if (local) data.drafts = local;
+        } catch (e) {}
+        data.drafts.quizzes = data.drafts.quizzes || {};
+        data.drafts.assignments = data.drafts.assignments || {};
+        data.sectionIndex = Math.max(0, sections().map(function (s) { return s.key; }).indexOf(p.current_section));
+        enterSection();
+        persistPosition();
+        // Refresh retains the selected course and subject without overriding the server cursor.
+        if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#/app/lesson-manager/learn?course_id=' + encodeURIComponent(data.courseId) + '&subject_id=' + encodeURIComponent(data.subjectId));
+    }
+
+    function decode(value, fallback) {
+        if (!value) return fallback;
+        if (typeof value !== 'string') return value;
+        try { return JSON.parse(value); } catch (e) { return fallback; }
+    }
+
+    function sections() {
+        if (!data.current) return [];
+        var l = data.current, list = [];
+        function add(kind, rows, title, required) {
+            (rows || []).forEach(function (row) { list.push({key: kind + ':' + row.id, kind: kind, id: row.id, title: row.title || (row.assignment && row.assignment.title) || title}); });
+            if (!(rows || []).length && required) list.push({key: kind, kind: kind, title: title});
+        }
+        add('reading', l.content, 'Read the material', l.require_reading);
+        add('video', l.videos, 'Watch the video', l.require_video);
+        add('quiz', l.quizzes, 'Knowledge check');
+        add('assignment', l.assignmentRules, 'Submit the assignment');
+        if (l.require_teacher_approval) list.push({key: 'approval', kind: 'approval', title: 'Teacher approval'});
+        list.push({key: 'summary', kind: 'summary', title: 'Lesson summary'});
+        return list;
+    }
+
+    function activeSection() { return sections()[data.sectionIndex] || {}; }
+    function sectionIs(kind, id) { var s = activeSection(); return s.kind === kind && (id === undefined || String(s.id) === String(id)); }
+    function sectionDone() {
+        var s = activeSection(), p = data.current.progress || {};
+        if (s.kind === 'reading' || s.kind === 'video') return data.completedSections.indexOf(s.key) >= 0 || truthy(p[s.kind === 'reading' ? 'reading_completed' : 'video_completed']);
+        if (s.kind === 'quiz') {
+            var q = data.current.quizzes.filter(function (q) { return String(q.id) === String(s.id); })[0];
+            return !!(q && q.latest_attempt && truthy(q.latest_attempt.passed));
+        }
+        if (s.kind === 'assignment') {
+            var r = data.current.assignmentRules.filter(function (r) { return String(r.id) === String(s.id); })[0];
+            return !!(r && r.latest_submission && truthy(r.latest_submission.passed));
+        }
+        return truthy(p[s.kind === 'approval' ? 'teacher_approved' : 'lesson_completed']);
+    }
+    function sectionNextLabel() {
+        if (sectionIs('summary')) return canNext() ? 'Next lesson' : 'Back to lessons';
+        return (sectionIs('reading') || sectionIs('video')) && !sectionDone() ? 'Complete and continue' : 'Next';
+    }
+
+    function draftKey() { return 'lm-drafts:' + data.studentId + ':' + (data.current.course_id || data.courseId) + ':' + data.current.id; }
+    function captureDraft() {
+        if (!data.current) return;
+        if (data.quiz && data.quizAttempt && !data.quizResult) {
+            data.drafts.quizzes[data.quiz.id] = {attempt_id: data.quizAttempt.id, answers: JSON.parse(JSON.stringify(data.answers))};
+        }
+        if (sectionIs('assignment')) data.drafts.assignments[activeSection().id] = JSON.parse(JSON.stringify(data.assignmentForm));
+        try { if (data.studentId) window.localStorage.setItem(draftKey(), JSON.stringify(data.drafts)); } catch (e) {}
+    }
+    function saveDraft() {
+        captureDraft();
+        data.saveStatus = 'Saving…';
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(function () { draftTimer = null; persistPosition(); }, 400);
+    }
+    function persistPosition(target, done) {
+        if (!data.current) return;
+        clearTimeout(draftTimer); draftTimer = null;
+        captureDraft();
+        var lesson = data.current, key = draftKey(), drafts = JSON.stringify(data.drafts);
+        var payload = {lesson_id: lesson.id, section: target || activeSection().key, completed_sections: data.completedSections.slice(), drafts: JSON.parse(drafts)};
+        data.saveStatus = 'Saving…';
+        saveQueue = saveQueue.then(function () {
+            return new Promise(function (resolve) {
+                api.services.SaveLearningPosition(payload).then(function (r) {
+                    if (r.success) {
+                        if (positionError) { data.errors = []; positionError = false; }
+                        normalizeProgress(r.result);
+                        lesson.progress = r.result;
+                        normalizeLesson(lesson);
+                        try { if (window.localStorage.getItem(key) === drafts) window.localStorage.removeItem(key); } catch (e) {}
+                        if (data.current && String(data.current.id) === String(lesson.id)) data.saveStatus = 'Progress saved';
+                        if (done) done(true);
+                    } else {
+                        positionError = true;
+                        data.saveStatus = 'Progress could not be saved';
+                        fail(msg(r, 'Progress could not be saved. Try again to continue.'));
+                        if (done) done(false);
+                    }
+                    resolve();
+                }).error(function () {
+                    positionError = true;
+                    data.saveStatus = 'Progress could not be saved';
+                    fail('Progress could not be saved. Check your connection and try again.');
+                    if (done) done(false);
+                    resolve();
+                });
+            });
+        });
+    }
+    // Keep this client's progress writes in order so a draft save cannot overwrite
+    // a reading completion, quiz result, or assignment submission in flight.
+    function runActivity(name, payload, done, failed) {
+        if (draftTimer) persistPosition();
+        saveQueue = saveQueue.then(function () {
+            return new Promise(function (resolve) {
+                api.services[name](payload).then(function (r) {
+                    done(r);
+                    resolve();
+                }).error(function () {
+                    if (failed) failed();
+                    resolve();
+                });
+            });
+        });
+    }
+    function leaveSection() {
+        captureDraft();
+        if (data.quiz) quizStates[data.quiz.id] = {quiz: data.quiz, attempt: data.quizAttempt, questions: data.quizQuestions, answers: data.answers, result: data.quizResult, deadline: data.deadline};
+        if (sectionIs('assignment')) assignmentStates[activeSection().id] = {form: data.assignmentForm, files: selectedAssignmentFiles, display: data.assignmentFiles};
+    }
+    function enterSection() {
+        data.quiz = null; data.quizAttempt = null; data.quizQuestions = []; data.answers = {}; data.quizResult = null; data.deadline = null;
+        if (sectionIs('quiz')) {
+            var state = quizStates[activeSection().id];
+            if (state) {
+                data.quiz = state.quiz; data.quizAttempt = state.attempt; data.quizQuestions = state.questions; data.answers = state.answers; data.quizResult = state.result; data.deadline = state.deadline;
+            } else {
+                var q = data.current.quizzes.filter(function (q) { return String(q.id) === String(activeSection().id); })[0];
+                if (q && q.latest_attempt && q.latest_attempt.status === 'in_progress') startQuiz(q);
+            }
+        }
+        var assignment = assignmentStates[activeSection().id];
+        data.assignmentForm = assignment ? assignment.form : data.drafts.assignments[activeSection().id] || {content: '', file_url: ''};
+        selectedAssignmentFiles = assignment ? assignment.files : [];
+        data.assignmentFiles = assignment ? assignment.display : [];
+        updateTimer();
+        setTimeout(function () {
+            var root = (learningHost && learningHost[0]) || learningHost;
+            if (!root || !root.querySelector) root = document.querySelector('.lm-learning');
+            var heading = root && root.querySelector('[data-lm-section-heading]');
+            if (heading) { heading.focus({preventScroll: true}); heading.scrollIntoView({block: 'start', behavior: 'auto'}); }
+        }, 0);
+    }
+    function moveSection(index) {
+        if (data.sectionBusy || data.activityBusy || data.uploading || data.busyLesson || index < 0 || index >= sections().length) return;
+        leaveSection(); data.sectionBusy = true;
+        persistPosition(sections()[index].key, function (saved) {
+            data.sectionBusy = false;
+            if (!saved) return;
+            data.sectionIndex = index; enterSection();
+        });
+    }
+    function sectionBack() { moveSection(data.sectionIndex - 1); }
+    function reviewSection(index) { moveSection(index); }
+    function sectionNext() {
+        if (data.sectionBusy || data.activityBusy || data.uploading) return;
+        if (sectionIs('summary')) return canNext() ? next() : backToLessons();
+        var s = activeSection();
+        if (s.kind !== 'reading' && s.kind !== 'video') return moveSection(data.sectionIndex + 1);
+        if (data.completedSections.indexOf(s.key) < 0) data.completedSections.push(s.key);
+        var remaining = sections().some(function (x) { return x.kind === s.kind && data.completedSections.indexOf(x.key) < 0; });
+        if (!remaining && data.current['require_' + s.kind] && !truthy((data.current.progress || {})[s.kind === 'reading' ? 'reading_completed' : 'video_completed'])) {
+            return complete(s.kind, 'Section complete.', function () { moveSection(data.sectionIndex + 1); });
+        }
+        moveSection(data.sectionIndex + 1);
     }
 
     // Navigate through the current subject sequence.
@@ -301,61 +516,79 @@ WEBDOCK.component().register(function (exports) {
         complete('video', 'Video marked complete.');
     }
 
-    function complete(activity, text) {
-        api.services
-            .CompleteActivity({ lesson_id: data.current.id, activity: activity })
-            .then(function (r) {
+    function complete(activity, text, done) {
+        if (data.sectionBusy) return;
+        data.sectionBusy = true;
+        var lesson = data.current;
+        runActivity('CompleteActivity', { lesson_id: data.current.id, activity: activity }, function (r) {
+                data.sectionBusy = false;
                 if (r.success) {
-                    data.current.progress = r.result;
+                    normalizeProgress(r.result);
+                    lesson.progress = r.result;
+                    normalizeLesson(lesson);
                     ok(text);
                     refreshCurrent();
+                    if (done) done();
                 } else fail(msg(r, 'Progress could not be saved.'));
-            });
+            }, function () { data.sectionBusy = false; fail('Progress could not be saved. Try again.'); });
     }
 
     function refreshCurrent() {
         var id = data.current.id;
         api.services.LearningCourse({ course_id: data.courseId }).then(function (r) {
             if (!r.success) return;
-            data.lessons = r.result.lessons || [];
-            data.lessons.forEach(normalizeLesson);
+            data.lessons = (r.result.lessons || []).map(function (lesson) { normalizeLesson(lesson); return lesson; });
             data.lessons.forEach(function (x) {
-                if (String(x.id) === String(id)) data.current = x;
+                if (data.current && String(data.current.id) === String(id) && String(x.id) === String(id)) {
+                    // Preserve the cursor and drafts while activity status refreshes.
+                    if (data.current.progress) ['current_section', 'section_updated_at', 'completed_sections', 'learning_drafts'].forEach(function (key) { x.progress = x.progress || {}; x.progress[key] = data.current.progress[key]; });
+                    data.current = x;
+                }
             });
         });
     }
 
     // Quiz attempts, answers, and the countdown timer.
     function startQuiz(q) {
+        if (data.quizAttempt && data.quiz && String(data.quiz.id) === String(q.id) && !data.quizResult) return;
+        var lessonId = data.current.id;
         data.quiz = q;
         data.quizAttempt = null;
         data.answers = {};
         data.quizResult = null;
-        api.services.StartQuiz({ quiz_id: q.id }).then(function (r) {
+        runActivity('StartQuiz', { quiz_id: q.id }, function (r) {
+            if (!data.current || data.current.id !== lessonId || !sectionIs('quiz', q.id)) return;
             if (!r.success) return fail(msg(r, 'Quiz could not be started.'));
             var x = r.result || {};
             data.quizAttempt = x.attempt;
             data.deadline = x.deadline;
             data.quizQuestions = x.questions || [];
+            var restoredAnswers = {};
             data.quizQuestions.forEach(function (question) {
-                data.answers[String(question.id)] =
-                    question.question_type === 'multiple_answer' ? [] : '';
+                var draft = data.drafts.quizzes[q.id];
+                var saved = draft && String(draft.attempt_id) === String(x.attempt.id) ? draft.answers : decode(x.attempt.answers, {});
+                restoredAnswers[String(question.id)] =
+                    saved && saved[String(question.id)] !== undefined ? saved[String(question.id)] : question.question_type === 'multiple_answer' ? [] : '';
             });
+            data.answers = restoredAnswers;
             updateTimer();
-        });
+        }, function () { fail('Quiz could not be started. Try again.'); });
     }
 
     function submitQuiz() {
+        if (data.activityBusy || data.quizResult) return;
         if (!data.quizAttempt) return fail('Start a quiz attempt first.');
-        api.services
-            .SubmitQuiz({
+        data.activityBusy = true;
+        runActivity('SubmitQuiz', {
                 quiz_id: data.quiz.id,
                 attempt_id: data.quizAttempt.id,
-                answers: data.answers
-            })
-            .then(function (r) {
+                answers: JSON.parse(JSON.stringify(data.answers))
+            }, function (r) {
+                data.activityBusy = false;
                 if (!r.success) return fail(msg(r, 'Quiz could not be submitted.'));
                 data.quizResult = r.result;
+                delete data.drafts.quizzes[data.quiz.id];
+                saveDraft();
                 ok(
                     r.result.manual_marking
                         ? 'Quiz submitted for teacher marking.'
@@ -364,7 +597,7 @@ WEBDOCK.component().register(function (exports) {
                           : 'Attempt saved. Review the result and retry if allowed.'
                 );
                 refreshCurrent();
-            });
+            }, function () { data.activityBusy = false; fail('Quiz could not be submitted. Your answers have been kept.'); });
     }
 
     function updateTimer() {
@@ -404,7 +637,8 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function submitAssignment(rule) {
-        if (data.uploading) return;
+        if (data.uploading || data.activityBusy) return;
+        data.activityBusy = true;
         var payload = {
             lesson_id: data.current.id,
             assignment_id: rule.assignment_id,
@@ -430,7 +664,7 @@ WEBDOCK.component().register(function (exports) {
                     var failed = selectedAssignmentFiles.some(function (file) {
                         return file.status !== true;
                     });
-                    if (failed) return fail('One or more files failed to upload.');
+                    if (failed) { data.activityBusy = false; return fail('One or more files failed to upload.'); }
                     payload.files = selectedAssignmentFiles.map(function (file) {
                         return {
                             name: file.name,
@@ -446,15 +680,18 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function saveAssignment(payload) {
-        api.services.SubmitAssignment(payload).then(function (r) {
+        runActivity('SubmitAssignment', payload, function (r) {
+            data.activityBusy = false;
             if (r.success) {
                 ok('Assignment submitted for teacher review.');
                 data.assignmentForm = { content: '', file_url: '' };
                 selectedAssignmentFiles = [];
                 data.assignmentFiles = [];
+                delete data.drafts.assignments[activeSection().id];
+                saveDraft();
                 refreshCurrent();
             } else fail(msg(r, 'Assignment could not be submitted.'));
-        });
+        }, function () { data.activityBusy = false; fail('Assignment could not be submitted. Your draft has been kept.'); });
     }
 
     // Answer selection, media display, and shared helpers.
@@ -465,6 +702,7 @@ WEBDOCK.component().register(function (exports) {
         if (i >= 0) arr.splice(i, 1);
         else arr.push(o);
         data.answers[key] = arr;
+        saveDraft();
     }
 
     function isSelected(q, o) {
@@ -502,7 +740,11 @@ WEBDOCK.component().register(function (exports) {
         ].forEach(function (k) {
             l[k] = truthy(l[k]);
         });
-        if (l.progress)
+        normalizeProgress(l.progress);
+    }
+
+    function normalizeProgress(progress) {
+        if (progress)
             [
                 'lesson_completed',
                 'reading_completed',
@@ -514,7 +756,7 @@ WEBDOCK.component().register(function (exports) {
                 'teacher_approved',
                 'override_unlocked'
             ].forEach(function (k) {
-                l.progress[k] = truthy(l.progress[k]);
+                progress[k] = truthy(progress[k]);
             });
     }
 

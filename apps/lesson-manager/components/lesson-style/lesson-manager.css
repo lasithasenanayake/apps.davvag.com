@@ -430,6 +430,18 @@
     justify-content: center;
     width: 32px;
 }
+.lm-section-progress {
+    margin-bottom: 24px;
+    scroll-margin-top: 16px;
+}
+.lm-section-progress h2 { margin: 8px 0 16px; overflow-wrap: anywhere; }
+.lm-section-progress .lm-progress { max-width: 100%; }
+.lm-section-navigation { display: block; }
+.lm-section-buttons { display: flex; justify-content: space-between; gap: 12px; }
+.lm-section-buttons .lm-btn { min-height: 44px; white-space: normal; overflow-wrap: anywhere; min-width: 0; }
+.lm-save-status { display: block; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.lm-review-sections { flex-wrap: wrap; margin: 18px 0; }
+.lm-learning [data-lm-section-heading]:focus-visible { outline: 3px solid #0c715d; outline-offset: 4px; }
 .lm-lesson-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
 }

@@ -429,6 +429,36 @@ class ApiService {
         return $this->touchProgress($body, $allowed[$body->activity], $res);
     }
 
+    // Navigation and drafts never change assessed completion requirements.
+    public function postSaveLearningPosition($req, $res) {
+        $body = $this->body($req);
+        $lesson = !empty($body->lesson_id) ? $this->byId($this->lessonNs, $body->lesson_id) : null;
+        $student = $this->requestedStudent($body);
+        if (!$lesson || $this->isDeleted($lesson) || !$this->validProfile($student)) return $this->error($res, "An active lesson and learner are required.");
+        if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Lesson access denied.");
+        $keys = array("summary");
+        foreach (array("reading"=>$this->contentNs, "video"=>$this->videoNs, "quiz"=>$this->quizNs) as $kind=>$ns) {
+            $rows = $this->publishedRows($ns, "lesson_id:" . intval($lesson->id));
+            foreach ($rows as $row) $keys[] = $kind . ":" . $row->id;
+            $required = "require_" . $kind;
+            if (!count($rows) && $kind !== "quiz" && LessonRules::truthy(isset($lesson->{$required}) ? $lesson->{$required} : false)) $keys[] = $kind;
+        }
+        foreach ($this->studentAssignmentRules($lesson->id, $student->id) as $rule) $keys[] = "assignment:" . $rule->id;
+        if (LessonRules::truthy(isset($lesson->require_teacher_approval) ? $lesson->require_teacher_approval : false)) $keys[] = "approval";
+        if (!isset($body->section) || !in_array($body->section, $keys, true)) return $this->error($res, "This lesson section is no longer available. Reopen the lesson.");
+        if (!isset($body->drafts) || !is_object($body->drafts) || strlen(json_encode($body->drafts)) > 200000) return $this->error($res, "Lesson drafts are invalid or too large.");
+        $progress = $this->progress($lesson->course_id, $lesson->id, $student);
+        $progress->current_section = $body->section;
+        $progress->section_updated_at = (new \DateTime())->format("Y-m-d H:i:s.u");
+        $progress->learning_drafts = $body->drafts;
+        $completed = isset($progress->completed_sections) && is_array($progress->completed_sections) ? $progress->completed_sections : array();
+        foreach (isset($body->completed_sections) && is_array($body->completed_sections) ? $body->completed_sections : array() as $key) {
+            if (in_array($key, $keys, true) && preg_match('/^(reading|video)(:|$)/', $key) && !in_array($key, $completed, true)) $completed[] = $key;
+        }
+        $progress->completed_sections = $completed;
+        return $this->persist($this->progressNs, $progress, $res);
+    }
+
     public function postStartQuiz($req,$res) {
         $body=$this->body($req);if(empty($body->quiz_id))return $this->error($res,"quiz_id is required.");
         $quiz=$this->byId($this->quizNs,$body->quiz_id);if(!$quiz||strtolower(isset($quiz->status)?$quiz->status:"")!=="published")return $this->error($res,"Quiz is not available.");

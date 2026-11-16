@@ -24,7 +24,7 @@
             </div>
             <div class="lm-card-body">
                 <label class="lm-form"
-                    >Assigned course<select v-model="courseId" v-on:change="loadCourse">
+                    >Assigned course<select v-model="courseId" v-on:change="loadCourse" v-bind:disabled="sectionBusy||activityBusy||!!busyLesson">
                         <option value="">Select a course</option>
                         <option v-for="c in courses" v-bind:value="c.id">
                             {{c.code}} · {{c.title}} · {{c.completion_percentage}}%
@@ -53,6 +53,7 @@
                             v-for="s in subjectsForCourse()"
                             v-bind:class="{active:subjectId==s.id}"
                             v-on:click="selectSubject(s)"
+                            v-bind:disabled="sectionBusy||activityBusy||!!busyLesson"
                         >
                             <span class="lm-subject-code">{{s.code||'Subject'}}</span
                             ><strong>{{s.title}}</strong><span>Open subject lessons</span>
@@ -74,7 +75,7 @@
         <div class="lm-learn-layout lm-learning-layout" v-if="course&&subjectId">
             <aside class="lm-sidebar lm-learning-lessons">
                 <div class="lm-sidebar-title">
-                    <button type="button" class="lm-mobile-back" v-on:click="backToSubjects">
+                    <button type="button" class="lm-mobile-back" v-on:click="backToSubjects" v-bind:disabled="sectionBusy||activityBusy||!!busyLesson">
                         ← Subjects</button
                     ><span class="lm-step-label">Step 3</span>
                     <h3 tabindex="-1" data-lm-stage-heading="lessons">{{lessonsForSubject().length}} lessons</h3>
@@ -85,7 +86,7 @@
                     class="lm-lesson-link"
                     v-for="l in lessonsForSubject()"
                     v-bind:class="{active:current&&current.id===l.id}"
-                    v-bind:disabled="(!l.unlocked&&!l.credit_locked)||!!busyLesson"
+                    v-bind:disabled="(!l.unlocked&&!l.credit_locked)||!!busyLesson||sectionBusy||activityBusy"
                     v-on:click="openLesson(l)"
                 >
                     <span class="num"
@@ -113,7 +114,7 @@
             </div>
             <main class="lm-content" v-if="current">
                 <div class="lm-content-head">
-                    <button type="button" class="lm-mobile-back" v-on:click="backToLessons">
+                    <button type="button" class="lm-mobile-back" v-on:click="backToLessons" v-bind:disabled="sectionBusy||activityBusy||!!busyLesson">
                         ← Lessons</button
                     ><span class="lm-eyebrow" style="color: #0c715d"
                         >Lesson {{current.lesson_order}}</span
@@ -132,7 +133,27 @@
                         >
                     </div>
                 </div>
-                <div class="lm-content-body">
+                <div class="lm-content-body" v-on:input="saveDraft" v-on:change="saveDraft">
+                    <header class="lm-section-progress" aria-live="polite">
+                        <span class="lm-step-label">Section {{sectionIndex+1}} of {{sections().length}}</span>
+                        <h2 tabindex="-1" data-lm-section-heading>{{activeSection().title}}</h2>
+                        <div class="lm-progress" role="progressbar" v-bind:aria-valuenow="sectionIndex+1" aria-valuemin="1" v-bind:aria-valuemax="sections().length" aria-label="Lesson section">
+                            <span v-bind:style="{width:((sectionIndex+1)/sections().length*100)+'%'}"></span>
+                        </div>
+                        <p class="lm-muted">{{sectionDone()?'Completed':(sectionIs('summary')?'Review your lesson progress':'Your progress is saved as you go')}}</p>
+                    </header>
+                    <section class="lm-note" v-if="sectionIs('approval')">
+                        <h3>Teacher approval</h3>
+                        <p>{{current.progress&amp;&amp;current.progress.teacher_approved?'Your teacher has approved this lesson.':'Your teacher must approve completion. You can revisit earlier sections while you wait.'}}</p>
+                    </section>
+                    <div v-show="sectionIs('summary')">
+                    <div class="lm-note" role="status">
+                        <h2>{{current.progress&amp;&amp;current.progress.lesson_completed?'Lesson completed':'Lesson not complete yet'}}</h2>
+                        <p>{{current.progress&amp;&amp;current.progress.lesson_completed?'Your completed activities and results have been saved.':'Complete the requirements below. Submitted work may need teacher marking or approval.'}}</p>
+                    </div>
+                    <div class="lm-actions lm-review-sections">
+                        <button type="button" class="lm-btn lm-btn-ghost lm-btn-small" v-for="(step,index) in sections()" v-if="step.kind!=='summary'" v-on:click="reviewSection(index)" v-bind:disabled="sectionBusy||activityBusy">Review: {{step.title}}</button>
+                    </div>
                     <section class="lm-requirements">
                         <div class="lm-section-heading">
                             <div>
@@ -232,7 +253,8 @@
                             </div>
                         </div>
                     </section>
-                    <section v-for="c in current.content">
+                    </div>
+                    <section v-for="c in current.content" v-show="sectionIs('reading',c.id)">
                         <h3>{{c.title}}</h3>
                         <div
                             class="lm-article"
@@ -267,22 +289,12 @@
                             >
                         </div>
                     </section>
-                    <div class="lm-empty" v-if="!current.content.length">
+                    <div class="lm-empty" v-if="sectionIs('reading')&&!current.content.length">
                         This lesson has no written material yet.
                     </div>
-                    <div class="lm-actions lm-completion-action" v-if="current.require_reading">
-                        <button
-                            class="lm-btn lm-btn-primary"
-                            v-on:click="markReading"
-                            v-bind:disabled="current.progress&&current.progress.reading_completed"
-                        >
-                            <span class="glyphicon glyphicon-ok"></span>
-                            {{current.progress&amp;&amp;current.progress.reading_completed?'Reading complete':'Mark reading complete'}}
-                        </button>
-                    </div>
-                    <section v-if="current.videos.length">
+                    <section v-show="sectionIs('video')">
                         <h2 style="margin-top: 28px">Watch</h2>
-                        <div class="lm-video" v-for="v in current.videos">
+                        <div class="lm-video" v-for="v in current.videos" v-if="sectionIs('video',v.id)">
                             <h3>{{v.title}}</h3>
                             <div class="lm-video-frame" v-if="isEmbeddable(v)">
                                 <iframe v-bind:src="videoEmbed(v)" v-bind:title="v.title||'Lesson video'" loading="lazy" allowfullscreen></iframe>
@@ -305,17 +317,9 @@
                                 <p>{{v.transcript}}</p>
                             </details>
                         </div>
-                        <button
-                            class="lm-btn lm-btn-primary"
-                            v-if="current.require_video"
-                            v-on:click="markVideo"
-                            v-bind:disabled="current.progress&&current.progress.video_completed"
-                        >
-                            <span class="glyphicon glyphicon-ok"></span>
-                            {{current.progress&amp;&amp;current.progress.video_completed?'Video complete':'Mark required video complete'}}
-                        </button>
+                        <p class="lm-empty" v-if="!current.videos.length">This lesson has no video material yet.</p>
                     </section>
-                    <section class="lm-quiz-box" v-for="q in current.quizzes">
+                    <section class="lm-quiz-box" v-for="q in current.quizzes" v-show="sectionIs('quiz',q.id)">
                         <div class="lm-course-meta">
                             <div>
                                 <span class="lm-eyebrow" style="color: #0c715d"
@@ -340,13 +344,13 @@
                                 type="button"
                                 class="lm-btn lm-btn-primary"
                                 v-on:click="startQuiz(q)"
-                                v-bind:disabled="!!q.attempt_limit&&q.attempts_used>=q.attempt_limit&&(!q.latest_attempt||q.latest_attempt.status!=='in_progress')"
+                                v-bind:disabled="(quizAttempt&&quiz&&quiz.id===q.id&&!quizResult)||!!q.attempt_limit&&q.attempts_used>=q.attempt_limit&&(!q.latest_attempt||q.latest_attempt.status!=='in_progress')"
                             >
-                                {{q.latest_attempt&&q.latest_attempt.status==='in_progress'?'Resume quiz':'Start quiz'}}
+                                {{quizAttempt&&quiz&&quiz.id===q.id&&!quizResult?'Quiz in progress':q.latest_attempt&&q.latest_attempt.status==='in_progress'?'Resume quiz':'Start quiz'}}
                             </button>
                         </div>
                     </section>
-                    <section class="lm-quiz-box" v-if="quiz">
+                    <section class="lm-quiz-box" v-if="quiz&&sectionIs('quiz',quiz.id)">
                         <div class="lm-course-meta">
                             <div>
                                 <h2>{{quiz.title}}</h2>
@@ -370,6 +374,7 @@
                                         v-bind:name="'q'+q.id"
                                         v-bind:value="o"
                                         v-model="answers[q.id]"
+                                        v-bind:disabled="activityBusy||!!quizResult"
                                     />
                                     {{o}}</label
                                 >
@@ -379,6 +384,7 @@
                                     ><input
                                         type="checkbox"
                                         v-bind:checked="isSelected(q,o)"
+                                        v-bind:disabled="activityBusy||!!quizResult"
                                         v-on:change="toggleAnswer(q,o)"
                                     />
                                     {{o}}</label
@@ -389,13 +395,14 @@
                                 class="lm-form"
                                 style="margin-top: 9px"
                                 v-model="answers[q.id]"
+                                v-bind:disabled="activityBusy||!!quizResult"
                                 placeholder="Your answer"
                             />
                         </div>
                         <button
                             class="lm-btn lm-btn-primary"
                             v-on:click="submitQuiz"
-                            v-bind:disabled="!quizAttempt||timeRemaining==='0:00'"
+                            v-bind:disabled="!quizAttempt||timeRemaining==='0:00'||!!quizResult||activityBusy"
                         >
                             Submit answers
                         </button>
@@ -405,7 +412,7 @@
                             {{quizResult.attempt.attempt_number}}
                         </div>
                     </section>
-                    <section class="lm-assignment-box" v-for="rule in current.assignmentRules">
+                    <section class="lm-assignment-box" v-for="rule in current.assignmentRules" v-if="sectionIs('assignment',rule.id)">
                         <span class="lm-eyebrow" style="color: #0c715d">Assignment</span>
                         <h3>
                             {{rule.assignment ? rule.assignment.title : 'Required assignment #'+rule.assignment_id}}
@@ -450,24 +457,28 @@
                             <label
                                 >Written response<textarea
                                     v-model="assignmentForm.content"
+                                    v-bind:disabled="activityBusy"
                                 ></textarea></label
                             ><label
                                 >Upload permitted files<input
                                     type="file"
                                     multiple
+                                    v-bind:disabled="activityBusy"
                                     v-on:change="chooseAssignmentFiles($event,rule)"
                             /></label>
                             <div class="lm-muted" v-for="file in assignmentFiles">
                                 {{file.name}} · {{file.size}} bytes
                             </div>
+                            <p class="lm-muted">Written drafts are saved automatically. Selected files stay available between sections; reselect them after refreshing if you have not submitted them.</p>
                             <label
                                 >Optional external HTTPS link<input
                                     v-model="assignmentForm.file_url"
+                                    v-bind:disabled="activityBusy"
                                     placeholder="https://..." /></label
                             ><button
                                 class="lm-btn lm-btn-primary"
                                 v-on:click="submitAssignment(rule)"
-                                v-bind:disabled="uploading"
+                                v-bind:disabled="uploading||activityBusy"
                             >
                                 <span class="glyphicon glyphicon-upload"></span>
                                 {{uploading?'Uploading…':'Submit assignment'}}
@@ -475,22 +486,12 @@
                         </div>
                     </section>
                 </div>
-                <nav class="lm-card-head lm-lesson-navigation" aria-label="Lesson navigation">
-                    <button
-                        type="button"
-                        class="lm-btn lm-btn-ghost"
-                        v-on:click="previous"
-                        v-bind:disabled="!canPrevious()"
-                    >
-                        Previous</button
-                    ><button
-                        type="button"
-                        class="lm-btn lm-btn-primary"
-                        v-on:click="next"
-                        v-bind:disabled="!canNext()"
-                    >
-                        Next lesson
-                    </button>
+<nav class="lm-card-head lm-lesson-navigation lm-section-navigation" aria-label="Section navigation">
+                    <span class="lm-save-status" role="status">{{saveStatus}}</span>
+                    <div class="lm-section-buttons">
+                        <button type="button" class="lm-btn lm-btn-ghost" v-on:click="sectionBack" v-bind:disabled="sectionIndex===0||sectionBusy||activityBusy||uploading||!!busyLesson">Back</button>
+                        <button type="button" class="lm-btn lm-btn-primary" v-on:click="sectionNext" v-bind:disabled="sectionBusy||activityBusy||uploading||!!busyLesson">{{sectionBusy?'Saving…':sectionNextLabel()}}</button>
+                    </div>
                 </nav>
             </main>
         </div>
