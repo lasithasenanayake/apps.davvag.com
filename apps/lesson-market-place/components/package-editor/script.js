@@ -1,13 +1,13 @@
 WEBDOCK.component().register(function(exports) {
     'use strict';
     var api, host, d= {
-        busy: false, error: '', info: '', id: 0, revision: 0, status: 'draft', preview: false, savedDescription: '', products: [], cohorts: [], lessons: [], pages: [], pageSlug: '', pageTitle: '', pageLink: '', lessonOffset: 0, productOffset: 0, form: {
+        busy: false, error: '', info: '', id: 0, revision: 0, status: 'draft', preview: false, accessReview: null, accessProcessed: 0, accessAdded: 0, extending: false, savedDescription: '', products: [], cohorts: [], lessons: [], pages: [], pageSlug: '', pageTitle: '', pageLink: '', lessonOffset: 0, productOffset: 0, form: {
             slug: '', name: '', summary: '', description: '', cover_image: '', outcomes: '', audience: '', prerequisites: '', product_id: 0, class_grade_id: 0, lesson_ids: [], pricing_mode: 'free', credit_price: 0, approval_required: false
         }
     };
     exports.vue= {
         data: d, methods: {
-            save: save, publish: publish, setStatus: setStatus, load: load, toggle: toggle, move: move, createProduct: createProduct, upload: upload, rich: rich, sync: sync, showPreview: showPreview, loadPages: loadPages, place: place, moreLessons: moreLessons, moreProducts: moreProducts, lessonAllowed: lessonAllowed
+            save: save, publish: publish, reviewAccess: reviewAccess, extendAccess: extendAccess, setStatus: setStatus, load: load, toggle: toggle, move: move, createProduct: createProduct, upload: upload, rich: rich, sync: sync, showPreview: showPreview, loadPages: loadPages, place: place, moreLessons: moreLessons, moreProducts: moreProducts, lessonAllowed: lessonAllowed
         }
         , onReady: function(s, context) {
             api=exports.getComponent('marketplace-api');
@@ -16,7 +16,7 @@ WEBDOCK.component().register(function(exports) {
             load();
         }
     };
-    function call(name, payload, done) {
+    function call(name, payload, done, failed) {
         if(d.busy)return;
         d.busy=true;
         d.error='';
@@ -24,6 +24,7 @@ WEBDOCK.component().register(function(exports) {
             d.busy=false;
             if(!r.success) {
                 d.error=typeof r.result==='string'?r.result: (r.message||r.result&&r.result.message||'Request failed.');
+                if(failed)failed();
                 return;
             }
             done(r.result);
@@ -31,6 +32,7 @@ WEBDOCK.component().register(function(exports) {
         ).error(function() {
             d.busy=false;
             d.error='Connection interrupted. Reload before retrying a publication or decision.';
+            if(failed)failed();
         }
         );
     }
@@ -39,6 +41,7 @@ WEBDOCK.component().register(function(exports) {
         return root && root.querySelector?root.querySelector('[data-lmp-editor]'): document.querySelector('[data-lmp-editor]');
     }
     function load() {
+        d.accessReview=null;
         if(d.id)call('AdminPackage', {
             id: d.id
         }
@@ -141,6 +144,39 @@ WEBDOCK.component().register(function(exports) {
             load();
         }
         );
+    }
+    function reviewAccess() {
+        d.accessReview=null;
+        d.accessProcessed=0;
+        d.accessAdded=0;
+        d.info='';
+        call('ExtendPackageAccess', { id: d.id, preview: true }, function(review) {
+            d.accessReview=review;
+        });
+    }
+    function extendAccess() {
+        var review=d.accessReview;
+        if(d.busy || d.extending || !review || !review.active_enrolments)return;
+        d.extending=true;
+        d.accessProcessed=0;
+        d.accessAdded=0;
+        d.info='';
+        function failed() {
+            d.extending=false;
+            d.accessReview=null;
+            d.error+=' Review access and retry to finish any remaining learners. Lessons already granted are kept.';
+        }
+        function batch(after) {
+            call('ExtendPackageAccess', { id: d.id, version_id: review.version_id, through_id: review.through_id, after_id: after }, function(result) {
+                d.accessProcessed+=result.processed;
+                d.accessAdded+=result.added_grants;
+                if(result.has_more)return batch(result.after_id);
+                d.extending=false;
+                d.accessReview=null;
+                d.info='Lesson access updated for '+d.accessProcessed+' active enrolments. Added '+d.accessAdded+' new lesson grants. Learners can reload My Learning to see their lessons.';
+            }, failed);
+        }
+        batch(0);
     }
     function setStatus(value) {
         call('SetPackageStatus', {

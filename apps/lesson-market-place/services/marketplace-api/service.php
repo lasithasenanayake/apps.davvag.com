@@ -179,6 +179,60 @@ class MarketplaceApi
         $this->data->update('lmp_package',$package,['status'=>'published','published_version_id'=>(int)$version,'name'=>$draft->name,'published_at'=>$now,'updated_at'=>$now]);
         return ['id'=>$id,'version_id'=>$version,'status'=>'published'];
     },true,true); }
+    public function postExtendPackageAccess($req,$res) { return $this->call($req,$res,function($body) {
+        $this->only($body,['id','preview','version_id','through_id','after_id']);
+        $package=$this->manage($this->packageById($this->id($body)));
+        if ($package->status!=='published') throw new MarketplaceException('Publish the package before extending lesson access.');
+        $version=(int)$package->published_version_id;
+        $preview=MarketplaceRules::boolean($body->preview ?? false);
+        if (!$preview && $this->id($body,'version_id')!==$version) throw new MarketplaceException('The published package changed. Review its lessons before trying again.');
+        $terms=$this->terms($package);
+        if (!$terms) throw new MarketplaceException('Published package lessons are unavailable.');
+        // Recheck lesson ownership, publication, availability, and prerequisite coverage.
+        $this->catalog->validateDraft($terms);
+        $this->catalog->deliverable($terms);
+        $conditions=[['column'=>'package_id','operator'=>'=','value'=>(int)$package->id],['column'=>'status','operator'=>'=','value'=>'active']];
+        if ($preview) {
+            $enrolments=$this->data->query('lmp_enrolment',$conditions,[['column'=>'id','direction'=>'DESC']],1,0,false);
+            return ['version_id'=>$version,'through_id'=>$enrolments->result ? (int)$enrolments->result[0]->id : 0,'active_enrolments'=>(int)$enrolments->numberOfRecords,'lessons'=>$terms->lessons];
+        }
+        $through=MarketplaceRules::integer($body->through_id ?? 0,'Last enrolment',0);
+        $after=MarketplaceRules::integer($body->after_id ?? 0,'Last processed enrolment',0);
+        $conditions[]=['column'=>'id','operator'=>'>','value'=>$after];
+        $conditions[]=['column'=>'id','operator'=>'<=','value'=>$through];
+        // A cursor avoids skipping learners when other enrolments change state mid-run.
+        $enrolments=$this->data->rows('lmp_enrolment',$conditions,[['column'=>'id','direction'=>'ASC']],10,0,false);
+        $added=0; $updated=0; $now=date('Y-m-d H:i:s');
+        foreach ($enrolments as $enrolment) {
+            $attempt=$this->data->byId('lmp_attempt',(int)$enrolment->current_attempt_id,'id',false);
+            if (!$attempt || $attempt->status!=='active' || (int)$attempt->enrolment_id!==(int)$enrolment->id) throw new MarketplaceException('An active enrolment has inconsistent request data. Ask an administrator to review it.');
+            $count=0;
+            foreach ($terms->lessons as $lesson) {
+                $key=[['column'=>'enrolment_id','operator'=>'=','value'=>(int)$enrolment->id],['column'=>'lesson_id','operator'=>'=','value'=>(int)$lesson->id]];
+                // Query by the unique pair so even packages extended many times stay bounded.
+                $existing=$this->data->one('lmp_grant',$key,[],false);
+                if ($existing) continue;
+                try {
+                    $this->data->insert('lmp_grant',[
+                        'enrolment_id'=>(int)$enrolment->id,'attempt_id'=>(int)$attempt->id,'version_id'=>$version,
+                        'profile_id'=>(int)$enrolment->profile_id,'lesson_id'=>(int)$lesson->id,
+                        'course_id'=>(int)$lesson->course_id,'subject_id'=>(int)$lesson->subject_id,'status'=>'active','created_at'=>$now
+                    ]);
+                    $count++;
+                } catch (\Throwable $error) {
+                    // The unique grant index makes retries and simultaneous staff runs safe.
+                    if (!$this->data->one('lmp_grant',$key,[],false)) throw $error;
+                }
+            }
+            if ($count) {
+                $this->data->insert('lmp_audit',['enrolment_id'=>(int)$enrolment->id,'attempt_id'=>(int)$attempt->id,'actor_profile_id'=>$this->profile,'previous_state'=>'active','new_state'=>'active','reason'=>'Added '.$count.' lesson grants from published package version #'.$version.'.','created_at'=>$now]);
+                $updated++; $added+=$count;
+            }
+            $after=(int)$enrolment->id;
+        }
+        return ['processed'=>count($enrolments),'updated_enrolments'=>$updated,'added_grants'=>$added,'after_id'=>$after,'has_more'=>count($enrolments)===10 && $after<$through];
+    },true,true); }
+
     public function postSetPackageStatus($req,$res) { return $this->call($req,$res,function($body) {
         $id=$this->id($body); $status=$body->status ?? ''; if(!in_array($status,['unpublished','archived'],true)) throw new MarketplaceException('Use Publish to publish a validated draft.');
         $package=$this->manage($this->packageById($id)); if($package->status==='archived') throw new MarketplaceException('Package is already archived.');

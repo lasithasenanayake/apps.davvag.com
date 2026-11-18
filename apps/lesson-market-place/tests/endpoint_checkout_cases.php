@@ -51,6 +51,8 @@ $paidOrder=$checkout->reconcile($order->id,5);check($paidOrder->order_status==='
 $expired=$payment->createOrder(5,$topup,'checkout-expired');$checkout->start(5,$expired->id,$return);$sessions['cs_test_Fixture'.$expired->id]->status='expired';$expiredState=$checkout->reconcile($expired->id,5);check($expiredState->provider_status==='EXPIRED' && $ledger->summary(5)->availableBalance===25,'expired checkout grants no additional credits');
 $admin->query('ALTER TABLE lmp_audit DROP COLUMN reason');\lesson_market_place\MarketplaceSchema::ensure($db);\lesson_market_place\MarketplaceSchema::ensure($db);check((bool)$db->one("SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='lmp_audit' AND column_name='reason'"),'repeatable migration restores missing nullable field without losing rows');
 
+require __DIR__.'/access_extension_cases.php';
+
 // CMS writes stay under this isolated test tenant, never the active site's pages.
 define('GROUPID','sysadmin');Profile::$id=99;
 $cmsSlug='lmp-fixture-'.substr(DATASTORE_DOMAIN,-16);

@@ -127,6 +127,21 @@
         <button type="button" @click="showPreview">{{preview?'Close preview':'Preview draft'}}</button>
     </form>
 
+    <section v-if="id" class="lmp-panel">
+        <h2>New lessons for existing enrollees</h2>
+        <p>Add lessons to this package, save the draft, and publish it. Then use this option to give existing active enrollees any published package lessons they are missing, at no extra charge.</p>
+        <button type="button" :disabled="busy||extending||status!=='published'" @click="reviewAccess">Review access update</button>
+        <div v-if="accessReview">
+            <p>This will give {{accessReview.active_enrolments}} active enrollees access to all {{accessReview.lessons.length}} lessons below. Their existing lessons and learning progress are kept.</p>
+            <ul>
+                <li v-for="lesson in accessReview.lessons" :key="lesson.id">{{lesson.title}}</li>
+            </ul>
+            <p>Pending and cancelled enrolments are excluded. Normal lesson progression still applies. Repeat this update whenever you publish more lessons.</p>
+            <button type="button" class="lmp-primary" :disabled="busy||extending||!accessReview.active_enrolments" @click="extendAccess">Give published lessons to existing enrollees</button>
+        </div>
+        <p v-if="extending" role="status">Updating access: {{accessProcessed}} enrolments processed, {{accessAdded}} lesson grants added.</p>
+    </section>
+
     <article v-if="preview" class="lmp-panel lmp-content">
         <h2>{{form.name}}</h2>
         <p>{{form.summary}}</p>

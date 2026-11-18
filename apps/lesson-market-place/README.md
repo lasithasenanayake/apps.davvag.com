@@ -61,6 +61,14 @@ Save changes in the package editor, then choose **Publish saved draft** to make 
 
 For an existing active or pending request, `terms`, `version_id` and `attempt.terms` retain the accepted snapshot. Publishing a new description never changes that request's price or included lessons. For an unpublished or archived package, the card falls back to the accepted details. Existing clients without `details` support continue to receive the original `terms` contract.
 
+## Give new lessons to existing enrollees
+
+In the package editor, select the additional lessons, **Save draft**, then **Publish saved draft**. Under **New lessons for existing enrollees**, choose **Review access update** to review the published lesson list and active enrollee count, then **Give published lessons to existing enrollees**.
+
+This optional staff action adds missing grants for the reviewed package's published lessons to all its current active enrolments. It processes learners in batches, can safely be retried after an interruption, and records staff audit entries. It does not charge credits, remove existing lessons, alter accepted enrolment terms, or reset learning progress. Pending, unpaid, and cancelled enrolments are excluded; availability and normal lesson progression still apply. Repeat the action after publishing more lessons. Publishing by itself continues to preserve original package access.
+
+Deploy the updated app and rerun `bin/migrate.php` to install the `ExtendPackageAccess` permission for staff and teachers. Package owners can update their own packages; administrators can update all packages.
+
 ## CMS placement
 
 In the package editor, load or name a CMS page and choose **Add package component**. A new page is saved as a draft and must be published in CMS settings. The supported embed is:
