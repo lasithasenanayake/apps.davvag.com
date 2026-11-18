@@ -1,0 +1,19 @@
+{
+  "name": "circle-style",
+  "author": "DAVVAG",
+  "version": "1.0.0",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ],
+    "css": [
+      {
+        "type": "css",
+        "location": "circle.css"
+      }
+    ]
+  }
+}

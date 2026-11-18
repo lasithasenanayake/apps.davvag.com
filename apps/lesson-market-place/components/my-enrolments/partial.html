@@ -31,7 +31,7 @@
 
     <div class="lmp-row">
         <button :disabled="busy||offset===0" @click="page(-1)">Previous</button>
-        <span>{{offset+1}}–{{Math.min(offset+20,total)}} of {{total}}</span>
+        <span>{{total?offset+1:0}}–{{Math.min(offset+20,total)}} of {{total}}</span>
         <button :disabled="busy||offset+20>=total" @click="page(1)">Next</button>
     </div>
 </section>

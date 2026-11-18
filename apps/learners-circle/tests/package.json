@@ -1,0 +1,6 @@
+{
+  "name": "learners-circle-tests",
+  "private": true,
+  "scripts": { "test": "node --test *.test.cjs" },
+  "devDependencies": { "jsdom": "31.0.1" }
+}

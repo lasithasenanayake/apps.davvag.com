@@ -1,0 +1,79 @@
+{
+  "components": {
+    "workspace": {
+      "type": "component",
+      "location": "components"
+    },
+    "circle-style": {
+      "type": "component",
+      "location": "components"
+    }
+  },
+  "description": {
+    "title": "Learners Circle",
+    "author": "DAVVAG",
+    "version": "1.0.0",
+    "icon": "appicon.svg"
+  },
+  "tags": [
+    "showincms",
+    "showindock"
+  ],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "workspace",
+      "onLoad": [
+        "circle-style"
+      ],
+      "routes": {
+        "partials": {
+          "/": "workspace",
+          "/dashboard": "workspace",
+          "/learn": "workspace",
+          "/my-enrolments": "workspace",
+          "/catalog": "workspace",
+          "/package": "workspace"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {
+          "name": "Dashboard",
+          "path": "dashboard"
+        },
+        {
+          "name": "My learning",
+          "path": "learn"
+        },
+        {
+          "name": "My enrolments",
+          "path": "my-enrolments"
+        },
+        {
+          "name": "Explore packages",
+          "path": "catalog"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": [
+      "lesson-manager",
+      "lesson-market-place",
+      "davvag-tools",
+      "userapp"
+    ],
+    "schemas": [],
+    "workflows": [],
+    "plugins": {
+      "global": [
+        "sossdata"
+      ],
+      "local": []
+    },
+    "php-extensions": [
+      "json"
+    ]
+  }
+}

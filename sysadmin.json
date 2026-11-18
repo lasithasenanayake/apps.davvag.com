@@ -233,6 +233,9 @@
     },
     "lesson-market-place": {
       "version": "latest"
+    },
+    "learners-circle": {
+      "version": "latest"
     }
   },
   "webdock": {

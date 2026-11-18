@@ -2,7 +2,7 @@
   "name": "api",
   "description": "Lesson Manager service handlers",
   "author": "DAVVAG",
-  "version": "2.5",
+  "version": "2.6",
   "resources": {
     "files": [
       {
@@ -175,6 +175,9 @@
         "method": "POST"
       },
       "SaveLearningPosition": {
+        "method": "POST"
+      },
+      "LearnerOverview": {
         "method": "POST"
       }
     }

@@ -48,6 +48,19 @@ class MarketplaceApi
     public function postCatalog($req,$res) { return $this->call($req,$res,function($body) {
         [$limit,$offset]=$this->page($body); $search=MarketplaceRules::text($body->search ?? '','Search',100);
         $conditions=[['column'=>'status','operator'=>'=','value'=>'published']]; if ($search!=='') $conditions[]=['column'=>'name','operator'=>'LIKE','value'=>'%'.$search.'%'];
+        if(MarketplaceRules::boolean($body->exclude_enrolled ?? false)) {
+            if($this->profile<1)throw new MarketplaceException('Sign in to discover packages you have not enrolled in.');
+            $excluded=[];$offsetEnrolments=0;
+            do {
+                $enrolments=$this->data->rows('lmp_enrolment',[
+                    ['column'=>'profile_id','operator'=>'=','value'=>$this->profile],
+                    ['column'=>'status','operator'=>'IN','value'=>['active','pending_approval','awaiting_payment']]
+                ],[['column'=>'id','direction'=>'ASC']],1000,$offsetEnrolments);
+                foreach($enrolments as $enrolment)$excluded[(int)$enrolment->package_id]=true;
+                $offsetEnrolments+=count($enrolments);
+            }while(count($enrolments)===1000);
+            if($excluded)$conditions[]=['column'=>'id','operator'=>'NOT IN','value'=>array_keys($excluded)];
+        }
         $result=$this->data->query('lmp_package',$conditions,[['column'=>'id','direction'=>'DESC']],$limit,$offset);
         $items=[]; foreach ($result->result as $package) { $terms=$this->terms($package); if (!$terms) continue; $items[]=['id'=>(int)$package->id,'slug'=>$package->slug,'version_id'=>(int)$package->published_version_id,'name'=>$terms->name,'summary'=>$terms->summary,'cover_image'=>$terms->cover_image,'credit_price'=>(int)$terms->credit_price,'approval_required'=>(bool)$terms->approval_required,'lesson_count'=>count($terms->lesson_ids)]; }
         return ['items'=>$items,'total'=>(int)$result->numberOfRecords,'staff'=>$this->staff];

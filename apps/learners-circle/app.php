@@ -1,0 +1,1 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Learners Circle</title></head><body><div webdock-component="workspace"></div><script src="/lib/jquery.js"></script><script src="/lib/webdock.js" webdockapp="learners-circle"></script></body></html>

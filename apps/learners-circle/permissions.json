@@ -1,0 +1,25 @@
+{
+  "lesson-manager": {
+    "api": [
+      "LearnerOverview",
+      "StudentCourses",
+      "LearningCourse",
+      "StartLesson",
+      "SaveLearningPosition",
+      "CompleteActivity",
+      "StartQuiz",
+      "SubmitQuiz",
+      "SubmitAssignment"
+    ]
+  },
+  "lesson-market-place": {
+    "marketplace-api": [
+      "Catalog",
+      "Package",
+      "MyEnrolments",
+      "RequestEnrolment",
+      "ConfirmEnrolment",
+      "CancelEnrolment"
+    ]
+  }
+}

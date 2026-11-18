@@ -9,6 +9,7 @@ WEBDOCK.component().register(function (exports) {
         quizStates = {},
         assignmentStates = {},
         selectedAssignmentFiles = [];
+    var learningRoute = '#/app/lesson-manager/learn';
     // Reactive state used by partial.html.
     var data = {
         courses: [],
@@ -81,12 +82,18 @@ WEBDOCK.component().register(function (exports) {
             saveDraft: saveDraft,
             reviewSection: reviewSection
         },
-        onReady: init
+        onReady: init,
+        beforeDestroy: function () {
+            if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+            if (draftTimer) { clearTimeout(draftTimer); draftTimer = null; }
+            if (data.current) persistPosition();
+        }
     };
     exports.onReady = function () {};
 
     // Connect framework services and load the initial page data.
     function init(scope, context) {
+        learningRoute = /^#\/app\/learners-circle(?:\/|\?|$)/.test(location.hash) ? '#/app/learners-circle/learn' : '#/app/lesson-manager/learn';
         learningHost = (context && context.renderDiv) || context || exports.renderDiv;
         data.errors = [];
         data.info = [];
@@ -317,7 +324,7 @@ WEBDOCK.component().register(function (exports) {
         enterSection();
         persistPosition();
         // Refresh retains the selected course and subject without overriding the server cursor.
-        if (window.history && window.history.replaceState) window.history.replaceState(null, '', '#/app/lesson-manager/learn?course_id=' + encodeURIComponent(data.courseId) + '&subject_id=' + encodeURIComponent(data.subjectId));
+        if (window.history && window.history.replaceState) window.history.replaceState(null, '', learningRoute + '?course_id=' + encodeURIComponent(data.courseId) + '&subject_id=' + encodeURIComponent(data.subjectId));
     }
 
     function decode(value, fallback) {
@@ -773,6 +780,7 @@ WEBDOCK.component().register(function (exports) {
     }
 
     function go(p) {
+        if (learningRoute.indexOf('learners-circle') !== -1) { location.hash = '#/app/learners-circle/' + p; return; }
         if (router && router.appNavigate) router.appNavigate('/' + p);
         else location.hash = '#/app/lesson-manager/' + p;
     }

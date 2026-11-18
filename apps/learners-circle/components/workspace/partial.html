@@ -1,0 +1,55 @@
+<section class="lc" aria-label="Learners Circle">
+    <header class="lc-header">
+        <a class="lc-brand" href="#/app/learners-circle/" aria-label="Learners Circle dashboard">
+            <span class="lc-brand-icon" aria-hidden="true">◎</span>
+            <span>Learners Circle<small>A little progress, every day.</small></span>
+        </a>
+        <nav class="lc-nav" aria-label="Learner navigation">
+            <a href="#/app/learners-circle/" :class="{active:active==='dashboard'}" :aria-current="active==='dashboard'?'page':null">Dashboard</a>
+            <a href="#/app/learners-circle/learn" :class="{active:active==='learn'}" :aria-current="active==='learn'?'page':null">My learning</a>
+            <a href="#/app/learners-circle/my-enrolments" :class="{active:active==='my-enrolments'}" :aria-current="active==='my-enrolments'?'page':null">My enrolments</a>
+            <a href="#/app/learners-circle/catalog" :class="{active:active==='catalog'||active==='package'}" :aria-current="active==='catalog'?'page':null">Explore packages</a>
+        </nav>
+    </header>
+
+    <main class="lc-main">
+        <div class="lc-title-row">
+            <div><p class="lc-eyebrow">YOUR LEARNING SPACE</p><h1>{{pageTitle}}</h1><p v-if="active==='dashboard'&&overview" class="lc-subtitle">Welcome back, {{overview.learner.name}}. Pick up where you left off.</p></div>
+            <button v-if="active==='dashboard'" class="lc-button lc-button-light" :disabled="loading" @click="load">Refresh dashboard</button>
+        </div>
+        <p v-if="loading" class="lc-notice" role="status">Gathering your progress and results…</p>
+        <div v-if="error" class="lc-error" role="alert"><p>{{error}}</p><button class="lc-button lc-button-light" @click="load">Try again</button><button class="lc-button lc-button-light" @click="signIn">Sign in</button></div>
+
+        <template v-if="active==='dashboard'&&overview">
+            <div class="lc-stats">
+                <article class="lc-stat"><span>Your courses</span><strong>{{number(overview.stats.courses)}}</strong><small>Ready when you are</small></article>
+                <article class="lc-stat"><span>Lessons completed</span><strong>{{number(overview.stats.completed_lessons)}}<em> / {{number(overview.stats.total_lessons)}}</em></strong><small>Every lesson moves you forward</small></article>
+                <article class="lc-stat lc-stat-progress"><span>Overall progress</span><strong>{{number(overview.stats.completion_percentage)}}<em>%</em></strong><div class="lc-progress" role="progressbar" aria-label="Overall lesson progress" :aria-valuenow="bar(overview.stats.completion_percentage)" aria-valuemin="0" aria-valuemax="100"><i :style="{width:bar(overview.stats.completion_percentage)+'%'}"></i></div></article>
+                <article class="lc-stat"><span>Marks performance</span><strong>{{overview.stats.maximum_marks?number(overview.stats.marks_percentage)+'%':'—'}}</strong><small>{{overview.stats.maximum_marks?number(overview.stats.earned_marks)+' of '+number(overview.stats.maximum_marks)+' assessed marks':'Your results will appear after marking'}}</small></article>
+            </div>
+
+            <section class="lc-section" aria-label="Course progress">
+                <div class="lc-section-heading"><div><p class="lc-eyebrow">KEEP YOUR MOMENTUM</p><h2>Continue learning</h2></div><a href="#/app/learners-circle/learn">All my learning <span aria-hidden="true">↗</span></a></div>
+                <div v-if="!overview.courses.length" class="lc-empty"><span aria-hidden="true">✦</span><h3>Your next chapter starts here</h3><p>Enrol in a lesson package to start learning. Your progress and results will appear here.</p><a class="lc-button" href="#/app/learners-circle/catalog">Explore lesson packages</a></div>
+                <div v-else class="lc-course-grid">
+                    <article class="lc-course" v-for="course in overview.courses" :key="course.id">
+                        <div class="lc-course-top"><span class="lc-course-code">{{course.code||'COURSE'}}</span><span class="lc-badge" :class="{complete:course.course_status==='completed'}">{{course.course_status==='completed'?'Completed':course.course_status==='in_progress'?'In progress':'Ready to start'}}</span></div>
+                        <h3>{{course.title}}</h3><p class="lc-teachers" v-if="course.teacher_names.length">With {{course.teacher_names.join(', ')}}</p>
+                        <div class="lc-progress-label"><span>{{course.completed_lessons}} of {{course.total_lessons}} lessons</span><strong>{{number(course.completion_percentage)}}%</strong></div>
+                        <div class="lc-progress" role="progressbar" :aria-label="course.title+' lesson progress'" :aria-valuenow="bar(course.completion_percentage)" aria-valuemin="0" aria-valuemax="100"><i :style="{width:bar(course.completion_percentage)+'%'}"></i></div>
+                        <div class="lc-course-result"><span>Assessed marks</span><strong>{{course.maximum_marks?number(course.total_marks)+' / '+number(course.maximum_marks)+' · '+number(course.marks_percentage)+'%':'Not graded yet'}}</strong></div>
+                        <div class="lc-pending" v-if="course.pending_quizzes||course.pending_assignments"><span v-if="course.pending_quizzes">{{course.pending_quizzes}} quizzes to pass</span><span v-if="course.pending_assignments">{{course.pending_assignments}} assignments to pass</span></div>
+                        <a :href="courseLink(course)" class="lc-button">{{course.course_status==='completed'?'Review lessons':'Continue learning'}} <span aria-hidden="true">→</span></a>
+                    </article>
+                </div>
+            </section>
+
+            <section class="lc-section lc-discover" aria-label="Packages not yet enrolled in"><div class="lc-section-heading"><div><p class="lc-eyebrow">MAKE ROOM FOR SOMETHING NEW</p><h2>Discover your next lesson package</h2><p class="lc-subtitle">Published packages you haven’t enrolled in yet.</p></div></div><div class="lc-embed lc-catalog" v-circle-content="'catalog'"></div></section>
+        </template>
+
+        <div v-if="active==='learn'" class="lc-embed" v-circle-content="'learn'"></div>
+        <div v-if="active==='my-enrolments'" class="lc-embed" v-circle-content="'enrolments'"></div>
+        <div v-if="active==='catalog'" class="lc-embed lc-catalog" v-circle-content="'catalog'"></div>
+        <div v-if="active==='package'" class="lc-embed" v-circle-content="'package'"></div>
+    </main>
+</section>

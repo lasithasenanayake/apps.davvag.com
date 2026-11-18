@@ -1,9 +1,33 @@
 {
   "apps": {
-    "davvag-cms-v7": {"version": "latest"},
-    "userapp": {"version": "latest"},
-    "davvag-shop": {"version": "latest"},
-    "lesson-market-place": {"version": "latest"}
+    "davvag-cms-v7": {
+      "version": "latest"
+    },
+    "userapp": {
+      "version": "latest"
+    },
+    "davvag-shop": {
+      "version": "latest"
+    },
+    "lesson-market-place": {
+      "version": "latest"
+    },
+    "learners-circle": {
+      "version": "latest"
+    },
+    "lesson-manager": {
+      "version": "latest"
+    },
+    "davvag-tools": {
+      "version": "latest"
+    }
   },
-  "webdock": {"events": {"onStartup": {"admin": "dock", "default": "davvag-cms-v7"}}}
+  "webdock": {
+    "events": {
+      "onStartup": {
+        "admin": "dock",
+        "default": "davvag-cms-v7"
+      }
+    }
+  }
 }

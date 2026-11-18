@@ -40,7 +40,7 @@
   "description": {
     "title": "Lesson Manager",
     "author": "DAVVAG",
-    "version": "2.7.1",
+    "version": "2.8.0",
     "icon": "appicon.svg"
   },
   "tags": [
@@ -137,8 +137,15 @@
       "lesson-manager/generate-quiz"
     ],
     "plugins": {
-        "local": ["profile"],
-        "global": ["auth","sossdata","davvag-flow","protected-media"]
+      "local": [
+        "profile"
+      ],
+      "global": [
+        "auth",
+        "sossdata",
+        "davvag-flow",
+        "protected-media"
+      ]
     },
     "php-extensions": [
       "curl",

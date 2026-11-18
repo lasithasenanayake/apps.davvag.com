@@ -389,6 +389,23 @@ class ApiService {
     }
 
     public function postStudentCourses($req, $res) { return $this->studentCourses($this->body($req),$res); }
+    public function postLearnerOverview($req, $res) {
+        $student=$this->currentProfile();
+        if(!$this->validProfile($student))return $this->error($res,"Sign in with an active learner profile to view your dashboard.");
+        $body=$this->body($req);
+        if(!is_object($body)||count(get_object_vars($body)))return $this->error($res,"The learner dashboard does not accept profile or course overrides.");
+        $courses=array();$completed=0;$total=0;$earned=0;$maximum=0;
+        // Staff viewing their learner dashboard also see only their own entitlements.
+        foreach($this->access()->courseIds($student->id) as $courseId){
+            $course=$this->byId($this->courseNs,$courseId);
+            if(!$course||$this->isDeleted($course))continue;
+            $summary=$this->courseLearningSummary($course,$student,null,true);
+            $next=$summary->current_lesson;
+            $courses[]=array("id"=>$course->id,"code"=>isset($course->code)?$course->code:"","title"=>isset($course->title)?$course->title:"Course","teacher_names"=>$summary->teacher_names,"total_lessons"=>$summary->total_lessons,"completed_lessons"=>$summary->completed_lessons,"completion_percentage"=>$summary->completion_percentage,"course_status"=>$summary->course_status,"pending_quizzes"=>$summary->pending_quizzes,"pending_assignments"=>$summary->pending_assignments,"total_marks"=>$summary->total_marks,"maximum_marks"=>$summary->maximum_marks,"marks_percentage"=>$summary->maximum_marks>0?$summary->marks_percentage:null,"current_lesson"=>$next?array("id"=>$next->id,"title"=>$next->title,"subject_id"=>$next->subject_id):null);
+            $completed+=$summary->completed_lessons;$total+=$summary->total_lessons;$earned+=$summary->total_marks;$maximum+=$summary->maximum_marks;
+        }
+        return array("learner"=>array("id"=>$student->id,"name"=>isset($student->name)?$student->name:"Learner"),"courses"=>$courses,"stats"=>array("courses"=>count($courses),"total_lessons"=>$total,"completed_lessons"=>$completed,"completion_percentage"=>LessonRules::completionPercent($completed,$total),"earned_marks"=>$earned,"maximum_marks"=>$maximum,"marks_percentage"=>$maximum>0?round(100*$earned/$maximum,1):null));
+    }
     public function postLearningCourse($req, $res) {
         $body = $this->body($req); if (empty($body->course_id)) return $this->error($res, "course_id is required.");
         $student = $this->requestedStudent($body); if(!$this->validProfile($student))return $this->error($res,"An active profile is required.");if (!$this->canAccessCourse($body->course_id, $student->id)) return $this->error($res, "This course is not assigned to you.");
@@ -605,16 +622,16 @@ class ApiService {
         return $out;
     }
 
-    private function courseLearningSummary($course, $student, $enrollment) {
+    private function courseLearningSummary($course, $student, $enrollment, $learnerOnly=false) {
         $courseLessons = $this->publishedRows($this->lessonNs, "course_id:" . intval($course->id)); $lessons = array();
-        foreach ($courseLessons as $courseLesson) if (!empty($courseLesson->subject_id) && $this->canAccessLesson($courseLesson,$student->id)) $lessons[] = $courseLesson;
+        foreach ($courseLessons as $courseLesson) if (!empty($courseLesson->subject_id) && ($learnerOnly?$this->access()->eligible($courseLesson,$student->id):$this->canAccessLesson($courseLesson,$student->id))) $lessons[] = $courseLesson;
         usort($lessons, array($this, "sortLessonsBySubject"));
         $progress = $this->rows($this->progressNs, "course_id:" . intval($course->id) . ",student_id:" . intval($student->id), "asc");
         $completed = 0; $quizPending = 0; $assignmentPending = 0; $current = null;
         foreach ($lessons as $lesson) { $p = $this->findIn($progress, "lesson_id", $lesson->id); if ($p && LessonRules::truthy($p->lesson_completed)) $completed++; elseif ($current === null) $current = $lesson; if (LessonRules::truthy(isset($lesson->require_quiz)?$lesson->require_quiz:false) && (!$p || !LessonRules::truthy($p->quiz_passed))) $quizPending++; if (LessonRules::truthy(isset($lesson->require_assignment)?$lesson->require_assignment:false) && (!$p || !LessonRules::truthy($p->assignment_passed))) $assignmentPending++; }
         $totals=$this->courseMarkTotals($student->id,$course->id);$earned=$totals->earned;
         $teacherNames=array();foreach($this->rows($this->subjectNs,"course_id:".intval($course->id),"asc") as $subject)if(!empty($subject->teacher_id)){$teacher=$this->profile($subject->teacher_id);if(isset($teacher->name))$teacherNames[$teacher->name]=true;}
-        $item = clone $course; $item->enrollment = $enrollment;$item->student_id=isset($student->id)?$student->id:0;$item->student_name=isset($student->name)?$student->name:"Unknown learner"; $item->completion_percentage = LessonRules::completionPercent($completed, count($lessons)); $item->completed_lessons = $completed; $item->total_lessons = count($lessons); $item->current_lesson = $current; $item->pending_quizzes = $quizPending; $item->pending_assignments = $assignmentPending; $item->total_marks = $earned;$item->teacher_names=array_keys($teacherNames); $item->course_status = count($lessons)>0 && $completed===count($lessons)?"completed":($completed>0?"in_progress":"not_started"); return $item;
+        $item = clone $course; $item->enrollment = $enrollment;$item->student_id=isset($student->id)?$student->id:0;$item->student_name=isset($student->name)?$student->name:"Unknown learner"; $item->completion_percentage = LessonRules::completionPercent($completed, count($lessons)); $item->completed_lessons = $completed; $item->total_lessons = count($lessons); $item->current_lesson = $current; $item->pending_quizzes = $quizPending; $item->pending_assignments = $assignmentPending; $item->total_marks = $earned;$item->maximum_marks=$totals->maximum;$item->marks_percentage=$totals->maximum>0?round(100*$earned/$totals->maximum,1):null;$item->teacher_names=array_keys($teacherNames); $item->course_status = count($lessons)>0 && $completed===count($lessons)?"completed":($completed>0?"in_progress":"not_started"); return $item;
     }
 
     private function touchProgress($body, $activity, $res) { if (empty($body->lesson_id)) return $this->error($res, "lesson_id is required."); $lesson = $this->byId($this->lessonNs, $body->lesson_id); if (!$lesson||$this->isDeleted($lesson)) return $this->error($res, "Active lesson not found."); $student = $this->requestedStudent($body);if(!$this->validProfile($student))return $this->error($res,"An active profile is required."); if (!$this->canAccessLesson($lesson, $student->id)) return $this->error($res, "Course access denied."); if (!$this->lessonUnlockedFor($lesson, $student->id)) return $this->error($res, "Complete the previous lesson requirements first."); $progress = $this->progress($lesson->course_id, $lesson->id, $student); if ($activity === "viewed") { if (empty($progress->started_at)) $progress->started_at = date("Y-m-d H:i:s"); $progress->last_viewed_at = date("Y-m-d H:i:s"); } else $progress->{$activity} = "true"; return $this->finishProgress($lesson, $progress, $res); }

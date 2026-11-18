@@ -72,6 +72,14 @@ function harness(db, width = 1280, student = 7, hash = '#/app/lesson-manager/lea
 }
 async function open(app) {await settle(); if (!app.d.current) {app.m.openLesson(app.d.lessons[0]); await settle();}}
 
+test('Learners Circle keeps its route while opening lessons and returning to its dashboard', async () => {
+    const app = harness(store(), 390, 7, '#/app/learners-circle/learn?course_id=4&subject_id=5');
+    await open(app);
+    assert.match(app.location.hash, /^#\/app\/learners-circle\/learn\?course_id=4&subject_id=5$/);
+    app.m.go('dashboard');
+    assert.equal(app.location.hash, '#/app/learners-circle/dashboard');
+});
+
 for (const width of [320, 390, 768, 1280]) test(`forward/back and refresh resume at ${width}px`, async () => {
     const db = store(), app = harness(db, width); await open(app);
     assert.equal(app.m.sections().length, 9);

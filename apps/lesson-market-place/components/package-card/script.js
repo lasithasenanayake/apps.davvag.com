@@ -1,5 +1,6 @@
 WEBDOCK.component().register(function (exports) {
     'use strict';
+    var requestId=0;
     var api, slug, key, data = {
         busy: false, error: '', item: null, confirming: false, info: ''
     };
@@ -11,6 +12,11 @@ WEBDOCK.component().register(function (exports) {
             , label: label, learn: learn, details: details
         }
         , onReady: function(s, context) {
+            requestId++;
+            data.busy=false;
+            data.item=null;
+            data.confirming=false;
+            data.info='';
             api=exports.getComponent('marketplace-api');
             var input=context && context.data || exports.dataObject || {
             };
@@ -25,10 +31,11 @@ WEBDOCK.component().register(function (exports) {
             key=sessionStorage.getItem('lmp-request:'+slug) || ('lmp-'+Date.now()+'-'+Math.random().toString(36).slice(2));
             sessionStorage.setItem('lmp-request:'+slug, key);
             load();
-        }
+        }, beforeDestroy: function() { requestId++; data.busy=false; }
     };
     function invoke(name, payload, done) {
         if(data.busy)return;
+        var current=++requestId;
         data.busy=true;
         data.error='';
         if(!api || !api.services || !api.services[name]) {
@@ -37,6 +44,7 @@ WEBDOCK.component().register(function (exports) {
             return;
         }
         api.services[name](payload).then(function(r) {
+            if(current!==requestId)return;
             data.busy=false;
             if(!r.success) {
                 data.error=message(r);
@@ -45,6 +53,7 @@ WEBDOCK.component().register(function (exports) {
             done(r.result);
         }
         ).error(function() {
+            if(current!==requestId)return;
             data.busy=false;
             data.error='Connection interrupted. Retry to recover the same request.';
         }
@@ -77,7 +86,8 @@ WEBDOCK.component().register(function (exports) {
     }
     function learn() {
         var lessons=data.item.terms.lessons;
-        if(lessons.length)location.hash='#/app/lesson-manager/learn?course_id='+lessons[0].course_id+'&lesson_id='+lessons[0].id;
+        var app=/^#\/app\/learners-circle(?:\/|\?|$)/.test(location.hash)?'learners-circle':'lesson-manager';
+        if(lessons.length)location.hash='#/app/'+app+'/learn?course_id='+lessons[0].course_id+'&lesson_id='+lessons[0].id;
     }
     function label() {
         var x=data.item;
