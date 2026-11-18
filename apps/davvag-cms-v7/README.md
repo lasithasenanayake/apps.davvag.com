@@ -41,12 +41,18 @@ Declare source apps in the CMS installation's `dependencies.apps` when authored 
 
 Navigation cancels pending mounts and destroys embedded Vue instances when their section is removed. Unchanged HTML updates do not remount embeds.
 
-Versions: CMS `1.2`, dock-shell `0.5`, legacy partial-app `0.9`, davvag-tools `0.9`, downloader `0.4`. Deploy both changed apps and refresh existing browser tabs.
+## Refreshing access after sign-in
+
+User App calls `CMSV7.refreshSession(callback)` after a successful password login or existing-session check, before following its return route. Dock discards its permitted-app catalog and fetches the current user's list again, bypassing the previous browser-cached response. Responses started before the session changed cannot overwrite the refreshed catalog. Cookie changes also invalidate the catalog on its next use, and the legacy app route shares Dock's provider when available.
+
+The `cms-v7-session-changed` event refreshes the navigation bar's server session, launchers, role-based links, and notifications. Logout uses the same hook. Static component resources remain cached. A failed app-list refresh stays retryable and does not send the newly signed-in user into a stale permission error.
+
+Versions: CMS `1.3`, dock-shell `0.6`, legacy partial-app `1.0`, nav-bar `0.2`, User App `0.6`. Deploy the updated CMS and User App together. Existing browser tabs need to load this update once; subsequent sign-ins refresh access automatically.
 
 Regression checks from the framework root:
 
 ```text
-node --test tests/cms-html-embeds.test.cjs
+node --test tests/cms-html-embeds.test.cjs tests/cms-session-refresh.test.cjs
 ```
 
 Tests exercise loader and directive behavior with simulated DOM/Webdock callbacks. Live visual and authenticated backup-files verification requires a connected browser.

@@ -146,16 +146,22 @@ WEBDOCK.component().register(function(exports){
             logout:function(){
                 
                 authhandler.services.Logout().then(function(result){
+                    function finishLogout(){
+                        pInstance = exports.getShellComponent("soss-routes");
+                        pInstance.appNavigate("../login");
+                    }
                     if(result.result){
                         localStorage.clear();
                         //sessionStorage.clear();
-                        pInstance = exports.getShellComponent("soss-routes");
-                        pInstance.appNavigate("../login");
                     }else{
                         localStorage.clear();
                         sessionStorage.clear();
-                        pInstance = exports.getShellComponent("soss-routes");
-                        pInstance.appNavigate("../login");
+                    }
+                    if(window.CMSV7 && typeof window.CMSV7.refreshSession === "function"){
+                        window.CMSV7.refreshSession(finishLogout);
+                    }else{
+                        window.dispatchEvent(new CustomEvent("cms-v7-session-changed"));
+                        finishLogout();
                     }
                 }).error(function(result){
                     //$("#form-reset :input").prop("disabled", false);

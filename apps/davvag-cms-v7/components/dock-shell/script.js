@@ -13,6 +13,8 @@ WEBDOCK.component().register(function(exports){
     var heroTimers = [];
     var permittedApps = null;
     var permittedAppsLoading = false;
+    var permittedAppsSession = null;
+    var permittedAppsRevision = 0;
     var permittedAppsCallbacks = [];
     var appRenderRequestId = 0;
 
@@ -109,6 +111,17 @@ WEBDOCK.component().register(function(exports){
         };
         window.CMSV7.applyTheme = applyTheme;
         window.CMSV7.getApps = loadPermittedApps;
+        window.CMSV7.refreshSession = function(done){
+            invalidatePermittedApps();
+            // Prevent an anonymous app render already in flight from mounting after login.
+            appRenderRequestId++;
+            loadPermittedApps(function(apps, loaded){
+                window.dispatchEvent(new CustomEvent("cms-v7-session-changed"));
+                if(done){
+                    done(loaded);
+                }
+            });
+        };
         window.CMSV7.reload = function(){
             loadSite(navigate);
         };
@@ -330,7 +343,25 @@ WEBDOCK.component().register(function(exports){
         });
     }
 
+    function currentSessionKey(){
+        var match = (document.cookie || "").match(/(?:^|;\s*)securityToken=([^;]*)/);
+        return match ? match[1] : "";
+    }
+
+    function invalidatePermittedApps(){
+        permittedApps = null;
+        permittedAppsLoading = false;
+        permittedAppsSession = currentSessionKey();
+        permittedAppsRevision++;
+    }
+
     function loadPermittedApps(callback){
+        var session = currentSessionKey();
+        if(permittedAppsSession === null){
+            permittedAppsSession = session;
+        }else if(permittedAppsSession !== session){
+            invalidatePermittedApps();
+        }
         if(permittedApps){
             callback(permittedApps);
             return;
@@ -340,26 +371,39 @@ WEBDOCK.component().register(function(exports){
             return;
         }
         permittedAppsLoading = true;
+        var revision = permittedAppsRevision;
         if(!WEBDOCK.callRest){
-            finishPermittedAppsLoad(null);
+            finishPermittedAppsLoad(null, revision);
             return;
         }
-        WEBDOCK.callRest("components/object/apps?tags=showincms")
+        var url = "components/object/apps?tags=showincms";
+        if(revision){
+            url += "&session_revision=" + Date.now() + "-" + revision;
+        }
+        WEBDOCK.callRest(url)
             .success(function(data){
-                finishPermittedAppsLoad(data && data.success === true && data.result ? data.result : null);
+                finishPermittedAppsLoad(data && data.success === true && data.result ? data.result : null, revision);
             })
             .error(function(){
-                finishPermittedAppsLoad(null);
+                finishPermittedAppsLoad(null, revision);
             });
     }
 
-    function finishPermittedAppsLoad(apps){
+    function finishPermittedAppsLoad(apps, revision){
+        if(revision !== permittedAppsRevision){
+            return;
+        }
+        if(permittedAppsSession !== currentSessionKey()){
+            invalidatePermittedApps();
+            loadPermittedApps(function(){});
+            return;
+        }
         permittedApps = apps;
         permittedAppsLoading = false;
         var callbacks = permittedAppsCallbacks.slice();
         permittedAppsCallbacks = [];
         for(var i = 0; i < callbacks.length; i++){
-            callbacks[i](permittedApps || {});
+            callbacks[i](permittedApps || {}, apps !== null);
         }
     }
 

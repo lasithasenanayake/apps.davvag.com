@@ -31,20 +31,33 @@ WEBDOCK.component().register(function(exports){
         }else{*/
             var handler = exports.getComponent("login-handler");
             handler.services.LoginState().then(function(result){
-                if (result.result){
+                if (result.success && result.result && result.result.token){
                     //setCookie("authData", JSON.stringify(result),1);
                     // var passhash = CryptoJS.MD5(result.email);
                     // self.profileimage = "https://www.gravatar.com/avatar/" + passhash+"?s=200&r=pg&d=mm";
                    // bindData.loginData = result.;
                     localStorage.loginData = JSON.stringify(result.result);
                     localStorage.profile = JSON.stringify(result.result.profile);
-                    if(routeData.u){
-                        //scope.isBusy=false;
-                        location.href=unescape(routeData.u);
+                    function continueLogin(){
+                        if(routeData.u){
+                            location.href=unescape(routeData.u);
+                        }else{
+                            location.href="#/app/userapp/profile";
+                        }
+                    }
+                    if(window.CMSV7 && typeof window.CMSV7.refreshSession === "function"){
+                        scope.isBusy = true;
+                        window.CMSV7.refreshSession(function(loaded){
+                            scope.isBusy = false;
+                            if(loaded === false){
+                                location.href="#/app/userapp/login";
+                                return;
+                            }
+                            continueLogin();
+                        });
                     }else{
-                        
-                        location.href="#/app/userapp/profile";
-        
+                        window.dispatchEvent(new CustomEvent("cms-v7-session-changed"));
+                        continueLogin();
                     }
                 }else{
                     if(routeData.u)

@@ -21,6 +21,8 @@ WEBDOCK.component().register(function(exports){
         loadingAppError: false
     };
     var launcherRequestId = 0;
+    var sessionRequestId = 0;
+    var notificationRequestId = 0;
     var listenersBound = false;
 
     exports.vue = {
@@ -86,6 +88,7 @@ WEBDOCK.component().register(function(exports){
         }
         listenersBound = true;
         window.addEventListener("cms-v7-site-changed", refreshNavigation);
+        window.addEventListener("cms-v7-session-changed", refreshSessionNavigation);
         document.addEventListener("click", function(event){
             if(!closest(event.target, ".cms-v7-nav")){
                 closeMenu();
@@ -105,6 +108,22 @@ WEBDOCK.component().register(function(exports){
         loadLauncherNavigation();
     }
 
+    function refreshSessionNavigation(){
+        launcherRequestId++;
+        notificationRequestId++;
+        setUserData(null);
+        bindData.Notify = [];
+        bindData.navItems = [];
+        bindData.cta = null;
+        bindData.notificationLoading = false;
+        closeNavigation();
+        loadSession(function(){
+            applySiteNavigation();
+            loadLauncherNavigation();
+            loadNotifications();
+        });
+    }
+
     function loadSiteData(){
         var site = window.CMSV7 && window.CMSV7.getSite ? window.CMSV7.getSite() : {};
         if(site && site.name){
@@ -116,6 +135,7 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadSession(done){
+        var requestId = ++sessionRequestId;
         var handler = exports.getComponent("auth-handler");
         var token = getCookie("securityToken");
         if(!handler || !handler.services || !handler.services.Session || !token){
@@ -127,12 +147,18 @@ WEBDOCK.component().register(function(exports){
         }
         handler.services.Session(token)
             .then(function(result){
+                if(requestId !== sessionRequestId){
+                    return;
+                }
                 setUserData(result && result.result ? result.result : null);
                 if(done){
                     done();
                 }
             })
             .error(function(){
+                if(requestId !== sessionRequestId){
+                    return;
+                }
                 setUserData(null);
                 if(done){
                     done();
@@ -158,6 +184,7 @@ WEBDOCK.component().register(function(exports){
     }
 
     function loadNotifications(){
+        var requestId = ++notificationRequestId;
         var handler = exports.getComponent("auth-handler");
         if(!handler || !handler.services || !handler.services.Notification){
             bindData.Notify = [];
@@ -167,10 +194,16 @@ WEBDOCK.component().register(function(exports){
         bindData.notificationError = "";
         handler.services.Notification()
             .then(function(result){
+                if(requestId !== notificationRequestId){
+                    return;
+                }
                 bindData.Notify = result && result.result ? result.result : [];
                 bindData.notificationLoading = false;
             })
             .error(function(){
+                if(requestId !== notificationRequestId){
+                    return;
+                }
                 bindData.Notify = [];
                 bindData.notificationLoading = false;
                 bindData.notificationError = "Unable to load notifications.";

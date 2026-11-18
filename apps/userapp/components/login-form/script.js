@@ -2,6 +2,25 @@ WEBDOCK.component().register(function(exports){
     var scope;
     function resumeMarketplace(){var route=sessionStorage.getItem('lmp_signin_return');if(/^#\/app\/lesson-market-place\/(package\?slug=[a-z0-9-]+|my-enrolments)$/.test(route||'')){sessionStorage.removeItem('lmp_signin_return');location.href=location.pathname+route;return true;}return false;}
 
+    function refreshSession(done){
+        if(window.CMSV7 && typeof window.CMSV7.refreshSession === "function"){
+            scope.isBusy = true;
+            $("#form-signin :input").prop("disabled", true);
+            window.CMSV7.refreshSession(function(loaded){
+                scope.isBusy = false;
+                $("#form-signin :input").prop("disabled", false);
+                if(loaded === false){
+                    bindData.submitErrors = ["You are signed in, but app access could not be refreshed. Please try signing in again."];
+                    return;
+                }
+                done();
+            });
+        }else{
+            window.dispatchEvent(new CustomEvent("cms-v7-session-changed"));
+            done();
+        }
+    }
+
 
     var bindData = {
         profile: localStorage.profile ? JSON.parse(localStorage.profile) : {address:{gpspoint:"", city:""},address2:{},address3:{}},
@@ -88,15 +107,17 @@ WEBDOCK.component().register(function(exports){
             //handler.appNavigate(id ? "/uom?uomid=" + id : "/uom");
             var handler = exports.getComponent("login-handler");
             handler.services.LoginState().then(function(result){
-                if (result.result){
+                if (result.success && result.result && result.result.token){
                     localStorage.loginData = JSON.stringify(result.result);
                     localStorage.profile = JSON.stringify(result.result.profile);
-                    if(resumeMarketplace())return;
-                    if(sessionStorage.redirecturl){
-                        location.href=sessionStorage.redirecturl;
-                    }else{
-                        location.href="#/app/userapp/profile";
-                    }
+                    refreshSession(function(){
+                        if(resumeMarketplace())return;
+                        if(sessionStorage.redirecturl){
+                            location.href=sessionStorage.redirecturl;
+                        }else{
+                            location.href="#/app/userapp/profile";
+                        }
+                    });
                 }
             }).error(function(result){
                 localStorage.clear();
@@ -172,29 +193,28 @@ WEBDOCK.component().register(function(exports){
                         bindData.isLoggedIn = true;
                         $("#form-signin :input").prop("disabled", false);
                         if (result.profile){
+                            bindData.profile = result.profile;
                             scope.profile = result.profile;
                             localStorage.setItem("profile",JSON.stringify(bindData.profile));
                         }
                     
                     
-                        if(cb)
-                            cb();
-                        else
-                        {
-                            if(resumeMarketplace())return;
-                    if(sessionStorage.redirecturl){
-                                scope.isBusy=false;
-                                r=sessionStorage.redirecturl;
-                                sessionStorage.removeItem("redirecturl");
-                                location.href="?q="+encodeURI(r);
+                        refreshSession(function(){
+                            if(cb){
+                                cb();
                             }else{
-                                if(sessionStorage.blogheader){
+                                if(resumeMarketplace())return;
+                                if(sessionStorage.redirecturl){
+                                    var redirect = sessionStorage.redirecturl;
+                                    sessionStorage.removeItem("redirecturl");
+                                    location.href="?q="+encodeURI(redirect);
+                                }else if(sessionStorage.blogheader){
                                     location.href="?q="+encodeURI(JSON.parse(sessionStorage.blogheader).buttonuri);
                                 }else{
                                     location.href="?q="+encodeURI("/#/app/userapp/profile");
                                 }
                             }
-                        }
+                        });
                      
                 }else {    
                     $("#form-signin :input").prop("disabled", false);
