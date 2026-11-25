@@ -1,0 +1,54 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 64,
+        "isPrimary": true
+      }
+    },
+    {
+      "fieldName": "eventId",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 32
+      }
+    },
+    {
+      "fieldName": "kind",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 32
+      }
+    },
+    {
+      "fieldName": "scope",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 32
+      }
+    },
+    {
+      "fieldName": "keyValue",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 128
+      }
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "key_event",
+      "relationType": "many-to-one",
+      "targetEntity": "davvag_events_events",
+      "joinColumns": [
+        {
+          "sourceColumn": "eventId",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

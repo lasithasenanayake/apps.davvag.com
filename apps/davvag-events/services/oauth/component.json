@@ -1,0 +1,47 @@
+{
+  "name": "oauth",
+  "version": "1.1.1",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_events\\OAuthService",
+    "serviceNamespaces": [
+      "davvag_events_events",
+      "davvag_events_commit",
+      "davvag_events_drive_connections",
+      "davvag_events_connection_commit"
+    ],
+    "methods": {
+      "Status": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "Connect": {
+        "method": "POST"
+      },
+      "Callback": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "Disconnect": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

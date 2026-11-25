@@ -1,0 +1,216 @@
+{
+  "components": {
+    "dashboard-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "editor-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "guests-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "seating-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "greetings-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "media-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "ticketing-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "checkin-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "reports-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "settings-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "invitation-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "wall-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "upload-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "tickets-view": {
+      "type": "component",
+      "location": "components"
+    },
+    "event-style": {
+      "type": "component",
+      "location": "components"
+    },
+    "events": {
+      "type": "service",
+      "location": "services"
+    },
+    "guests": {
+      "type": "service",
+      "location": "services"
+    },
+    "public": {
+      "type": "service",
+      "location": "services"
+    },
+    "seating": {
+      "type": "service",
+      "location": "services"
+    },
+    "greetings": {
+      "type": "service",
+      "location": "services"
+    },
+    "media": {
+      "type": "service",
+      "location": "services"
+    },
+    "oauth": {
+      "type": "service",
+      "location": "services"
+    },
+    "sales": {
+      "type": "service",
+      "location": "services"
+    },
+    "webhook": {
+      "type": "service",
+      "location": "services"
+    },
+    "checkin": {
+      "type": "service",
+      "location": "services"
+    }
+  },
+  "description": {
+    "title": "DAVVAG Events",
+    "author": "DAVVAG",
+    "version": "1.1.1",
+    "icon": "appicon.svg"
+  },
+  "tags": [
+    "showincms",
+    "showindock"
+  ],
+  "configuration": {
+    "webdock": {
+      "startupComponent": "dashboard-view",
+      "onLoad": [
+        "event-style",
+        "events",
+        "guests",
+        "public",
+        "seating",
+        "greetings",
+        "media",
+        "oauth",
+        "sales",
+        "webhook",
+        "checkin"
+      ],
+      "routes": {
+        "partials": {
+          "/": "dashboard-view",
+          "/dashboard": "dashboard-view",
+          "/editor": "editor-view",
+          "/guests": "guests-view",
+          "/seating": "seating-view",
+          "/greetings": "greetings-view",
+          "/media": "media-view",
+          "/ticketing": "ticketing-view",
+          "/checkin": "checkin-view",
+          "/reports": "reports-view",
+          "/settings": "settings-view",
+          "/invitation": "invitation-view",
+          "/wall": "wall-view",
+          "/upload": "upload-view",
+          "/tickets": "tickets-view"
+        }
+      }
+    },
+    "dock": {
+      "subapps": [
+        {
+          "name": "Dashboard",
+          "path": "dashboard"
+        },
+        {
+          "name": "Editor",
+          "path": "editor"
+        },
+        {
+          "name": "Guests",
+          "path": "guests"
+        },
+        {
+          "name": "Seating",
+          "path": "seating"
+        },
+        {
+          "name": "Checkin",
+          "path": "checkin"
+        },
+        {
+          "name": "Reports",
+          "path": "reports"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "apps": [
+      "davvag-cms-v7"
+    ],
+    "schemas": [
+      "profile",
+      "usergroup_permission",
+      "davvag_events_events",
+      "davvag_events_keys",
+      "davvag_events_drive_connections",
+      "davvag_events_limits",
+      "davvag_events_commit",
+      "davvag_events_connection_commit",
+      "davvag_events_rate"
+    ],
+    "workflows": [],
+    "plugins": {
+      "local": [],
+      "global": [
+        "auth",
+        "sossdata",
+        "phpcache",
+        "notify"
+      ]
+    },
+    "php-extensions": [
+      "mysqli",
+      "mysqlnd",
+      "curl",
+      "openssl",
+      "fileinfo",
+      "mbstring",
+      "json",
+      "session",
+      "dom"
+    ]
+  }
+}

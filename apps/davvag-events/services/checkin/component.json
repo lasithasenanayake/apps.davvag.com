@@ -1,0 +1,43 @@
+{
+  "name": "checkin",
+  "version": "1.1.1",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_events\\CheckinService",
+    "serviceNamespaces": [
+      "davvag_events_events",
+      "davvag_events_commit"
+    ],
+    "methods": {
+      "Attendees": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "Scan": {
+        "method": "POST"
+      },
+      "IssueAdmission": {
+        "method": "POST"
+      },
+      "Manual": {
+        "method": "POST"
+      },
+      "Reverse": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

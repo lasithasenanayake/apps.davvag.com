@@ -1,0 +1,52 @@
+{
+  "serviceOnly": true,
+  "description": "Versioned event aggregate. All event-owned children commit atomically with uniqueness projections. See the app schema reference.",
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 32,
+        "isPrimary": true
+      }
+    },
+    {
+      "fieldName": "slug",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "ownerProfile",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "revision",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "state",
+      "dataType": "object",
+      "annotations": {
+        "maxLen": 1000000
+      }
+    }
+  ],
+  "relations": [
+    {
+      "relationName": "events_owner",
+      "relationType": "many-to-one",
+      "targetEntity": "profile",
+      "joinColumns": [
+        {
+          "sourceColumn": "ownerProfile",
+          "targetColumn": "id"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+#subject{You're invited: @title}#subject;
+#body{<p>Hello @name,</p><p>Your host has invited you to <strong>@title</strong>.</p><p><a href="@url" rel="noreferrer">Open your personal invitation</a></p><p>This link belongs to your invitation party. Please keep it private.</p>}#body;

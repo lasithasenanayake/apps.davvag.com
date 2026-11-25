@@ -1,0 +1,26 @@
+{
+  "name": "event-style",
+  "version": "1.1.0",
+  "resources": {
+    "js": [
+      {
+        "location": "qrcode.min.js"
+      },
+      {
+        "location": "events-ui.js"
+      }
+    ],
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ],
+    "css": [
+      {
+        "type": "css",
+        "location": "events.css"
+      }
+    ]
+  }
+}

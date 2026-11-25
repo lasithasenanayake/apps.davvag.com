@@ -1,0 +1,21 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 64,
+        "isPrimary": true
+      }
+    },
+    {
+      "fieldName": "hits",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "windowEnd",
+      "dataType": "long"
+    }
+  ]
+}

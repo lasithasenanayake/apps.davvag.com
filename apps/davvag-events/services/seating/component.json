@@ -1,0 +1,43 @@
+{
+  "name": "seating",
+  "version": "1.1.1",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_events\\SeatingService",
+    "serviceNamespaces": [
+      "davvag_events_events",
+      "davvag_events_commit"
+    ],
+    "methods": {
+      "Plan": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "SaveTable": {
+        "method": "POST"
+      },
+      "Assign": {
+        "method": "POST"
+      },
+      "AutoPreview": {
+        "method": "POST"
+      },
+      "AutoApply": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

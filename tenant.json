@@ -236,6 +236,9 @@
     },
     "learners-circle": {
       "version": "latest"
+    },
+    "davvag-events": {
+      "version": "latest"
     }
   },
   "webdock": {

@@ -1,0 +1,31 @@
+{
+  "serviceOnly": true,
+  "fields": [
+    {
+      "fieldName": "id",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 64,
+        "isPrimary": true
+      }
+    },
+    {
+      "fieldName": "ownerProfile",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 100
+      }
+    },
+    {
+      "fieldName": "revision",
+      "dataType": "int"
+    },
+    {
+      "fieldName": "state",
+      "dataType": "object",
+      "annotations": {
+        "maxLen": 1000000
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "serviceOnly": true,
+  "rawquery": {
+    "type": "sql",
+    "parameters": [
+      "id",
+      "owner",
+      "expected",
+      "state"
+    ],
+    "query": "CALL davvag_events_connection_commit_v1($id,$owner,$expected,$state)"
+  },
+  "fields": [
+    {
+      "fieldName": "status",
+      "dataType": "java.lang.String",
+      "annotations": {
+        "maxLen": 32
+      }
+    },
+    {
+      "fieldName": "revision",
+      "dataType": "int"
+    }
+  ]
+}

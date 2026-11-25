@@ -1,0 +1,22 @@
+{
+  "name": "greetings",
+  "version": "1.1.0",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      },
+      {
+        "type": "mainView",
+        "location": "partial.html"
+      }
+    ],
+    "css": [
+      {
+        "type": "css",
+        "location": "screen.css"
+      }
+    ]
+  }
+}

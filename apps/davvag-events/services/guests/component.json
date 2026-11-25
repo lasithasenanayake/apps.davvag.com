@@ -1,0 +1,57 @@
+{
+  "name": "guests",
+  "version": "1.1.1",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_events\\GuestService",
+    "serviceNamespaces": [
+      "davvag_events_events",
+      "davvag_events_commit"
+    ],
+    "methods": {
+      "Guests": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "AddParty": {
+        "method": "POST"
+      },
+      "Respond": {
+        "method": "POST"
+      },
+      "RotateInvitation": {
+        "method": "POST"
+      },
+      "PreviewImport": {
+        "method": "POST"
+      },
+      "ApplyImport": {
+        "method": "POST"
+      },
+      "Export": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "QueueInvitation": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

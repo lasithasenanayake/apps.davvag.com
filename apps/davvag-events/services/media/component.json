@@ -1,0 +1,39 @@
+{
+  "name": "media",
+  "version": "1.1.1",
+  "resources": {
+    "files": [
+      {
+        "type": "mainScript",
+        "location": "script.js"
+      }
+    ]
+  },
+  "serviceHandler": {
+    "file": "service.php",
+    "class": "davvag_events\\MediaService",
+    "serviceNamespaces": [
+      "davvag_events_events",
+      "davvag_events_commit",
+      "davvag_events_rate",
+      "davvag_events_drive_connections"
+    ],
+    "methods": {
+      "Queue": {
+        "method": "GET",
+        "parameters": [
+          "eventId",
+          "offset",
+          "name"
+        ]
+      },
+      "Upload": {
+        "method": "POST"
+      },
+      "Cancel": {
+        "method": "POST"
+      }
+    }
+  },
+  "transformers": {}
+}

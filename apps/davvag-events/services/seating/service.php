@@ -1,0 +1,12 @@
+<?php
+namespace davvag_events;
+
+require_once dirname(__DIR__,2).'/lib/bootstrap.php';
+
+final class SeatingService extends Service {
+    public function getPlan($req,$res) { return $this->run($req,$res,function($in){$e=Store::load($in['eventId']??'');Identity::authorize($e,Identity::actor(),'seating');return ['tables'=>$e['tables'],'assignments'=>$e['assignments'],'guests'=>array_map(function($g){return array_intersect_key($g,array_flip(['id','name','group','partyId','vip','rsvp','accessible']));},$e['guests']),'revision'=>$e['revision'],'layoutRevision'=>$e['layoutRevision']];}); }
+    public function postSaveTable($req,$res) { return $this->run($req,$res,function($in){$r=Store::mutate($in['eventId']??'',Identity::actor(),'seating',function(&$e)use($in){return Seating::saveTable($e,$in);},$in['revision']??-1);return ['table'=>$r['value'],'revision'=>$r['event']['revision'],'layoutRevision'=>$r['event']['layoutRevision']];},true); }
+    public function postAssign($req,$res) { return $this->run($req,$res,function($in){$r=Store::mutate($in['eventId']??'',Identity::actor(),'seating',function(&$e)use($in){return Seating::assign($e,$in);},$in['revision']??-1);return $r['value'];},true); }
+    public function postAutoPreview($req,$res) { return $this->run($req,$res,function($in){$e=Store::load($in['eventId']??'');$a=Identity::actor();Identity::authorize($e,$a,'seating');$p=Seating::plan($e,$in);$hash=hash('sha256',json_encode($p));$_SESSION['davvag_events_plan'][$e['id']]=['hash'=>$hash,'actor'=>$a['id'],'expires'=>time()+600,'split'=>!empty($in['allowSplit'])];$p['hash']=$hash;return $p;},true); }
+    public function postAutoApply($req,$res) { return $this->run($req,$res,function($in){$a=Identity::actor();$s=$_SESSION['davvag_events_plan'][$in['eventId']??'']??null;$r=Store::mutate($in['eventId']??'',$a,'seating',function(&$e)use($in,$s,$a){if(!$s||$s['expires']<time()||$s['actor']!==$a['id'])Support::fail('PREVIEW','Preview this seating plan again.',409);$p=Seating::plan($e,['allowSplit'=>$s['split']]);if(!hash_equals($s['hash'],hash('sha256',json_encode($p)))||!hash_equals($s['hash'],$in['hash']??''))Support::fail('CONFLICT','The preview is stale. Generate it again.',409);$e['assignments']=array_merge($e['assignments'],$p['assignments']);return ['assigned'=>count($p['assignments']),'unsatisfied'=>$p['unsatisfied']];},$in['revision']??-1);return $r['value'];},true); }
+}
