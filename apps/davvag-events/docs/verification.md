@@ -45,3 +45,26 @@ The active account had two linked primary profiles, which the original app incor
 ## 1.1.0 editor revision
 
 Details-first workflow, native date/time controls, separate design/colour choice, isolated animated card rendering and administrator versioned HTML/CSS library were added only inside the app. Twenty-six PHP date/template checks and thirteen JavaScript editor checks passed. Existing account records and event content were not changed by this update. See [editor/template guide](invitation-templates.md).
+
+
+## 1.2.0 seating revision
+
+Changes are confined to the installed davvag-events app. Add/edit popups support round, oval, square and rectangular numbered tables, plus numbered row plans. Named coloured sections and guest groups feed the visual layout, manual assignment and suggestion rules. Existing seat IDs and assignments survive edits. No live event content was rewritten during verification.
+
+Verified on 2026-11-25:
+
+- 36 isolated PHP seating checks: numbering, shapes, stable IDs, occupied removal, sections, row labels, bulk retries, group membership, section placement, partly seated groups, legacy tables, Unicode keys and aggregate integrity.
+- 17 JavaScript seating checks: popup defaults and payloads, revisions, closing/focus restoration, row setup, groups, geometry, occupied seats, assignment and Escape.
+- 22 service organization, 11 identity/session, 26 editor/date/template, 13 JavaScript editor-flow and existing Session Retry regression checks passed.
+- 14 route templates compiled and rendered as VNodes with installed Vue 2.0.3, including all seating popup states and table shapes. This does not verify browser layout.
+- 221 descriptor/resource/JSON/PHP/JavaScript checks passed.
+- Apache served 1.2.0 seating/style component descriptors and the updated seating HTML, script and stylesheet over HTTP.
+
+Tests used fictional in-memory seating records. The existing template regression test created and removed its own app-local temporary library files. No real guests were moved. Visual browser and device QA remains unverified because browser access was unavailable; interaction behavior was checked with the isolated JavaScript harness.
+
+
+## 1.2.1 plan viewport fix
+
+Removed the forced 1,100 px minimum SVG width and automatic intrinsic-height dependency. The canvas now has explicit dimensions within a tall responsive viewport. A case-preserving object binding supplies SVG viewBox/preserveAspectRatio even when the browser normalizes HTML attribute names. Fit bounds follow visible content and include rotated rows; dragging uses the fitted SVG scale and freezes the view while moving. Plan and side panels use the full workspace width. Fit and expanded-view controls reset zoom and preserve keyboard access.
+
+Twenty-three seating interaction checks and fourteen installed-Vue route renders passed, including SVG dimensions, fit binding, zoom in both dimensions, section fitting, rotated rows and Escape from expanded view. The 221 resource/descriptor/JSON/PHP/JavaScript checks passed. No backend or live event records changed. Browser layout remains visually unverified in this session.

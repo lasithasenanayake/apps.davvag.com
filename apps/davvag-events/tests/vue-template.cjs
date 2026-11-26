@@ -35,6 +35,19 @@ for(const [screen,entry] of Object.entries(manifest.components)){
         instance.form.templateId='wedding-v1';instance.form.templateVersion=1;
         for(const step of ['details','design','review']){instance.editorStep=step;instance.session.actor.admin=true;instance.templateBuilderOpen=true;const rendered=instance._render();if(!rendered||rendered.tag!=='section')throw Error('Editor step failed: '+step);}
     }
+    if(screen==='seating-view'){
+        instance.sections=[{id:'front',label:'Front',color:'#446688'}];
+        instance.tables=['round','oval','square','rectangle','theatre'].map((shape,i)=>({id:'table'+i,number:i+1,label:shape==='theatre'?'Row A':'Table '+(i+1),shape,sectionId:'front',capacity:2,x:240+i*320,y:240,rotation:0,vip:false,seats:[{id:'seat'+i+'a',label:'1',accessible:true},{id:'seat'+i+'b',label:'2',accessible:false}]}));
+        instance.selectedTableId='table0';instance.guests=[{id:'g1',name:'Guest One',group:'Family',rsvp:'Attending',accessible:false}];instance.groupRules=[{id:'family',label:'Family',color:'#994455',sectionId:'front',keepTogether:true}];
+        for(const modal of ['','table','rows','section','group','assign']){instance.seatingModal=modal;const rendered=instance._render();if(!rendered||rendered.tag!=='section')throw Error('Seating popup failed: '+modal);}
+        instance.seatingModal='';instance.planExpanded=true;instance.seatingView='map';
+        function findSvg(node){if(!node)return null;if(node.tag==='svg')return node;for(const child of node.children||[]){const found=findSvg(child);if(found)return found;}return null;}
+        const svg=findSvg(instance._render());if(!svg||!svg.data.attrs.viewBox||svg.data.attrs.viewbox)throw Error('SVG requires a case-correct viewBox attribute');
+        if(svg.data.attrs.viewBox!==instance.planBox||svg.data.attrs.preserveAspectRatio!=='xMidYMid meet')throw Error('SVG fit binding failed');
+        if(svg.data.style.width!=='100%'||svg.data.style.height!=='100%')throw Error('SVG needs an explicit width and height');
+        instance.zoom=2;const zoomed=findSvg(instance._render());if(zoomed.data.style.width!=='200%'||zoomed.data.style.height!=='200%')throw Error('Zoom must scale both canvas dimensions');
+        instance.planExpanded=false;instance.seatingView='list';if(instance._render().tag!=='section')throw Error('Seating list failed');
+    }
     count++;
 }
 console.log(count+' route templates compiled and rendered as VNodes with Vue '+Vue.version+'.');

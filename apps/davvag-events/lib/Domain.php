@@ -19,7 +19,7 @@ final class Domain {
         $occasion=Support::choice($in['occasion']??'',self::OCCASIONS);$t=self::templates()[array_search($occasion,self::OCCASIONS,true)];
         $id=Support::id();$e=['id'=>$id,'slug'=>'event-'.substr($id,0,12),'ownerProfile'=>$owner,'revision'=>0,'status'=>'draft','createdAt'=>Support::now(),'draftRevision'=>1,'publishedRevision'=>0,'published'=>null,'layoutRevision'=>0,
             'draft'=>['title'=>'','occasion'=>$occasion,'timezone'=>'UTC','start'=>'','end'=>'','venue'=>'','address'=>'','maps'=>'','message'=>$t['message'],'heading'=>$t['heading'],'hosts'=>'','rsvpDeadline'=>null,'privacy'=>'private','capacity'=>100,'modules'=>['rsvp'=>true,'seating'=>true,'greetings'=>true,'media'=>false,'tickets'=>$occasion==='ticketed'],'windows'=>['rsvp'=>true,'checkin'=>true,'greetings'=>true,'media'=>false,'sales'=>true],'moderation'=>true,'nameLookup'=>false,'gateHash'=>'','wallSeconds'=>10,'mediaMaxFiles'=>10,'mediaMaxBytes'=>52428800,'templateId'=>$t['id'],'templateVersion'=>1,'templateSnapshot'=>InvitationTemplates::snapshot($t),'design'=>$t['design'],'agenda'=>[]],
-            'members'=>[],'groups'=>[],'parties'=>[],'guests'=>[],'tokens'=>[],'tables'=>[],'assignments'=>[],'greetings'=>[],'media'=>[],'ticketTypes'=>[],'orders'=>[],'tickets'=>[],'checkins'=>[],'jobs'=>[],'providerEvents'=>[],'operations'=>[],'audit'=>[]];
+            'members'=>[],'groups'=>[],'parties'=>[],'guests'=>[],'tokens'=>[],'seatingSections'=>[],'tables'=>[],'assignments'=>[],'greetings'=>[],'media'=>[],'ticketTypes'=>[],'orders'=>[],'tickets'=>[],'checkins'=>[],'jobs'=>[],'providerEvents'=>[],'operations'=>[],'audit'=>[]];
         self::edit($e,$in);return $e;
     }
     public static function edit(&$e,$in) {
@@ -177,6 +177,9 @@ final class Domain {
     }
     public static function keys($e) {
         $out=[];$add=function($kind,$key,$global=false)use(&$out,$e){$out[]=['kind'=>$kind,'scope'=>$global?'tenant':$e['id'],'value'=>(string)$key];};
+        foreach(Seating::sections($e) as $section){$add('section',$section['id']);$add('section_label',hash('sha256',mb_strtolower($section['label'])));}
+        foreach($e['tables'] as $table)if(($number=Seating::number($table))!==null)$add('table_number',$number);
+        foreach($e['groups'] as $group)$add('guest_group',hash('sha256',mb_strtolower($group['label'])));
         foreach($e['members'] as $m)$add('member',$m['profileId']);
         foreach($e['tokens'] as $t)$add('credential',$t['hash'],true);
         foreach($e['assignments'] as $a){$add('seat',$a['seatId']);$add('seated_guest',$a['guestId']);}
@@ -187,6 +190,7 @@ final class Domain {
         foreach($e['jobs'] as $j)$add('job',$j['key']);return $out;
     }
     public static function assertInvariants($e) {
+        Seating::assertLayout($e);
         if(count($e['guests'])>1000)Support::fail('LIMIT','At most 1,000 attendees are supported per event.',409);
         $keys=[];foreach(self::keys($e) as $k){$key=$k['kind'].'|'.$k['scope'].'|'.$k['value'];if(isset($keys[$key]))Support::fail('CONFLICT','An attendee, seat, credential, or operation is duplicated.',409);$keys[$key]=true;}
         $guests=[];foreach($e['guests'] as $g){if(isset($guests[$g['id']]))Support::fail('CONFLICT','Duplicate attendee.',409);$guests[$g['id']]=$g;self::partyIndex($e,$g['partyId']);}

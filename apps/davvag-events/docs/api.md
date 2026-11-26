@@ -69,7 +69,7 @@ Every event-scoped call requires `eventId`. Owner/staff calls resolve authentica
 - `RotateInvitation`: partyId; revokeOnly optionally revokes without replacement. A replacement credential/URL is returned once and old links are invalidated. QueueInvitation additionally requires delivery consent, stable operation, and optional offset-bearing runAt.
 - `Exchange`: credential sent in the POST body, eventId, CSRF. Establishes a 30 minute RSVP capability session. Invitation/Seat/Calendar reuse this session.
 - Public `Respond`: attendees[] plus stable operation key. Existing attendee IDs must belong to this party; unnamed plus-ones become stable attendees. Same operation retries return current party without adding another person. Declines release seats.
-- `SaveTable`: revision, layoutRevision, optional tableId, shape round/rectangle/theatre, label, capacity, x/y/rotation, accessibleSeats[] (1-based), VIP; delete/releaseOccupied explicitly handles removal. Assign uses guestId, seatId (empty to unassign), locked and unlock.
+- `SaveTable`: revision, layoutRevision, optional tableId, shape round/oval/square/rectangle/theatre, label, capacity, x/y/rotation, accessibleSeats[] (1-based), VIP; delete/releaseOccupied explicitly handles removal. Assign uses guestId, seatId (empty to unassign), locked and unlock.
 - `AutoPreview`: optional allowSplit. Returns assignments, unsatisfied groups, hash, revision and heuristic. AutoApply requires that fresh hash/revision in the same actor session.
 - Greeting Submit: displayName or anonymous, plain-text message, operation. Returns pending/approved; Wall returns only approved projections, pagination offset and pollSeconds. Moderate uses greetingId and approved/rejected/pending/delete.
 - Media Upload: multipart file, eventId, stable 32-hex operation key, uploader, consent plus X-Davvag-CSRF header; requires RSVP session. Returns uploadId/status only. Cancel accepts uploadId scoped to the same party. Queue is host-only.
@@ -89,3 +89,22 @@ Mutations use revision CAS. Checkout operation keys, RSVP operations, job keys, 
 ## 1.1.0 editor additions
 
 `SaveEvent` accepts localStart, localEnd, localRsvpDeadline and timezone for date-picker input, plus templateId/templateVersion. Dates are converted server-side and event snapshots come from the installed template library. `Session` supplies supported timezones and available templates. `POST events/SaveTemplate` is tenant-admin-only and CSRF protected; it saves a new version of an app-owned HTML/CSS card. See [template guide](invitation-templates.md) for inputs, placeholders and rendering constraints.
+
+
+## 1.2.0 seating additions
+
+`GET seating/Plan` includes `sections`, configured guest `groups`, `nextTableNumber` and numbered `tables` with optional `sectionId`. Legacy tables receive stable display numbers without a read-time write.
+
+`POST seating/SaveTable` keeps its existing authorization and accepts an allowlisted `action`. Every action requires `eventId`, `revision` and `layoutRevision` plus CSRF:
+
+| action | Additional fields |
+| --- | --- |
+| `table` (default) | Existing table fields; `number`, `sectionId`, `seatStart`, `seatPrefix`. Shapes: round, oval, square, rectangle, theatre. |
+| `addTables` | `count` (1-20), starting `number`, `shape`, `capacity`, optional label/section/accessibility/VIP and stable 32-hex `operation`. |
+| `addRows` | `rows` and `seatsPerRow` (each 1-30), `firstRow` (A-ZZ), `startNumber`, `numbering` (`perRow` or `continuous`), optional `sectionId`, `accessible`, stable 32-hex `operation`. |
+| `section` | Optional existing `sectionId`, `label`, hex `color`; deletion uses `delete` and explicit `moveToUnsectioned` when populated. |
+| `group` | Optional existing `groupId` or legacy `originalLabel`, `label`, hex `color`, `guestIds`, `keepTogether`, optional `sectionId`; `delete` removes grouping while preserving guests and assignments. |
+
+Existing table edits retain IDs of seats that remain. Occupied seat removal requires `releaseOccupied`. Table numbers are event-unique. Sections and guests must belong to the event. The aggregate transaction and revision checks cover every action. Bulk retries reuse operation keys after refreshing revisions.
+
+AutoPreview/AutoApply preserve current assignments and respect configured group sections and keep-together rules. A managed group may explicitly allow splitting. Unmanaged groups use the existing `allowSplit` choice. Guest lookup includes table number and section alongside seat labels.

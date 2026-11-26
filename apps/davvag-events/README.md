@@ -111,3 +111,7 @@ See [architecture and schema](docs/architecture.md), [API](docs/api.md), and [ve
 The 1.1.0 editor collects event details with date/time pickers before template and colour selection. Administrators can create reusable animated HTML/CSS cards from the design step. See [invitation editor and template guide](docs/invitation-templates.md).
 
 Service handlers are organized in their respective `services/*/service.php` files. `lib/bootstrap.php` contains only shared-helper loading; see [architecture](docs/architecture.md#service-file-organization-111).
+
+Version 1.2.0 adds seating popups, numbered tables in four shapes, numbered rows, room sections and guest grouping. See the [seating guide](docs/seating.md). Refresh the app with Ctrl+F5 after updating.
+
+Version 1.2.1 fixes the seating viewport with full-width content fitting, a taller map, Fit plan and Expand controls. Use Ctrl+F5 to refresh cached components.
