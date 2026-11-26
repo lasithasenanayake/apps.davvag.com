@@ -498,7 +498,7 @@ class CurlClient implements ClientInterface
     private function closeCurlHandle()
     {
         if (null !== $this->curlHandle) {
-            \curl_close($this->curlHandle);
+            $this->curlHandle = null;
             $this->curlHandle = null;
         }
     }

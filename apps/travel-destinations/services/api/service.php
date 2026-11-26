@@ -2494,7 +2494,7 @@ class ApiService {
         $response = curl_exec($curl);
         $status = intval(curl_getinfo($curl, CURLINFO_HTTP_CODE));
         $error = curl_errno($curl);
-        curl_close($curl);
+        $curl = null;
         if ($error !== 0 || $status !== 200 || !is_string($response) || strlen($response) > 1048576) {
             return null;
         }
@@ -2716,7 +2716,7 @@ class ApiService {
         curl_exec($curl);
         $status = intval(curl_getinfo($curl, CURLINFO_HTTP_CODE));
         $redirectUrl = strval(curl_getinfo($curl, CURLINFO_REDIRECT_URL));
-        curl_close($curl);
+        $curl = null;
         return $status >= 300 && $status < 400 ? trim($redirectUrl) : "";
     }
 

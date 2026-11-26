@@ -422,7 +422,7 @@ class YtgHttpClient {
             $text = curl_exec($ch);
             $error = curl_error($ch);
             $status = intval(curl_getinfo($ch, CURLINFO_HTTP_CODE));
-            curl_close($ch);
+            $ch = null;
 
             $out->status = $status;
             $out->text = $text === false ? "" : $text;

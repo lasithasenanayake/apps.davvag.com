@@ -1050,7 +1050,7 @@ class ViralContentManagerService {
         $text = curl_exec($ch);
         $out->error = curl_error($ch);
         $out->httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         if ($text !== false && $out->httpStatus < 400) {
             $out->success = true;
@@ -1512,7 +1512,7 @@ class ViralContentManagerService {
         $text = curl_exec($ch);
         $out->error = curl_error($ch);
         $out->httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         $json = is_string($text) ? json_decode($text, true) : null;
         if ($text !== false && $out->httpStatus < 400 && is_array($json)) {
@@ -1601,7 +1601,7 @@ class ViralContentManagerService {
         $response = curl_exec($ch);
         $error = curl_error($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         if ($response === false || $status >= 400) {
             $metadata["status"] = "fetch_failed";

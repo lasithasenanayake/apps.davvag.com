@@ -184,7 +184,7 @@ class FBMessangerPlatform {
             echo 'Curl error: ' . curl_error($ch);
         }
         //echo $response;
-        curl_close($ch);
+        $ch = null;
         return $response;
     }
 

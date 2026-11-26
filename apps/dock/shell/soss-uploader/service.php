@@ -57,7 +57,7 @@ class UploaderService {
                 } elseif ($info['mime'] == 'image/jpeg' && function_exists("imagejpeg")) {
                     $saved = imagejpeg($image, $destination, $quality);
                 }
-                imagedestroy($image);
+                $image = null;
                 if (!$saved) {
                     file_put_contents($destination, $source);
                 }
@@ -100,7 +100,7 @@ class UploaderService {
             } elseif ($info['mime'] == 'image/jpeg' && function_exists("imagejpeg")) {
                 $saved = imagejpeg($image, $destination, $quality);
             }
-            imagedestroy($image);
+            $image = null;
             if (!$saved) {
                 copy($source, $destination);
             }

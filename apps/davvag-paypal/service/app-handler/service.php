@@ -235,7 +235,7 @@ class PayPal_IPG {
         $response = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
-        curl_close($ch);
+        $ch = null;
 
         $result = new stdClass();
         $result->success = false;

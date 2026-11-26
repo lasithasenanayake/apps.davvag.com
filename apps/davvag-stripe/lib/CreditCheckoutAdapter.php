@@ -24,7 +24,7 @@ final class CreditCheckoutAdapter
         if($key!=='')$headers[]='Idempotency-Key: '.$key;
         curl_setopt_array($curl,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>30,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_HTTPHEADER=>$headers,CURLOPT_CUSTOMREQUEST=>$method]);
         if($method==='POST')curl_setopt($curl,CURLOPT_POSTFIELDS,http_build_query($fields));
-        $body=curl_exec($curl);$status=curl_getinfo($curl,CURLINFO_HTTP_CODE);curl_close($curl);
+        $body=curl_exec($curl);$status=curl_getinfo($curl,CURLINFO_HTTP_CODE);$curl = null;
         $data=is_string($body)?json_decode($body):null;
         if($status<200 || $status>=300 || !$data)throw new \RuntimeException('Stripe could not verify checkout. Retry the same order.');
         return $data;

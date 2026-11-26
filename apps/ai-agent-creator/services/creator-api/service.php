@@ -814,7 +814,7 @@ class CreatorService {
         if ($url === "" || !function_exists("curl_init")) return $this->fail("Model discovery endpoint is unavailable.");
         $ch = curl_init($url); curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); curl_setopt($ch, CURLOPT_TIMEOUT, 15); curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        $raw = curl_exec($ch); $error = curl_error($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        $raw = curl_exec($ch); $error = curl_error($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $ch = null;
         if ($raw === false || $status < 200 || $status >= 300) {
             $out = $this->ok(); $out->models = $providers[$provider]["fallbackModels"]; $out->discoverySuccess = false;
             $out->warning = $this->sanitizeProviderError($raw === false ? $error : "Discovery returned HTTP " . $status . ".") . " Curated fallback models are shown."; return $out;
@@ -1578,7 +1578,7 @@ class CreatorService {
         $ch = curl_init($url);
         $payloadJson = json_encode($payload);
         if (!is_string($payloadJson)) {
-            curl_close($ch);
+            $ch = null;
             return $this->fail("Agent provider request could not be encoded as valid UTF-8 JSON.");
         }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1593,7 +1593,7 @@ class CreatorService {
         $raw = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         if ($raw === false) {
             return $this->fail($this->sanitizeProviderError("Agent request failed: " . $curlError));
@@ -2163,7 +2163,7 @@ class CreatorService {
         $raw = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         if ($raw === false) {
             return $this->skillResult($skill, "failed", "Service call failed: " . $curlError, null, $startedAt);

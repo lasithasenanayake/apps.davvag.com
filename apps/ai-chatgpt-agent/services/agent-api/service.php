@@ -433,7 +433,7 @@ class AgentService {
         $raw = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = null;
 
         if ($raw === false) {
             return $this->fail("OpenAI request failed: " . $curlError);

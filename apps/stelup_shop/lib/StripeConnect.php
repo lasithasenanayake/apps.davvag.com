@@ -163,7 +163,7 @@ class StelupStripeConnect {
         }
         $raw=curl_exec($c);
         $status=curl_getinfo($c,CURLINFO_HTTP_CODE);
-        curl_close($c);
+        $c = null;
         if($raw===false||$status<200||$status>=300) {
             throw new Exception('Stripe request failed. Check the platform configuration and connected account.');
         }

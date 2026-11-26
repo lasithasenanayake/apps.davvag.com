@@ -12,7 +12,7 @@ final class Http {
         curl_setopt_array($ch,[CURLOPT_CUSTOMREQUEST=>$method,CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>55,CURLOPT_HTTPHEADER=>$headers,CURLOPT_HEADERFUNCTION=>function($ch,$line)use(&$responseHeaders){$p=explode(':',$line,2);if(count($p)===2)$responseHeaders[strtolower(trim($p[0]))]=trim($p[1]);return strlen($line);}]);
         if(is_resource($body)){curl_setopt($ch,CURLOPT_UPLOAD,true);curl_setopt($ch,CURLOPT_INFILE,$body);curl_setopt($ch,CURLOPT_INFILESIZE,$length);}
         elseif($body!==null)curl_setopt($ch,CURLOPT_POSTFIELDS,$body);
-        $raw=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
+        $raw=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$ch = null;
         if($raw===false||$status===0)Support::fail('PROVIDER_NETWORK','Provider connection interrupted; retry is queued.',503);
         return ['status'=>$status,'headers'=>$responseHeaders,'data'=>json_decode($raw,true),'raw'=>$raw];
     }
